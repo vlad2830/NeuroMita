@@ -690,9 +690,17 @@ namespace MitaAI
 
                 TryTurnChild(worldBasement, "Quests/Quest1 Start",false);
                 TryTurnChild(worldBasement, "Mita Future", false);
-                var door = TryfindChild(worldBasement, "World/House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame");
-                door.SetActive(true);
-                TryTurnChild(door.transform, "BasementDoor", false);
+                try
+                {
+                    var door = TryfindChild(worldBasement, "World/House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame");
+                    door.SetActive(true);
+                    TryTurnChild(door.transform, "BasementDoor", false);
+                }
+                catch (Exception)
+                {
+
+                    
+                } 
                 // Работа с AnimationKiller
                 LoggerInstance.Msg("AnimationKiller start");
                 string objectPath = "Quests/Quest2 HideAndSeek/Animation Killer";
