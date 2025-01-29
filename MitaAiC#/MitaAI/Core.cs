@@ -502,7 +502,7 @@ namespace MitaAI
             Mita = GameObject.Find("Mita")?.GetComponent<MitaPerson>();
             MitaObject = GameObject.Find("Mita").gameObject;
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
-            MitaObject.transform.SetParent(worldHouse);
+            
 
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
             Mita.AiShraplyStop();
@@ -539,16 +539,20 @@ namespace MitaAI
 
             CommandProcessor.Initialize(this, playerObject.transform,MitaObject.transform,Location34_Communication);
 
-
+                
             worldHouse = GameObject.Find("World")?.transform;
             World worldSettings = worldHouse.gameObject.GetComponent<World>();
-
+            MitaObject.transform.SetParent(worldHouse);
             location21_World = worldHouse.gameObject.AddComponent<Location21_World>();
             LightingAndDaytime.Init(location21_World, worldHouse);
             MelonCoroutines.Start(StartDayTime());
             //MelonCoroutines.Start(UpdateLighitng());
 
-
+            try
+            {
+                AudioControl.Init(worldHouse);
+            }
+            catch (Exception ex) { LoggerInstance.Error(ex); }
 
             worldSettings.limitFloor = -200f;
             if (worldHouse == null)
@@ -1208,6 +1212,7 @@ namespace MitaAI
                 modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
                 modifiedPart = ProcessPlayerEffects(modifiedPart);
                 modifiedPart = setAnimation(modifiedPart);
+                modifiedPart = AudioControl.ProcessMusic(modifiedPart);
                 (emotion, modifiedPart) = SetEmotionBasedOnResponse(modifiedPart);
                 LoggerInstance.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
 
@@ -2340,7 +2345,7 @@ namespace MitaAI
                     }
                 
                 if (activeMakens.Count>0) info = info + $"Menekens count: {activeMakens.Count}\n";
-
+                info += $"Current music: {AudioControl.getCurrrentMusic()}\n";
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
             }
             catch (Exception ex)

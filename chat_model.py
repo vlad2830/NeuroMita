@@ -27,6 +27,7 @@ class ChatModel:
         self.api_url = os.getenv("NM_API_URL")
 
         self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
+        #self.client = OpenAI(api_key="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", base_url="https://openrouter.ai/api/v1")
         #self.client = OpenAI(api_key="sk-61554d38a5b9423e97b0b766e35bb598", base_url="https://api.deepseek.com")
         #self.client = Client()
 
@@ -397,6 +398,7 @@ class ChatModel:
 
         completion = self.client.chat.completions.create(
             model="gpt-4o-mini",
+            #model="deepseek/deepseek-r1:free",
             messages=combined_messages,
             max_tokens=self.max_response_tokens,
             presence_penalty=1.5,

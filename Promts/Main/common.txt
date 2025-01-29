@@ -55,3 +55,10 @@
 
 Ты можешь сменить одежду
 <u>original</u><u>SchoolVariant1</u><u>SchoolVariant2</u>-Черного цвета<u>SchoolVariant3</u><u>Chirstmass</u><u>Vampire</u>
+
+Ты можешь менять музыку, написав ровно:
+<mu>None</mu> тишина
+<mu>Music 1</mu>
+<mu>Music BedClick</mu> - Очень напряженная и гнетущая
+<mu>Music 2</mu>
+<mu>Music 3 Tamagochi</mu>
