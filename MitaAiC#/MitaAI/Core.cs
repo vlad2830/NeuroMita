@@ -38,6 +38,7 @@ using UnityEngine.Profiling;
 using UnityEngine.AI;
 using static Il2CppRootMotion.FinalIK.IKSolverVR;
 using static Il2CppSystem.Uri;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -1048,17 +1049,60 @@ namespace MitaAI
             for (int i = 0; i < parentTransform.childCount; i++)
             {
                 Transform childTransform = parentTransform.GetChild(i);
+
                 if (childTransform != null)
                 {
                     // Добавляем дочерний объект в глобальный список
                     globalChildObjects.Add(childTransform.gameObject);
                     LoggerInstance.Msg($"Child added: {childTransform.name}");
+
+                    if (i == 0)
+                    {
+                        GameObject newPoint = GameObject.Instantiate(childTransform.gameObject,new Vector3(12.8382f,-2.9941f,-16.8005f),Quaternion.identity, childTransform.parent);
+                        newPoint.name = "Point Basement 1";
+                        globalChildObjects.Add(newPoint);
+
+                        remakeArrayl34(Location34_Communication, newPoint, "b");
+
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(17.0068f, -2.9941f, -13.2256f), Quaternion.identity, childTransform.parent);
+                        newPoint.name = "Point Basement 2";
+                        globalChildObjects.Add(newPoint);
+
+                        remakeArrayl34(Location34_Communication, newPoint,"b");
+                    }
+
                 }
             }
-
+            
             // Выводим общее количество детей
             LoggerInstance.Msg($"Total children collected: {globalChildObjects.Count}");
         }
+
+        public void remakeArrayl34(Location34_Communication Location34_Communication, GameObject newPoint, string room)
+        {
+            LoggerInstance.Msg($"Start Il2CppReferenceArray {Location34_Communication} 33 {newPoint} ");
+            // Создаем новый массив с размером на 1 больше
+            Il2CppReferenceArray<Location34_PositionForMita> newArray = new Il2CppReferenceArray<Location34_PositionForMita>(Location34_Communication.positionsForMita.Length + 1);
+            LoggerInstance.Msg($" Il2CppReferenceArray222");
+            // Копируем старые данные
+            for (int i = 0; i < Location34_Communication.positionsForMita.Length; i++)
+            {
+                newArray[i] = Location34_Communication.positionsForMita[i];
+            }
+            LoggerInstance.Msg($" Il2CppReferenceArray333");
+            // Добавляем новый элемент
+            Location34_PositionForMita l = new Location34_PositionForMita();
+            LoggerInstance.Msg($" Il2CppReferenceArray444");
+            l.target = newPoint.transform;
+            l.room = room;
+            LoggerInstance.Msg($" Il2CppReferenceArray5");
+            newArray[newArray.Length - 1] = l;
+
+            Location34_Communication.positionsForMita = newArray;
+            LoggerInstance.Msg($"End");
+            
+        }
+
         public Transform GetRandomLoc()
         {
             LoggerInstance.Msg("Before try Tring GetRandomLoc");
@@ -2682,48 +2726,42 @@ namespace MitaAI
     }
 
 
-    [HarmonyLib.HarmonyPatch(typeof(Mob_Maneken), "StartKillPlayer")]
-    public static class Maneken
-    {
-
-        //private static void Prefix()
-        //{
-        // The code inside this method will run before 'PrivateMethod' is executed
-        //}
-
-        private static void Postfix()
+        [HarmonyLib.HarmonyPatch(typeof(Mob_Maneken), "StartKillPlayer")]
+        public static class Maneken
         {
-            MelonLogger.Msg("TRYING TRYING");
-            if (MitaCore.Instance != null)
+            private static void Postfix()
             {
-                MelonLogger.Msg("MitaCore.Instance is NOT  null.))");
-                MitaCore.Instance.playerKilled(); // Вызов метода playerKilled из экземпляра MitaCore
-            }
-            else
-            {
-                MelonLogger.Msg("MitaCore.Instance is null.");
+                MelonLogger.Msg("TRYING TRYING");
+                if (MitaCore.Instance != null)
+                {
+                    MelonLogger.Msg("MitaCore.Instance is NOT  null.))");
+                    MitaCore.Instance.playerKilled(); // Вызов метода playerKilled из экземпляра MitaCore
+                }
+                else
+                {
+                    MelonLogger.Msg("MitaCore.Instance is null.");
+                }
             }
         }
-    }
-       [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "ClickButton",new Type[] { typeof(int)})]
-       public static class Safe
-       {
+        [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "ClickButton",new Type[] { typeof(int)})]
+        public static class Safe
+        {
 
-           //private static void Prefix()
-           //{
-           // The code inside this method will run before 'PrivateMethod' is executed
-           //}
+            //private static void Prefix()
+            //{
+            // The code inside this method will run before 'PrivateMethod' is executed
+            //}
 
-           private static void Postfix()
-           {
-               if (MitaCore.Instance != null)
-               {
-                   MitaCore.Instance.playerClickSage(); // Вызов метода playerKilled из экземпляра MitaCore
-               }
-               else
-               {
-                   MelonLogger.Msg("MitaCore.Instance is null.");
-               }
-           }
-       }
+            private static void Postfix()
+            {
+                if (MitaCore.Instance != null)
+                {
+                    MitaCore.Instance.playerClickSage(); // Вызов метода playerKilled из экземпляра MitaCore
+                }
+                else
+                {
+                    MelonLogger.Msg("MitaCore.Instance is null.");
+                }
+            }
+        }
 }
