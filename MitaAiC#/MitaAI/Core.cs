@@ -696,7 +696,7 @@ namespace MitaAI
                 TryTurnChild(worldBasement, "Mita Future", false);
                 try
                 {
-                    var door = TryfindChild(worldBasement, "World/House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame");
+                    var door = TryfindChild(worldBasement, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame");
                     door.SetActive(true);
                     TryTurnChild(door.transform, "BasementDoor", false);
                 }
@@ -1531,7 +1531,7 @@ namespace MitaAI
         IEnumerator hunting()
         {
             float startTime = Time.time; // Запоминаем время старта корутины
-            float lastMessageTime = -30f; // Чтобы сообщение появилось сразу через 15 секунд
+            float lastMessageTime = -45f; // Чтобы сообщение появилось сразу через 15 секунд
 
             yield return new WaitForSeconds(1f);
 
@@ -1558,7 +1558,7 @@ namespace MitaAI
                 float elapsedTime = Time.time - startTime;
 
                 // Каждые 15 секунд вызываем функцию (если прошло время)
-                if (elapsedTime - lastMessageTime >= 30f)
+                if (elapsedTime - lastMessageTime >= 45f)
                 {
                     string message = $"Игрок жив уже {elapsedTime.ToString("F2")} секунд. Скажи что-нибудь короткое. ";
                     if (Mathf.FloorToInt(elapsedTime) % 60 == 0) message += "Может быть, пора усложнять игру... (Менять скорости или спавнить манекенов или применять эффекты)";
