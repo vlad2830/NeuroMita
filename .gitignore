@@ -1,5 +1,3 @@
-
-chat_history.json
 __pycache__/chat_model.cpython-312.pyc
 *.pyc
 *.json
@@ -7,14 +5,9 @@ __pycache__/chat_model.cpython-312.pyc
 *.session-journal
 *.wav
 *.json
-RVC/added_IVF392_Flat_nprobe_1_experiment_mita_v2.index
-RVC/experiment_mita.pth
-SavedHistories/chat_history1.json
 *.json
-s
 /MitaAiC\#/.vs
 /MitaAiC\#/MitaAI/obj/Debug
 /MitaAiC\#/MitaAI/obj
-/MitaAiC\#/MitaAI/obj/Debug
 /MitaAiC\#/.vs
 /MitaAiC\#/MitaAI/bin/Debug
