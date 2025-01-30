@@ -2,110 +2,119 @@
 using Il2CppSystem;
 using MelonLoader;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.Events;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.Text; // Для StringBuilder
 
 namespace MitaAI
 {
     public static class Interactions
     {
-        public static void CreateObjectInteractable(UnityEngine.GameObject gameObject, System.Action unityAction)
+        public static void CreateObjectInteractable(GameObject gameObject)
         {
             if (gameObject == null)
             {
-                MelonLogger.Msg($"ERROR FIND: GameObject is null");
+                MelonLogger.Msg("ERROR FIND: GameObject is null");
                 return;
             }
 
-            // Проверяем, есть ли коллайдер у объекта, если нет — добавляем
-            if (!gameObject.GetComponent<UnityEngine.Collider>())
+            if (!gameObject.GetComponent<Collider>())
             {
-                UnityEngine.Bounds bounds = new UnityEngine.Bounds(gameObject.transform.position, UnityEngine.Vector3.zero);
-                UnityEngine.MeshFilter meshFilter = gameObject.GetComponent<UnityEngine.MeshFilter>();
-
-                if (meshFilter != null && meshFilter.mesh != null)
-                {
-                    bounds.Encapsulate(meshFilter.mesh.bounds);
-                }
-
-                UnityEngine.BoxCollider boxCollider = gameObject.AddComponent<UnityEngine.BoxCollider>();
-                boxCollider.center = bounds.center;
-                boxCollider.size = bounds.size;
-
-                MelonLogger.Msg($"SIZE: {boxCollider.size} and center: {boxCollider.center}");
+                BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
+                MelonLogger.Msg($"Collider added to {gameObject.name}");
             }
-            
-
-            // Делаем объект неактивным перед добавлением компонентов
-            gameObject.SetActive(false);
-
-            // Добавляем компонент взаимодействия
-            var objectInteractive = gameObject.AddComponent<ObjectInteractive>();
-
-            // Создаём событие и добавляем обработчик через Il2CppSystem.Action
-            objectInteractive.eventClick = new UnityEngine.Events.UnityEvent();
-            objectInteractive.eventClick.AddListener(unityAction);
-
-            // Делаем объект активным
-            gameObject.SetActive(true);
+            if (gameObject.GetComponent<ObjectInteractive>())
+            {
+                var objectInteractive = gameObject.AddComponent<ObjectInteractive>();
+            }
         }
+        private static Dictionary<string, float> objectViewTime = new Dictionary<string, float>();
 
-
-        public static void Test(UnityEngine.GameObject gameObject2)
+        public static void Update()
         {
-            MelonLogger.Msg($"Attempting interaction setup...");
             try
             {
-                // Создаем обработчик и преобразуем в Il2CppSystem.Action
-                System.Action action = () => OnGameObjectClicked(gameObject2);
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
+                {
+                    GameObject hitObject = hit.collider.gameObject;
+                    string objectName = hitObject.name; // Используем имя как ключ
+
+                
+                        if (!objectViewTime.ContainsKey(objectName))
+                        {
+                            objectViewTime[objectName] = 0.0f;
+                            //MelonLogger.Msg($"Adding new object: {objectName}");
+                        }
+                        else
+                        {
+                           // MelonLogger.Msg($"Object already tracked: {objectName}");
+                        }
+                        objectViewTime[objectName] += Time.deltaTime;
+            
 
 
-                // Передаём в метод CreateObjectInteractable
-                CreateObjectInteractable(gameObject2, action);
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        MelonLogger.Msg("Mouse clicked.");
+                        OnGameObjectClicked(hitObject);
+                    }
+
+                   MelonLogger.Msg($"{objectName}:{objectViewTime[objectName]}s.");
+                   MelonLogger.Msg($"objectViewTime count {objectViewTime.Count}.");
+                }
             }
-            catch (System.Exception e)
+            catch (System.Exception ex)
             {
-                MelonLogger.Error($"Error during interaction setup: {e}");
+
+                MelonLogger.Error($"Interactions Update error: {ex}");
             }
-            MelonLogger.Msg($"Interaction setup completed.");
         }
 
-
-        private static Il2CppSystem.Action CreateIl2CppAction(System.Action action)
+        public static string getObservedObjects()
         {
-            return (Il2CppSystem.Action)action;
-        }
-
-        // Метод для обработки события
-        private static void OnGameObjectClicked(UnityEngine.GameObject gameObject)
-        {
-            switch (gameObject.name)
+            StringBuilder answer = new StringBuilder("\nPlayer has observed since last answer (object:view time seconds):");
+            //List<string> toRemove = new List<string>();
+            try
             {
-                case "SofaChair":
-                    MelonLogger.Msg($"{gameObject.name}");
-                    MitaCore.Instance.sendSystemMessage("Игрок засмотрелся на кресло");
-                    break;
-                case "CornerSofa":
-                    MelonLogger.Msg($"{gameObject.name}");
-                    MitaCore.Instance.sendSystemMessage("Игрок засмотрелся на кресло в ");
-                    break;
-                case "Kitchen Table":
-                    MelonLogger.Msg($"{gameObject.name}");
-                    MitaCore.Instance.sendSystemMessage("Игрок засмотрелся на стол на кухне");
-                    break;
-                default:
-                    break;
+                foreach (var item in objectViewTime)
+                {
+                    if (item.Value >= 0.5f)
+                    {
+                        answer.Append($"{item.Key}:{item.Value.ToString("F2")}s\n");
+                        //toRemove.Add(item.Key);
+                    }
+                }
+                objectViewTime.Clear();
             }
-            MelonLogger.Msg($"The GameObject {gameObject.name} did something!");
-            ToggleBoolAfterTime(gameObject, 1, true);
-        }
+            catch (System.Exception ex)
+            {
 
+                MelonLogger.Error($"getObservedObjects error: {ex}");
+            }
+
+
+            // Удаляем только те объекты, которые уже обработаны
+            // foreach (var obj in toRemove)
+            //{
+                //   objectViewTime.Remove(obj);
+                // }
+
+                return answer.ToString();
+            
+        }
+        public static void OnGameObjectClicked(GameObject gameObject)
+        {
+
+            MitaCore.Instance.sendSystemInfo($"Игрок стукнул по {gameObject.name}.");
+            MelonLogger.Msg($"The GameObject {gameObject.name} was clicked!");
+
+            if (gameObject.GetComponent<ObjectInteractive>())
+            {
+                gameObject.GetComponent<ObjectInteractive>().active = false;
+                ToggleBoolAfterTime(gameObject, 3, true);
+            }
+        }
         public static IEnumerator ToggleBoolAfterTime(GameObject gameObject, float delay, bool value)
         {
             // Ждём заданное время
@@ -123,6 +132,7 @@ namespace MitaAI
                 Debug.LogError($"ObjectInteractive component not found on {gameObject.name}");
             }
         }
-    }
+        }
+    } 
 
-}
+

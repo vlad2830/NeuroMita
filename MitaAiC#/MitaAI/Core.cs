@@ -610,14 +610,14 @@ namespace MitaAI
             CustomDialogText.indexString = -1;
             CustomDialogText.showSubtitles = true;
 
-            MelonLogger.Msg($"Attempt before");
-            //Interactions.Test(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
+            MelonLogger.Msg($"Attempt Interactions before");
+            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
             
-            //Interactions.Test(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
-            //Interactions.Test(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
-            //Interactions.Test(TryfindChild(worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
+            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
+            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
+            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
             //MelonLogger.Msg($"Attempt after");
-                
+            MelonLogger.Msg($"Attempt Interactions end");
             try
             {
                 AddOtherScenes();
@@ -844,6 +844,12 @@ namespace MitaAI
 
         bool FirstTime = true;
 
+        public override void OnLateUpdate()
+        {
+            
+            base.OnLateUpdate();
+            Interactions.Update();
+        }
         public override async void OnFixedUpdate()
         {
 
@@ -998,7 +1004,7 @@ namespace MitaAI
                 else if (MitaBoringtimer >= MitaBoringInterval && mitaState == MitaState.normal)
                 {
                     await ResetBoringTimerAsync();
-                    dataToSent = "boring";
+                    dataToSentSystem = "boring";
                     lastActionTime = Time.time;
                 }
             }
@@ -2308,6 +2314,7 @@ namespace MitaAI
                     return string.Empty; // Возвращаем пустой ответ, если не удалось подключиться
                 }
 
+                bool waitResponse = input!= "waiting" || dataToSentSystem!="-";
                 // Дополнительная логика для подготовки данных
 
 
@@ -2330,7 +2337,7 @@ namespace MitaAI
                 distance = getDistance();
                 roomIDPlayer = GetRoomID(playerPerson.transform);
                 roomIDMita = GetRoomID(Mita.transform);
-                string currentInfo = formCurrentInfo();
+                string currentInfo = waitResponse ? formCurrentInfo() : "-";
                 if (string.IsNullOrEmpty(currentInfo)) currentInfo = "-";
                 if (string.IsNullOrEmpty(systemInfo)) systemInfo = "-";
                 if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
@@ -2391,6 +2398,8 @@ namespace MitaAI
                 if (activeMakens.Count>0) info = info + $"Menekens count: {activeMakens.Count}\n";
                 info += $"Current music: {AudioControl.getCurrrentMusic()}\n";
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
+
+                info += Interactions.getObservedObjects();
             }
             catch (Exception ex)
             {
