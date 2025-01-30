@@ -60,8 +60,8 @@ namespace MitaAI
                         OnGameObjectClicked(hitObject);
                     }
 
-                   MelonLogger.Msg($"{objectName}:{objectViewTime[objectName]}s.");
-                   MelonLogger.Msg($"objectViewTime count {objectViewTime.Count}.");
+                   //MelonLogger.Msg($"{objectName}:{objectViewTime[objectName]}s.");
+                   //MelonLogger.Msg($"objectViewTime count {objectViewTime.Count}.");
                 }
             }
             catch (System.Exception ex)
@@ -106,7 +106,7 @@ namespace MitaAI
         public static void OnGameObjectClicked(GameObject gameObject)
         {
 
-            MitaCore.Instance.sendSystemInfo($"Игрок стукнул по {gameObject.name}.");
+            //MitaCore.Instance.sendSystemInfo($"Игрок стукнул по {gameObject.name}.");
             MelonLogger.Msg($"The GameObject {gameObject.name} was clicked!");
 
             if (gameObject.GetComponent<ObjectInteractive>())

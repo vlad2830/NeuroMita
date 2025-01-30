@@ -64,7 +64,7 @@ namespace MitaAI
             walkNear = 0,
             follow = 1,
             stay = 2,
-            noklip = 3
+            noclip = 3
 
         }
         MovementStyles movementStyle = 0;
@@ -1940,9 +1940,9 @@ namespace MitaAI
                         Location34_Communication.ActivationCanWalk(false);
                         break;
                     case "NoClip":
-                        movementStyle = MovementStyles.noklip;
+                        movementStyle = MovementStyles.noclip;
                         Location34_Communication.ActivationCanWalk(false);
-                        MelonCoroutines.Start(MoveToPositionNoClip(5));
+                        MelonCoroutines.Start(FollowPlayerNoclip());
                         break;
                     default:
                         //Mita.FaceColorUpdate();
@@ -2058,9 +2058,22 @@ namespace MitaAI
 
 
         }
+        public IEnumerator FollowPlayerNoclip()
+        {
+
+            while (movementStyle == MovementStyles.noclip && getDistance() > 0.9f)
+            {
+
+                MoveToPositionNoClip(5);
+
+                yield return new WaitForSeconds(2f);
+            }
+
+
+        }
         private IEnumerator MoveToPositionNoClip(float speed)
         {
-            while (movementStyle == MovementStyles.noklip && getDistance() > 0.9f)
+            while (movementStyle == MovementStyles.noclip && getDistance() > 0.9f)
             {
                 Vector3 targetPosition = playerPerson.gameObject.transform.position;
                 // Двигаем персонажа напрямую к цели (без учета препятствий)

@@ -44,7 +44,7 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         self.history_file = "chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
-        self.memory_limit = 31  # Ограничение сообщения
+        self.memory_limit = 36  # Ограничение сообщения
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
@@ -271,6 +271,7 @@ class ChatModel:
         """Логика раскрытия секрета"""
         print("Перестала играть вообще")
         self.secretExposedFirst = True
+        self.secretExposed = True
         self.MitaMainBehaviour = {
             "role": "system",
             "content": f"{self.mainCrazy}\n{self.response_structure}"
@@ -309,10 +310,10 @@ class ChatModel:
         repeated_system_message += f"You are in {self.get_room_name(int(self.roomMita))}, player is in {self.get_room_name(int(self.roomPlayer))}. "
 
         if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Запомни факты за 3 сообщения пользователя <+h></h>"
+            repeated_system_message += " Запомни факты за 3 сообщения пользователя используя <+h>Факт который нужно запомнить</h>"
 
         if self.LongMemoryRememberCount % 3 == 6:
-            repeated_system_message += " Реструктуризируй память при необходимости <#h></h>"
+            repeated_system_message += " Реструктуризируй память при необходимости используя <#h>Итоговые факты об игроке</h>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -562,8 +563,8 @@ class ChatModel:
             print(f"Секрет раскрыт")
             self.attitude = 15
             self.boredom = 20
-            if self.HideAiData:
-                response = response.replace("<Secret!>", "")
+            #if self.HideAiData:
+                #response = response.replace("<Secret!>", "")
             return response
         return response
 

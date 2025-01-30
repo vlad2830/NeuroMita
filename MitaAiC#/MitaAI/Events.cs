@@ -25,20 +25,28 @@ namespace MitaAI
             }
         }
     }
-    [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "ClickButton", new Type[] { typeof(int) })]
+    
+    [HarmonyLib.HarmonyPatch]
     public static class Safe
     {
-
+        [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "ClickButton", new Type[] { typeof(int) })]
+        [HarmonyLib.HarmonyPostfix]
         private static void Postfix()
         {
-            if (MitaCore.Instance != null)
-            {
-                MitaCore.Instance.playerClickSafe(); // Вызов метода playerKilled из экземпляра MitaCore
-            }
-            else
-            {
-                MelonLogger.Msg("MitaCore.Instance is null.");
-            }
+
+            MitaCore.Instance?.playerClickSafe();
+
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "RightPassword")]
+        [HarmonyLib.HarmonyPostfix]
+        private static void Postfix2()
+        { 
+            
+        MitaCore.Instance?.sendSystemMessage("Игрок открыл сейф"); 
+   
         }
     }
+ 
+
 }
