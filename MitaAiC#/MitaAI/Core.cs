@@ -348,9 +348,9 @@ namespace MitaAI
 
             }
         }
-        public void playerClickSage()
+        public void playerClickSafe()
         {
-            sendSystemMessage("Игрок кликает на кнопки твоего сейфа!!!");
+            sendSystemMessage("Игрок кликает на кнопку твоего сейфа");
         }
 
         public static Transform FindObjectInScene(string sceneName, string objectPath)
@@ -996,7 +996,7 @@ namespace MitaAI
                     //Отправляю залпом.
                     while (systemMessages.Count() > 0)
                     {
-                        dataToSentSystem += systemMessages.Dequeue();
+                        dataToSentSystem += systemMessages.Dequeue() + "\n";
                     }
                     lastActionTime = Time.time;
 
@@ -1017,7 +1017,12 @@ namespace MitaAI
                 if (systemInfos.Count > 0)
                 {
                     LoggerInstance.Msg("HAS SYSTEM INFOS");
-                    info = systemInfos.Dequeue();
+                    //Отправляю залпом.
+                    while (systemInfos.Count() > 0)
+                    {
+                        info += systemInfos.Dequeue()+ "\n";
+                    }
+
                 }
                 response = await GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
                 if (response != "")
@@ -2666,7 +2671,7 @@ namespace MitaAI
                 // Удаление исходного файла
                 try
                 {
-                    await Task.Delay(300);
+                    await Task.Delay(100);
                     File.Delete(filePath);
                     MelonLoader.MelonLogger.Msg("Original file deleted: " + filePath);
                 }
@@ -2735,42 +2740,5 @@ namespace MitaAI
     }
 
 
-        [HarmonyLib.HarmonyPatch(typeof(Mob_Maneken), "StartKillPlayer")]
-        public static class Maneken
-        {
-            private static void Postfix()
-            {
-                MelonLogger.Msg("TRYING TRYING");
-                if (MitaCore.Instance != null)
-                {
-                    MelonLogger.Msg("MitaCore.Instance is NOT  null.))");
-                    MitaCore.Instance.playerKilled(); // Вызов метода playerKilled из экземпляра MitaCore
-                }
-                else
-                {
-                    MelonLogger.Msg("MitaCore.Instance is null.");
-                }
-            }
-        }
-        [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "ClickButton",new Type[] { typeof(int)})]
-        public static class Safe
-        {
 
-            //private static void Prefix()
-            //{
-            // The code inside this method will run before 'PrivateMethod' is executed
-            //}
-
-            private static void Postfix()
-            {
-                if (MitaCore.Instance != null)
-                {
-                    MitaCore.Instance.playerClickSage(); // Вызов метода playerKilled из экземпляра MitaCore
-                }
-                else
-                {
-                    MelonLogger.Msg("MitaCore.Instance is null.");
-                }
-            }
-        }
 }
