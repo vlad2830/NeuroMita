@@ -840,14 +840,14 @@ namespace MitaAI
                 MitaBoringtimer += Time.unscaledDeltaTime;
 
 
-                MelonCoroutines.Start(HandleDialogueCoroutine());
+                
                 
 
                 if (getDistance() < 0.75f)
                 {
                     Mita.AiShraplyStop();
                 }
-
+                yield return MelonCoroutines.Start(HandleDialogueCoroutine());
                 yield return new WaitForSecondsRealtime(Interval); // Ждем следующий кадр
             }
         }
@@ -1144,7 +1144,7 @@ namespace MitaAI
             patches_to_sound_file.Clear();
             while (patches_to_sound_file.Count == 0)
             {
-                elapsedTime += Time.deltaTime;
+
                 LoggerInstance.Msg($"Waiting file");
                 if (elapsedTime >= timeout)
                 {
@@ -1157,8 +1157,8 @@ namespace MitaAI
                     yield break;
                 }
 
-                
-                yield return new WaitForSeconds(0.5f) ;
+                elapsedTime += Time.unscaledDeltaTime;
+                yield return new WaitForSecondsRealtime(0.5f) ;
             }
 
             patch_to_sound_file = patches_to_sound_file.Dequeue();
