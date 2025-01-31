@@ -1134,6 +1134,25 @@ namespace MitaAI
 
         private readonly object syncLock = new object();
 
+        private Queue<string> responseQueue = new Queue<string>();
+        private bool isProcessingResponse = false;
+
+        public void EnqueueResponse(string response)
+        {
+            responseQueue.Enqueue(response);
+            TryProcessNextResponse();
+        }
+
+        private void TryProcessNextResponse()
+        {
+            if (!isProcessingResponse && responseQueue.Count > 0)
+            {
+                isProcessingResponse = true;
+                string nextResponse = responseQueue.Dequeue();
+                MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(nextResponse));
+            }
+        }
+
         private IEnumerator DisplayResponseAndEmotionCoroutine(string response)
         {
             LoggerInstance.Msg("DisplayResponseAndEmotionCoroutine started");
@@ -1142,30 +1161,46 @@ namespace MitaAI
             float timeout = 6f;
 
             patches_to_sound_file.Clear();
+
+            // Ожидаем появления звукового файла
             while (patches_to_sound_file.Count == 0)
             {
+                //LoggerInstance.Msg($"Waiting for file...");
 
-                LoggerInstance.Msg($"Waiting file");
                 if (elapsedTime >= timeout)
                 {
                     LoggerInstance.Msg("Timeout reached, no valid sound file received.");
-
                     // Очистим старые звуки, чтобы не брать запоздавший файл
-                    
-
-                    DisplayResponseAndEmotion(response);
-                    yield break;
+                    patches_to_sound_file.Clear();  // Очистим очередь, если тайм-аут
+                    DisplayResponseAndEmotion(response);  // Покажем ответ без звука
+                    yield break;  // Завершаем корутину
                 }
 
                 elapsedTime += Time.unscaledDeltaTime;
-                yield return new WaitForSecondsRealtime(0.5f) ;
+                yield return new WaitForSecondsRealtime(0.5f);  // Ожидаем 0.5 секунды перед новой попыткой
             }
 
+            // Если файл найден, обрабатываем его
             patch_to_sound_file = patches_to_sound_file.Dequeue();
             LoggerInstance.Msg($"Playing sound: {patch_to_sound_file}");
 
-            DisplayResponseAndEmotion(response);
+            DisplayResponseAndEmotion(response);  // Показываем ответ и эмоции
+            yield return null;
+
+            // После завершения текущей обработки, проверим очередь
+            if (responseQueue.Count > 0)
+            {
+                // Обрабатываем следующий элемент в очереди
+                string nextResponse = responseQueue.Dequeue();
+                MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(nextResponse));
+            }
+            else
+            {
+                // Завершаем процесс, если очередь пуста
+                isProcessingResponse = false;
+            }
         }
+
 
 
 
@@ -2367,7 +2402,7 @@ namespace MitaAI
                     string response = parts[0];
 
                     //waitForSounds = parts[1];
-                    LoggerInstance.Msg($"Python answering, path - {parts[2]}");
+                    //LoggerInstance.Msg($"Python answering, path - {parts[2]}");
                     // Добавляем проверку, что parts[2] содержит данные
                     if (!string.IsNullOrEmpty(parts[2]))
                     {
