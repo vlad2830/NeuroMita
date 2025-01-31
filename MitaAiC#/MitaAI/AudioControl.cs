@@ -58,6 +58,16 @@ namespace MitaAI
                 MelonLogger.Error($"Failed to find or add 'Music 3 Tamagochi': {e.Message}");
             }
 
+            try
+            {
+                _audioObjects["Ambient 1"] = worldHouse.Find("Audio/Ambient 1").gameObject;
+            }
+            catch (System.Exception e)
+            {
+                MelonLogger.Error($"Failed to find or add 'Ambient 1': {e.Message}");
+            }
+
+
             MelonLogger.Msg($"_audioObjects count {_audioObjects.Count()}");
             // По умолчанию все объекты выключены
             //   foreach (var audioObject in _audioObjects.Values)

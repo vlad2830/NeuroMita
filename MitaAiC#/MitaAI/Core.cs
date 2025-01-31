@@ -671,6 +671,7 @@ namespace MitaAI
 
                 TryTurnChild(worldBasement, "Quests/Quest1 Start",false);
                 TryTurnChild(worldBasement, "Mita Future", false);
+                TryfindChild(worldBasement, "Sounds/Ambient 1").transform.parent = worldHouse.Find("Audio");
                 try
                 {
                     var door = TryfindChild(worldBasement, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame");
@@ -1613,7 +1614,7 @@ namespace MitaAI
             float startTime = Time.time; // Запоминаем время старта корутины
             float lastMessageTime = -45f; // Чтобы сообщение появилось сразу через 15 секунд
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSecondsRealtime(1f);
 
             while (mitaState == MitaState.hunt)
             {
@@ -1647,7 +1648,7 @@ namespace MitaAI
                     lastMessageTime = elapsedTime; // Обновляем время последнего вызова
                 }
 
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSecondsRealtime(0.5f);
             }
 
         }
@@ -2406,7 +2407,8 @@ namespace MitaAI
                     // Добавляем проверку, что parts[2] содержит данные
                     if (!string.IsNullOrEmpty(parts[2]))
                     {
-                        patches_to_sound_file.Enqueue(parts[2]);
+                        // Заменить прямое добавление в очередь на вызов через главный поток
+                        MelonCoroutines.Start(ProcessReceivedData(parts[2]));
                     }
                     //patch_to_sound_file = parts[1];
                     return response;
@@ -2419,6 +2421,12 @@ namespace MitaAI
             }
 
         }
+        private IEnumerator ProcessReceivedData(string soundPath)
+        {
+            patches_to_sound_file.Enqueue(soundPath);
+            yield return null;
+        }
+
         public string formCurrentInfo()
         {
 
