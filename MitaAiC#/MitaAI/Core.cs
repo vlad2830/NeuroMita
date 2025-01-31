@@ -104,7 +104,7 @@ namespace MitaAI
         private const int Port = 12345;
 
 
-        private const float Interval = 0.66f;
+        private const float Interval = 0.4f;
         private float timer = 0f;
         public float blinkTimer = 7f;
 
@@ -140,7 +140,7 @@ namespace MitaAI
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Синхронизируем доступ ко всем этим операциям
 
 
-        private const float MitaBoringInterval = 75f;
+        private const float MitaBoringInterval = 90f;
         private float MitaBoringtimer = 0f;
 
 
@@ -830,27 +830,25 @@ namespace MitaAI
         {
             while (true)
             {
-                if (CurrentSceneName != "Scene 4 - StartSecret" || !AllLoaded)
+                if (CurrentSceneName != "Scene 4 - StartSecret" || !AllLoaded || Time.timeScale == 0)
                 {
                     yield return null;
                     continue;
                 }
                
-                timer += Time.fixedDeltaTime;
-                MitaBoringtimer += Time.fixedDeltaTime;
+                timer += Time.unscaledDeltaTime;
+                MitaBoringtimer += Time.unscaledDeltaTime;
 
-                if (timer >= Interval)
-                {
-                    timer = 0f;
-                    yield return MelonCoroutines.Start(HandleDialogueCoroutine());
-                }
+
+                MelonCoroutines.Start(HandleDialogueCoroutine());
+                
 
                 if (getDistance() < 0.75f)
                 {
                     Mita.AiShraplyStop();
                 }
 
-                yield return null; // Ждем следующий кадр
+                yield return new WaitForSecondsRealtime(Interval); // Ждем следующий кадр
             }
         }
 
@@ -1010,7 +1008,7 @@ namespace MitaAI
             if (!string.IsNullOrEmpty(response))
             {
                 LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
-                yield return MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
+                MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
             }
         }
 
@@ -1068,26 +1066,26 @@ namespace MitaAI
 
         public void remakeArrayl34(Location34_Communication Location34_Communication, GameObject newPoint, string room)
         {
-            LoggerInstance.Msg($"Start Il2CppReferenceArray {Location34_Communication} 33 {newPoint} ");
+
             // Создаем новый массив с размером на 1 больше
             Il2CppReferenceArray<Location34_PositionForMita> newArray = new Il2CppReferenceArray<Location34_PositionForMita>(Location34_Communication.positionsForMita.Length + 1);
-            LoggerInstance.Msg($" Il2CppReferenceArray222");
+
             // Копируем старые данные
             for (int i = 0; i < Location34_Communication.positionsForMita.Length; i++)
             {
                 newArray[i] = Location34_Communication.positionsForMita[i];
             }
-            LoggerInstance.Msg($" Il2CppReferenceArray333");
+
             // Добавляем новый элемент
             Location34_PositionForMita l = new Location34_PositionForMita();
-            LoggerInstance.Msg($" Il2CppReferenceArray444");
+
             l.target = newPoint.transform;
             l.room = room;
-            LoggerInstance.Msg($" Il2CppReferenceArray5");
+
             newArray[newArray.Length - 1] = l;
 
             Location34_Communication.positionsForMita = newArray;
-            LoggerInstance.Msg($"End");
+
             
         }
 
@@ -1138,36 +1136,39 @@ namespace MitaAI
 
         private IEnumerator DisplayResponseAndEmotionCoroutine(string response)
         {
-            LoggerInstance.Msg("DisplayResponseAndEmotionCoroutine");
+            LoggerInstance.Msg("DisplayResponseAndEmotionCoroutine started");
 
-            // Пример кода, который будет выполняться на главном потоке
-            yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
+            float elapsedTime = 0f;
+            float timeout = 6f;
 
-            float elapsedTime = 0f; // Счетчик времени
-            float timeout = 6.5f;     // Лимит времени ожидания
-
-            // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
-            while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout) //&& waitForSounds=="1")
+            patches_to_sound_file.Clear();
+            while (patches_to_sound_file.Count == 0)
             {
-                if (patches_to_sound_file.Count > 0)
+                elapsedTime += Time.deltaTime;
+                LoggerInstance.Msg($"Waiting file");
+                if (elapsedTime >= timeout)
                 {
-                    patch_to_sound_file = patches_to_sound_file.Dequeue();
-                    patches_to_sound_file.Clear();
+                    LoggerInstance.Msg("Timeout reached, no valid sound file received.");
+
+                    // Очистим старые звуки, чтобы не брать запоздавший файл
+                    
+
+                    DisplayResponseAndEmotion(response);
+                    yield break;
                 }
 
-                elapsedTime += Time.deltaTime; // Увеличиваем счетчик времени
-                yield return null;             // Пауза до следующего кадра
+                
+                yield return new WaitForSeconds(0.5f) ;
             }
 
-            // Если время ожидания истекло, можно выполнить какой-то fallback-лог
-            if (string.IsNullOrEmpty(patch_to_sound_file))
-            {
-                LoggerInstance.Msg("Timeout reached, patch_to_sound_file is still empty.");
-            }
+            patch_to_sound_file = patches_to_sound_file.Dequeue();
+            LoggerInstance.Msg($"Playing sound: {patch_to_sound_file}");
 
-            // После того как patch_to_sound_file стал не пустым, вызываем метод DisplayResponseAndEmotion
             DisplayResponseAndEmotion(response);
         }
+
+
+
         public static string PopLast(List<string> list)
         {
             if (list.Count == 0) throw new InvalidOperationException("List is empty");
@@ -1180,40 +1181,52 @@ namespace MitaAI
             LoggerInstance.Msg("DisplayResponseAndEmotion");
 
             TurnBlockInputField(true);
+
             try
             {
-
                 string modifiedResponse = SetMovementStyle(response);
-
-                AudioClip audioClip = null;
 
                 if (!string.IsNullOrEmpty(patch_to_sound_file))
                 {
-                    try
-                    {
-                        LoggerInstance.Msg("patch_to_sound_file not null");
-                        audioClip = LoadAudioClipFromFileAsync(patch_to_sound_file).Result;
-                        patch_to_sound_file = "";
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerInstance.Error($"Error loading audio file: {ex.Message}");
-                    }
+                    LoggerInstance.Msg("patch_to_sound_file not null");
+                    MelonCoroutines.Start(LoadAndPlayAudioClip(patch_to_sound_file, modifiedResponse));
+                    patch_to_sound_file = "";
                 }
-
-                int delay = 3500 * modifiedResponse.Length / 50;
-                MelonCoroutines.Start(PlayMitaSound(delay, audioClip));
-
-                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 50);
-
-                // Запуск диалогов последовательно, с использованием await или вложенных корутин
-                MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts));
+                else
+                {
+                    // Если звука нет, просто показываем текст
+                    MelonCoroutines.Start(ShowDialoguesSequentially(SplitText(modifiedResponse, maxLength: 50)));
+                }
             }
             catch (Exception ex)
             {
                 LoggerInstance.Error($"Error in DisplayResponseAndEmotion: {ex.Message}");
             }
         }
+        private IEnumerator LoadAndPlayAudioClip(string filePath, string modifiedResponse)
+        {
+            Task<AudioClip> loadTask = LoadAudioClipFromFileAsync(filePath);
+
+            while (!loadTask.IsCompleted) // Ждем окончания загрузки
+                yield return null;
+
+            if (loadTask.Exception != null)
+            {
+                LoggerInstance.Error($"Error loading audio: {loadTask.Exception.Message}");
+                yield break;
+            }
+
+            AudioClip audioClip = loadTask.Result; // Получаем результат
+
+            if (audioClip != null)
+            {
+                int delay = 3500 * modifiedResponse.Length / 50;
+                MelonCoroutines.Start(PlayMitaSound(delay, audioClip));
+            }
+
+            MelonCoroutines.Start(ShowDialoguesSequentially(SplitText(modifiedResponse, maxLength: 50)));
+        }
+
 
         private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts)
         {
@@ -2354,8 +2367,12 @@ namespace MitaAI
                     string response = parts[0];
 
                     //waitForSounds = parts[1];
-
-                    patches_to_sound_file.Enqueue(parts[2]);
+                    LoggerInstance.Msg($"Python answering, path - {parts[2]}");
+                    // Добавляем проверку, что parts[2] содержит данные
+                    if (!string.IsNullOrEmpty(parts[2]))
+                    {
+                        patches_to_sound_file.Enqueue(parts[2]);
+                    }
                     //patch_to_sound_file = parts[1];
                     return response;
                 }
