@@ -144,11 +144,8 @@ class TelegramBotHandler:
         print("Ожидание ответа от бота...")
         response = None
         attempts = 0
-        seconds = 9
-        attempts_pes_second = 4
-
         await asyncio.sleep(0.7)
-        while attempts <= seconds*attempts_pes_second:  # Попытки получения ответа
+        while attempts <= 24:  # Попытки получения ответа
 
             async for message in self.client.iter_messages(self.silero_bot, limit=1):
                 if message.media and isinstance(message.media, MessageMediaDocument):
@@ -158,11 +155,9 @@ class TelegramBotHandler:
                         break
             if response:  # Если ответ найден, выходим из цикла
                 break
-
+            print(f"Попытка {attempts + 1}/3. Ответ от бота не найден.")
             attempts += 1
-            print(f"Попытка {attempts}/{seconds*attempts_pes_second}. Ответ от бота не найден.")
-
-            await asyncio.sleep(1/attempts_pes_second)  # Немного подождем
+            await asyncio.sleep(0.25)  # Немного подождем
 
         if not response:
             print("Ответ от бота не получен после 3 попыток.")

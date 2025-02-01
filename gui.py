@@ -26,7 +26,7 @@ class ChatGUI:
         self.running = False
         self.start_server()
         self.textToTalk = ""
-        self.patch_to_sound_file = "-"
+        self.patch_to_sound_file = ""
         self.ConnectedToGame = False
         self.root = tk.Tk()
         self.root.title("Чат с MitaAI")
