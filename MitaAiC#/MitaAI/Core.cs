@@ -1027,6 +1027,27 @@ namespace MitaAI
 
             }
 
+
+            prepareForSend();
+            Task<(string,string)> responseTask = GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
+            while (!responseTask.IsCompleted)
+                yield return new WaitForSecondsRealtime(0.25f);
+
+            response = responseTask.Result.Item1;
+            string patch = responseTask.Result.Item2;
+            if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
+            if (response != "")
+            {
+                LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
+
+                MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
+            }
+            
+
+
+        }
+        public void prepareForSend()
+        {
             if (Vector3.Distance(Mita.transform.GetChild(0).position, lastPosition) > 2f)
             {
                 try
@@ -1046,23 +1067,7 @@ namespace MitaAI
             roomIDPlayer = GetRoomID(playerPerson.transform);
             roomIDMita = GetRoomID(Mita.transform);
             currentInfo = formCurrentInfo();
-
-            Task<string> responseTask = GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
-            while (!responseTask.IsCompleted)
-                yield return new WaitForSecondsRealtime(0.25f);
-
-            response = responseTask.Result;
-            if (response != "")
-            {
-                LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
-
-                MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
-            }
-            
-
-
         }
-
 
         // Глобальный список для хранения дочерних объектов
         List<GameObject> globalChildObjects = new List<GameObject>();
@@ -1177,9 +1182,12 @@ namespace MitaAI
             }
 
         }
-
+        bool dialogActive = false;
         private IEnumerator DisplayResponseAndEmotionCoroutine(string response)
         {
+            while (dialogActive) { yield return null; }
+            dialogActive = true;
+
             LoggerInstance.Msg("DisplayResponseAndEmotionCoroutine");
             int CountPathesWere = patches_to_sound_file.Count;
             // Пример кода, который будет выполняться на главном потоке
@@ -1213,6 +1221,8 @@ namespace MitaAI
 
             // После того как patch_to_sound_file стал не пустым, вызываем метод DisplayResponseAndEmotion
             DisplayResponseAndEmotion(response);
+
+            dialogActive = false;
         }
         public static string PopLast(List<string> list)
         {
@@ -2150,7 +2160,7 @@ namespace MitaAI
             return emotions[randomIndex];
         }
 
-        public async Task<string> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo)
+        public async Task<(string,string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 
@@ -2162,7 +2172,7 @@ namespace MitaAI
                 bool connected = await TryConnectAsync(clientSocket, ServerAddress, Port);
                 if (!connected)
                 {
-                    return string.Empty; // Возвращаем пустой ответ, если не удалось подключиться
+                    return (string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
                 }
 
                 bool waitResponse = input!= "waiting" || dataToSentSystem!="-";
@@ -2189,17 +2199,18 @@ namespace MitaAI
 
                     // Логируем ответ
                     string response = parts[0];
+                    string patch = "";
                     LoggerInstance.Msg("Reveiced data" + parts[0] + "" + parts[2]);
                     //waitForSounds = parts[1];
 
-                    if (!string.IsNullOrEmpty(parts[2])) patches_to_sound_file.Enqueue(parts[2]);
+                    if (!string.IsNullOrEmpty(parts[2])) patch =parts[2];
                     //patch_to_sound_file = parts[1];
-                    return response;
+                    return (response, patch);
                 }
                 catch (Exception)
                 {
                     //LoggerInstance.Msg($"Error receiving data: {ex.Message}");
-                    return string.Empty; // Возвращаем пустой ответ в случае ошибки при получении данных
+                    return (string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
                 }
             }
 
