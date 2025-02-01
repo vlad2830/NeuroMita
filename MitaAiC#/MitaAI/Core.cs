@@ -83,7 +83,7 @@ namespace MitaAI
         PlayerCameraEffects playerEffects;
         GameObject playerEffectsObject;
         float distance = 0f;
-
+        string currentInfo = "";
         Location34_Communication Location34_Communication;
         Location21_World location21_World;
         Transform worldHouse;
@@ -104,7 +104,7 @@ namespace MitaAI
         private const int Port = 12345;
 
 
-        private const float Interval = 0.66f;
+        private const float Interval = 0.35f;
         private float timer = 0f;
         public float blinkTimer = 7f;
 
@@ -635,7 +635,7 @@ namespace MitaAI
 
             AllLoaded = true;
             //Interactions.Test(GameObject.Find("Table"));
-
+            MelonCoroutines.Start(RealTimer());
 
             sendSystemMessage("Игрок только что загрузился в твой уровень.");
 
@@ -850,35 +850,38 @@ namespace MitaAI
             base.OnLateUpdate();
             Interactions.Update();
         }
-        public override async void OnFixedUpdate()
+        public IEnumerator RealTimer()
         {
-
-            //LoggerInstance.Msg("1"+ CurrentSceneName);
-            if (CurrentSceneName != "Scene 4 - StartSecret") { return; };
-            //LoggerInstance.Msg("2" + CurrentSceneName);
-            if (!AllLoaded) { return; };
-
-
-
-            timer += Time.fixedDeltaTime;
-            await UpdateBoringTimerAsync(Time.fixedDeltaTime);
-
-
-
-
-            if (timer >= Interval)
+            while (true)
             {
-                timer = 0f;
-                await HandleDialogueAsync();
+                // Проверяем условия
+                if (CurrentSceneName != "Scene 4 - StartSecret" || !AllLoaded)
+                {
+                    yield return null; // Пропускаем итерацию, если условия не выполнены
+                    continue;
+                }
+
+                // Обновляем таймеры
+                timer += Time.deltaTime;
+                MitaBoringtimer += Time.deltaTime;
+
+                LoggerInstance.Msg("RealTimer tic");
+
+                // Проверяем, достиг ли timer значения Interval
+                if (timer >= Interval)
+                {
+                    timer = 0f; // Сбрасываем таймер
+                    yield return HandleDialogue(); // Запускаем HandleDialogue и ждем его завершения
+                }
+
+                // Останавливаем Mita, если расстояние меньше 0.75
+                if (getDistance() < 0.75f)
+                {
+                    Mita.AiShraplyStop();
+                }
+
+                yield return null; // Ждем следующего кадра
             }
-
-            if (getDistance() < 0.75f)
-            {
-                Mita.AiShraplyStop();
-            }
-
-
-            base.OnFixedUpdate();
         }
 
         private IEnumerator UpdateLighitng()
@@ -970,8 +973,8 @@ namespace MitaAI
         }
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
-        private const float actionCooldown = 5f;  // Интервал в секундах (5 секунд)
-        private async Task HandleDialogueAsync()
+        private const float actionCooldown = 7f;  // Интервал в секундах (5 секунд)
+        private IEnumerator HandleDialogue()
         {
 
             string dataToSent = "waiting";
@@ -983,7 +986,7 @@ namespace MitaAI
             {
                 if (playerMessage != "")
                 {
-                    await ResetBoringTimerAsync();
+                    MitaBoringtimer = 0f;
                     dataToSent = playerMessage;
                     playerMessage = "";
                     lastActionTime = Time.time;
@@ -991,7 +994,7 @@ namespace MitaAI
                 else if (systemMessages.Count > 0)
                 {
                     LoggerInstance.Msg("HAS SYSTEM MESSAGES");
-                    await ResetBoringTimerAsync();
+                    MitaBoringtimer = 0f;
 
                     //Отправляю залпом.
                     while (systemMessages.Count() > 0)
@@ -1003,7 +1006,7 @@ namespace MitaAI
                 }
                 else if (MitaBoringtimer >= MitaBoringInterval && mitaState == MitaState.normal)
                 {
-                    await ResetBoringTimerAsync();
+                    MitaBoringtimer = 0f;
                     dataToSentSystem = "boring";
                     lastActionTime = Time.time;
                 }
@@ -1012,30 +1015,51 @@ namespace MitaAI
 
 
             string response = "";
-            try
-            {
-                if (systemInfos.Count > 0)
-                {
-                    LoggerInstance.Msg("HAS SYSTEM INFOS");
-                    //Отправляю залпом.
-                    while (systemInfos.Count() > 0)
-                    {
-                        info += systemInfos.Dequeue()+ "\n";
-                    }
 
-                }
-                response = await GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
-                if (response != "")
-                {
-                    LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
-
-                    MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
-                }
-            }
-            catch (Exception ex)
+            if (systemInfos.Count > 0)
             {
-                LoggerInstance.Msg($"Error in HandleDialogueAsync: {ex.Message}");
+                LoggerInstance.Msg("HAS SYSTEM INFOS");
+                //Отправляю залпом.
+                while (systemInfos.Count() > 0)
+                {
+                    info += systemInfos.Dequeue()+ "\n";
+                }
+
             }
+
+            if (Vector3.Distance(Mita.transform.GetChild(0).position, lastPosition) > 2f)
+            {
+                try
+                {
+                    lastPosition = Mita.transform.GetChild(0).position;
+                    List<string> excludedNames = new List<string> { "Hips", "Maneken" };
+                    if (roomIDMita == 4) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
+                    else hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldHouse.Find("House").transform, excludedNames);
+
+                    //LoggerInstance.Msg(hierarchy);
+                }
+                catch (Exception e) { LoggerInstance.Msg("hierarchy error " + e); }
+            }
+            if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
+
+            distance = getDistance();
+            roomIDPlayer = GetRoomID(playerPerson.transform);
+            roomIDMita = GetRoomID(Mita.transform);
+            currentInfo = formCurrentInfo();
+
+            Task<string> responseTask = GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
+            while (!responseTask.IsCompleted)
+                yield return new WaitForSecondsRealtime(0.25f);
+
+            response = responseTask.Result;
+            if (response != "")
+            {
+                LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
+
+                MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
+            }
+            
+
 
         }
 
@@ -1154,34 +1178,33 @@ namespace MitaAI
 
         }
 
-        // Список для хранения созданных диалогов
-        private List<GameObject> dialogPool = new List<GameObject>();
-
-        private readonly object syncLock = new object();
-
         private IEnumerator DisplayResponseAndEmotionCoroutine(string response)
         {
             LoggerInstance.Msg("DisplayResponseAndEmotionCoroutine");
-
+            int CountPathesWere = patches_to_sound_file.Count;
             // Пример кода, который будет выполняться на главном потоке
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
 
             float elapsedTime = 0f; // Счетчик времени
             float timeout = 6.5f;     // Лимит времени ожидания
 
+
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
             while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout) //&& waitForSounds=="1")
             {
-                if (patches_to_sound_file.Count > 0)
+                LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
+                if (patches_to_sound_file.Count > CountPathesWere)
                 {
                     patch_to_sound_file = patches_to_sound_file.Dequeue();
                     patches_to_sound_file.Clear();
+                    break;
                 }
 
-                elapsedTime += Time.deltaTime; // Увеличиваем счетчик времени
+                elapsedTime += Time.unscaledDeltaTime; // Увеличиваем счетчик времени
                 yield return null;             // Пауза до следующего кадра
             }
 
+            yield return null;
             // Если время ожидания истекло, можно выполнить какой-то fallback-лог
             if (string.IsNullOrEmpty(patch_to_sound_file))
             {
@@ -1371,196 +1394,6 @@ namespace MitaAI
                 {
 
                 }
-            }
-        }
-
-        private void ProcessCommands(List<string> commands)
-        {
-            foreach (string command in commands)
-            {
-                try
-                {
-                    if (command.Contains(','))
-                    {
-                        ProcessComplexCommand(command);
-                    }
-                    else
-                    {
-                        ProcessSimpleCommand(command);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LoggerInstance.Msg($"Error processing command '{command}': {ex.Message}");
-                }
-            }
-        }
-
-        private void ProcessSimpleCommand(string command)
-        {
-            Transform loc;
-            switch (command.ToLower())
-            {
-                case "подойти к игроку":
-                    Mita.AiWalkToTarget(playerPerson.transform);
-                    Location34_Communication.indexSwitchAnimation = 1;
-                    break;
-
-                case "подойти к случайной точке":
-                    loc = GetRandomLoc();
-                    sendSystemInfo($"Ты пошла к {loc.name}");
-                    Mita.AiWalkToTarget(loc);
-                    Location34_Communication.indexSwitchAnimation = 1;
-                    break;
-
-                case "телепортироваться к случайной точке":
-                    loc = GetRandomLoc();
-                    sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
-                    Mita.MitaTeleport(loc);
-                    Location34_Communication.indexSwitchAnimation = 1;
-                    break;
-
-                case "телепортироваться к игроку":
-                    Mita.MitaTeleport(playerPerson.transform);
-                    Location34_Communication.indexSwitchAnimation = 1;
-                    break;
-
-
-                // Начало агрессии
-                case "зарезать игрока":
-                    MelonCoroutines.Start(ActivateAndDisableKiller(3f));
-                    break;
-
-                case "выключить игрока":
-                    MainMenu.ButtonLoadScene("SceneMenu");
-                    break;
-
-                // Блок Манекенов
-                case "заспавнить манекен":
-                    spawnManeken();
-                    break;
-
-                case "отключить все манекены":
-                    TurnAllMenekens(false);
-                    break;
-
-                case "включить все манекены":
-                    TurnAllMenekens(true);
-                    break;
-
-                case "удалить все манекены":
-                    removeAllMenekens();
-                    break;
-
-                case "начать охоту с ножом":
-                    beginHunt();
-                    break;
-                case "закончить охоту с ножом":
-                    endHunt();
-                    break;
-                case "вернуться к норме":
-                    removeAllMenekens();
-                    endHunt();
-                    break;
-
-                case "сontinue":
-                    systemMessages.Enqueue("Ты продолжаешь фразу или мысль");
-                    break;
-
-                default:
-                    if (command.Contains("PositionMita"))
-                    {
-                        try
-                        {
-                            GameObject point = GameObject.Find(command);
-                            Mita.MitaTeleport(point.transform);
-                            Location34_Communication.indexSwitchAnimation = 1;
-                        }
-                        catch (Exception e)
-                        {
-                            LoggerInstance.Msg($"Unknown point: {command}");
-                        }
-                    }
-                    else
-                    {
-                        LoggerInstance.Msg($"Unknown command: {command}");
-                    }
-                    break;
-            }
-        }
-
-        private void ProcessComplexCommand(string command)
-        {
-            string[] parts = command.Split(',');
-
-            if (parts.Length == 2 && float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float time))
-            {
-                HandleTwoPartCommand(parts[0].ToLower(), time);
-            }
-            else if (parts.Length == 4 &&
-                     float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float r) &&
-                     float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out float g) &&
-                     float.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out float b))
-            {
-                HandleFourPartCommand(parts[0].ToLower(), r, g, b);
-            }
-            else
-            {
-                LoggerInstance.Msg($"Invalid command format: {command}");
-            }
-        }
-
-        private void HandleTwoPartCommand(string command, float time)
-        {
-            switch (command)
-            {
-                case "изменить моргание игрока":
-                    blinkTimer = Math.Max(2, Math.Min(time, 10));
-                    break;
-
-                case "изменить время дня":
-                    LightingAndDaytime.setTimeDay(time);
-                    LoggerInstance.Msg($"Time of day changed to {time}");
-                    break;
-                case "изменить размер игрока":
-                    playerObject.transform.localScale = new Vector3(time, time, time);
-                    break;
-                case "изменить свой размер":
-                    MitaPersonObject.transform.localScale = new Vector3(time, time, time);
-                    break;
-                case "изменить скорость игрока":
-                    playerObject.GetComponent<PlayerMove>().speedPlayer = time;
-                    break;
-                case "изменить свою скорость":
-                    try
-                    {
-                        MitaPersonObject.GetComponent<NavMeshAgent>().speed = time;
-                    }
-                    catch (Exception)
-                    {
-
-                    }
-
-                    break;
-
-                default:
-                    LoggerInstance.Msg($"Unknown two-part command: {command}");
-                    break;
-            }
-        }
-
-        private void HandleFourPartCommand(string command, float r, float g, float b)
-        {
-            switch (command)
-            {
-                case "изменить освещение":
-                    LightingAndDaytime.applyColor(new Color(r, g, b, 1f));
-                    LoggerInstance.Msg($"Lighting color changed to RGB({r}, {g}, {b})");
-                    break;
-
-                default:
-                    LoggerInstance.Msg($"Unknown four-part command: {command}");
-                    break;
             }
         }
 
@@ -2336,30 +2169,11 @@ namespace MitaAI
                 // Дополнительная логика для подготовки данных
 
 
-                if (Vector3.Distance(Mita.transform.GetChild(0).position, lastPosition) > 2f)
-                {
-                    try
-                    {
-                        lastPosition = Mita.transform.GetChild(0).position;
-                        List<string> excludedNames = new List<string> { "Hips", "Maneken" };
-                        if (roomIDMita == 4) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
-                        else hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldHouse.Find("House").transform, excludedNames);
 
-                        //LoggerInstance.Msg(hierarchy);
-                    }
-                    catch (Exception e) { LoggerInstance.Msg("hierarchy error " + e); }
-                }
-
-
-
-                distance = getDistance();
-                roomIDPlayer = GetRoomID(playerPerson.transform);
-                roomIDMita = GetRoomID(Mita.transform);
-                string currentInfo = waitResponse ? formCurrentInfo() : "-";
-                if (string.IsNullOrEmpty(currentInfo)) currentInfo = "-";
+                string _currentInfo = waitResponse ? currentInfo : "-";
+                if (string.IsNullOrEmpty(currentInfo)) _currentInfo = "-";
                 if (string.IsNullOrEmpty(systemInfo)) systemInfo = "-";
-                if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
-                string total_input = $"{input}|||{dataToSentSystem}|||{systemInfo}|||{distance.ToString("F2")}|||{roomIDPlayer}|||{roomIDMita}|||{hierarchy}|||{currentInfo}";
+                string total_input = $"{input}|||{dataToSentSystem}|||{systemInfo}|||{distance.ToString("F2")}|||{roomIDPlayer}|||{roomIDMita}|||{hierarchy}|||{_currentInfo}";
 
                 byte[] messageBytes = Encoding.UTF8.GetBytes(total_input);
                 await clientSocket.SendAsync(messageBytes, SocketFlags.None);
@@ -2375,14 +2189,14 @@ namespace MitaAI
 
                     // Логируем ответ
                     string response = parts[0];
-
+                    LoggerInstance.Msg("Reveiced data" + parts[0] + "" + parts[2]);
                     //waitForSounds = parts[1];
 
-                    patches_to_sound_file.Enqueue(parts[2]);
+                    if (!string.IsNullOrEmpty(parts[2])) patches_to_sound_file.Enqueue(parts[2]);
                     //patch_to_sound_file = parts[1];
                     return response;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //LoggerInstance.Msg($"Error receiving data: {ex.Message}");
                     return string.Empty; // Возвращаем пустой ответ в случае ошибки при получении данных
