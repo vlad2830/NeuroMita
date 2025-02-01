@@ -888,6 +888,7 @@ namespace MitaAI
 
         private IEnumerator StartDayTime()
         {
+
             yield return new WaitForSeconds(1f);
             LightingAndDaytime.setTimeDay(0.5f);
         }

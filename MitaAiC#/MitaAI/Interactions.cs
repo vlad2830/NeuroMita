@@ -19,15 +19,19 @@ namespace MitaAI
                 return;
             }
 
+            ObjectInteractive objectInteractive;
             if (!gameObject.GetComponent<Collider>())
             {
                 BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
                 MelonLogger.Msg($"Collider added to {gameObject.name}");
             }
-            if (gameObject.GetComponent<ObjectInteractive>())
+            objectInteractive = gameObject.GetComponent<ObjectInteractive>();
+            if (!objectInteractive)
             {
-                var objectInteractive = gameObject.AddComponent<ObjectInteractive>();
+                objectInteractive = gameObject.AddComponent<ObjectInteractive>();
+                
             }
+            objectInteractive.active = true;
         }
         private static Dictionary<string, float> objectViewTime = new Dictionary<string, float>();
 
