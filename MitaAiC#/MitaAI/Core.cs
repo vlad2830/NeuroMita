@@ -1405,6 +1405,7 @@ namespace MitaAI
                 MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita RunWalkKnife")); //
                 knife.SetActive(true);
                 knife.transform.rotation = Quaternion.identity;
+                MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
             }
             catch (Exception ex)
             {

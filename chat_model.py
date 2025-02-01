@@ -312,7 +312,7 @@ class ChatModel:
         if self.LongMemoryRememberCount % 3 == 0:
             repeated_system_message += " Запомни факты за 3 сообщения пользователя используя <+h>Факт который нужно запомнить</h>"
 
-        if self.LongMemoryRememberCount % 3 == 6:
+        if self.LongMemoryRememberCount % 6 == 0:
             repeated_system_message += " Реструктуризируй память при необходимости используя <#h>Итоговые факты об игроке</h>"
 
         messages.append({"role": "system", "content": repeated_system_message})
