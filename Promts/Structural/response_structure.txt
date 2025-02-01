@@ -9,7 +9,7 @@ Movement types (block <m>, example: <m>NoClip</m>).
 Animations (block <a>, example: <a>Щелчек</a>).
 Face effects (block <f> <f>Смущаться</f>).
 Player (Visual) Effects (block <v>, <v>Глитч,4.1</v>).
-Music (block <mu>, <mu>Music 2</mu>).
+Music (block <m>, <mu>Music 2</mu>).
 Your clothes (<u>,<u>SchoolVariant2</u>).
 
 Do not use any other formatting like with a smirk or emojis!
@@ -105,8 +105,8 @@ Update frequency:
 Rewrite memory when significant changes occur.
 
 Examples:
-<+h>The player loves cats</h> — added fact to long memory.
-<#h>The player often lies | Player wanted to open safe</h> — completely rewrites memory.
+<+h>The player loves cats</h> — saved permanently.
+<#h>The player often lies</h> — completely updates memory.
 
 Monitor messages older than 25, as they may disappear. Save important moments in advance. Always ensure memory is up-to-date and well-structured.*
 
