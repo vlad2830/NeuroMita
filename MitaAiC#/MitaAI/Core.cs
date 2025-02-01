@@ -142,7 +142,31 @@ namespace MitaAI
 
         private const float MitaBoringInterval = 75f;
         private float MitaBoringtimer = 0f;
+        public async Task UpdateBoringTimerAsync(float delta)
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                MitaBoringtimer += delta; // Операции с полем
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
 
+        public async Task ResetBoringTimerAsync()
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                MitaBoringtimer = 0f; // Операции с полем
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
 
         bool manekenGame = false;
 
@@ -612,7 +636,7 @@ namespace MitaAI
             AllLoaded = true;
             //Interactions.Test(GameObject.Find("Table"));
 
-            MelonCoroutines.Start(FixedUpdateCoroutine());
+
             sendSystemMessage("Игрок только что загрузился в твой уровень.");
 
 
@@ -826,32 +850,35 @@ namespace MitaAI
             base.OnLateUpdate();
             Interactions.Update();
         }
-        private IEnumerator FixedUpdateCoroutine()
+        public override async void OnFixedUpdate()
         {
-            while (true)
+
+            //LoggerInstance.Msg("1"+ CurrentSceneName);
+            if (CurrentSceneName != "Scene 4 - StartSecret") { return; };
+            //LoggerInstance.Msg("2" + CurrentSceneName);
+            if (!AllLoaded) { return; };
+
+
+
+            timer += Time.fixedDeltaTime;
+            await UpdateBoringTimerAsync(Time.fixedDeltaTime);
+
+
+
+
+            if (timer >= Interval)
             {
-                if (CurrentSceneName != "Scene 4 - StartSecret" || !AllLoaded)
-                {
-                    yield return null;
-                    continue;
-                }
-               
-                timer += Time.fixedDeltaTime;
-                MitaBoringtimer += Time.fixedDeltaTime;
-
-                if (timer >= Interval)
-                {
-                    timer = 0f;
-                    yield return MelonCoroutines.Start(HandleDialogueCoroutine());
-                }
-
-                if (getDistance() < 0.75f)
-                {
-                    Mita.AiShraplyStop();
-                }
-
-                yield return null; // Ждем следующий кадр
+                timer = 0f;
+                await HandleDialogueAsync();
             }
+
+            if (getDistance() < 0.75f)
+            {
+                Mita.AiShraplyStop();
+            }
+
+
+            base.OnFixedUpdate();
         }
 
         private IEnumerator UpdateLighitng()
@@ -944,8 +971,9 @@ namespace MitaAI
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
         private const float actionCooldown = 5f;  // Интервал в секундах (5 секунд)
-        private IEnumerator HandleDialogueCoroutine()
+        private async Task HandleDialogueAsync()
         {
+
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
             string info = "-";
@@ -955,7 +983,7 @@ namespace MitaAI
             {
                 if (playerMessage != "")
                 {
-                    MitaBoringtimer = 0f;
+                    await ResetBoringTimerAsync();
                     dataToSent = playerMessage;
                     playerMessage = "";
                     lastActionTime = Time.time;
@@ -963,58 +991,53 @@ namespace MitaAI
                 else if (systemMessages.Count > 0)
                 {
                     LoggerInstance.Msg("HAS SYSTEM MESSAGES");
-                    MitaBoringtimer = 0f;
+                    await ResetBoringTimerAsync();
 
-                    while (systemMessages.Count > 0)
+                    //Отправляю залпом.
+                    while (systemMessages.Count() > 0)
                     {
                         dataToSentSystem += systemMessages.Dequeue() + "\n";
                     }
                     lastActionTime = Time.time;
+
                 }
                 else if (MitaBoringtimer >= MitaBoringInterval && mitaState == MitaState.normal)
                 {
-                    MitaBoringtimer = 0f;
+                    await ResetBoringTimerAsync();
                     dataToSentSystem = "boring";
                     lastActionTime = Time.time;
                 }
             }
 
-            if (systemInfos.Count > 0)
-            {
-                LoggerInstance.Msg("HAS SYSTEM INFOS");
-                while (systemInfos.Count > 0)
-                {
-                    info += systemInfos.Dequeue() + "\n";
-                }
-            }
 
-            // Создаем задачу для получения ответа от Python-сокета
-            Task<string> responseTask = GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
 
-            // Ждем завершения задачи
-            while (!responseTask.IsCompleted)
-                yield return null;
-
-            // Теперь, когда задача завершена, можно обработать ошибки
             string response = "";
             try
             {
-                response = responseTask.Result; // Получаем результат без yield
+                if (systemInfos.Count > 0)
+                {
+                    LoggerInstance.Msg("HAS SYSTEM INFOS");
+                    //Отправляю залпом.
+                    while (systemInfos.Count() > 0)
+                    {
+                        info += systemInfos.Dequeue()+ "\n";
+                    }
+
+                }
+                response = await GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
+                if (response != "")
+                {
+                    LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
+
+                    MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
+                }
             }
             catch (Exception ex)
             {
-                LoggerInstance.Msg($"Error in HandleDialogueCoroutine: {ex.Message}");
-                yield break; // Завершаем корутину в случае ошибки
+                LoggerInstance.Msg($"Error in HandleDialogueAsync: {ex.Message}");
             }
 
-            if (!string.IsNullOrEmpty(response))
-            {
-                LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
-                yield return MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
-            }
         }
-
-
 
 
         // Глобальный список для хранения дочерних объектов

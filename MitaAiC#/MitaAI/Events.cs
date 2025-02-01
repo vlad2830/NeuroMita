@@ -31,7 +31,7 @@ namespace MitaAI
     {
         [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "ClickButton", new Type[] { typeof(int) })]
         [HarmonyLib.HarmonyPostfix]
-        private static void ClickButton()
+        private static void Postfix()
         {
 
             MitaCore.Instance?.playerClickSafe();
@@ -40,7 +40,7 @@ namespace MitaAI
 
         [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "RightPassword")]
         [HarmonyLib.HarmonyPostfix]
-        private static void RightPassword()
+        private static void Postfix2()
         { 
             
         MitaCore.Instance?.sendSystemMessage("Игрок открыл сейф"); 
