@@ -82,8 +82,8 @@ namespace MitaAI
         GameObject playerObject;
         PlayerCameraEffects playerEffects;
         GameObject playerEffectsObject;
-        float distance = 0f;
-        string currentInfo = "";
+        public float distance = 0f;
+        public string currentInfo = "";
         Location34_Communication Location34_Communication;
         Location21_World location21_World;
         Transform worldHouse;
@@ -100,8 +100,7 @@ namespace MitaAI
         GameObject playerCamera;
         GameObject AnimationKiller;
         BlackScreen blackScreen;
-        private const string ServerAddress = "127.0.0.1";
-        private const int Port = 12345;
+
 
 
         private const float Interval = 0.35f;
@@ -121,7 +120,7 @@ namespace MitaAI
         Queue<string> patches_to_sound_file = new Queue<string>();
         string patch_to_sound_file = "";
 
-        string hierarchy = "-";
+        public string hierarchy = "-";
 
         static List<AnimationClip> MitaAnims = new List<AnimationClip>();
         static Il2CppAssetBundle bundle;
@@ -178,7 +177,7 @@ namespace MitaAI
 
             harmony = new HarmonyLib.Harmony("1");
             MitaClothesModded.init(harmony);
-            
+            NetworkController.Initialize();
 
             //Test2();
         }
@@ -458,8 +457,8 @@ namespace MitaAI
             }
         }
 
-        int roomIDPlayer = -1;
-        int roomIDMita = -1;
+        public int roomIDPlayer = -1;
+        public int roomIDMita = -1;
         // Первая функция, которая принимает PlayerMove
         public void CheckRoom(PlayerMove playerMove)
         {
@@ -863,9 +862,7 @@ namespace MitaAI
 
                 // Обновляем таймеры
                 timer += Time.deltaTime;
-                MitaBoringtimer += Time.deltaTime;
 
-                LoggerInstance.Msg("RealTimer tic");
 
                 // Проверяем, достиг ли timer значения Interval
                 if (timer >= Interval)
@@ -976,6 +973,7 @@ namespace MitaAI
         private const float actionCooldown = 9f;  // Интервал в секундах
         private IEnumerator HandleDialogue()
         {
+            MitaBoringtimer += Time.deltaTime;
 
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
@@ -1029,7 +1027,7 @@ namespace MitaAI
 
 
             prepareForSend();
-            Task<(string,string)> responseTask = GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
+            Task<(string,string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
             while (!responseTask.IsCompleted)
                 yield return null;
 
@@ -1118,6 +1116,7 @@ namespace MitaAI
             LoggerInstance.Msg($"Total children collected: {globalChildObjects.Count}");
         }
 
+        
         public void remakeArrayl34(Location34_Communication Location34_Communication, GameObject newPoint, string room)
         {
             LoggerInstance.Msg($"Start Il2CppReferenceArray {Location34_Communication} 33 {newPoint} ");
@@ -1129,6 +1128,7 @@ namespace MitaAI
             {
                 newArray[i] = Location34_Communication.positionsForMita[i];
             }
+
             LoggerInstance.Msg($" Il2CppReferenceArray333");
             // Добавляем новый элемент
             Location34_PositionForMita l = new Location34_PositionForMita();
@@ -1547,6 +1547,7 @@ namespace MitaAI
             // Возвращаем Миту в исходное положение
             TryTurnChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);
             Mita.transform.SetPositionAndRotation(originalPosition, originalRotation);
+            Mita.AiShraplyStop();
         }
 
 
@@ -2160,61 +2161,7 @@ namespace MitaAI
             return emotions[randomIndex];
         }
 
-        public async Task<(string,string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo)
-        {
-            // Ожидаем, чтобы получить доступ к ресурсу (сокету)
-
-
-
-
-            using (Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-            {
-                bool connected = await TryConnectAsync(clientSocket, ServerAddress, Port);
-                if (!connected)
-                {
-                    return (string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
-                }
-
-                bool waitResponse = input!= "waiting" || dataToSentSystem!="-";
-                // Дополнительная логика для подготовки данных
-
-
-
-                string _currentInfo = waitResponse ? currentInfo : "-";
-                if (string.IsNullOrEmpty(currentInfo)) _currentInfo = "-";
-                if (string.IsNullOrEmpty(systemInfo)) systemInfo = "-";
-                string total_input = $"{input}|||{dataToSentSystem}|||{systemInfo}|||{distance.ToString("F2")}|||{roomIDPlayer}|||{roomIDMita}|||{hierarchy}|||{_currentInfo}";
-
-                byte[] messageBytes = Encoding.UTF8.GetBytes(total_input);
-                await clientSocket.SendAsync(messageBytes, SocketFlags.None);
-
-                byte[] buffer = new byte[4086];
-                try
-                {
-                    int bytesRead = await clientSocket.ReceiveAsync(buffer, SocketFlags.None);
-
-                    string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-
-                    string[] parts = receivedMessage.Split(new string[] { "|||" }, StringSplitOptions.None);
-
-                    // Логируем ответ
-                    string response = parts[0];
-                    string patch = "";
-                    LoggerInstance.Msg("Reveiced data" + parts[0] + "" + parts[2]);
-                    //waitForSounds = parts[1];
-
-                    if (!string.IsNullOrEmpty(parts[2])) patch =parts[2];
-                    //patch_to_sound_file = parts[1];
-                    return (response, patch);
-                }
-                catch (Exception)
-                {
-                    //LoggerInstance.Msg($"Error receiving data: {ex.Message}");
-                    return (string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
-                }
-            }
-
-        }
+       
         public string formCurrentInfo()
         {
 
@@ -2252,34 +2199,7 @@ namespace MitaAI
             return info;
         }
 
-        private async Task<bool> TryConnectAsync(Socket socket, string address, int port, int maxRetries = 3, int delayBetweenRetries = 2000)
-        {
-            int attempt = 0;
-            while (attempt < maxRetries)
-            {
-                try
-                {
-                    await Task.Factory.FromAsync(socket.BeginConnect(address, port, null, null), socket.EndConnect);
-                    return true; // Если подключение прошло успешно
-                }
-                catch (SocketException ex)
-                {
-                    attempt++;
-                    if (attempt >= maxRetries)
-                    {
-                        //LoggerInstance.Msg($"Max retries reached. Unable to connect to {address}:{port}.{ex}");
-                        return false; // После превышения количества попыток
-                    }
-                    await Task.Delay(delayBetweenRetries); // Задержка перед повторной попыткой
-                }
-                catch (Exception ex)
-                {
-                    //LoggerInstance.Msg($"Unexpected error connecting to {address}:{port}: {ex.Message}");
-                    return false; // Если произошла неожиданная ошибка
-                }
-            }
-            return false; // В случае завершения цикла
-        }
+       
 
 
         // Ввод

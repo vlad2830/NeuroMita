@@ -319,7 +319,6 @@ namespace MitaAI
         {
             location21_World.timeDay.colorDay = c;
             location21_World.SetTimeDay(0.5f);
-            location21_World.UpdateTimeDay();
         }
         public static void resetDayColor()
         {
@@ -348,7 +347,6 @@ namespace MitaAI
             location21_World.day = time;
             MelonLoader.MelonLogger.Warning($"000 Time {time}");
             location21_World.SetTimeDay(time);
-            location21_World.UpdateTimeDay();
 
             CheckDay();
         }

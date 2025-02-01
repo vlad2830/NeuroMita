@@ -319,6 +319,7 @@
 	<ItemGroup>
 		<Compile Include="Bandle\AssetBundleLoader.cs" />
 		<Compile Include="AudioControl.cs" />
+		<Compile Include="NetworkController.cs" />
 		<Compile Include="Events.cs" />
 		<Compile Include="CommandProcessor.cs" />
 		<Compile Include="MitaClothes.cs" />
