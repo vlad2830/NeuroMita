@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 using MelonLoader;
+using UnityEngine;
 namespace MitaAI
 {
     public static class NetworkController
@@ -95,6 +96,95 @@ namespace MitaAI
                 }
             }
             return false; // В случае завершения цикла
+        }
+        public static async Task<AudioClip> LoadAudioClipFromFileAsync(string filePath)
+        {
+            try
+            {
+                MelonLoader.MelonLogger.Msg("Loading audio file: " + filePath);
+
+                // Читаем все байты файла
+                byte[] fileData = File.ReadAllBytes(filePath);
+
+                // Конвертируем байты в массив float
+                float[] audioData = ConvertByteArrayToFloatArray(fileData);
+
+                // Применяем нормализацию
+                audioData = NormalizeAudioData(audioData);
+
+                // Применяем fade-in (0.1 секунды на 44100 Hz)
+                audioData = ApplyFadeIn(audioData, 44100 / 10);
+
+                // Создаем аудиоклип
+                AudioClip audioClip = AudioClip.Create("LoadedAudio", audioData.Length, 2, 44100, false);
+                audioClip.SetData(audioData, 0);
+
+                MelonLoader.MelonLogger.Msg("Audio returned");
+
+                // Удаление исходного файла
+                try
+                {
+                    await Task.Delay(100);
+                    File.Delete(filePath);
+                    MelonLoader.MelonLogger.Msg("Original file deleted: " + filePath);
+                }
+                catch (Exception ex)
+                {
+                    MelonLoader.MelonLogger.Error("Error deleting original file: " + ex.Message);
+                }
+
+                return audioClip;
+            }
+            catch (Exception ex)
+            {
+                MelonLoader.MelonLogger.Error("Error loading audio: " + ex.Message);
+                return null;
+            }
+        }
+
+
+        // Нормализация аудиоданных
+        private static float[] NormalizeAudioData(float[] audioData)
+        {
+            float maxAmplitude = 0f;
+            foreach (var sample in audioData)
+            {
+                if (Math.Abs(sample) > maxAmplitude)
+                {
+                    maxAmplitude = Math.Abs(sample);
+                }
+            }
+            if (maxAmplitude > 0)
+            {
+                for (int i = 0; i < audioData.Length; i++)
+                {
+                    audioData[i] /= maxAmplitude;
+                }
+            }
+            return audioData;
+        }
+
+        // Применение fade-in
+        private static float[] ApplyFadeIn(float[] audioData, int fadeSamples)
+        {
+            for (int i = 0; i < fadeSamples && i < audioData.Length; i++)
+            {
+                float fadeFactor = (float)i / fadeSamples;
+                audioData[i] *= fadeFactor;
+            }
+            return audioData;
+        }
+
+        // Преобразование байтов в массив float
+        private static float[] ConvertByteArrayToFloatArray(byte[] byteArray)
+        {
+            float[] floatArray = new float[byteArray.Length / 2]; // предполагаем, что файл в 16-битах
+            for (int i = 0; i < floatArray.Length; i++)
+            {
+                short sample = BitConverter.ToInt16(byteArray, i * 2);
+                floatArray[i] = sample / 32768f; // Нормализация в диапазон [-1, 1]
+            }
+            return floatArray;
         }
     }
 }

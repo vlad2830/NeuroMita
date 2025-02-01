@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using MelonLoader;
 
 
-namespace MitaAI
+namespace MitaAI.MitaAppereance
 {
     public class MitaClothesModded
     {
@@ -43,14 +43,14 @@ namespace MitaAI
                 if (match.Success)
                 {
                     clothes.Add(match.Groups[1].Value);
-                    MelonLogger.Msg($"Try Parse "+clothes[0]);
+                    MelonLogger.Msg($"Try Parse " + clothes[0]);
                     Enum.TryParse<Clothes>(clothes[0], true, out var form);
-                    
+
                     SetClothes(form);
                     break;
                 }
             }
-            
+
             string result = Regex.Replace(response, @"<u>.*?</u>", "");
 
 
@@ -122,7 +122,7 @@ namespace MitaAI
             }
 
             currentClothes = cloth;
-            UnityEngine.GameObject.FindObjectOfType<MitaClothes>().ReCloth();
+            UnityEngine.Object.FindObjectOfType<MitaClothes>().ReCloth();
         }
     }
 }

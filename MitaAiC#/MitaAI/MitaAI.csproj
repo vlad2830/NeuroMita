@@ -319,11 +319,12 @@
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
 		<Compile Include="AudioControl.cs" />
+		<Compile Include="MitaAppereance\EyeModifier.cs" />
 		<Compile Include="MitaAnimationModded.cs" />
 		<Compile Include="NetworkController.cs" />
 		<Compile Include="Events.cs" />
 		<Compile Include="CommandProcessor.cs" />
-		<Compile Include="MitaClothes.cs" />
+		<Compile Include="MitaAppereance\MitaClothes.cs" />
 		<Compile Include="Interactions.cs" />
 		<Compile Include="AssetBandle\Il2CppAssetBundle.cs" />
 		<Compile Include="AssetBandle\Il2CppAssetBundleManager.cs" />

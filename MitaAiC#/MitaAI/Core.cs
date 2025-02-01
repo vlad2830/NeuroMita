@@ -39,6 +39,7 @@ using UnityEngine.AI;
 using static Il2CppRootMotion.FinalIK.IKSolverVR;
 using static Il2CppSystem.Uri;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using MitaAI.MitaAppereance;
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -472,6 +473,8 @@ namespace MitaAI
             }
             return -1; // Если не нашли подходящей комнаты
         }
+
+        EyeGlowModifier eyeModifier;
         private void InitializeGameObjects()
         {
             Mita = GameObject.Find("Mita")?.GetComponent<MitaPerson>();
@@ -483,6 +486,11 @@ namespace MitaAI
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
             MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
             Mita.AiShraplyStop();
+
+            //GameObject eyeObject = TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");
+            //eyeModifier = new EyeGlowModifier(eyeObject);
+            //eyeObject = TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Left Eye");
+            //eyeModifier = new EyeGlowModifier(eyeObject);
 
             //Mita.gameObject.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = true;
 
@@ -825,7 +833,8 @@ namespace MitaAI
             
             base.OnLateUpdate();
             Interactions.Update();
-        }
+            if (eyeModifier!=null) eyeModifier.OnUpdateTest();
+    }
         public IEnumerator RealTimer()
         {
             while (true)
@@ -1225,7 +1234,7 @@ namespace MitaAI
                     try
                     {
                         LoggerInstance.Msg("patch_to_sound_file not null");
-                        audioClip = LoadAudioClipFromFileAsync(patch_to_sound_file).Result;
+                        audioClip =NetworkController.LoadAudioClipFromFileAsync(patch_to_sound_file).Result;
                         patch_to_sound_file = "";
                     }
                     catch (Exception ex)
@@ -2303,95 +2312,7 @@ namespace MitaAI
             // Создаем и возвращаем спрайт из текстуры
             return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
         }
-        private async Task<AudioClip> LoadAudioClipFromFileAsync(string filePath)
-        {
-            try
-            {
-                MelonLoader.MelonLogger.Msg("Loading audio file: " + filePath);
-
-                // Читаем все байты файла
-                byte[] fileData = File.ReadAllBytes(filePath);
-
-                // Конвертируем байты в массив float
-                float[] audioData = ConvertByteArrayToFloatArray(fileData);
-
-                // Применяем нормализацию
-                audioData = NormalizeAudioData(audioData);
-
-                // Применяем fade-in (0.1 секунды на 44100 Hz)
-                audioData = ApplyFadeIn(audioData, 44100 / 10);
-
-                // Создаем аудиоклип
-                AudioClip audioClip = AudioClip.Create("LoadedAudio", audioData.Length, 2, 44100, false);
-                audioClip.SetData(audioData, 0);
-
-                MelonLoader.MelonLogger.Msg("Audio returned");
-
-                // Удаление исходного файла
-                try
-                {
-                    await Task.Delay(100);
-                    File.Delete(filePath);
-                    MelonLoader.MelonLogger.Msg("Original file deleted: " + filePath);
-                }
-                catch (Exception ex)
-                {
-                    MelonLoader.MelonLogger.Error("Error deleting original file: " + ex.Message);
-                }
-
-                return audioClip;
-            }
-            catch (Exception ex)
-            {
-                MelonLoader.MelonLogger.Error("Error loading audio: " + ex.Message);
-                return null;
-            }
-        }
-
-
-        // Нормализация аудиоданных
-        private float[] NormalizeAudioData(float[] audioData)
-        {
-            float maxAmplitude = 0f;
-            foreach (var sample in audioData)
-            {
-                if (Math.Abs(sample) > maxAmplitude)
-                {
-                    maxAmplitude = Math.Abs(sample);
-                }
-            }
-            if (maxAmplitude > 0)
-            {
-                for (int i = 0; i < audioData.Length; i++)
-                {
-                    audioData[i] /= maxAmplitude;
-                }
-            }
-            return audioData;
-        }
-
-        // Применение fade-in
-        private float[] ApplyFadeIn(float[] audioData, int fadeSamples)
-        {
-            for (int i = 0; i < fadeSamples && i < audioData.Length; i++)
-            {
-                float fadeFactor = (float)i / fadeSamples;
-                audioData[i] *= fadeFactor;
-            }
-            return audioData;
-        }
-
-        // Преобразование байтов в массив float
-        private float[] ConvertByteArrayToFloatArray(byte[] byteArray)
-        {
-            float[] floatArray = new float[byteArray.Length / 2]; // предполагаем, что файл в 16-битах
-            for (int i = 0; i < floatArray.Length; i++)
-            {
-                short sample = BitConverter.ToInt16(byteArray, i * 2);
-                floatArray[i] = sample / 32768f; // Нормализация в диапазон [-1, 1]
-            }
-            return floatArray;
-        }
+        
 
 
 
