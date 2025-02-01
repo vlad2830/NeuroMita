@@ -285,16 +285,11 @@ namespace MitaAI
 
         private static void TransitionDayPhase(Color startColor, Color endColor, Color startSunColor, Color endSunColor, float multiplier)
         {
-            MelonLoader.MelonLogger.Msg("111111");
             var v6 = (location21_World.dayNow % 0.25f) * multiplier;
             var v12 = Mathf.Clamp01(v6);
-            MelonLoader.MelonLogger.Msg("222222");
-            
-            
 
 
             RenderSettings.ambientSkyColor = Color.Lerp(startColor, endColor, v12);
-            MelonLoader.MelonLogger.Msg("222####");
 
 
             // Логирование параметров
@@ -302,17 +297,17 @@ namespace MitaAI
 
             if (sun == null) sun = worldHouse.Find("House/Sun").GetComponent<UnityEngine.Light>();
             sun.color = Color.Lerp(startSunColor, endSunColor, v12);
-            MelonLoader.MelonLogger.Msg("3333333");
+
             foreach (var psl in TimeDay.particleSunLight)
             {
-                MelonLoader.MelonLogger.Msg("444");
+
                 var main = psl.particle.main;
                 main.startColor = Color.Lerp(startSunColor, endSunColor, v12);
             }
 
-            MelonLoader.MelonLogger.Msg("555");
+
             ChangeQuadStreet(Color.Lerp(TimeDay.colorSunParticleNight, TimeDay.colorSunParticleMorning, v12));
-            MelonLoader.MelonLogger.Msg("666");
+
         }
     
         public static void applyColor(Color c)

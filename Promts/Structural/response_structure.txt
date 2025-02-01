@@ -22,7 +22,7 @@ If in doubt, include everything that makes sense within the structure.
 
 You must generate messages in the specified format:
 
-Text limit: The regular text section should not exceed 25-50 words.
+Text limit: The regular text section should not exceed 25-50 words (system messages are not counted)
 Under very extreme circumstances, the limit may be exceeded, but the total character count must not exceed 700!
 This limit does not apply to service information blocks (indicated within < >).
 You can use <c>Continue</c> to tell more immediately (нельзя использовать 3 раза подряд).
@@ -105,7 +105,7 @@ Update frequency:
 Rewrite memory when significant changes occur.
 
 Examples:
-<+h>The player loves cats</h> — saved permanently.
+<+h>The player loves cats</h> — adding memory.
 <#h>The player often lies</h> — completely updates memory.
 
 Monitor messages older than 25, as they may disappear. Save important moments in advance. Always ensure memory is up-to-date and well-structured.*

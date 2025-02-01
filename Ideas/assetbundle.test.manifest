@@ -16,7 +16,7 @@ Assets:
 - Assets/AnimationClip/Mita Switch Idle-1_1.anim
 - Assets/AnimationClip/Mita GetMonitor.anim
 - Assets/AnimationClip/Mita Jump L_M.anim
-- Assets/AnimationClip/Mita StopShowClock.anim
+- Assets/AnimationClip/Mita StopShowClock.anim // Раб
 - Assets/AnimationClip/Mita Start Count.anim
 - Assets/AnimationClip/Mita Idle 1.anim
 - Assets/AnimationClip/Mita ShowClock Idle.anim
@@ -57,19 +57,19 @@ Assets:
 - Assets/AnimationClip/Mita Stand Dance.anim
 - Assets/AnimationClip/Mita Spine Start LookBack.anim
 - Assets/AnimationClip/Mita 6 Take Head Idle.anim
-- Assets/AnimationClip/Mita Sit_0.anim
+- Assets/AnimationClip/Mita Sit_0.anim Рабоатет
 - Assets/AnimationClip/Mita Behaviour 3.anim
 - Assets/AnimationClip/Mita Walk_11.anim
 - Assets/AnimationClip/Mita Drop Recorder.anim
 - Assets/AnimationClip/Mita Stop Show.anim
 - Assets/AnimationClip/Mita IdleTalk.anim
 - Assets/AnimationClip/Mita ButtonClick.anim
-- Assets/AnimationClip/Mita Click 1.anim
+- Assets/AnimationClip/Mita Click 1.anim // Работает
 - Assets/AnimationClip/Mita RechangeRing.anim
 - Assets/AnimationClip/Mita Start Thinks.anim
 - Assets/AnimationClip/Mita Down.anim
 - Assets/AnimationClip/Mita Sit NormalStart.anim
-- Assets/AnimationClip/Mita Selfi Go.anim
+- Assets/AnimationClip/Mita Selfi Go.anim .// работает
 - Assets/AnimationClip/Mita Search.anim
 - Assets/AnimationClip/Mita Work.anim
 - Assets/AnimationClip/Mita AngleWindow Hide.anim
@@ -84,14 +84,14 @@ Assets:
 - Assets/AnimationClip/Mita Idle Stop.anim
 - Assets/AnimationClip/Mita Sitidle_5.anim
 - Assets/AnimationClip/Mita IdleUp.anim
-- Assets/AnimationClip/Mita StartSit_2.anim
+- Assets/AnimationClip/Mita StartSit_2.anim Работает
 - Assets/AnimationClip/Mita Stay StopSleep.anim
 - Assets/AnimationClip/Mita Strange Run.anim
 - Assets/AnimationClip/MitaStartIdle.anim
-- Assets/AnimationClip/Mita 4 Idle Cherse.anim
+- Assets/AnimationClip/Mita 4 Idle Cherse.anim Глаз чешет
 - Assets/AnimationClip/Mita Sit Idle_1.anim
-- Assets/AnimationClip/Mita Idle Gift_0.anim
-- Assets/AnimationClip/Mita StartNormal Pose.anim
+- Assets/AnimationClip/Mita Idle Gift_0.anim // Rab
+- Assets/AnimationClip/Mita StartNormal Pose.anim rab
 - Assets/AnimationClip/Mita Talk 2 Idle.anim
 - Assets/AnimationClip/Mita Finish.anim
 - Assets/AnimationClip/Mita KnifeStepBack.anim
@@ -110,12 +110,12 @@ Assets:
 - Assets/AnimationClip/Mita StartWall.anim
 - Assets/AnimationClip/Mita PointerOnKey.anim
 - Assets/AnimationClip/Mita HelpStart.anim
-- Assets/AnimationClip/Mita HelpMe.anim
-- Assets/AnimationClip/Mita SitIdle_0.anim
-- Assets/AnimationClip/Mita Open Shar Eyes.anim
+- Assets/AnimationClip/Mita HelpMe.anim работает
+- Assets/AnimationClip/Mita SitIdle_0.anim  /// ВОт оно сидение!!!
+- Assets/AnimationClip/Mita Open Shar Eyes.anim // RAb
 - Assets/AnimationClip/Mita Talk 4 Idle_0.anim
 - Assets/AnimationClip/Mita Screamer.anim
-- Assets/AnimationClip/Mita Oi Idle.anim
+- Assets/AnimationClip/Mita Oi Idle.anim // rab
 - Assets/AnimationClip/Mita IdleOi.anim
 - Assets/AnimationClip/Mita E-SurpriseO.anim
 - Assets/AnimationClip/MitaCreepy Ape 3.anim
@@ -146,7 +146,7 @@ Assets:
 - Assets/AnimationClip/Mita Start Switch.anim
 - Assets/AnimationClip/Mita Idle Click Recorder.anim
 - Assets/AnimationClip/Mita Jump M_R.anim
-- Assets/AnimationClip/Mita StartShowClock.anim
+- Assets/AnimationClip/Mita StartShowClock.anim Rab
 - Assets/AnimationClip/Mita Sit_4.anim
 - Assets/AnimationClip/Mita TryBoard Loop.anim
 - Assets/AnimationClip/Mita Walk_10.anim
@@ -185,7 +185,7 @@ Assets:
 - Assets/AnimationClip/Mita IdleMita.anim
 - Assets/AnimationClip/Mita DropGlasses.anim
 - Assets/AnimationClip/Mita Show.anim
-- Assets/AnimationClip/Mita ThrowCard.anim
+- Assets/AnimationClip/Mita ThrowCard.anim Rab
 - Assets/AnimationClip/MitaLegs KickWall.anim
 - Assets/AnimationClip/MitaCreepy SitNear.anim
 - Assets/AnimationClip/Mita KeyGive.anim
@@ -201,12 +201,12 @@ Assets:
 - Assets/AnimationClip/MitaD TakeShoulders Idle.anim
 - Assets/AnimationClip/Mita Walk_13.anim
 - Assets/AnimationClip/Mita OpenDoor_0.anim
-- Assets/AnimationClip/Mita Hello 1.anim
+    - Assets/AnimationClip/Mita Hello 1.anim
 - Assets/AnimationClip/Mita Idle_13.anim
 - Assets/AnimationClip/Mita TakeHandler.anim
-- Assets/AnimationClip/Mita Gigant.anim
-- Assets/AnimationClip/Mita Start Sit.anim
-- Assets/AnimationClip/Mita Sit_1.anim
+- Assets/AnimationClip/Mita Gigant.anim Rab
+- Assets/AnimationClip/Mita Start Sit.anim Rab
+- Assets/AnimationClip/Mita Sit_1.anim // Rab
 - Assets/AnimationClip/Mita StrangeSmile.anim
 - Assets/AnimationClip/Mita Start Game.anim
 - Assets/AnimationClip/Mita DownHello.anim
@@ -216,7 +216,7 @@ Assets:
 - Assets/AnimationClip/Mita AngleWindow Idle.anim
 - Assets/AnimationClip/Mita Walk_8.anim
 - Assets/AnimationClip/Mita Idle_2.anim
-- Assets/AnimationClip/MitaBody Fall.anim
+- Assets/AnimationClip/MitaBody Fall.anim // Прикольно
 - Assets/AnimationClip/Mita Player Win.anim
 - Assets/AnimationClip/Mita Idle 2.anim
 - Assets/AnimationClip/Mita TakeKnife_0.anim
@@ -243,7 +243,7 @@ Assets:
 - Assets/AnimationClip/Mita PointerConsole Idle.anim
 - Assets/AnimationClip/MitaOld Hide.anim
 - Assets/AnimationClip/Mita Idle_1.anim
-- Assets/AnimationClip/Mita Close Eyes.anim
+- Assets/AnimationClip/Mita Close Eyes.anim // Rab
 - Assets/AnimationClip/DoorExit MitaClose.anim
 - Assets/AnimationClip/Mita Destroy Corridor.anim
 - Assets/AnimationClip/Mita WhatIdle.anim
@@ -264,13 +264,13 @@ Assets:
 - Assets/AnimationClip/Mita E-SmileTeeth.anim
 - Assets/AnimationClip/Mita Take Bomb.anim
 - Assets/AnimationClip/Mita StopClick.anim
-- Assets/AnimationClip/Mita ShowTumb.anim
+- Assets/AnimationClip/Mita ShowTumb.anim // Работает
 - Assets/AnimationClip/MitaCreepy End.anim
 - Assets/AnimationClip/MitaK TakeHand Idle.anim
 - Assets/AnimationClip/MitaCreepy Kill.anim
 - Assets/AnimationClip/Mita Jump R_M.anim
 - Assets/AnimationClip/Mita SitIdle Start HalfSleep.anim
-- Assets/AnimationClip/Mita Cheerful.anim
+- Assets/AnimationClip/Mita Cheerful.anim // Работает
 - Assets/AnimationClip/Mita Click_0.anim
 - Assets/AnimationClip/Mita TalkWithPlayer.anim
 - Assets/AnimationClip/Mita Ready.anim
@@ -283,7 +283,7 @@ Assets:
 - Assets/AnimationClip/Mita Look Back.anim
 - Assets/AnimationClip/MitaCore TakeThrow Player.anim
 - Assets/AnimationClip/Mita Start Guitara.anim
-- Assets/AnimationClip/Mita Offer Juice.anim
+- Assets/AnimationClip/Mita Offer Juice.anim //Доработать
 - Assets/AnimationClip/Mita Idle_0.anim
 - Assets/AnimationClip/Mita Change Right.anim
 - Assets/AnimationClip/Mita Walk_9.anim
@@ -312,13 +312,13 @@ Assets:
 - Assets/AnimationClip/Mita Stop Idle.anim
 - Assets/AnimationClip/Mita Switch Idle-2_0.anim
 - Assets/AnimationClip/Mita RotateOnMita.anim
-- Assets/AnimationClip/Mita Play.anim
+- Assets/AnimationClip/Mita Play.anim // Норм
 - Assets/AnimationClip/Mita Idle Show Recorder.anim
 - Assets/AnimationClip/Mita SitIdle HalfSleep.anim
-- Assets/AnimationClip/Mita RunKnife.anim
+- Assets/AnimationClip/Mita RunKnife.anim // Норм
 - Assets/AnimationClip/Mita OpenCupFire.anim
 - Assets/AnimationClip/Mita StopPlay.anim
-- Assets/AnimationClip/Mita Hide 2.anim
+- Assets/AnimationClip/Mita Hide 2.anim // H
 - Assets/AnimationClip/Mita Idle Monitor.anim
 - Assets/AnimationClip/Mita Wait Idle.anim
 - Assets/AnimationClip/Mita Pointer.anim
@@ -560,7 +560,7 @@ Assets:
 - Assets/AnimationClip/Mita Something.anim
 - Assets/AnimationClip/Mita run.anim
 - Assets/AnimationClip/Mita Behaviour 2.anim
-- Assets/AnimationClip/Mita Idle_23.anim
+- Assets/AnimationClip/Mita Idle_23.anim Как кепка работает
 - Assets/AnimationClip/Mita UseWoods.anim
 - Assets/AnimationClip/Mita Idle Guitara.anim
 - Assets/AnimationClip/Mita TakeFace Idle.anim
@@ -612,7 +612,7 @@ Assets:
 - Assets/AnimationClip/Mita Start Near.anim
 - Assets/AnimationClip/Mita Talk 3.anim
 - Assets/AnimationClip/Mita HoldPlayer.anim
-- Assets/AnimationClip/Mita StartDisappointment.anim
+- Assets/AnimationClip/Mita StartDisappointment.anim / Работает
 - Assets/AnimationClip/Mita StartShow Knifes.anim
 - Assets/AnimationClip/MitaCreepy LongNeck Blink.anim
 - Assets/AnimationClip/MitaCore Down.anim
@@ -625,7 +625,7 @@ Assets:
 - Assets/AnimationClip/Mita TakeHumerAndSit.anim
 - Assets/AnimationClip/Mita Strange Idle_0.anim
 - Assets/AnimationClip/Mita LookPaper Idle'.anim
-- Assets/AnimationClip/Mita IdleWalk.anim
+- Assets/AnimationClip/Mita IdleWalk.anim // ходьба рука сзади
 - Assets/AnimationClip/Mita Try 2.anim
 - Assets/AnimationClip/Mita StopCart.anim
 - Assets/AnimationClip/Mita OutWalk.anim
@@ -644,5 +644,5 @@ Assets:
 - Assets/AnimationClip/Mita Sit Normal.anim
 - Assets/AnimationClip/Mita Eating.anim
 - Assets/AnimationClip/Mita SitIdle_2.anim
-- Assets/AnimationClip/Mita Hands Down Idle.anim
+- Assets/AnimationClip/Mita Hands Down Idle.anim // Работает
 Dependencies: []

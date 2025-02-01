@@ -141,31 +141,6 @@ namespace MitaAI
 
         private const float MitaBoringInterval = 75f;
         private float MitaBoringtimer = 0f;
-        public async Task UpdateBoringTimerAsync(float delta)
-        {
-            await _semaphore.WaitAsync();
-            try
-            {
-                MitaBoringtimer += delta; // Операции с полем
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
-
-        public async Task ResetBoringTimerAsync()
-        {
-            await _semaphore.WaitAsync();
-            try
-            {
-                MitaBoringtimer = 0f; // Операции с полем
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-        }
 
         bool manekenGame = false;
 
@@ -501,10 +476,12 @@ namespace MitaAI
         {
             Mita = GameObject.Find("Mita")?.GetComponent<MitaPerson>();
             MitaObject = GameObject.Find("Mita").gameObject;
+            
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             
 
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
+            MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
             Mita.AiShraplyStop();
 
             //Mita.gameObject.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = true;
@@ -1833,6 +1810,12 @@ namespace MitaAI
                     case "Помахать":
                         PlayMitaAnim("Mita Hello");
                         break;
+                    case "Похлопать в ладоши":
+                        PlayMitaAnim("Mita Cheerful");
+                        break;
+                    case "Указать направление":
+                        PlayMitaAnim("Mita ShowTumb");
+                        break;
                     case "Помахать от комаров":
                         PlayMitaAnim("Hey");
                         break;
@@ -2364,12 +2347,19 @@ namespace MitaAI
         private void ProcessInput(string inputText)
         {
             LoggerInstance.Msg("Input received: " + inputText);
-            PlayerTalk(inputText);
+            //PlayerTalk(inputText);
             playerMessage += $"{inputText}\n";
 
 
-            //PlayMitaAnim("Mita Click");
-            //PlayMitaAnim("Mita Click_0");
+            //PlayMitaAnim(inputText);
+            //MitaAnimation.EnqueueAnimation(inputText);
+            MitaAnimationModded.EnqueueAnimation("Mita StartShow Knifes");
+            MitaAnimationModded.EnqueueAnimation("Mita Throw Knifes");
+            //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
+            //MitaAnimationModded.EnqueueAnimation("Mita Hide 2");
+            //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
+    
+            //PlayMitaAnim("Mita StartShow Knifes");
             //PlayMitaAnim("Mita Click_1");
             //PlayMitaAnim("Mita Click_2");
             //PlayMitaAnim("Mita ThrowPlayer");

@@ -317,16 +317,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="Bandle\AssetBundleLoader.cs" />
+		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
 		<Compile Include="AudioControl.cs" />
+		<Compile Include="MitaAnimationModded.cs" />
 		<Compile Include="NetworkController.cs" />
 		<Compile Include="Events.cs" />
 		<Compile Include="CommandProcessor.cs" />
 		<Compile Include="MitaClothes.cs" />
 		<Compile Include="Interactions.cs" />
-		<Compile Include="Bandle\Il2CppAssetBundle.cs" />
-		<Compile Include="Bandle\Il2CppAssetBundleManager.cs" />
-		<Compile Include="Bandle\Il2CppAssetBundleRequest.cs" />
+		<Compile Include="AssetBandle\Il2CppAssetBundle.cs" />
+		<Compile Include="AssetBandle\Il2CppAssetBundleManager.cs" />
+		<Compile Include="AssetBandle\Il2CppAssetBundleRequest.cs" />
 		<Compile Include="LightingAndDaytime.cs" />
 		<Compile Include="ObjectHierarchyHelper.cs" />
 		<Compile Include="Core.cs" />

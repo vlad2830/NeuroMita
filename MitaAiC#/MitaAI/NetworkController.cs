@@ -53,7 +53,7 @@ namespace MitaAI
                     // Логируем ответ
                     string response = parts[0];
                     string patch = "";
-                    MelonLogger.Msg("Reveiced data" + parts[0] + "" + parts[2]);
+                    //MelonLogger.Msg("Reveiced data" + parts[0] + "" + parts[2]);
                     //waitForSounds = parts[1];
 
                     if (!string.IsNullOrEmpty(parts[2])) patch = parts[2];
