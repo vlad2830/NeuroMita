@@ -973,7 +973,7 @@ namespace MitaAI
         }
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
-        private const float actionCooldown = 7f;  // Интервал в секундах (5 секунд)
+        private const float actionCooldown = 9f;  // Интервал в секундах
         private IEnumerator HandleDialogue()
         {
 
@@ -1031,7 +1031,7 @@ namespace MitaAI
             prepareForSend();
             Task<(string,string)> responseTask = GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
             while (!responseTask.IsCompleted)
-                yield return new WaitForSecondsRealtime(0.25f);
+                yield return null;
 
             response = responseTask.Result.Item1;
             string patch = responseTask.Result.Item2;
