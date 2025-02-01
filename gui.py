@@ -4,6 +4,7 @@ from server import ChatServer
 from Silero import TelegramBotHandler
 
 import os
+import glob
 
 import asyncio
 import threading
@@ -34,6 +35,7 @@ class ChatGUI:
         self.api_url = os.getenv("NM_API_URL")
         self.last_price = ""
 
+        self.delete_all_wav_files()
         self.setup_ui()
 
         # Событие для синхронизации потоков
@@ -48,6 +50,19 @@ class ChatGUI:
         # Запуск проверки переменной textToTalk через after
         self.root.after(100, self.check_text_to_talk)
 
+
+
+    def delete_all_wav_files(self):
+        # Получаем список всех .wav файлов в корневой директории
+        wav_files = glob.glob("*.wav")
+
+        # Проходим по каждому файлу и удаляем его
+        for wav_file in wav_files:
+            try:
+                os.remove(wav_file)
+                print(f"Удален файл: {wav_file}")
+            except Exception as e:
+                print(f"Ошибка при удалении файла {wav_file}: {e}")
     def start_asyncio_loop(self):
         """Запускает цикл событий asyncio в отдельном потоке."""
         try:
