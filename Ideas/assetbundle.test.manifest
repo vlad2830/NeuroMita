@@ -442,7 +442,7 @@ Assets:
 - Assets/AnimationClip/Mita Inertion L Alt.anim
 - Assets/AnimationClip/Mita Idle Angry.anim
 - Assets/AnimationClip/Mita Sit Hello.anim
-- Assets/AnimationClip/Mita TakeMita.anim
+- Assets/AnimationClip/Mita TakeMita.anim // Берет
 - Assets/AnimationClip/Player MitaHold.anim
 - Assets/AnimationClip/Mita Laugh.anim
 - Assets/AnimationClip/Mita Idle StartHand.anim

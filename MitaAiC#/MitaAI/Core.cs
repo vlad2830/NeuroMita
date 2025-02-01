@@ -1276,7 +1276,7 @@ namespace MitaAI
                 modifiedPart = SetFaceStyle(modifiedPart);
                 modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
                 modifiedPart = ProcessPlayerEffects(modifiedPart);
-                modifiedPart = setAnimation(modifiedPart);
+                modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
                 modifiedPart = AudioControl.ProcessMusic(modifiedPart);
                 (emotion, modifiedPart) = SetEmotionBasedOnResponse(modifiedPart);
                 LoggerInstance.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
@@ -1779,96 +1779,7 @@ namespace MitaAI
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
-        public string setAnimation(string response)
-        {
-            // Регулярное выражение для извлечения эмоций
-            string pattern = @"<a>(.*?)</a>";
-            Match match = Regex.Match(response, pattern);
-
-            string MovementStyle = string.Empty;
-            string cleanedResponse = Regex.Replace(response, @"<a>.*?</a>", ""); // Очищаем от всех тегов
-
-            if (match.Success)
-            {
-                // Если эмоция найдена, устанавливаем её в переменную faceStyle
-                MovementStyle = match.Groups[1].Value;
-            }
-            try
-            {
-                // Проверка на наличие объекта Mita перед применением эмоции
-                if (Mita == null || Mita.gameObject == null)
-                {
-                    LoggerInstance.Error("Mita object is null or Mita.gameObject is not active.");
-                    return cleanedResponse; // Возвращаем faceStyle и очищенный текст
-                }
-                // Устанавливаем лицо, если оно найдено
-                switch (MovementStyle)
-                {
-                    case "Щелчек":
-                        PlayMitaAnim("Mita Click_2");
-                        break;
-                    case "Помахать":
-                        PlayMitaAnim("Mita Hello");
-                        break;
-                    case "Похлопать в ладоши":
-                        PlayMitaAnim("Mita Cheerful");
-                        break;
-                    case "Указать направление":
-                        PlayMitaAnim("Mita ShowTumb");
-                        break;
-                    case "Помахать от комаров":
-                        PlayMitaAnim("Hey");
-                        break;
-                    case "Радостно помахать":
-                        PlayMitaAnim("MitaStartIdle");
-                        break;
-                    case "Взять предмет":
-                        PlayMitaAnim("Mita TakeBat");
-                        break;
-                    case "Развести руки":
-                        PlayMitaAnim("Mita Throw Knifes");
-                        break;
-                    case "Поднести палец к подбородку":
-                        PlayMitaAnim("Mita TalkWithPlayer");
-                        break;
-                    case "Поднести руку вверх":
-                        PlayMitaAnim("Mita TalkWithPlayer");
-                        break;
-                    case "Показать предмет":
-                        PlayMitaAnim("Mita Selfi");
-                        break;
-                    case "Развести руками":
-                        PlayMitaAnim("Mita Search");
-                        break;
-                    case "Прикрыть глаза":
-                        PlayMitaAnim("Mita Close Eyes");
-                        break;
-                    case "Удар":
-                        PlayMitaAnim("Mita Kick");
-                        break;
-                    case "Похвастаться предметом":
-                        PlayMitaAnim("Mita Take Recorder");
-                        break;
-                    case "Случайная анимация":
-                        PlayMitaAnim("");
-                        break;
-                    default:
-                        if (MovementStyle != "")
-                        {
-                            PlayMitaAnim(MovementStyle);
-                        }
-
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                LoggerInstance.Error($"Problem with Animation: {ex.Message}");
-            }
-
-            // Возвращаем кортеж: лицо и очищенный текст
-            return cleanedResponse;
-        }
+        
 
         public IEnumerator FollowPlayer()
         {
@@ -2347,14 +2258,14 @@ namespace MitaAI
         private void ProcessInput(string inputText)
         {
             LoggerInstance.Msg("Input received: " + inputText);
-            //PlayerTalk(inputText);
+            PlayerTalk(inputText);
             playerMessage += $"{inputText}\n";
 
 
             //PlayMitaAnim(inputText);
             //MitaAnimation.EnqueueAnimation(inputText);
-            MitaAnimationModded.EnqueueAnimation("Mita StartShow Knifes");
-            MitaAnimationModded.EnqueueAnimation("Mita Throw Knifes");
+            //MitaAnimationModded.EnqueueAnimation("Mita StartShow Knifes");
+            //MitaAnimationModded.EnqueueAnimation("Mita Throw Knifes");
             //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
             //MitaAnimationModded.EnqueueAnimation("Mita Hide 2");
             //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
