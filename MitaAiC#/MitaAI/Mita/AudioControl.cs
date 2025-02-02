@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 
 
-namespace MitaAI
+namespace MitaAI.Mita
 {
     static class AudioControl
     {
@@ -26,7 +26,7 @@ namespace MitaAI
                 _audioObjects["Music 1"] = worldHouse.Find("Audio/Music 1").gameObject;
                 currentAudioObject = _audioObjects["Music 1"];
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 MelonLogger.Error($"Failed to find or add 'Music 1': {e.Message}");
             }
@@ -35,7 +35,7 @@ namespace MitaAI
             {
                 _audioObjects["Music BedClick"] = worldHouse.Find("Audio/MusicBedClick").gameObject;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 MelonLogger.Error($"Failed to find or add 'Music BedClick': {e.Message}");
             }
@@ -44,7 +44,7 @@ namespace MitaAI
             {
                 _audioObjects["Music 2"] = worldHouse.Find("Audio/Music 2").gameObject;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 MelonLogger.Error($"Failed to find or add 'Music 2': {e.Message}");
             }
@@ -53,7 +53,7 @@ namespace MitaAI
             {
                 _audioObjects["Music 3 Tamagochi"] = worldHouse.Find("Audio/Music 3 Tamagochi").gameObject;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 MelonLogger.Error($"Failed to find or add 'Music 3 Tamagochi': {e.Message}");
             }

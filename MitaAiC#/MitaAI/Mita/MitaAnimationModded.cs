@@ -4,7 +4,7 @@ using MelonLoader;
 using System.Collections;
 using UnityEngine;
 using System.Text.RegularExpressions;
-namespace MitaAI
+namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
     {
@@ -169,7 +169,7 @@ namespace MitaAI
             location34_Communication.enabled = true;
             isPlaying = false;
         }
-        static public void setIdleAnimation(String animName)
+        static public void setIdleAnimation(string animName)
         {
             if (bundle == null)
             {
@@ -182,9 +182,9 @@ namespace MitaAI
                 anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                 location34_Communication.mitaAnimationIdle = anim;
             }
-            
+
         }
-        static public void setIdleWalk(String animName)
+        static public void setIdleWalk(string animName)
         {
             if (bundle == null)
             {
@@ -198,7 +198,7 @@ namespace MitaAI
                 location34_Communication.mitaAnimationWalk = anim;
             }
 
-            
+
         }
 
         // Очистка очереди (опционально)

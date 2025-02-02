@@ -1,6 +1,5 @@
 ﻿using Il2Cpp;
 using MelonLoader;
-using MitaAI;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,7 +7,8 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace MitaAI {
+namespace MitaAI.Mita
+{
     public static class CommandProcessor
     {
         static MitaCore mitaCore;

@@ -40,6 +40,7 @@ using static Il2CppRootMotion.FinalIK.IKSolverVR;
 using static Il2CppSystem.Uri;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MitaAI.MitaAppereance;
+using MitaAI.Mita;
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -87,9 +88,9 @@ namespace MitaAI
         public string currentInfo = "";
         Location34_Communication Location34_Communication;
         Location21_World location21_World;
-        Transform worldHouse;
-        Transform worldBasement;
-        Transform worldBackrooms2;
+        public static Transform worldHouse;
+        public static Transform worldBasement;
+        public static Transform worldBackrooms2;
 
 
         GameObject ManekenTemplate;
@@ -158,37 +159,6 @@ namespace MitaAI
             //Test2();
         }
 
-        public void PlayMitaAnim(string animName)
-        {
-            if (bundle == null)
-            {
-                bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            }
-            try
-            {
-
-                if (animName != "")
-                {
-                    AnimationClip anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
-                    anim.events = Array.Empty<AnimationEvent>();
-                    LoggerInstance.Msg(anim.name);
-                    MitaAnimatorFunctions.AnimationClipSimpleNext(anim);
-                }
-                else
-                {
-                    AnimationClip anim = AssetBundleLoader.LoadRandomAnimationClip(bundle);
-                    anim.events = Array.Empty<AnimationEvent>();
-                    LoggerInstance.Msg(anim.name);
-                    MitaAnimatorFunctions.AnimationClipSimpleNext(anim);
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerInstance.Msg("Problem wit anim" + e);
-            }
-
-
-        }
 
         public void sendSystemMessage(string m)
         {
@@ -496,6 +466,8 @@ namespace MitaAI
 
             playerPerson = GameObject.Find("Person")?.GetComponent<PlayerPerson>();
             playerObject = playerPerson.transform.parent.gameObject;
+
+            
             playerObject.GetComponent<PlayerMove>().speedPlayer = 1f;
             playerObject.GetComponent<PlayerMove>().canRun = true;
 
@@ -529,10 +501,15 @@ namespace MitaAI
             World worldSettings = worldHouse.gameObject.GetComponent<World>();
             MitaObject.transform.SetParent(worldHouse);
             location21_World = worldHouse.gameObject.AddComponent<Location21_World>();
+
+            PlayerAnimationModded.Init(playerObject, worldHouse, playerObject.GetComponent<PlayerMove>());
             LightingAndDaytime.Init(location21_World, worldHouse);
             MelonCoroutines.Start(StartDayTime());
             //MelonCoroutines.Start(UpdateLighitng());
 
+
+            TotalInitialization.initTVGames(worldHouse);
+           
             try
             {
                 AudioControl.Init(worldHouse);
@@ -672,12 +649,22 @@ namespace MitaAI
                     LoggerInstance.Msg("Error while handling wardrobe transform.");
                 }
 
+                try
+                {
+                    TotalInitialization.initConsole(worldBasement);
+                }
+                catch (Exception ex)
+                {
 
+                    LoggerInstance.Msg("Error while handling initConsole ex");
+                }
+               
                 TryfindChild(worldBasement, "Act/ContinueScene").SetActive(false);
-
+                TryfindChild(worldBasement, "Quests/Quest1 Start").SetActive(true);
+                TryfindChild(worldBasement, "Quests/Quest1 Start/Trigger Near").SetActive(false);
                 //TryfindChild(worldBasement, "/Act/ContinueScene\"").SetActive(false);
 
-                TryTurnChild(worldBasement, "Quests/Quest1 Start",false);
+                //TryTurnChild(worldBasement, "Quests/Quest1 Start",false);
                 TryTurnChild(worldBasement, "Mita Future", false);
                 try
                 {
@@ -702,7 +689,7 @@ namespace MitaAI
                 knife.SetActive(false);
 
                 //AnimationKiller.GetComponent<Location6_MitaKiller>().mita = Mita.transform;
-                TryTurnChild(worldBasement, "Sounds/Ambient 1", false);
+                TryfindChild(worldBasement, "Sounds/Ambient 1").transform.parent = worldHouse.FindChild("Audio");
                 AnimationKiller.SetActive(false);
                 //DeleteChildren(AnimationKiller.transform.Find("PositionsKill").gameObject);
 
@@ -732,7 +719,7 @@ namespace MitaAI
                 LoggerInstance.Msg($"Error in InitializeGameObjectsWhenReady: {e.Message}");
             }
         }
-        public GameObject TryfindChild(Transform parent, string path)
+        public static GameObject TryfindChild(Transform parent, string path)
         {
             try
             {
@@ -741,11 +728,11 @@ namespace MitaAI
             catch (Exception e)
             {
 
-                LoggerInstance.Msg(e);
+                MelonLogger.Msg($"Tried found {path} but {e}");
                 return null;
             }
         }
-        public void TryTurnChild(Transform parent, string path, bool on)
+        public static void TryTurnChild(Transform parent, string path, bool on)
         {
             try
             {
@@ -754,7 +741,7 @@ namespace MitaAI
             catch (Exception e)
             {
 
-                LoggerInstance.Msg(e);
+                MelonLogger.Msg("Tried turn "+ path +" "+ e);
                 return;
             }
         }
@@ -833,8 +820,8 @@ namespace MitaAI
             
             base.OnLateUpdate();
             Interactions.Update();
-            if (eyeModifier!=null) eyeModifier.OnUpdateTest();
-    }
+            // if (eyeModifier!=null) eyeModifier.OnUpdateTest();
+        }
         public IEnumerator RealTimer()
         {
             while (true)
@@ -2272,6 +2259,7 @@ namespace MitaAI
             PlayerTalk(inputText);
             playerMessage += $"{inputText}\n";
 
+            //PlayerAnimationModded.EnqueueAnimation(inputText);
 
             //PlayMitaAnim(inputText);
             //MitaAnimation.EnqueueAnimation(inputText);
@@ -2280,7 +2268,7 @@ namespace MitaAI
             //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
             //MitaAnimationModded.EnqueueAnimation("Mita Hide 2");
             //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
-    
+
             //PlayMitaAnim("Mita StartShow Knifes");
             //PlayMitaAnim("Mita Click_1");
             //PlayMitaAnim("Mita Click_2");

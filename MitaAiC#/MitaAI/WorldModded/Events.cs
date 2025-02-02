@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace MitaAI
 {
+    [HarmonyLib.HarmonyPatch]
+    public static class Console
+    {
+
+    }
+
     [HarmonyLib.HarmonyPatch(typeof(Mob_Maneken), "StartKillPlayer")]
     public static class Maneken
     {

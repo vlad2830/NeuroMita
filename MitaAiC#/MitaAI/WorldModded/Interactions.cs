@@ -6,8 +6,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
+using MitaAI.WorldModded;
 
-namespace MitaAI.World
+namespace MitaAI
 {
     public static class Interactions
     {
@@ -116,7 +117,22 @@ namespace MitaAI.World
             if (gameObject.GetComponent<ObjectInteractive>())
             {
                 gameObject.GetComponent<ObjectInteractive>().active = false;
-                ToggleBoolAfterTime(gameObject, 3, true);
+                ToggleBoolAfterTime(gameObject, 15, true);
+
+                UseSpecialCase(gameObject);
+
+            }
+        }
+
+        private static void UseSpecialCase(GameObject gameObject)
+        {
+            switch (gameObject.name)
+            {
+                case "Console":
+                    InteractionCases.caseConsoleStart(gameObject);
+
+                    break;
+
             }
         }
         public static IEnumerator ToggleBoolAfterTime(GameObject gameObject, float delay, bool value)

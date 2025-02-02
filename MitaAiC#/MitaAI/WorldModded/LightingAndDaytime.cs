@@ -16,15 +16,15 @@ namespace MitaAI
         public static Transform worldHouse;
 
         static Light sun;
-        public static void Init(Location21_World _location21_World,Transform world)
+        public static void Init(Location21_World _location21_World, Transform world)
         {
             worldHouse = world;
             location21_World = _location21_World;
             location21_World.timeDay = new LocationTimeDay();
-            
+
             TimeDay = location21_World.timeDay;
 
-            TimeDay.particlesDustRate = new UnityEngine.AnimationCurve();
+            TimeDay.particlesDustRate = new AnimationCurve();
             TimeDay.particlesDustRate.AddKey(0, 0);
             TimeDay.particlesDustRate.AddKey(0.25f, 0);
             TimeDay.particlesDustRate.AddKey(0.375f, 1);
@@ -34,33 +34,31 @@ namespace MitaAI
             TimeDay.particlesDustRate.AddKey(1, 0);
             TimeDay.particlesDust = new UnityEngine.ParticleSystem[0];
             TimeDay.particleSunLight = new LocationTimeDayParticleLight[0];
-            
-            TimeDay.colorMorning = new UnityEngine.Color(1, 0.7180627f, 0, 0.05f);
-            TimeDay.colorSunMorning = new UnityEngine.Color(1, 0.7180627f, 0, 0.05f);
-            TimeDay.colorDay = new UnityEngine.Color(1, 0.7631255f, 0.6367924f, 0.1490196f);
-            TimeDay.colorSunDay = new UnityEngine.Color(1, 0.7631255f, 0.6367924f, 0.1490196f);
-            TimeDay.colorEvening = new UnityEngine.Color(0.7877358f, 1, 0.9835733f, 0.05f);
-            TimeDay.colorSunEvening = new UnityEngine.Color(0.7877358f, 1, 0.9835733f, 0.05f);
-            TimeDay.colorNight = new UnityEngine.Color(0.130073f, 0.3779935f, 0.745283f, 0.01f);
-            TimeDay.colorSunNight = new UnityEngine.Color(0.130073f, 0.3779935f, 0.745283f, 0.01f);
-            TimeDay.colorSunParticleNight = new UnityEngine.Color(0, 0.3236856f, 0.3236856f, 0.1019608f);
 
-            sun = worldHouse.Find("House/Sun").GetComponent<UnityEngine.Light>();
-            if (sun != null) sun.color = Color.red;
-            else MelonLoader.MelonLogger.Msg("Sun Error ");
+            TimeDay.colorMorning = new Color(1, 0.7180627f, 0, 0.05f);
+            TimeDay.colorSunMorning = new Color(1, 0.7180627f, 0, 0.05f);
+            TimeDay.colorDay = new Color(1, 0.7631255f, 0.6367924f, 0.1490196f);
+            TimeDay.colorSunDay = new Color(1, 0.7631255f, 0.6367924f, 0.1490196f);
+            TimeDay.colorEvening = new Color(0.7877358f, 1, 0.9835733f, 0.05f);
+            TimeDay.colorSunEvening = new Color(0.7877358f, 1, 0.9835733f, 0.05f);
+            TimeDay.colorNight = new Color(0.130073f, 0.3779935f, 0.745283f, 0.01f);
+            TimeDay.colorSunNight = new Color(0.130073f, 0.3779935f, 0.745283f, 0.01f);
+            TimeDay.colorSunParticleNight = new Color(0, 0.3236856f, 0.3236856f, 0.1019608f);
 
-            
+            sun = worldHouse.Find("House/Sun").GetComponent<Light>();
+            _location21_World.timeDay.sun = sun;
+
 
 
 
 
             //timeDay.colorNight = new UnityEngine.Color(0.0147073f, 1, 0.201f, 0.01f);
-            // timeDay.colorSunNight = new UnityEngine.Color(0.0147073f, 1, 0.201f, 0.01f);
-            // timeDay.colorNight = new UnityEngine.Color(0.02447287f, 0, 0.3207547f);
-            // timeDay.colorSunNight = new UnityEngine.Color(0.02447287f, 0, 0.3207547f);
+            //timeDay.colorSunNight = new UnityEngine.Color(0.0147073f, 1, 0.201f, 0.01f);
+            //timeDay.colorNight = new UnityEngine.Color(0.02447287f, 0, 0.3207547f);
+            //timeDay.colorSunNight = new UnityEngine.Color(0.02447287f, 0, 0.3207547f);
 
-            TimeDay.colorNight = new UnityEngine.Color(0.02447287f, 0, 0.3207547f);
-            TimeDay.colorSunNight = new UnityEngine.Color(0.02447287f, 0, 0.3207547f);
+            TimeDay.colorNight = new Color(0.02447287f, 0, 0.3207547f);
+            TimeDay.colorSunNight = new Color(0.02447287f, 0, 0.3207547f);
 
             //House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/
             try
@@ -70,7 +68,7 @@ namespace MitaAI
             }
             catch (Exception)
             {
-                MelonLoader.MelonLogger.Msg("mainLighting or toiletLighting error ");
+                MelonLogger.Msg("mainLighting or toiletLighting error ");
             }
 
             MelonLogger.Msg("End init lighting");
@@ -104,7 +102,7 @@ namespace MitaAI
 
             if (newLightBedroom == null)
             {
-                newLightBedroom = GameObject.Instantiate(bedroom, bedroom.transform.parent).gameObject;
+                newLightBedroom = UnityEngine.Object.Instantiate(bedroom, bedroom.transform.parent).gameObject;
                 newLightBedroom.transform.position = new Vector3(bedroom.transform.position.x, bedroom.transform.position.z, 1);
             }
             newLightBedroom.SetActive(on);
@@ -114,7 +112,7 @@ namespace MitaAI
 
             if (newLightKitchen == null)
             {
-                newLightKitchen = GameObject.Instantiate(kitchen, kitchen.transform.parent).gameObject;
+                newLightKitchen = UnityEngine.Object.Instantiate(kitchen, kitchen.transform.parent).gameObject;
                 newLightKitchen.transform.position = new Vector3(kitchen.transform.position.x, kitchen.transform.position.z, 2.5f);
             }
             newLightKitchen.SetActive(on);
@@ -131,7 +129,7 @@ namespace MitaAI
             catch (Exception e)
             {
 
-                MelonLoader.MelonLogger.Msg("ChangeMaterial error " + e);
+                MelonLogger.Msg("ChangeMaterial error " + e);
             }
 
         }
@@ -150,7 +148,7 @@ namespace MitaAI
             catch (Exception e)
             {
 
-                MelonLoader.MelonLogger.Msg(e);
+                MelonLogger.Msg(e);
             }
 
         }
@@ -207,7 +205,7 @@ namespace MitaAI
 
         public static void CheckDay()
         {
-            if (TimeDay == null || location21_World == null ) return;
+            if (TimeDay == null || location21_World == null) return;
 
             try
             {
@@ -219,7 +217,7 @@ namespace MitaAI
             catch (Exception e)
             {
 
-                MelonLoader.MelonLogger.Msg("UpdateParticleDust error " + e);
+                MelonLogger.Msg("UpdateParticleDust error " + e);
             }
 
 
@@ -233,12 +231,12 @@ namespace MitaAI
                         emission.rateOverTime = TimeDay.particlesDustRate.Evaluate(location21_World.dayNow) * 100.0f;
                     }
                 }
-              
+
             }
             catch (Exception e)
             {
 
-                MelonLoader.MelonLogger.Msg("foreach error " + e);
+                MelonLogger.Msg("foreach error " + e);
             }
 
 
@@ -251,11 +249,11 @@ namespace MitaAI
             catch (Exception e)
             {
 
-                MelonLoader.MelonLogger.Msg("HandleDayTransitions error " + e);
+                MelonLogger.Msg("HandleDayTransitions error " + e);
             }
 
 
-            
+
         }
 
         private static void HandleDayTransitions()
@@ -285,7 +283,7 @@ namespace MitaAI
 
         private static void TransitionDayPhase(Color startColor, Color endColor, Color startSunColor, Color endSunColor, float multiplier)
         {
-            var v6 = (location21_World.dayNow % 0.25f) * multiplier;
+            var v6 = location21_World.dayNow % 0.25f * multiplier;
             var v12 = Mathf.Clamp01(v6);
 
 
@@ -293,9 +291,9 @@ namespace MitaAI
 
 
             // Логирование параметров
-            MelonLoader.MelonLogger.Msg($"Parameters: startColor={startColor}, endColor={endColor}, v12={v12}");
+            MelonLogger.Msg($"Parameters: startColor={startColor}, endColor={endColor}, v12={v12}");
 
-            if (sun == null) sun = worldHouse.Find("House/Sun").GetComponent<UnityEngine.Light>();
+            if (sun == null) sun = worldHouse.Find("House/Sun").GetComponent<Light>();
             sun.color = Color.Lerp(startSunColor, endSunColor, v12);
 
             foreach (var psl in TimeDay.particleSunLight)
@@ -309,7 +307,7 @@ namespace MitaAI
             ChangeQuadStreet(Color.Lerp(TimeDay.colorSunParticleNight, TimeDay.colorSunParticleMorning, v12));
 
         }
-    
+
         public static void applyColor(Color c)
         {
             location21_World.timeDay.colorDay = c;
@@ -317,7 +315,8 @@ namespace MitaAI
         }
         public static void resetDayColor()
         {
-            if (location21_World.timeDay != null){
+            if (location21_World.timeDay != null)
+            {
                 try
                 {
                     location21_World.timeDay.colorDay = new Color(1, 0.7631255f, 0.6367924f, 0.1490196f);
@@ -325,22 +324,22 @@ namespace MitaAI
                 catch (Exception)
                 {
 
-                    
+
                 }
             }
-            
+
 
         }
         public static void setTimeDay(float time)
         {
             if (location21_World == null)
             {
-                MelonLoader.MelonLogger.Warning("NET TUT ETOGO OBJECTA!!!");
+                MelonLogger.Warning("NET TUT ETOGO OBJECTA!!!");
             }
 
             resetDayColor();
             location21_World.day = time;
-            MelonLoader.MelonLogger.Warning($"000 Time {time}");
+            MelonLogger.Warning($"000 Time {time}");
             location21_World.SetTimeDay(time);
 
             CheckDay();
