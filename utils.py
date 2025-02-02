@@ -45,9 +45,9 @@ def save_combined_messages(combined_messages, output_folder="SavedMessages"):
         json.dump(combined_messages, file, ensure_ascii=False, indent=4)
     print(f"Сообщения сохранены в файл: {file_path}")
 
-def calculate_cost_for_combined_messages(self, combined_messages):
+def calculate_cost_for_combined_messages(self, combined_messages,cost_input_per_1000):
     token_count = self.count_tokens(combined_messages)
-    cost = (token_count / 1000) * self.cost_input_per_1000
+    cost = (token_count / 1000) * cost_input_per_1000
     return f"Токенов {token_count} Цена {cost}"
 
 def count_tokens(self, messages):

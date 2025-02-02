@@ -4,7 +4,7 @@ from gui import ChatGUI
 import os
 
 
-# + кинуть просты рядом!
+# + кинуть промты рядом!
 # pyinstaller  pyinstaller --onefile --add-data "Promts/*;Promts" --add-data "Promts/**/*;Promts" Main.py
 def main():
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using static MitaAI.MitaAppereance.MitaClothesModded;
+
 
 namespace MitaAI
 {

@@ -44,7 +44,7 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         self.history_file = "chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
-        self.memory_limit = 36  # Ограничение сообщения
+        self.memory_limit = 40  # Ограничение сообщения
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
@@ -392,7 +392,7 @@ class ChatModel:
         """Генерация ответа с помощью клиента"""
         save_combined_messages(combined_messages)
         try:
-            self.gui.last_price = calculate_cost_for_combined_messages(self, combined_messages)
+            self.gui.last_price = calculate_cost_for_combined_messages(self, combined_messages,self.cost_input_per_1000)
         except:
             print("Не получилось сделать с токенайзером")
         print(self.gui.last_price)
