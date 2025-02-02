@@ -1,6 +1,7 @@
 ﻿using MelonLoader;
 using UnityEngine;
 
+// Пока что оно не рабоатет, как я хотел.
 public class EyeGlowModifier
 {
     private GameObject eyeObject;
@@ -14,7 +15,7 @@ public class EyeGlowModifier
         eyeObject.name = "EyeGlow";
         eyeObject.transform.SetParent(parent.transform);
         eyeObject.transform.localPosition = Vector3.zero;
-        eyeObject.transform.localScale = Vector3.one * 0.2f; // Примерный размер
+        eyeObject.transform.localScale = Vector3.one * 0.05f; // Примерный размер
 
         // Настраиваем рендерер и материал
         eyeRenderer = eyeObject.GetComponent<Renderer>();

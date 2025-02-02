@@ -5,9 +5,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Text; // Для StringBuilder
+using System.Text;
 
-namespace MitaAI
+namespace MitaAI.World
 {
     public static class Interactions
     {
@@ -29,7 +29,7 @@ namespace MitaAI
             if (!objectInteractive)
             {
                 objectInteractive = gameObject.AddComponent<ObjectInteractive>();
-                
+
             }
             objectInteractive.active = true;
         }
@@ -44,18 +44,18 @@ namespace MitaAI
                     GameObject hitObject = hit.collider.gameObject;
                     string objectName = hitObject.name; // Используем имя как ключ
 
-                
-                        if (!objectViewTime.ContainsKey(objectName))
-                        {
-                            objectViewTime[objectName] = 0.0f;
-                            //MelonLogger.Msg($"Adding new object: {objectName}");
-                        }
-                        else
-                        {
-                           // MelonLogger.Msg($"Object already tracked: {objectName}");
-                        }
-                        objectViewTime[objectName] += Time.deltaTime;
-            
+
+                    if (!objectViewTime.ContainsKey(objectName))
+                    {
+                        objectViewTime[objectName] = 0.0f;
+                        //MelonLogger.Msg($"Adding new object: {objectName}");
+                    }
+                    else
+                    {
+                        // MelonLogger.Msg($"Object already tracked: {objectName}");
+                    }
+                    objectViewTime[objectName] += Time.deltaTime;
+
 
 
                     if (Input.GetMouseButtonDown(0))
@@ -64,8 +64,8 @@ namespace MitaAI
                         OnGameObjectClicked(hitObject);
                     }
 
-                   //MelonLogger.Msg($"{objectName}:{objectViewTime[objectName]}s.");
-                   //MelonLogger.Msg($"objectViewTime count {objectViewTime.Count}.");
+                    //MelonLogger.Msg($"{objectName}:{objectViewTime[objectName]}s.");
+                    //MelonLogger.Msg($"objectViewTime count {objectViewTime.Count}.");
                 }
             }
             catch (System.Exception ex)
@@ -101,11 +101,11 @@ namespace MitaAI
             // Удаляем только те объекты, которые уже обработаны
             // foreach (var obj in toRemove)
             //{
-                //   objectViewTime.Remove(obj);
-                // }
+            //   objectViewTime.Remove(obj);
+            // }
 
-                return answer.ToString();
-            
+            return answer.ToString();
+
         }
         public static void OnGameObjectClicked(GameObject gameObject)
         {
@@ -136,7 +136,7 @@ namespace MitaAI
                 Debug.LogError($"ObjectInteractive component not found on {gameObject.name}");
             }
         }
-        }
-    } 
+    }
+}
 
 
