@@ -8,6 +8,33 @@ using System.Threading.Tasks;
 
 namespace MitaAI
 {
+    public static class EventsModded
+    {
+        public static void HandleAnimationEvent(UnityEngine.AnimationEvent evt)
+        {
+            MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
+        }
+
+        public static void HandleCustomEvent(string eventName)
+        {
+            MelonLogger.Msg($"HandleCustomEvent called with event: {eventName}");
+
+            switch (eventName)
+            {
+                case "ConsoleEnd":
+                    PlayerAnimationModded.stopAnim();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
+    }
+
+
+
+
     [HarmonyLib.HarmonyPatch]
     public static class Console
     {

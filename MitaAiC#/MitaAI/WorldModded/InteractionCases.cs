@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using MelonLoader;
 using UnityEngine;
+using Il2Cpp;
 namespace MitaAI.WorldModded
 {
     public static class InteractionCases
@@ -12,12 +13,12 @@ namespace MitaAI.WorldModded
 
         public static void caseConsoleStart(GameObject console)
         {
-
+            console.GetComponent<ObjectInteractive>().active = false;
             MelonCoroutines.Start(caseConsoleAct(console));
         }
         public static IEnumerator caseConsoleAct(GameObject console)
         {
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(1.75f);
 
             var Button1 = MitaCore.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey FindButton");
             Button1?.SetActive(true);
@@ -31,10 +32,9 @@ namespace MitaAI.WorldModded
             {
                 yield return new WaitForSeconds(0.25f);
             }
-
-            yield return new WaitForSecondsRealtime(6f);
-            PlayerAnimationModded.stopAnim();
-            MitaCore.Instance.sendSystemMessage("Игрок просмотрел твой картридж другого игрока в подвале. У него могут быть вопросы, надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
+            
+            if (MitaCore.Instance.getDistance()<6f) MitaCore.Instance.sendSystemMessage("Игрок при тебе просмотрел твой картридж другого игрока в подвале. У него могут быть вопросы, надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
+            else MitaCore.Instance.sendSystemInfo("Игрок просмотрел твой картридж другого игрока в подвале пока ты была не рядом. У него могут быть вопросы, если он спросит надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
         }
 
     }

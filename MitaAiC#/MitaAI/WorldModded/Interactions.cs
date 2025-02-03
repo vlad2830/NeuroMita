@@ -116,9 +116,7 @@ namespace MitaAI
 
             if (gameObject.GetComponent<ObjectInteractive>())
             {
-                gameObject.GetComponent<ObjectInteractive>().active = false;
-                ToggleBoolAfterTime(gameObject, 15, true);
-
+              
                 UseSpecialCase(gameObject);
 
             }
@@ -130,7 +128,6 @@ namespace MitaAI
             {
                 case "Console":
                     InteractionCases.caseConsoleStart(gameObject);
-
                     break;
 
             }

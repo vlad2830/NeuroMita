@@ -937,7 +937,7 @@ namespace MitaAI
         }
 
 
-        float getDistance()
+        public float getDistance()
         {
             if (Mita == null || playerPerson == null) { return 0f; }
             return Vector3.Distance(Mita.transform.GetChild(0).position, playerPerson.transform.position);
@@ -2304,69 +2304,10 @@ namespace MitaAI
         }
 
 
-        public static void HandleAnimationEvent(UnityEngine.AnimationEvent evt)
-        {
-            MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
-        }
-        public static void AddAnimationEvent(GameObject targetObject,AnimationClip animationClip,string Name)
-        {
-            MelonLogger.Msg("AddAnimationEvent start");
-            // Добавляем прокси-компонент к объекту
-            var proxy = targetObject.AddComponent<AnimationEventProxy>();
-            MelonLogger.Msg("AddAnimationEvent added proxi");
-            // Создаем AnimationEvent
-            var animationEvent = new UnityEngine.AnimationEvent
-            {
-                functionName = "OnAnimationEvent", // Имя функции в прокси-классе
-                time = 0.5f, // Время срабатывания
-                stringParameter = Name,
-                //intParameter = 123,
-                //floatParameter = 1.0f,
-                //objectReferenceParameter = null
-            };
-            MelonLogger.Msg("AddAnimationEvent created anim event");
-            animationClip.AddEvent(animationEvent);
-            MelonLogger.Msg("AddAnimationEvent added anim event");
-        }
-        public static UnityEvent ChangeAnimationEvent(GameObject targetObject, string name)
-        {
-            if (targetObject == null)
-            {
-                MelonLogger.Msg("targetObject is null!");
-                return null;
-            }
 
-            MelonLogger.Msg("ChangeAnimationEvent start");
 
-            // Создаем UnityEvent
-            var unityEvent = new UnityEvent();
-
-            // Добавляем прокси-компонент к объекту
-            var proxy = targetObject.AddComponent<AnimationEventProxy>();
-            if (proxy == null)
-            {
-                MelonLogger.Msg("Failed to add AnimationEventProxy!");
-                return null;
-            }
-
-            // Настраиваем прокси для вызова функции основного класса
-            proxy.SetupEvent(unityEvent, name);
-
-            MelonLogger.Msg("ChangeAnimationEvent return UnityEvent");
-
-            return unityEvent;
-        }
         // Метод для обработки события
-        public void HandleCustomEvent(string eventName)
-        {
-            MelonLogger.Msg($"HandleCustomEvent called with event: {eventName}");
 
-            // Здесь можно добавить логику обработки события
-            if (eventName == "TestEvent")
-            {
-                MelonLogger.Msg("TestEvent handled!");
-            }
-        }
 
     }
 

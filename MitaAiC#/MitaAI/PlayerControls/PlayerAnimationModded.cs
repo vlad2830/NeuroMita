@@ -25,15 +25,11 @@ namespace MitaAI
         {
             objectAnimationPlayer = player.AddComponent<ObjectAnimationPlayer>();
             playerMove = _playerMove;
-            MelonLogger.Msg("PlayerAnimationModded start");
             FindPlayerAnimationsRecursive(worldHouse);
             // Ищем анимации в DontDestroyOnLoad
-            MelonLogger.Msg("FindPlayerAnimationsInDontDestroyOnLoad start");
-            FindPlayerAnimationsInDontDestroyOnLoad();
-            MelonLogger.Msg("FindPlayerAnimationsInDontDestroyOnLoad end");
 
-            MelonLogger.Msg("PlayerAnimationModded FindPlayerAnimationsRecursive end");
-            foreach (var el in PlayerAnimations) MelonLogger.Msg($"Player clip {el.Key}");
+            FindPlayerAnimationsInDontDestroyOnLoad();
+            //foreach (var el in PlayerAnimations) MelonLogger.Msg($"Player clip {el.Key}");
 
         }
         private static void FindPlayerAnimationsInDontDestroyOnLoad()
@@ -67,7 +63,7 @@ namespace MitaAI
                     {
                         foreach (var clip in clips)
                         {
-                            MelonLogger.Msg($"Some clip {clip.name}");
+                            //MelonLogger.Msg($"Some clip {clip.name}");
                             if (clip != null && clip.name.Contains("Player", StringComparison.OrdinalIgnoreCase) && !PlayerAnimations.ContainsKey(clip.name))
                             {
                                 if (!PlayerAnimations.ContainsKey(clip.name)) PlayerAnimations[clip.name] = clip;

@@ -318,7 +318,7 @@
 
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
-		<Compile Include="AnimationEventProxy.cs" />
+		<Compile Include="WorldModded\Events\EventsProxy.cs" />
 		<Compile Include="Mita\AudioControl.cs" />
 		<Compile Include="PlayerControls\PlayerAnimationModded.cs" />
 		<Compile Include="PlayerControls\TextInput.cs" />
@@ -327,7 +327,7 @@
 		<Compile Include="Mita\MitaAppereance\EyeModifier.cs" />
 		<Compile Include="Mita\MitaAnimationModded.cs" />
 		<Compile Include="Connection\NetworkController.cs" />
-		<Compile Include="WorldModded\Events.cs" />
+		<Compile Include="WorldModded\Events\Events.cs" />
 		<Compile Include="Mita\CommandProcessor.cs" />
 		<Compile Include="Mita\MitaAppereance\MitaClothes.cs" />
 		<Compile Include="WorldModded\Interactions.cs" />
