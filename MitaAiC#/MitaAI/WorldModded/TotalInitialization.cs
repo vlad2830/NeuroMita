@@ -47,9 +47,13 @@ namespace MitaAI
             ObjectAnimationPlayer drop = MitaCore.TryfindChild(worldBasement, "Quests/Quest1 Start/AnimationPlayer Drop").GetComponent<ObjectAnimationPlayer>();
             //drop.eventsPlayer = new Il2CppSystem.Collections.Generic.List<UnityEngine.Events.UnityEvent>();
             //drop.animationStart.events = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<AnimationEvent>(0);
+
+            MelonLogger.Msg("Before ChangeAnimationEvent");
+            //MitaCore.AddAnimationEvent(drop.gameObject, drop.animationStart,"ConsoleEnd");
+            MelonLogger.Msg("After ChangeAnimationEvent");
             //drop.eventStartAnimaiton = null;
             //drop.eventStartLoop = null;
-            drop.eventFinish = null;
+            drop.eventFinish = MitaCore.ChangeAnimationEvent(drop.gameObject, "ConsoleEnd");
             //GameObject console = MitaCore.TryfindChild(worldBasement, "Act/Console");
 
         }
