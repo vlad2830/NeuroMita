@@ -509,7 +509,9 @@ namespace MitaAI
 
 
             TotalInitialization.initTVGames(worldHouse);
-           
+            TotalInitialization.initCornerSofa(worldHouse);
+
+
             try
             {
                 AudioControl.Init(worldHouse);
@@ -2160,7 +2162,11 @@ namespace MitaAI
             {
                 playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = false;
             }
-
+            else if (Input.GetKeyUp(KeyCode.Escape))
+            {
+                if (PlayerAnimationModded.currentPlayerMovement==PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
+                PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+            }
 
         }
         private void TurnBlockInputField(bool blocked)

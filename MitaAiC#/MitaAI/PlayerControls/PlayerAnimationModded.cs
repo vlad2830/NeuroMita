@@ -13,13 +13,30 @@ using Il2CppColorful;
 
 namespace MitaAI
 {
+
+
+
     public static class PlayerAnimationModded
     {
+        public enum PlayerMovement
+        {
+            normal,
+            sit
+        }
+        public static PlayerMovement currentPlayerMovement = PlayerMovement.normal;
+
         static ObjectAnimationPlayer objectAnimationPlayer;
         static private Queue<AnimationClip> animationQueue = new Queue<AnimationClip>();
         static private bool isPlaying = false;
         static PlayerMove playerMove;
         public static Dictionary<string, AnimationClip> PlayerAnimations { get; private set; } = new Dictionary<string, AnimationClip>();
+
+        public static AnimationClip getPlayerAnimationClip(string name) {
+
+            if (PlayerAnimations.ContainsKey(name)) return PlayerAnimations[name];
+            else return null;
+        }
+
 
         public static void Init(GameObject player, Transform worldHouse, PlayerMove _playerMove)
         {
@@ -176,6 +193,20 @@ namespace MitaAI
             {
 
                 MelonLogger.Msg($"Problem with playAnim {ex}");
+            }
+
+        }
+        public static void playAnimObject(GameObject gameObject)
+        {
+            try
+            {
+                gameObject.GetComponent<ObjectAnimationPlayer>().AnimationPlay();
+
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Msg($"Problem with playAnimObject {ex}");
             }
 
         }

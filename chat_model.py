@@ -256,9 +256,9 @@ class ChatModel:
 
     def _initialize_conversation(self):
         """Инициализация начальной беседы"""
-        self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}\n"}
-        self.MitaExamples = {"role": "system", "content": f"{self.examplesLong}\n"}
         self.systemMessages.insert(0, {"role": "system", "content": f"{self.player}\n"})
+        self.MitaExamples = {"role": "system", "content": f"{self.examplesLong}\n"}
+        self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}\n"}
         self.systemMessages.insert(0, {"role": "system", "content": f"{self.response_structure}"})
 
     def _start_playing_with_player(self):
@@ -403,7 +403,7 @@ class ChatModel:
             messages=combined_messages,
             max_tokens=self.max_response_tokens,
             presence_penalty=1.5,
-            temperature=0.6,
+            temperature=0.5,
         )
         response = completion.choices[0].message.content
         print("Мита: \n" + response)

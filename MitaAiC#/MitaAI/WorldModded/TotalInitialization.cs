@@ -4,15 +4,48 @@ using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace MitaAI
 {
+    // В теории сюда уйдет вся стартовая настройка
     public static class TotalInitialization
     {
+        static ObjectInteractive exampleComponent;
 
+        // Инициализация шаблонного компонента
+        public static void InitExampleComponent(Transform world)
+        {
+            GameObject pult = MitaCore.TryfindChild(world, "Quests/Quest 1/Addon/Interactive Aihastion");
+            if (pult != null)
+            {
+                exampleComponent = ObjectInteractive.Instantiate(pult.GetComponent<ObjectInteractive>());
+                MelonLogger.Msg("Example component initialized!");
+            }
+            else
+            {
+                MelonLogger.Msg("Failed to find template object!");
+            }
+        }
+
+        public static void initCornerSofa(Transform world)
+        {
+            GameObject sofa = MitaCore.TryfindChild(world, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair");
+
+            var objectAnimationPlayer =  sofa.AddComponent<ObjectAnimationPlayer>();
+            var objectInteractive = sofa.AddComponent<ObjectInteractive>();
+            Utils.CopyComponentValues(exampleComponent, objectInteractive);
+
+            objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit");
+            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player SitIdle");
+
+            objectInteractive.eventClick = EventsProxy.ChangeAnimationEvent(sofa, "SofaSit");
+
+            GameObject GameAihastion = MitaCore.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
+        }
 
         public static void initTVGames(Transform world)
         {
