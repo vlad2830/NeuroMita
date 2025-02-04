@@ -10,18 +10,16 @@ import time
 from g4f.client import Client
 import re
 import shutil
-
+from num2words import num2words
 
 from utils import clamp, print_ip_and_country, get_resource_path, load_text_from_file, save_combined_messages, \
     calculate_cost_for_combined_messages, count_tokens
 
 
-
-
-
 class ChatModel:
     def __init__(self, gui):
 
+        self.locale = "En"
         self.gui = gui
 
         self.api_key = os.getenv("NM_API_KEY")  #"sk-PkNRM8HNkAeVadcJEwKVW6c8OTtafs6f"
@@ -56,7 +54,7 @@ class ChatModel:
         self.max_response_tokens = 4000
         self.cost_input_per_1000 = 0.0432
         self.cost_response_per_1000 = 0.1728
-        self.history_file = "SavedHistories/chat_history.json"
+        self.history_file = "chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
         self.memory_limit = 40  # Ограничение сообщения
         self.attitude = 60
@@ -250,7 +248,7 @@ class ChatModel:
 
             print("До фразы")
             self.gui.textToTalk = self.process_text_to_voice(response)
-            print("self.gui.textToTalk: "+self.gui.textToTalk)
+            print("self.gui.textToTalk: " + self.gui.textToTalk)
             #self.update_memory_in_history()
             self.save_history({
                 'messages': messages,
@@ -406,7 +404,8 @@ class ChatModel:
         """Генерация ответа с помощью клиента"""
         save_combined_messages(combined_messages)
         try:
-            self.gui.last_price = calculate_cost_for_combined_messages(self, combined_messages,self.cost_input_per_1000)
+            self.gui.last_price = calculate_cost_for_combined_messages(self, combined_messages,
+                                                                       self.cost_input_per_1000)
         except:
             print("Не получилось сделать с токенайзером")
         print(self.gui.last_price)
@@ -425,7 +424,7 @@ class ChatModel:
             if system_instructions:
                 formatted_instruction = "\n".join(system_instructions)
                 user_messages.insert(0, {"role": "user", "content": f"[Инструкция модели]\n{formatted_instruction}"})
-            save_combined_messages(user_messages,"Gem")
+            save_combined_messages(user_messages, "Gem")
             response = self.generate_responseGemini(user_messages)
             response = response.removeprefix("```\n")
             response = response.removesuffix("\n```\n")
@@ -441,6 +440,7 @@ class ChatModel:
 
         print("Мита: \n" + response)
         return response
+
     def generate_responseGemini(self, combined_messages):
         # Подготовка тела запроса
         data = {
@@ -467,12 +467,14 @@ class ChatModel:
         if response.status_code == 200:
             response_data = response.json()
             # Извлечение текста ответа (зависит от структуры ответа Gemini)
-            generated_text = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            generated_text = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get(
+                "text", "")
             print("Gemini Flash: \n" + generated_text)
             return generated_text
         else:
             print("Ошибка:", response.status_code, response.text)
             return None
+
     def process_response(self, user_input, response, messages):
 
         try:
@@ -557,6 +559,10 @@ class ChatModel:
 
         # Удаляем все теги и их содержимое
         clean_text = re.sub(r"<[^>]+>.*?</[^>]+>", "", text)
+        clean_text = replace_numbers_with_words(clean_text)
+
+        clean_text = transliterate_english_to_russian(clean_text)
+
 
         # Если текст пустой, заменяем его на "Вот"
         if clean_text.strip() == "":
@@ -639,7 +645,7 @@ class ChatModel:
             self.attitude = 15
             self.boredom = 20
             #if self.HideAiData:
-                #response = response.replace("<Secret!>", "")
+            #response = response.replace("<Secret!>", "")
             return response
         return response
 
@@ -744,7 +750,7 @@ class ChatModel:
     def save_chat_history(self):
         print("@!@#!23@#! КАКОГО ОНО ОТРАБОТАЛО??")
         # Имя исходного файла
-        source_file = "SavedHistories/chat_history.json"
+        source_file = "chat_history.json"
         # Папка для сохранения историй
         target_folder = "SavedHistories"
         # Проверяем, существует ли папка SavedHistories, и создаём её, если нет
@@ -814,6 +820,7 @@ class ChatModel:
             # Обрабатываем возможные ошибки
             return f"Ошибка при генерации ответа: {str(e)}"
 
+
 def add_temporary_system_message(messages, content):
     """
     Добавляет одноразовое системное сообщение в список сообщений.
@@ -826,3 +833,47 @@ def add_temporary_system_message(messages, content):
         "content": content
     }
     messages.append(system_message)
+
+
+# Функция 1: Замена чисел на слова в русском тексте
+def replace_numbers_with_words(text):
+    numbers = re.findall(r'\d+', text)
+    for number in numbers:
+        word = num2words(int(number), lang='ru')
+        text = text.replace(number, word)
+    return text
+
+
+# Функция 2: Транслитерация английского текста на русский с сохранением произношения
+def transliterate_english_to_russian(text):
+    # Словарь для транслитерации
+    translit_dict = {
+        'a': 'а', 'b': 'б', 'c': 'к', 'd': 'д', 'e': 'е', 'f': 'ф', 'g': 'г',
+        'h': 'х', 'i': 'и', 'j': 'дж', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н',
+        'o': 'о', 'p': 'п', 'q': 'к', 'r': 'р', 's': 'с', 't': 'т', 'u': 'у',
+        'v': 'в', 'w': 'в', 'x': 'кс', 'y': 'й', 'z': 'з',
+        'A': 'А', 'B': 'Б', 'C': 'К', 'D': 'Д', 'E': 'Е', 'F': 'Ф', 'G': 'Г',
+        'H': 'Х', 'I': 'И', 'J': 'Дж', 'K': 'К', 'L': 'Л', 'M': 'М', 'N': 'Н',
+        'O': 'О', 'P': 'П', 'Q': 'К', 'R': 'Р', 'S': 'С', 'T': 'Т', 'U': 'У',
+        'V': 'В', 'W': 'В', 'X': 'Кс', 'Y': 'Й', 'Z': 'З',
+        'th': 'з', 'sh': 'ш', 'ch': 'ч', 'ph': 'ф', 'oo': 'у', 'ee': 'и',
+        'Th': 'З', 'Sh': 'Ш', 'Ch': 'Ч', 'Ph': 'Ф', 'Oo': 'У', 'Ee': 'И',
+    }
+
+    # Обрабатываем сочетания букв
+    for combo in ['th', 'sh', 'ch', 'ph', 'oo', 'ee', 'Th', 'Sh', 'Ch', 'Ph', 'Oo', 'Ee']:
+        text = text.replace(combo, translit_dict[combo])
+
+    # Транслитерируем оставшиеся символы
+    transliterated_text = []
+    i = 0
+    while i < len(text):
+        # Проверяем, есть ли текущий символ в словаре
+        if text[i] in translit_dict:
+            transliterated_text.append(translit_dict[text[i]])
+        else:
+            # Если символа нет в словаре, оставляем его как есть (например, пробелы, знаки препинания)
+            transliterated_text.append(text[i])
+        i += 1
+
+    return ''.join(transliterated_text)

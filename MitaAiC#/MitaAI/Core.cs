@@ -1234,6 +1234,7 @@ namespace MitaAI
                 }
 
                 int delay = 3500 * modifiedResponse.Length / 50;
+
                 MelonCoroutines.Start(PlayMitaSound(delay, audioClip));
 
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 50);
@@ -1253,8 +1254,8 @@ namespace MitaAI
             {
                 LoggerInstance.Msg("foreach foreach " + part);
 
-
-                int delay = Mathf.Max(3500 * part.Length / 50, 500);
+                string partCleaned = Regex.Replace(part, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
+                int delay = Mathf.Max(3500 * partCleaned.Length / 50, 500);
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay));
             }
 

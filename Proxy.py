@@ -21,7 +21,7 @@ cost_input_per_1000 = 0.0432
 cost_response_per_1000 = 0.1728
 
 # Файл для хранения истории сообщений
-history_file = "SavedHistories/chat_history.json"
+history_file = "chat_history.json"
 
 # Начальное настроение Миты (от 0 до 100)
 mood = 35
