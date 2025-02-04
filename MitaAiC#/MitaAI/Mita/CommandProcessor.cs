@@ -133,7 +133,7 @@ namespace MitaAI.Mita
                     mitaCore.endHunt();
                     break;
 
-                case "сontinue":
+                case "continue":
                     mitaCore.systemMessages.Enqueue("Ты продолжаешь фразу или мысль");
                     break;
 
