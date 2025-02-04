@@ -129,6 +129,9 @@ namespace MitaAI
                 case "Console":
                     InteractionCases.caseConsoleStart(gameObject);
                     break;
+                case "SofaChair":
+                    InteractionCases.caseConsoleStart(gameObject);
+                    break;
 
             }
         }

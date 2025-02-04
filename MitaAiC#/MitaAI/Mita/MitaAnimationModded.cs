@@ -71,10 +71,10 @@ namespace MitaAI.Mita
                         EnqueueAnimation("Mita StartShow Knifes");
                         break;
                     case "Поднести палец к подбородку":
-                        setIdleAnimation("Mita TalkWithPlayer");
+                        EnqueueAnimation("Mita TalkWithPlayer");
                         break;
                     case "Сложить руки перед собой":
-                        setIdleAnimation("Mita Hands Down Idle");
+                        EnqueueAnimation("Mita Hands Down Idle");
                         break;
                     case "Показать предмет":
                         EnqueueAnimation("Mita Selfi");

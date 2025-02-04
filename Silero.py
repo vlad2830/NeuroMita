@@ -14,7 +14,7 @@ import platform
 
 # Пример использования:
 class TelegramBotHandler:
-    def __init__(self, gui, message_limit_per_minute=8):
+    def __init__(self, gui, message_limit_per_minute=20):
         # Получение параметров из окружения
         api_id = int(os.getenv("NM_TELEGRAM_API_ID"))
         api_hash = os.getenv("NM_TELEGRAM_API_HASH")

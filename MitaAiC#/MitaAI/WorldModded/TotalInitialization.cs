@@ -42,7 +42,7 @@ namespace MitaAI
             objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit");
             objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player SitIdle");
 
-            objectInteractive.eventClick = EventsProxy.ChangeAnimationEvent(sofa, "SofaSit");
+            //objectInteractive.eventClick = EventsProxy.ChangeAnimationEvent(sofa, "SofaSit");
 
             GameObject GameAihastion = MitaCore.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
         }

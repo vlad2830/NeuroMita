@@ -11,6 +11,7 @@ from g4f.client import Client
 import re
 import shutil
 
+
 from utils import clamp, print_ip_and_country, get_resource_path, load_text_from_file, save_combined_messages, \
     calculate_cost_for_combined_messages, count_tokens
 
@@ -26,7 +27,20 @@ class ChatModel:
         self.api_key = os.getenv("NM_API_KEY")  #"sk-PkNRM8HNkAeVadcJEwKVW6c8OTtafs6f"
         self.api_url = os.getenv("NM_API_URL")
 
-        self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
+        # Stable
+        if False:
+            self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
+            self.modelName = "gpt-4o-mini"
+        # test deepseek
+        if False:
+            self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
+            self.modelName = "deepseek-chat"
+        # test gemini
+        if True:
+            self.url = "https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent"
+            self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/google")
+            self.modelName = "gemini-1.5-flash"
+
         #self.client = OpenAI(api_key="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", base_url="https://openrouter.ai/api/v1")
         #self.client = OpenAI(api_key="sk-61554d38a5b9423e97b0b766e35bb598", base_url="https://api.deepseek.com")
         #self.client = Client()
@@ -42,7 +56,7 @@ class ChatModel:
         self.max_response_tokens = 4000
         self.cost_input_per_1000 = 0.0432
         self.cost_response_per_1000 = 0.1728
-        self.history_file = "chat_history.json"
+        self.history_file = "SavedHistories/chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
         self.memory_limit = 40  # Ограничение сообщения
         self.attitude = 60
@@ -236,7 +250,7 @@ class ChatModel:
 
             print("До фразы")
             self.gui.textToTalk = self.process_text_to_voice(response)
-
+            print("self.gui.textToTalk: "+self.gui.textToTalk)
             #self.update_memory_in_history()
             self.save_history({
                 'messages': messages,
@@ -397,18 +411,68 @@ class ChatModel:
             print("Не получилось сделать с токенайзером")
         print(self.gui.last_price)
 
-        completion = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            #model="deepseek/deepseek-r1:free",
-            messages=combined_messages,
-            max_tokens=self.max_response_tokens,
-            presence_penalty=1.5,
-            temperature=0.5,
-        )
-        response = completion.choices[0].message.content
+        # Преобразование system messages для Gemini
+        if self.modelName == "gemini-1.5-flash":
+            system_instructions = []
+            user_messages = []
+
+            for msg in combined_messages:
+                if msg["role"] == "system":
+                    system_instructions.append(msg["content"])
+                else:
+                    user_messages.append(msg)
+
+            if system_instructions:
+                formatted_instruction = "\n".join(system_instructions)
+                user_messages.insert(0, {"role": "user", "content": f"[Инструкция модели]\n{formatted_instruction}"})
+            save_combined_messages(user_messages,"Gem")
+            response = self.generate_responseGemini(user_messages)
+            response = response.removeprefix("```\n")
+            response = response.removesuffix("\n```\n")
+        else:
+            completion = self.client.chat.completions.create(
+                model=self.modelName,
+                messages=combined_messages,
+                max_tokens=self.max_response_tokens,
+                presence_penalty=1.5,
+                temperature=0.5,
+            )
+            response = completion.choices[0].message.content
+
         print("Мита: \n" + response)
         return response
+    def generate_responseGemini(self, combined_messages):
+        # Подготовка тела запроса
+        data = {
+            "contents": [
+                {"role": "user", "parts": [{"text": msg["content"]}]} for msg in combined_messages
+            ],
+            "generationConfig": {
+                "maxOutputTokens": self.max_response_tokens,
+                "temperature": 0.5,
+                "presencePenalty": 1.5
+            }
+        }
 
+        # Заголовки запроса
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
+        }
+
+        # Отправка запроса
+        response = requests.post(self.url, headers=headers, json=data)
+
+        # Обработка ответа
+        if response.status_code == 200:
+            response_data = response.json()
+            # Извлечение текста ответа (зависит от структуры ответа Gemini)
+            generated_text = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            print("Gemini Flash: \n" + generated_text)
+            return generated_text
+        else:
+            print("Ошибка:", response.status_code, response.text)
+            return None
     def process_response(self, user_input, response, messages):
 
         try:
@@ -481,12 +545,23 @@ class ChatModel:
         return response
 
     def process_text_to_voice(self, text):
-        # Регулярное выражение для удаления всех тегов между угловыми скобками
-        clean_text = re.sub(r"<.*?>.*?<.*?>", "", text)
-        clean_text = re.sub(r"<.*?>", "", clean_text)
+        # Проверяем, что текст является строкой (если это байты, декодируем)
+        if isinstance(text, bytes):
+            try:
+                text = text.decode("utf-8")  # Декодируем в UTF-8
+            except UnicodeDecodeError:
+                # Если UTF-8 не подходит, пробуем определить кодировку
+                import chardet
+                encoding = chardet.detect(text)["encoding"]
+                text = text.decode(encoding)
 
-        if clean_text == "":
+        # Удаляем все теги и их содержимое
+        clean_text = re.sub(r"<[^>]+>.*?</[^>]+>", "", text)
+
+        # Если текст пустой, заменяем его на "Вот"
+        if clean_text.strip() == "":
             clean_text = "Вот"
+
         return clean_text
 
     def extract_and_process_memory_data(self, response):
@@ -669,7 +744,7 @@ class ChatModel:
     def save_chat_history(self):
         print("@!@#!23@#! КАКОГО ОНО ОТРАБОТАЛО??")
         # Имя исходного файла
-        source_file = "chat_history.json"
+        source_file = "SavedHistories/chat_history.json"
         # Папка для сохранения историй
         target_folder = "SavedHistories"
         # Проверяем, существует ли папка SavedHistories, и создаём её, если нет

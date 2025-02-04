@@ -10,11 +10,16 @@ namespace MitaAI.WorldModded
 {
     public static class InteractionCases
     {
-
         public static void caseConsoleStart(GameObject console)
         {
             console.GetComponent<ObjectInteractive>().active = false;
             MelonCoroutines.Start(caseConsoleAct(console));
+        }
+
+        public static void sofaStart(GameObject console)
+        {
+            console.GetComponent<ObjectInteractive>().active = false;
+            
         }
         public static IEnumerator caseConsoleAct(GameObject console)
         {

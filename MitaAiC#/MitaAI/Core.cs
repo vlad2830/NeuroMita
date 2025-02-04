@@ -2162,7 +2162,7 @@ namespace MitaAI
             {
                 playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = false;
             }
-            else if (Input.GetKeyUp(KeyCode.Escape))
+            else if (Input.GetKeyDown(KeyCode.Escape))
             {
                 if (PlayerAnimationModded.currentPlayerMovement==PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
                 PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
