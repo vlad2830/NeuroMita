@@ -32,11 +32,13 @@ class ChatModel:
         # test deepseek
         if False:
             self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
+            #self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
             self.modelName = "deepseek-chat"
+
         # test gemini
         if True:
             self.url = "https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent"
-            self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/google")
+            #self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/google")
             self.modelName = "gemini-1.5-flash"
 
         #self.client = OpenAI(api_key="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", base_url="https://openrouter.ai/api/v1")

@@ -55,7 +55,19 @@ namespace MitaAI.Mita
                 switch (MovementStyle)
                 {
                     case "Щелчек":
-                        EnqueueAnimation("Mita Click_2");
+                        int randomIndex = UnityEngine.Random.Range(0, 4); // Генерация числа от 0 до 3
+                        string animationName;
+
+                        if (randomIndex == 0)
+                            animationName = "Mita Click_0";
+                        else if (randomIndex == 1)
+                            animationName = "Mita Click_1";
+                        else if (randomIndex == 2)
+                            animationName = "Mita Click_2";
+                        else
+                            animationName = "Mita Click"; // Четвёртый кейс
+
+                        EnqueueAnimation(animationName);
                         break;
                     case "Похлопать в ладоши":
                         EnqueueAnimation("Mita Cheerful");
@@ -63,15 +75,43 @@ namespace MitaAI.Mita
                     case "Указать направление":
                         EnqueueAnimation("Mita ShowTumb");
                         break;
+                    case "Смотреть с презрением":
+                        EnqueueAnimation("Mita IdleBat");
+                        break;
+                    case "Показать усталость":
+                        EnqueueAnimation("Mita Start Tired");
+                        EnqueueAnimation("MiMita Tired");
+                        break;
+                    case "Притвориться отключенной и упасть":
+                        EnqueueAnimation("MitaBody Fall");
+                        break;
                     case "Взять предмет":
                         EnqueueAnimation("Mita TakeBat");
                         break;
+                    case "Кивнуть да":
+                        MitaCore.Instance.MitaLook.Nod(true);
+                        break;
+                    case "Кивнуть нет":
+                        MitaCore.Instance.MitaLook.Nod(false);
+                        break;
+                    case "Глянуть глазами в случаном направлении":
+                        MitaCore.Instance.MitaLook.EyesLookOffsetRandom(90);
+                        break;
+                    case "Повернуться в случаном направлении":
+                        MitaCore.Instance.MitaLook.LookRandom();
+                        break;
                     case "Развести руки":
-                        EnqueueAnimation("Mita Throw Knifes");
                         EnqueueAnimation("Mita StartShow Knifes");
+                        EnqueueAnimation("Mita Throw Knifes");
+                        
                         break;
                     case "Поднести палец к подбородку":
                         EnqueueAnimation("Mita TalkWithPlayer");
+                        break;
+                    case "Поднять игрока одной рукой":
+                        EnqueueAnimation("Mita TakeMita");
+                        EnqueueAnimation("Mita TakeMita Idle");
+                        EnqueueAnimation("Mita ThrowPlayer");
                         break;
                     case "Сложить руки перед собой":
                         EnqueueAnimation("Mita Hands Down Idle");
@@ -81,6 +121,14 @@ namespace MitaAI.Mita
                         break;
                     case "Прикрыть глаза":
                         EnqueueAnimation("Mita Close Eyes");
+                        //int randomIndex = UnityEngine.Random.Range(0, 4); // Генерация числа от 0 до 3
+                        //EnqueueAnimation("Mita Open Eyes");
+                        //EnqueueAnimation("Mita Open Shar Eyes");
+                        break;
+                    case "Обнять":
+                        EnqueueAnimation("Mita StartHug");
+                        EnqueueAnimation("Mita HugIdle");
+                        EnqueueAnimation("Mita StopHug");
                         break;
                     case "Удар":
                         EnqueueAnimation("Mita Kick");
@@ -88,6 +136,12 @@ namespace MitaAI.Mita
                     case "Похвастаться предметом":
                         EnqueueAnimation("Mita Take Recorder");
                         break;
+                    case "Прикрыть рот и помахать рукой":
+                        EnqueueAnimation("Mita Oi");
+                        // EnqueueAnimation("Mita Idle");
+                        EnqueueAnimation("Mita Heh");
+                        break;
+                       
                     case "Случайная анимация":
                         EnqueueAnimation("");
                         break;

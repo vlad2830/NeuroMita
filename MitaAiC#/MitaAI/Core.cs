@@ -61,6 +61,7 @@ namespace MitaAI
         GameObject MitaPersonObject;
         public MitaPerson Mita;
         Animator_FunctionsOverride MitaAnimatorFunctions;
+        public Character_Look MitaLook;
         enum MovementStyles
         {
             walkNear = 0,
@@ -451,8 +452,8 @@ namespace MitaAI
             MitaObject = GameObject.Find("Mita").gameObject;
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
-            
 
+            MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
             MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
             Mita.AiShraplyStop();
@@ -844,12 +845,6 @@ namespace MitaAI
                 {
                     timer = 0f; // Сбрасываем таймер
                     yield return HandleDialogue(); // Запускаем HandleDialogue и ждем его завершения
-                }
-
-                // Останавливаем Mita, если расстояние меньше 0.75
-                if (getDistance() < 0.75f)
-                {
-                    Mita.AiShraplyStop();
                 }
 
                 yield return null; // Ждем следующего кадра
@@ -1790,6 +1785,12 @@ namespace MitaAI
                 if (getDistance() > 1f)
                 {
                     Mita.AiWalkToTarget(playerPerson.transform);
+                    
+                }
+                else
+                {
+                    Mita.AiShraplyStop();
+                    yield break;
                 }
 
                 yield return new WaitForSeconds(2f);
