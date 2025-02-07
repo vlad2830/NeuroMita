@@ -25,9 +25,7 @@ namespace MitaAI
                     PlayerAnimationModded.stopAnim();
                     break;
                 case "SofaSit":
-                    MelonLogger.Msg($"SofaSit");
-                    PlayerAnimationModded.playAnimObject(MitaCore.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair") );
-                    PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.sit;
+
                     break;
                 default:
                     break;

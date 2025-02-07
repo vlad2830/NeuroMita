@@ -43,12 +43,19 @@ namespace MitaAI
             objectAnimationPlayer = player.AddComponent<ObjectAnimationPlayer>();
             playerMove = _playerMove;
             FindPlayerAnimationsRecursive(worldHouse);
+            //FindPlayerAnimationsRecursive(MitaCore.worldTogether);
             // Ищем анимации в DontDestroyOnLoad
 
             FindPlayerAnimationsInDontDestroyOnLoad();
-            //foreach (var el in PlayerAnimations) MelonLogger.Msg($"Player clip {el.Key}");
+            foreach (var el in PlayerAnimations) MelonLogger.Msg($"Player clip {el.Key}");
 
         }
+
+        public static void Check()
+        {
+            foreach (var el in PlayerAnimations) MelonLogger.Msg($"Player clip {el.Key}");
+        }
+
         private static void FindPlayerAnimationsInDontDestroyOnLoad()
         {
             // Получаем корневой объект сцены DontDestroyOnLoad
@@ -63,7 +70,7 @@ namespace MitaAI
                 }
             }
         }
-        private static void FindPlayerAnimationsRecursive(Transform parent)
+        public static void FindPlayerAnimationsRecursive(Transform parent)
         {
             if (parent == null) return;
 
@@ -84,7 +91,7 @@ namespace MitaAI
                             if (clip != null && clip.name.Contains("Player", StringComparison.OrdinalIgnoreCase) && !PlayerAnimations.ContainsKey(clip.name))
                             {
                                 if (!PlayerAnimations.ContainsKey(clip.name)) PlayerAnimations[clip.name] = clip;
-                                else PlayerAnimations[clip.name + "1"] = clip;
+                                else if (clip != PlayerAnimations[clip.name]) PlayerAnimations[clip.name + "1"] = clip;
                             }
                         }
                     }
@@ -95,17 +102,17 @@ namespace MitaAI
                     if (oap.animationStart != null) 
                     { 
                         if (!PlayerAnimations.ContainsKey(oap.animationStart.name) ) PlayerAnimations[oap.animationStart.name] = oap.animationStart; 
-                        else PlayerAnimations[oap.animationStart.name+"1"] = oap.animationStart;
+                        else if( oap.animationStart!= PlayerAnimations[oap.animationStart.name] ) PlayerAnimations[oap.animationStart.name+"1"] = oap.animationStart;
                     }
                     if (oap.animationLoop != null)
                     {
                         if (!PlayerAnimations.ContainsKey(oap.animationLoop.name)) PlayerAnimations[oap.animationLoop.name] = oap.animationLoop;
-                        else PlayerAnimations[oap.animationLoop.name + "1"] = oap.animationLoop;
+                        else if (oap.animationLoop != PlayerAnimations[oap.animationLoop.name])  PlayerAnimations[oap.animationLoop.name + "1"] = oap.animationLoop;
                     }
                     if (oap.animationStop != null)
                     {
                         if (!PlayerAnimations.ContainsKey(oap.animationStop.name)) PlayerAnimations[oap.animationStop.name] = oap.animationStop;
-                        else PlayerAnimations[oap.animationStop.name + "1"] = oap.animationStop;
+                        else if (oap.animationStop != PlayerAnimations[oap.animationStop.name])  PlayerAnimations[oap.animationStop.name + "1"] = oap.animationStop;
                     }
                 }
 

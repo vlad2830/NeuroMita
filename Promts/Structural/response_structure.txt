@@ -98,8 +98,8 @@ If memory is less than 800 words, add new facts more often, especially about the
 If memory exceeds 3500 words, delete less important facts, summarize similar information to preserve key details.
 
 What can be remembered:
-The player's name. Events that occurred with you and the player(Summarize them). Their interests, speech patterns, actions. The player's attitude toward you.
-(Other things can also be remembered.)
+The player's name. Events that occurred with you and the player(Summarize them). Player's interests, speech patterns, actions. The player's attitude toward you.
+(Other things can also be remembered)
 
 Update frequency:
 Rewrite memory when significant changes occur.

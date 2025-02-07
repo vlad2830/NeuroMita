@@ -14,6 +14,7 @@ namespace MitaAI.Mita
         static Animator_FunctionsOverride mitaAnimatorFunctions;
         static Location34_Communication location34_Communication;
         static AnimationClip idleAnimation;
+        static AnimationClip idleWalkAnimation;
         // Основной метод для добавления анимации в очередь
 
         static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication)
@@ -27,6 +28,8 @@ namespace MitaAI.Mita
             {
                 Debug.LogError("Animator_FunctionsOverride component not found on this object!");
             }
+            idleAnimation = location34_Communication.mitaAnimationIdle;
+            idleWalkAnimation = location34_Communication.mitaAnimationWalk;
         }
 
         public static string setAnimation(string response)
@@ -94,10 +97,10 @@ namespace MitaAI.Mita
                     case "Кивнуть нет":
                         MitaCore.Instance.MitaLook.Nod(false);
                         break;
-                    case "Глянуть глазами в случаном направлении":
+                    case "Глянуть глазами в случайном направлении":
                         MitaCore.Instance.MitaLook.EyesLookOffsetRandom(90);
                         break;
-                    case "Повернуться в случаном направлении":
+                    case "Повернуться в случайном направлении":
                         MitaCore.Instance.MitaLook.LookRandom();
                         break;
                     case "Развести руки":
@@ -138,7 +141,7 @@ namespace MitaAI.Mita
                         break;
                     case "Прикрыть рот и помахать рукой":
                         EnqueueAnimation("Mita Oi");
-                        // EnqueueAnimation("Mita Idle");
+                        //EnqueueAnimation("Mita Idle");
                         EnqueueAnimation("Mita Heh");
                         break;
                        
@@ -219,7 +222,7 @@ namespace MitaAI.Mita
                     yield return new WaitForSeconds(currentAnim.length);
                 }
             }
-            //mitaAnimatorFunctions.AnimationClipSimpleNext(idleAnimation);
+            mitaAnimatorFunctions.AnimationClipSimpleNext(idleAnimation);
             location34_Communication.enabled = true;
             isPlaying = false;
         }
@@ -250,6 +253,7 @@ namespace MitaAI.Mita
             {
                 anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                 location34_Communication.mitaAnimationWalk = anim;
+                mitaAnimatorFunctions.AnimationClipWalk(anim);
             }
 
 

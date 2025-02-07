@@ -130,7 +130,8 @@ namespace MitaAI
                     InteractionCases.caseConsoleStart(gameObject);
                     break;
                 case "SofaChair":
-                    InteractionCases.caseConsoleStart(gameObject);
+                    InteractionCases.sofaStart(gameObject);
+                    //ToggleBoolAfterTime(gameObject,5,true);
                     break;
 
             }

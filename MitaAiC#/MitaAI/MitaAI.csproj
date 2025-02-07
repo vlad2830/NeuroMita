@@ -318,6 +318,7 @@
 
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
+		<Compile Include="Mita\MitaAnimationModdedAttempts.cs" />
 		<Compile Include="Utils.cs" />
 		<Compile Include="WorldModded\Events\EventsProxy.cs" />
 		<Compile Include="Mita\AudioControl.cs" />

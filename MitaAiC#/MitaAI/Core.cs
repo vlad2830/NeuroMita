@@ -57,8 +57,8 @@ namespace MitaAI
         }
         // Метод, который будет вызываться после выполнения PrivateMethod
 
-        GameObject MitaObject;
-        GameObject MitaPersonObject;
+        public GameObject MitaObject;
+        public GameObject MitaPersonObject;
         public MitaPerson Mita;
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;
@@ -89,10 +89,12 @@ namespace MitaAI
         public string currentInfo = "";
         Location34_Communication Location34_Communication;
         Location21_World location21_World;
+
+        public static Transform worldTogether;
         public static Transform worldHouse;
         public static Transform worldBasement;
         public static Transform worldBackrooms2;
-
+        
 
         GameObject ManekenTemplate;
         List<GameObject> activeMakens = new List<GameObject>();
@@ -185,11 +187,24 @@ namespace MitaAI
 
 
             }
+
             try
             {
                 sceneToLoad = "Scene 11 - Backrooms";
                 additiveLoadedScenes.Add(sceneToLoad);
                 MelonCoroutines.Start(WaitForSceneAndInstantiate2(sceneToLoad));
+            }
+            catch (Exception)
+            {
+
+
+            }
+
+            try
+            {
+                sceneToLoad = "Scene 3 - WeTogether";
+                additiveLoadedScenes.Add(sceneToLoad);
+                MelonCoroutines.Start(WaitForSceneAndInstantiate3(sceneToLoad));
             }
             catch (Exception)
             {
@@ -274,6 +289,36 @@ namespace MitaAI
             }
 
         }
+
+        private IEnumerator WaitForSceneAndInstantiate3(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
+
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            worldTogether = FindObjectInScene(scene.name, "World");
+            if (worldTogether == null)
+            {
+                MelonLogger.Msg("worldTogether object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            worldTogether.gameObject.SetActive(false);
+            PlayerAnimationModded.FindPlayerAnimationsRecursive(worldTogether.transform);
+            PlayerAnimationModded.Check();
+        }
+
         public void playerKilled()
         {
             sendSystemMessage("Игрок был укушен манекеном. Манекен выключился (его можно перезапустить)");
@@ -388,7 +433,7 @@ namespace MitaAI
                     Location34_Communication.mitaCanWalk = true;
                     Location34_Communication.indexSwitchAnimation = 1;
                     Location34_Communication.play = true;
-                    
+
 
 
                     CollectChildObjects(Location34_CommunicationObject);
@@ -430,9 +475,9 @@ namespace MitaAI
             var posZ = playerTransform.position.z;
             var posY = playerTransform.position.y;
 
-            if (posY < -0.0002f)
+            if (posY <= -0.0002f)
             {
-                return 4;
+                return 4; // basement
             }
             else
             {
@@ -1063,7 +1108,6 @@ namespace MitaAI
                 {
                     // Добавляем дочерний объект в глобальный список
                     globalChildObjects.Add(childTransform.gameObject);
-                    LoggerInstance.Msg($"Child added: {childTransform.name}");
 
                     if (i == 0)
                     {
@@ -1171,7 +1215,7 @@ namespace MitaAI
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
             while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout) //&& waitForSounds=="1")
             {
-                LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
+                //LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
                 if (patches_to_sound_file.Count > CountPathesWere)
                 {
                     patch_to_sound_file = patches_to_sound_file.Dequeue();
@@ -1793,7 +1837,7 @@ namespace MitaAI
                     yield break;
                 }
 
-                yield return new WaitForSeconds(2f);
+                yield return new WaitForSeconds(0.25f);
             }
 
 
@@ -2085,7 +2129,11 @@ namespace MitaAI
                 info += $"Current music: {AudioControl.getCurrrentMusic()}\n";
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
 
+                if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
+                
                 info += Interactions.getObservedObjects();
+
+
             }
             catch (Exception ex)
             {
@@ -2164,7 +2212,7 @@ namespace MitaAI
             {
                 playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = false;
             }
-            else if (Input.GetKeyDown(KeyCode.Escape))
+            else if (Input.GetKeyDown(KeyCode.Y))
             {
                 if (PlayerAnimationModded.currentPlayerMovement==PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
                 PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;

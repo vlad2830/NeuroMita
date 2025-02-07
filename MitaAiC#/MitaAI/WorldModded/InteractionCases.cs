@@ -16,10 +16,13 @@ namespace MitaAI.WorldModded
             MelonCoroutines.Start(caseConsoleAct(console));
         }
 
-        public static void sofaStart(GameObject console)
+        public static void sofaStart(GameObject gameObject)
         {
-            console.GetComponent<ObjectInteractive>().active = false;
-            
+            MelonLogger.Msg($"SofaSit");
+            gameObject.GetComponent<ObjectInteractive>().active = false;
+            if (PlayerAnimationModded.currentPlayerMovement!=PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.playAnimObject(gameObject);
+            PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.sit;
+
         }
         public static IEnumerator caseConsoleAct(GameObject console)
         {

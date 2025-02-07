@@ -39,8 +39,8 @@ namespace MitaAI
             var objectInteractive = sofa.AddComponent<ObjectInteractive>();
             Utils.CopyComponentValues(exampleComponent, objectInteractive);
 
-            objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit");
-            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player SitIdle");
+            objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
+            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player IdleSit1");
 
             //objectInteractive.eventClick = EventsProxy.ChangeAnimationEvent(sofa, "SofaSit");
 
