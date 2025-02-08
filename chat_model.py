@@ -26,7 +26,7 @@ class ChatModel:
         self.api_url = os.getenv("NM_API_URL")
 
         # Stable
-        if False:
+        if True:
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
             self.modelName = "gpt-4o-mini"
         # test deepseek

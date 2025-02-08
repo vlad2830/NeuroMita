@@ -4,6 +4,8 @@ using MelonLoader;
 using System.Collections;
 using UnityEngine;
 using System.Text.RegularExpressions;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using UnityEngine.Playables;
 namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
@@ -20,7 +22,7 @@ namespace MitaAI.Mita
         static AnimatorOverrideController overrideController;
         static Animator animator;
 
-        static public string currentIdleAnim = "Mita Idle_2";
+        static public string currentIdleAnim = "Idle";
         public enum IdleStates
         {
             normal = 0,
@@ -43,6 +45,8 @@ namespace MitaAI.Mita
             }
             idleAnimation = location34_Communication.mitaAnimationIdle;
             if (idleAnimation == null) idleAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle,"Mita Idle_2");
+            
+
             idleWalkAnimation = location34_Communication.mitaAnimationWalk;
             if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
             try
@@ -52,12 +56,15 @@ namespace MitaAI.Mita
                 animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
                 animator.runtimeAnimatorController = runtimeAnimatorController;
                 animator.SetTrigger("NextLerp");
+                idleAnimation = FindAnimationClipByName("Idle");
                 foreach (var item in runtimeAnimatorController.animationClips)
                 {
-                    item.events = Array.Empty<AnimationEvent>();
+                    setCustomAnimatiomEvents(item);
                 }
                 setIdleWalk("Mita Walk_1");
-                MelonLogger.Msg("b!");
+                MelonLogger.Msg("b!"); 
+                animator.Rebind();
+                animator.Update(0);
             }
             catch (Exception ex)
             {
@@ -66,6 +73,23 @@ namespace MitaAI.Mita
             }
             
         }
+
+        static private void setCustomAnimatiomEvents(AnimationClip anim)
+        { 
+
+            switch (anim.name)
+            {
+                case "Mita TakeMita":
+                    MelonLogger.Msg("AddedAnimationEvent for" + anim.name);
+                    EventsProxy.AddAnimationEvent(MitaCore.Instance.MitaObject, anim, "TakePlayer");
+                    break;
+                default:
+                    anim.events = new Il2CppReferenceArray<AnimationEvent>(0);
+                    break;
+            }
+            
+        }
+
 
         public static string setAnimation(string response)
         {
@@ -169,9 +193,20 @@ namespace MitaAI.Mita
                         setIdleAnimation("Mita TalkWithPlayer");
                         break;
                     case "Поднять игрока одной рукой":
-                        EnqueueAnimation("Mita TakeMita");
+                       
+
+                        EnqueueAnimation("Mita TakeMita"); 
+                        
                         //EnqueueAnimation("Mita TakeMita Idle");
                         setIdleAnimation("Mita TakeMita Idle");
+                        //EnqueueAnimation("Mita ThrowPlayer");
+                        break;
+                    case "Скинуть игрока":
+                        PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+                        EnqueueAnimation("Mita ThrowPlayer");
+                        //EnqueueAnimation("Mita TakeMita Idle");
+
+                        setIdleAnimation("Mita Idle_2");
                         //EnqueueAnimation("Mita ThrowPlayer");
                         break;
                     case "Руки вперед по бокам":
@@ -332,6 +367,11 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Crossfade");
                     MelonLogger.Msg($"Now playing: {animName}");
                     mitaAnimatorFunctions.anim.CrossFade(animName, 0.25f);
+
+                    if (anim.events.Count > 0) {
+                        MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
+                    }
+
                     yield return WaitForAnimationCompletion(anim, false, 0.25f);
                 }
 
@@ -354,7 +394,7 @@ namespace MitaAI.Mita
                 
                 
             }
-            MelonLogger.Msg("Ended quque");
+            MelonLogger.Msg($"Ended quque currentIdleAnim {currentIdleAnim}");
             animator.CrossFade(currentIdleAnim,0.25f);
             location34_Communication.enabled = true;
             isPlaying = false;
@@ -395,7 +435,12 @@ namespace MitaAI.Mita
                 yield return new WaitForSeconds(animation.length + fadeDuration);
             }
         }
-
+        static public void resetToIdleAnimation()
+        {
+            ClearQueue();
+            EnqueueAnimation("Mita Idle_2");
+            setIdleAnimation("Mita Idle_2");
+        }
         static public void setIdleAnimation(string animName)
         {
 

@@ -1,10 +1,13 @@
 ﻿using Il2Cpp;
 using MelonLoader;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using System.Collections;
+using MitaAI.Mita;
 
 namespace MitaAI
 {
@@ -12,7 +15,35 @@ namespace MitaAI
     {
         public static void HandleAnimationEvent(UnityEngine.AnimationEvent evt)
         {
+            switch (evt.stringParameter)
+            {
+                case "TakePlayer":
+
+                    MelonCoroutines.Start(playerTaken());
+
+                    break;
+            }
             MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
+        }
+        static IEnumerator playerTaken()
+        {
+            MelonLogger.Msg("Player taken!");
+            PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.taken;
+            PlayerAnimationModded.playerMove.dontMove = true;
+            MitaCore.Instance.playerObject.GetComponent<Rigidbody>().useGravity = false;
+            MitaCore.Instance.playerObject.transform.SetParent(MitaCore.Instance.Mita.boneRightItem.transform, true);
+
+
+            while (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken)
+            {
+                MitaCore.Instance.playerObject.transform.localPosition = new UnityEngine.Vector3(-0.7f,-1.2f,-0.7f); //-0,7 -1,2 -0,7
+                yield return null;
+            }
+            MitaCore.Instance.playerObject.GetComponent<Rigidbody>().useGravity = true;
+            PlayerAnimationModded.playerMove.dontMove = false;
+            MitaCore.Instance.playerObject.transform.SetParent(MitaCore.Instance.playerController.transform);
+            MelonLogger.Msg("Player throwned!");
+            MitaAnimationModded.resetToIdleAnimation();
         }
 
         public static void HandleCustomEvent(string eventName)

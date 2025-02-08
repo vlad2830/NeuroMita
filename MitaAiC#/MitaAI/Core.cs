@@ -82,9 +82,11 @@ namespace MitaAI
         GameObject knife;
 
         PlayerPerson playerPerson;
-        GameObject playerObject;
+        public GameObject playerObject;
         PlayerCameraEffects playerEffects;
         GameObject playerEffectsObject;
+        public GameObject playerController;
+
         public float distance = 0f;
         public string currentInfo = "";
         Location34_Communication Location34_Communication;
@@ -512,8 +514,9 @@ namespace MitaAI
 
             playerPerson = GameObject.Find("Person")?.GetComponent<PlayerPerson>();
             playerObject = playerPerson.transform.parent.gameObject;
+            playerController = playerObject.transform.parent.gameObject;
 
-            
+
             playerObject.GetComponent<PlayerMove>().speedPlayer = 1f;
             playerObject.GetComponent<PlayerMove>().canRun = true;
 
@@ -2130,7 +2133,8 @@ namespace MitaAI
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
 
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
-                
+                else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>";
+
                 info += Interactions.getObservedObjects();
 
 
@@ -2207,12 +2211,13 @@ namespace MitaAI
             else if (Input.GetKeyDown(KeyCode.C) && !InputFieldComponent.activeSelf)
             {
                 playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = true;
+                
             }
             else if (Input.GetKeyUp(KeyCode.C))
             {
                 playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = false;
             }
-            else if (Input.GetKeyDown(KeyCode.Y))
+            else if (Input.GetKeyDown(KeyCode.Y) && !InputFieldComponent.activeSelf)
             {
                 if (PlayerAnimationModded.currentPlayerMovement==PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
                 PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;

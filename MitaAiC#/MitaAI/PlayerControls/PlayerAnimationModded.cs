@@ -21,14 +21,15 @@ namespace MitaAI
         public enum PlayerMovement
         {
             normal,
-            sit
+            sit,
+            taken
         }
         public static PlayerMovement currentPlayerMovement = PlayerMovement.normal;
 
         static ObjectAnimationPlayer objectAnimationPlayer;
         static private Queue<AnimationClip> animationQueue = new Queue<AnimationClip>();
         static private bool isPlaying = false;
-        static PlayerMove playerMove;
+        static public PlayerMove playerMove;
         public static Dictionary<string, AnimationClip> PlayerAnimations { get; private set; } = new Dictionary<string, AnimationClip>();
 
         public static AnimationClip getPlayerAnimationClip(string name) {

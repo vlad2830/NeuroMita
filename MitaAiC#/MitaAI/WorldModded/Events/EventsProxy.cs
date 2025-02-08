@@ -42,13 +42,13 @@ namespace MitaAI
             var animationEvent = new UnityEngine.AnimationEvent
             {
                 functionName = "OnAnimationEvent", // Имя функции в прокси-классе
-                time = 0.5f, // Время срабатывания
+                time = 0.05f, // Время срабатывания
                 stringParameter = Name,
                 //intParameter = 123,
                 //floatParameter = 1.0f,
                 //objectReferenceParameter = null
             };
-            MelonLogger.Msg("AddAnimationEvent created anim event");
+            MelonLogger.Msg("AddAnimationEvent created anim event+"+ animationClip.name);
             animationClip.AddEvent(animationEvent);
             MelonLogger.Msg("AddAnimationEvent added anim event");
         }
