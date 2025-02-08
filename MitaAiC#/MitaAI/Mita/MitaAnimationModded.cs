@@ -16,6 +16,18 @@ namespace MitaAI.Mita
         static AnimationClip idleAnimation;
         static AnimationClip idleWalkAnimation;
         // Основной метод для добавления анимации в очередь
+        static RuntimeAnimatorController runtimeAnimatorController;
+        static AnimatorOverrideController overrideController;
+        static Animator animator;
+
+        public enum IdleStates
+        {
+            normal = 0,
+            talkWithPlayer = 1,
+
+        }
+
+
 
         static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication)
         {
@@ -26,10 +38,30 @@ namespace MitaAI.Mita
             bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
             if (mitaAnimatorFunctions == null)
             {
-                Debug.LogError("Animator_FunctionsOverride component not found on this object!");
+                MelonLogger.Msg("Animator_FunctionsOverride component not found on this object!");
             }
             idleAnimation = location34_Communication.mitaAnimationIdle;
             idleWalkAnimation = location34_Communication.mitaAnimationWalk;
+
+            try
+            {
+                runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
+                MelonLogger.Msg("a");
+                animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
+                animator.runtimeAnimatorController = runtimeAnimatorController;
+                foreach (var item in runtimeAnimatorController.animationClips)
+                {
+                    item.events = Array.Empty<AnimationEvent>();
+                }
+                //setIdleWalk("Mita Walk_1");
+                MelonLogger.Msg("b!");
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Msg("Error custom controller"+ex);
+            }
+            
         }
 
         public static string setAnimation(string response)
@@ -73,7 +105,8 @@ namespace MitaAI.Mita
                         EnqueueAnimation(animationName);
                         break;
                     case "Похлопать в ладоши":
-                        EnqueueAnimation("Mita Cheerful");
+                        EnqueueAnimation("Mita Idle Cheerful");
+                        //EnqueueAnimation("Mita Cheerful");
                         break;
                     case "Указать направление":
                         EnqueueAnimation("Mita ShowTumb");
@@ -83,7 +116,7 @@ namespace MitaAI.Mita
                         break;
                     case "Показать усталость":
                         EnqueueAnimation("Mita Start Tired");
-                        EnqueueAnimation("MiMita Tired");
+                        setIdleAnimation("MiMita Tired");
                         break;
                     case "Притвориться отключенной и упасть":
                         EnqueueAnimation("MitaBody Fall");
@@ -105,19 +138,22 @@ namespace MitaAI.Mita
                         break;
                     case "Развести руки":
                         EnqueueAnimation("Mita StartShow Knifes");
-                        EnqueueAnimation("Mita Throw Knifes");
+                        //EnqueueAnimation("Mita Throw Knifes");
                         
                         break;
                     case "Поднести палец к подбородку":
                         EnqueueAnimation("Mita TalkWithPlayer");
+                        setIdleAnimation("Mita TalkWithPlayer");
                         break;
                     case "Поднять игрока одной рукой":
                         EnqueueAnimation("Mita TakeMita");
-                        EnqueueAnimation("Mita TakeMita Idle");
-                        EnqueueAnimation("Mita ThrowPlayer");
+                        //EnqueueAnimation("Mita TakeMita Idle");
+                        setIdleAnimation("Mita TakeMita Idle");
+                        //EnqueueAnimation("Mita ThrowPlayer");
                         break;
                     case "Сложить руки перед собой":
                         EnqueueAnimation("Mita Hands Down Idle");
+                        setIdleAnimation("Mita Hands Down Idle");
                         break;
                     case "Показать предмет":
                         EnqueueAnimation("Mita Selfi");
@@ -130,8 +166,8 @@ namespace MitaAI.Mita
                         break;
                     case "Обнять":
                         EnqueueAnimation("Mita StartHug");
-                        EnqueueAnimation("Mita HugIdle");
-                        EnqueueAnimation("Mita StopHug");
+                        //EnqueueAnimation("Mita HugIdle");
+                        //EnqueueAnimation("Mita StopHug");
                         break;
                     case "Удар":
                         EnqueueAnimation("Mita Kick");
@@ -203,6 +239,23 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("Animation error: " + e);
             }
         }
+        static bool ContainsAnimationByName(Animator animator, string animationName)
+        {
+            if (runtimeAnimatorController == null) return false;
+            // Получаем все анимации из Animator Controller
+            // AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+            AnimationClip[] clips = runtimeAnimatorController.animationClips;
+            // Проверяем, есть ли анимация с указанным именем
+            foreach (AnimationClip clip in clips)
+            {
+                if (clip.name == animationName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         // Корутина для последовательного проигрывания
         static private IEnumerator ProcessQueue()
@@ -216,13 +269,24 @@ namespace MitaAI.Mita
                 if (currentAnim != null)
                 {
                     MelonLogger.Msg($"Now playing: {currentAnim.name} ({currentAnim.length}s)");
-                    mitaAnimatorFunctions.AnimationClipSimpleNext(currentAnim);
 
+                    if ( ContainsAnimationByName(animator, currentAnim.name))
+                    {
+                        //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
+                        MelonLogger.Msg($"Crossfade");
+                        mitaAnimatorFunctions.anim.CrossFade(currentAnim.name, 0.25f);
+                    }
+
+                    else
+                    {
+                        MelonLogger.Msg($"Usual case");
+                        mitaAnimatorFunctions.AnimationClipSimpleNext(currentAnim);
+                    }
                     // Ждем завершения анимации
                     yield return new WaitForSeconds(currentAnim.length);
                 }
             }
-            mitaAnimatorFunctions.AnimationClipSimpleNext(idleAnimation);
+            animator.CrossFade("Idle",0.25f);
             location34_Communication.enabled = true;
             isPlaying = false;
         }
@@ -238,6 +302,7 @@ namespace MitaAI.Mita
             {
                 anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                 location34_Communication.mitaAnimationIdle = anim;
+                
             }
 
         }

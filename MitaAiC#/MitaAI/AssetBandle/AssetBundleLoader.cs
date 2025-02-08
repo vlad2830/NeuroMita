@@ -13,7 +13,7 @@ public static class AssetBundleLoader
     public static Il2CppAssetBundle LoadAssetBundle(string bundleName)
     {
         // Путь к AssetBundle (например, рядом с файлом мода)
-        string bundlePath = Path.Combine(MelonEnvironment.ModsDirectory, bundleName);
+        string bundlePath = Path.Combine(MelonEnvironment.ModsDirectory, bundleName+".test");
 
         if (!File.Exists(bundlePath))
         {
@@ -94,6 +94,48 @@ public static class AssetBundleLoader
 
         return animationClips;
     }
+    public static RuntimeAnimatorController LoadAnimatorControllerByName(Il2CppAssetBundle bundle, string AnimatorName)
+    {
+        if (bundle == null)
+        {
+            MelonLogger.Msg("AssetBundle null!");
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(AnimatorName))
+        {
+            MelonLogger.Msg("name empty AnimationClip!");
+            return null;
+        }
+
+        // Добавляем расширение .anim, если его нет
+        if (!AnimatorName.EndsWith(".controller", StringComparison.OrdinalIgnoreCase))
+        {
+            AnimatorName += ".controller";
+        }
+
+        // Получаем список всех имён ассетов в бандле
+        string[] assetNames = bundle.GetAllAssetNames();
+
+        foreach (string assetName in assetNames)
+        {
+            // Проверка имени ассета без расширения и сравнение с искомым
+            if (string.Equals(Path.GetFileName(assetName), AnimatorName, StringComparison.OrdinalIgnoreCase))
+            {
+                // Загружаем ассет как AnimationClip
+                RuntimeAnimatorController controller = bundle.LoadAsset<RuntimeAnimatorController>(assetName);
+                if (controller != null)
+                {
+                    MelonLogger.Msg($"Found and loaded Controller: {controller.name}");
+                    return controller;
+                }
+            }
+        }
+
+        MelonLogger.Msg($"Controller '{AnimatorName}' not found in AssetBundle.");
+        return null;
+    }
+
 
     public static AnimationClip LoadAnimationClipByName(Il2CppAssetBundle bundle, string clipName)
     {
