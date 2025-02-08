@@ -8,7 +8,7 @@ namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
     {
-        static private Queue<AnimationClip> animationQueue = new Queue<AnimationClip>();
+        static private Queue<string> animationQueue = new Queue<string>();
         static private bool isPlaying = false;
         static private Il2CppAssetBundle bundle;
         static Animator_FunctionsOverride mitaAnimatorFunctions;
@@ -70,13 +70,13 @@ namespace MitaAI.Mita
             string pattern = @"<a>(.*?)</a>";
             Match match = Regex.Match(response, pattern);
 
-            string MovementStyle = string.Empty;
+            string animName = string.Empty;
             string cleanedResponse = Regex.Replace(response, @"<a>.*?</a>", ""); // Очищаем от всех тегов
 
             if (match.Success)
             {
                 // Если эмоция найдена, устанавливаем её в переменную faceStyle
-                MovementStyle = match.Groups[1].Value;
+                animName = match.Groups[1].Value;
             }
             try
             {
@@ -87,7 +87,7 @@ namespace MitaAI.Mita
                     return cleanedResponse; // Возвращаем faceStyle и очищенный текст
                 }
                 // Устанавливаем лицо, если оно найдено
-                switch (MovementStyle)
+                switch (animName)
                 {
                     case "Щелчек":
                         int randomIndex = UnityEngine.Random.Range(0, 4); // Генерация числа от 0 до 3
@@ -185,9 +185,9 @@ namespace MitaAI.Mita
                         EnqueueAnimation("");
                         break;
                     default:
-                        if (MovementStyle != "")
+                        if (animName != "")
                         {
-                            EnqueueAnimation(MovementStyle);
+                            EnqueueAnimation(animName);
                         }
 
                         break;
@@ -205,43 +205,43 @@ namespace MitaAI.Mita
 
         static public void EnqueueAnimation(string animName = "")
         {
-            if (bundle == null)
+           /* if (bundle == null)
             {
                 bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            }
+            }*/
 
-            AnimationClip anim = null;
+            //AnimationClip anim = null;
             try
             {
-                if (!string.IsNullOrEmpty(animName))
+                /*if (!string.IsNullOrEmpty(animName))
                 {
                     anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                 }
                 else
                 {
                     anim = AssetBundleLoader.LoadRandomAnimationClip(bundle);
-                }
+                }*/
 
-                if (anim != null)
-                {
-                    anim.events = Array.Empty<AnimationEvent>();
-                    animationQueue.Enqueue(anim);
-                    MelonLogger.Msg($"Added to queue: {anim.name}");
+                /*if (anim != null)
+                {*/
+                    //anim.events = Array.Empty<AnimationEvent>();
+                    animationQueue.Enqueue(animName);
+                    MelonLogger.Msg($"Added to queue: {animName}");
 
                     if (!isPlaying)
                     {
                         MelonCoroutines.Start(ProcessQueue());
                     }
-                }
+               // }
             }
             catch (Exception e)
             {
                 MelonLogger.Msg("Animation error: " + e);
             }
         }
-        static bool ContainsAnimationByName(Animator animator, string animationName)
+        static AnimationClip FindAnimationClipByName(string animationName)
         {
-            if (runtimeAnimatorController == null) return false;
+            if (runtimeAnimatorController == null) return null;
             // Получаем все анимации из Animator Controller
             // AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
             AnimationClip[] clips = runtimeAnimatorController.animationClips;
@@ -250,11 +250,11 @@ namespace MitaAI.Mita
             {
                 if (clip.name == animationName)
                 {
-                    return true;
+                    return clip;
                 }
             }
 
-            return false;
+            return null;
         }
 
         // Корутина для последовательного проигрывания
@@ -264,32 +264,69 @@ namespace MitaAI.Mita
             location34_Communication.enabled = false;
             while (animationQueue.Count > 0)
             {
-                AnimationClip currentAnim = animationQueue.Dequeue();
-
-                if (currentAnim != null)
+                string animName = animationQueue.Dequeue();
+                AnimationClip anim = FindAnimationClipByName(animName);
+                if ( anim!=null)
                 {
-                    MelonLogger.Msg($"Now playing: {currentAnim.name} ({currentAnim.length}s)");
+                    //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
+                    MelonLogger.Msg($"Crossfade");
+                    MelonLogger.Msg($"Now playing: {animName}");
+                    mitaAnimatorFunctions.anim.CrossFade(animName, 0.25f);
+                }
 
-                    if ( ContainsAnimationByName(animator, currentAnim.name))
-                    {
-                        //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
-                        MelonLogger.Msg($"Crossfade");
-                        mitaAnimatorFunctions.anim.CrossFade(currentAnim.name, 0.25f);
-                    }
-
-                    else
+                else 
+                {
+                    anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+                    if (anim != null)
                     {
                         MelonLogger.Msg($"Usual case");
-                        mitaAnimatorFunctions.AnimationClipSimpleNext(currentAnim);
+                        mitaAnimatorFunctions.AnimationClipSimpleNext(anim);
                     }
-                    // Ждем завершения анимации
-                    yield return new WaitForSeconds(currentAnim.length);
+                    else
+                    {
+                        MelonLogger.Msg($"Not found state or clip");
+                    }
+
                 }
+                // Ждем завершения анимации
+                yield return WaitForAnimationCompletion(anim,true,0.25f);
+                
             }
+            MelonLogger.Msg("Ended quque");
             animator.CrossFade("Idle",0.25f);
             location34_Communication.enabled = true;
             isPlaying = false;
         }
+
+        static private IEnumerator WaitForAnimationCompletion(AnimationClip animation, bool isCustomAnimation, float fadeDuration)
+        {
+            if (isCustomAnimation)
+            {
+                // Для анимаций через Animator Controller
+                float startTime = Time.time;
+
+                // Ожидаем начала перехода
+                while (animator.IsInTransition(0) && Time.time - startTime < fadeDuration)
+                {
+                    yield return null;
+                }
+
+                // Ожидаем завершения анимации
+                AnimatorStateInfo stateInfo;
+                do
+                {
+                    stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+                    yield return null;
+                }
+                while (stateInfo.IsName(animation.name) && stateInfo.normalizedTime < 1.0f);
+            }
+            else
+            {
+                // Для обычных анимаций без transitions
+                yield return new WaitForSeconds(animation.length + fadeDuration);
+            }
+        }
+
         static public void setIdleAnimation(string animName)
         {
             if (bundle == null)
@@ -302,7 +339,8 @@ namespace MitaAI.Mita
             {
                 anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                 location34_Communication.mitaAnimationIdle = anim;
-                
+                if (overrideController == null) overrideController = animator.runtimeAnimatorController as AnimatorOverrideController;
+                overrideController.SetClip(idleAnimation, anim,true);
             }
 
         }

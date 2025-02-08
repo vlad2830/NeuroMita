@@ -2319,8 +2319,8 @@ namespace MitaAI
 
             //PlayMitaAnim(inputText);
             
-            MitaAnimationModded.EnqueueAnimation(inputText);
-            //MitaAnimationModded.setAnimation($"<a>{inputText}</a>");
+            //MitaAnimationModded.EnqueueAnimation(inputText);
+            MitaAnimationModded.setAnimation($"<a>{inputText}</a>");
             //MitaAnimationModded.EnqueueAnimation("Mita StartShow Knifes");
             //MitaAnimationModded.EnqueueAnimation("Mita Throw Knifes");
             //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
