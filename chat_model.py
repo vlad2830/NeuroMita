@@ -414,23 +414,25 @@ class ChatModel:
 
         # Преобразование system messages для Gemini
         if self.modelName == "gemini-1.5-flash":
-            system_instructions = []
-            user_messages = []
+            formatted_messages = []  # Список для хранения отформатированных сообщений
 
             for msg in combined_messages:
                 if msg["role"] == "system":
-                    system_instructions.append(msg["content"])
+                    # Добавляем системные инструкции с меткой [Инструкция модели]
+                    formatted_messages.append({"role": "user", "content": f"[Инструкция модели]\n{msg['content']}"})
                 else:
-                    user_messages.append(msg)
+                    # Остальные сообщения добавляем как есть
+                    formatted_messages.append(msg)
 
-            if system_instructions:
-                formatted_instruction = "\n".join(system_instructions)
-                user_messages.insert(0, {"role": "user", "content": f"[Инструкция модели]\n{formatted_instruction}"})
-            save_combined_messages(user_messages, "Gem")
-            response = self.generate_responseGemini(user_messages)
+            # Сохраняем отформатированные сообщения
+            save_combined_messages(formatted_messages, "Gem")
+
+            # Генерация ответа с использованием Gemini
+            response = self.generate_responseGemini(formatted_messages)
             response = response.removeprefix("```\n")
             response = response.removesuffix("\n```\n")
         else:
+
             completion = self.client.chat.completions.create(
                 model=self.modelName,
                 messages=combined_messages,
@@ -641,14 +643,16 @@ class ChatModel:
         """
         Проверяем, содержит ли ответ маркер <Secret!>, и удаляем его.
         """
-        if "<Secret!>" in response and not self.secretExposedFirst:
-            self.secretExposed = True
-            print(f"Секрет раскрыт")
-            self.attitude = 15
-            self.boredom = 20
-            #if self.HideAiData:
-            #response = response.replace("<Secret!>", "")
-            return response
+        if "<Secret!>" in response:
+
+            if not self.secretExposedFirst:
+                self.secretExposed = True
+                print(f"Секрет раскрыт")
+                self.attitude = 15
+                self.boredom = 20
+
+            response = response.replace("<Secret!>", "")
+
         return response
 
     def reload_promts(self):

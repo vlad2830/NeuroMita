@@ -2109,7 +2109,7 @@ namespace MitaAI
             try
             {
                 info += $"Current movement type: {movementStyle.ToString()}\n";
-                
+                if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
                 if (mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
 
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
@@ -2320,7 +2320,7 @@ namespace MitaAI
             //PlayMitaAnim(inputText);
             
             //MitaAnimationModded.EnqueueAnimation(inputText);
-            MitaAnimationModded.setAnimation($"<a>{inputText}</a>");
+            //MitaAnimationModded.setAnimation($"<a>{inputText}</a>");
             //MitaAnimationModded.EnqueueAnimation("Mita StartShow Knifes");
             //MitaAnimationModded.EnqueueAnimation("Mita Throw Knifes");
             //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");

@@ -15,7 +15,7 @@ namespace MitaAI.Mita
         private static Transform playerPerson;
         private static Transform MitaPersonObject;
         private static Location34_Communication location34_Communication;
-
+        static public int ContinueCounter = 0;
 
         public static void Initialize(MitaCore mitaCore2, Transform playerPersonTransform, Transform mitaPersonObjectTransform, Location34_Communication location34_Communication2)
         {
@@ -65,6 +65,7 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Error processing command '{command}': {ex.Message}");
                 }
             }
+            ContinueCounter--;
         }
 
         private static void ProcessSimpleCommand(string command)
@@ -134,7 +135,8 @@ namespace MitaAI.Mita
                     break;
 
                 case "continue":
-                    mitaCore.systemMessages.Enqueue("Ты продолжаешь фразу или мысль");
+                    if (ContinueCounter<3) mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль");
+                    else mitaCore.sendSystemInfo("Ты не смогла продолжить фразу, так как лимит в 3 подряд был превышен");
                     break;
 
                 // Дополнительные команды...

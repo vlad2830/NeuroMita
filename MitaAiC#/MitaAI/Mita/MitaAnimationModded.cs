@@ -20,6 +20,7 @@ namespace MitaAI.Mita
         static AnimatorOverrideController overrideController;
         static Animator animator;
 
+        static public string currentIdleAnim = "Mita Idle_2";
         public enum IdleStates
         {
             normal = 0,
@@ -41,19 +42,21 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("Animator_FunctionsOverride component not found on this object!");
             }
             idleAnimation = location34_Communication.mitaAnimationIdle;
+            if (idleAnimation == null) idleAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle,"Mita Idle_2");
             idleWalkAnimation = location34_Communication.mitaAnimationWalk;
-
+            if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
             try
             {
                 runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
                 MelonLogger.Msg("a");
                 animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
                 animator.runtimeAnimatorController = runtimeAnimatorController;
+                animator.SetTrigger("NextLerp");
                 foreach (var item in runtimeAnimatorController.animationClips)
                 {
                     item.events = Array.Empty<AnimationEvent>();
                 }
-                //setIdleWalk("Mita Walk_1");
+                setIdleWalk("Mita Walk_1");
                 MelonLogger.Msg("b!");
             }
             catch (Exception ex)
@@ -93,11 +96,11 @@ namespace MitaAI.Mita
                         int randomIndex = UnityEngine.Random.Range(0, 4); // Генерация числа от 0 до 3
                         string animationName;
 
-                        if (randomIndex == 0)
-                            animationName = "Mita Click_0";
+                        if (randomIndex == 5)
+                            animationName = "Mita Click_0"; // Не то
                         else if (randomIndex == 1)
-                            animationName = "Mita Click_1";
-                        else if (randomIndex == 2)
+                            animationName = "Mita Click 1";
+                        else if (randomIndex == 6) // Будет
                             animationName = "Mita Click_2";
                         else
                             animationName = "Mita Click"; // Четвёртый кейс
@@ -105,24 +108,33 @@ namespace MitaAI.Mita
                         EnqueueAnimation(animationName);
                         break;
                     case "Похлопать в ладоши":
-                        EnqueueAnimation("Mita Idle Cheerful");
-                        //EnqueueAnimation("Mita Cheerful");
+                        EnqueueAnimation("Mita Cheerful");
+                        break;
+                    case "Помахать в приветствие":
+                        EnqueueAnimation("Mita Hello");
                         break;
                     case "Указать направление":
                         EnqueueAnimation("Mita ShowTumb");
                         break;
                     case "Смотреть с презрением":
                         EnqueueAnimation("Mita IdleBat");
+                        setIdleAnimation("Mita IdleBat");
                         break;
                     case "Показать усталость":
                         EnqueueAnimation("Mita Start Tired");
-                        setIdleAnimation("MiMita Tired");
+                        setIdleAnimation("Mita Tired");
                         break;
                     case "Притвориться отключенной и упасть":
-                        EnqueueAnimation("MitaBody Fall");
+                        EnqueueAnimation("Mita Fall Start");
+                        setIdleAnimation("Mita Fall Idle");
                         break;
                     case "Взять предмет":
                         EnqueueAnimation("Mita TakeBat");
+                        
+                        break;
+                    case "Жест пальцами":
+                        MitaCore.Instance.MitaLook.LookOnPlayerAndRotate();
+                        EnqueueAnimation("Mita FingersGesture");
                         break;
                     case "Кивнуть да":
                         MitaCore.Instance.MitaLook.Nod(true);
@@ -137,9 +149,20 @@ namespace MitaAI.Mita
                         MitaCore.Instance.MitaLook.LookRandom();
                         break;
                     case "Развести руки":
-                        EnqueueAnimation("Mita StartShow Knifes");
-                        //EnqueueAnimation("Mita Throw Knifes");
-                        
+                        //EnqueueAnimation("Mita StartShow Knifes");
+                        EnqueueAnimation("Mita Throw Knifes");
+                        break;
+                    case "Руки по бокам":
+                        EnqueueAnimation("Mita Idle NoKnifes");
+                        setIdleAnimation("Mita Idle NoKnifes");
+                        break;
+                    case "Руки сложены в ладони перед собой":
+                        EnqueueAnimation("Mita Idle Cheerful");
+                        setIdleAnimation("Mita Idle Cheerful");
+                        break;
+                    case "Одна рука прижата, вторая сзади":
+                        EnqueueAnimation("Mita Hairbrash");
+                        setIdleAnimation("Mita Hairbrash");
                         break;
                     case "Поднести палец к подбородку":
                         EnqueueAnimation("Mita TalkWithPlayer");
@@ -151,26 +174,58 @@ namespace MitaAI.Mita
                         setIdleAnimation("Mita TakeMita Idle");
                         //EnqueueAnimation("Mita ThrowPlayer");
                         break;
-                    case "Сложить руки перед собой":
+                    case "Руки вперед по бокам":
                         EnqueueAnimation("Mita Hands Down Idle");
                         setIdleAnimation("Mita Hands Down Idle");
+                        break;
+                    case "Сложить руки перед собой":
+                        EnqueueAnimation("Mita Idle_2");
+                        setIdleAnimation("Mita Idle_2");
                         break;
                     case "Показать предмет":
                         EnqueueAnimation("Mita Selfi");
                         break;
+                    case "Стать разочарованной":
+                        EnqueueAnimation("Mita StartDisappointment");
+                        setIdleAnimation("Mita IdleDisappointment");
+                        break;
+                    case "Руки в кулаки":
+                        EnqueueAnimation("Mita StartAngry");
+                        setIdleAnimation("Idle Angry");
+                        break;
+                    case "Сесть и плакать":
+                        EnqueueAnimation("Mila CryNo");
+                        setIdleAnimation("Mila CryNo");
+                        break;
+                    case "Дружески ударить":
+                        EnqueueAnimation("Mila Kick");
+                        break;
+                    case "Посмотреть по сторонам":
+                        EnqueueAnimation("Mita IdleCheck");
+                        break;
                     case "Прикрыть глаза":
                         EnqueueAnimation("Mita Close Eyes");
                         //int randomIndex = UnityEngine.Random.Range(0, 4); // Генерация числа от 0 до 3
-                        //EnqueueAnimation("Mita Open Eyes");
+                        EnqueueAnimation("Mita Open Eyes");
                         //EnqueueAnimation("Mita Open Shar Eyes");
                         break;
                     case "Обнять":
                         EnqueueAnimation("Mita StartHug");
-                        //EnqueueAnimation("Mita HugIdle");
-                        //EnqueueAnimation("Mita StopHug");
+                        EnqueueAnimation("Mita HugIdle");
+                        EnqueueAnimation("Mita StopHug");
                         break;
                     case "Удар":
                         EnqueueAnimation("Mita Kick");
+                        break;
+                    case "Помахать перед лицом":
+                        EnqueueAnimation("Hey");
+                        break;
+                    case "Помахать руками в стороны":
+                        EnqueueAnimation("Mita HandsDance");
+                        break;
+                    case "Начать махать руками в стороны":
+                        EnqueueAnimation("Mita HandsDance");
+                        setIdleAnimation("Mita HandsDance");
                         break;
                     case "Похвастаться предметом":
                         EnqueueAnimation("Mita Take Recorder");
@@ -178,9 +233,14 @@ namespace MitaAI.Mita
                     case "Прикрыть рот и помахать рукой":
                         EnqueueAnimation("Mita Oi");
                         //EnqueueAnimation("Mita Idle");
-                        EnqueueAnimation("Mita Heh");
+                        EnqueueAnimation("Mita Oi Heh");
                         break;
-                       
+                    case "Стать уставшей":
+                        EnqueueAnimation("Mita Start Tired");
+                        //EnqueueAnimation("Mita Idle");
+                        setIdleAnimation("Mita Tired");
+                        break;
+
                     case "Случайная анимация":
                         EnqueueAnimation("");
                         break;
@@ -203,7 +263,7 @@ namespace MitaAI.Mita
         }
 
 
-        static public void EnqueueAnimation(string animName = "")
+        static public void EnqueueAnimation(string animName = "",float lenght = 0, float timeAfter = 0)
         {
            /* if (bundle == null)
             {
@@ -272,6 +332,7 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Crossfade");
                     MelonLogger.Msg($"Now playing: {animName}");
                     mitaAnimatorFunctions.anim.CrossFade(animName, 0.25f);
+                    yield return WaitForAnimationCompletion(anim, false, 0.25f);
                 }
 
                 else 
@@ -281,6 +342,7 @@ namespace MitaAI.Mita
                     {
                         MelonLogger.Msg($"Usual case");
                         mitaAnimatorFunctions.AnimationClipSimpleNext(anim);
+                        yield return WaitForAnimationCompletion(anim, false, 0.25f);
                     }
                     else
                     {
@@ -289,33 +351,40 @@ namespace MitaAI.Mita
 
                 }
                 // Ждем завершения анимации
-                yield return WaitForAnimationCompletion(anim,true,0.25f);
+                
                 
             }
             MelonLogger.Msg("Ended quque");
-            animator.CrossFade("Idle",0.25f);
+            animator.CrossFade(currentIdleAnim,0.25f);
             location34_Communication.enabled = true;
             isPlaying = false;
         }
 
         static private IEnumerator WaitForAnimationCompletion(AnimationClip animation, bool isCustomAnimation, float fadeDuration)
         {
+            MelonLogger.Msg($"Begin WaitForAnimationCompletion");
+
+            // Пока не работает, идеале отследить переходы
             if (isCustomAnimation)
             {
+
+                
                 // Для анимаций через Animator Controller
                 float startTime = Time.time;
 
+                MelonLogger.Msg($"Before while");
                 // Ожидаем начала перехода
                 while (animator.IsInTransition(0) && Time.time - startTime < fadeDuration)
                 {
                     yield return null;
                 }
-
+                MelonLogger.Msg($"After while");
                 // Ожидаем завершения анимации
                 AnimatorStateInfo stateInfo;
                 do
                 {
                     stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+                    MelonLogger.Msg($"State = {stateInfo.nameHash},{stateInfo.shortNameHash}");
                     yield return null;
                 }
                 while (stateInfo.IsName(animation.name) && stateInfo.normalizedTime < 1.0f);
@@ -329,18 +398,37 @@ namespace MitaAI.Mita
 
         static public void setIdleAnimation(string animName)
         {
+
+            
+
             if (bundle == null)
             {
                 bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
             }
 
-            AnimationClip anim = null;
+            
             if (!string.IsNullOrEmpty(animName))
             {
-                anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
-                location34_Communication.mitaAnimationIdle = anim;
-                if (overrideController == null) overrideController = animator.runtimeAnimatorController as AnimatorOverrideController;
-                overrideController.SetClip(idleAnimation, anim,true);
+                try
+                {
+                    currentIdleAnim = animName;
+                    MelonLogger.Error($"111");
+                    AnimationClip anim = FindAnimationClipByName(animName);
+                    if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+                    MelonLogger.Error($"222: {anim.name}");
+                    location34_Communication.mitaAnimationIdle = anim;
+                   // if (overrideController == null) overrideController = animator.runtimeAnimatorController as AnimatorOverrideController;
+                   // MelonLogger.Error($"333: {overrideController.name}");
+                   // overrideController.SetClip(idleAnimation, anim, true);
+                   // MelonLogger.Error($"444");
+                   
+                }
+                catch (Exception e)
+                {
+
+                    MelonLogger.Error($"setIdleAnimation: {e}");
+                }
+
             }
 
         }
@@ -351,10 +439,11 @@ namespace MitaAI.Mita
                 bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
             }
 
-            AnimationClip anim = null;
             if (!string.IsNullOrEmpty(animName))
             {
-                anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+                AnimationClip anim = FindAnimationClipByName(animName);
+                if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+
                 location34_Communication.mitaAnimationWalk = anim;
                 mitaAnimatorFunctions.AnimationClipWalk(anim);
             }
