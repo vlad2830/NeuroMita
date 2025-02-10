@@ -18,12 +18,23 @@ namespace MitaAI.WorldModded
 
         public static void sofaStart(GameObject gameObject)
         {
+            if (Utils.getDistanceBetweenObjects(gameObject, MitaCore.Instance.playerObject) > 1.5f) return;
             MelonLogger.Msg($"SofaSit");
             gameObject.GetComponent<ObjectInteractive>().active = false;
-            if (PlayerAnimationModded.currentPlayerMovement!=PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.playAnimObject(gameObject);
-            PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.sit;
 
+            if (PlayerAnimationModded.currentPlayerMovement != PlayerAnimationModded.PlayerMovement.sit)
+            {
+                PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.sit;
+                PlayerAnimationModded.playAnimObject(gameObject);
+            }
+           
+
+
+           
+           
         }
+
+
         public static IEnumerator caseConsoleAct(GameObject console)
         {
             yield return new WaitForSeconds(1.75f);
@@ -41,7 +52,7 @@ namespace MitaAI.WorldModded
                 yield return new WaitForSeconds(0.25f);
             }
             
-            if (MitaCore.Instance.getDistance()<6f) MitaCore.Instance.sendSystemMessage("Игрок при тебе просмотрел твой картридж другого игрока в подвале. У него могут быть вопросы, надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
+            if (MitaCore.Instance.getDistanceToPlayer()<6f) MitaCore.Instance.sendSystemMessage("Игрок при тебе просмотрел твой картридж другого игрока в подвале. У него могут быть вопросы, надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
             else MitaCore.Instance.sendSystemInfo("Игрок просмотрел твой картридж другого игрока в подвале пока ты была не рядом. У него могут быть вопросы, если он спросит надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
         }
 

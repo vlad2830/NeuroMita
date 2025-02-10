@@ -226,7 +226,7 @@ namespace MitaAI.Mita
                         break;
                     case "Руки в кулаки":
                         EnqueueAnimation("Mita StartAngry");
-                        setIdleAnimation("Idle Angry");
+                        setIdleAnimation("Mita IdleAngry");
                         break;
                     case "Сесть и плакать":
                         EnqueueAnimation("Mila CryNo");

@@ -19,31 +19,30 @@ from utils import clamp, print_ip_and_country, get_resource_path, load_text_from
 class ChatModel:
     def __init__(self, gui):
 
-        self.locale = "En"
         self.gui = gui
 
-        self.api_key = os.getenv("NM_API_KEY")  #"sk-PkNRM8HNkAeVadcJEwKVW6c8OTtafs6f"
+        self.api_key = os.getenv("NM_API_KEY")
         self.api_url = os.getenv("NM_API_URL")
+        self.api_model = os.getenv("NM_API_MODEL")
+        self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
-        # Stable
-        if True:
+
+        # test openai
+        if False:
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
-            self.modelName = "gpt-4o-mini"
+            self.api_model = "gpt-4o-mini"
+
         # test deepseek
         if False:
             self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
             #self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
-            self.modelName = "deepseek-chat"
-
+            self.api_model = "deepseek-chat"
         # test gemini
-        if True:
-            self.url = "https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent"
+        if False:
+            self.api_url = "https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent"
             #self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/google")
-            self.modelName = "gemini-1.5-flash"
+            self.api_model = "gemini-1.5-flash"
 
-        #self.client = OpenAI(api_key="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", base_url="https://openrouter.ai/api/v1")
-        #self.client = OpenAI(api_key="sk-61554d38a5b9423e97b0b766e35bb598", base_url="https://api.deepseek.com")
-        #self.client = Client()
 
         try:
             self.tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
@@ -58,7 +57,7 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         self.history_file = "chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
-        self.memory_limit = 40  # Ограничение сообщения
+        self.memory_limit = 20  # Ограничение сообщения
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
@@ -151,19 +150,19 @@ class ChatModel:
                    isinstance(msg, dict) and "content" in msg)
 
     def adjust_attitude(self, amount):
-        amount = clamp(amount, -20, 20)
+        amount = clamp(amount, -5, 5)
         """Корректируем отношение."""
         self.attitude = clamp(self.attitude + amount, 0, 100)
         print(f"Отношение изменилось на {amount}, новое значение: {self.attitude}")
 
     def adjust_boredom(self, amount):
-        amount = clamp(amount, -20, 20)
+        amount = clamp(amount, -5, 5)
         """Корректируем уровень скуки."""
         self.boredom = clamp(self.boredom + amount, 0, 100)
         print(f"Скука изменилась на {amount}, новое значение: {self.boredom}")
 
     def adjust_stress(self, amount):
-        amount = clamp(amount, -20, 20)
+        amount = clamp(amount, -5, 5)
         """Корректируем уровень стресса."""
         self.stress = clamp(self.stress + amount, 0, 100)
         print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
@@ -413,13 +412,13 @@ class ChatModel:
         print(self.gui.last_price)
 
         # Преобразование system messages для Gemini
-        if self.modelName == "gemini-1.5-flash":
+        if self.api_model == "gemini-1.5-flash":
             formatted_messages = []  # Список для хранения отформатированных сообщений
 
             for msg in combined_messages:
                 if msg["role"] == "system":
                     # Добавляем системные инструкции с меткой [Инструкция модели]
-                    formatted_messages.append({"role": "user", "content": f"[Инструкция модели]\n{msg['content']}"})
+                    formatted_messages.append({"role": "user", "content": f"[System Prompt]\n{msg['content']}"})
                 else:
                     # Остальные сообщения добавляем как есть
                     formatted_messages.append(msg)
@@ -429,12 +428,17 @@ class ChatModel:
 
             # Генерация ответа с использованием Gemini
             response = self.generate_responseGemini(formatted_messages)
-            response = response.removeprefix("```\n")
-            response = response.removesuffix("\n```\n")
+            print(response)
+            try:
+                response = response.removeprefix("```\n")
+                response = response.removesuffix("\n```\n")
+            except:
+                print("Проблема с префиксами или постфиками")
+
         else:
 
             completion = self.client.chat.completions.create(
-                model=self.modelName,
+                model=self.api_model,
                 messages=combined_messages,
                 max_tokens=self.max_response_tokens,
                 presence_penalty=1.5,
@@ -465,7 +469,7 @@ class ChatModel:
         }
 
         # Отправка запроса
-        response = requests.post(self.url, headers=headers, json=data)
+        response = requests.post(self.api_url, headers=headers, json=data)
 
         # Обработка ответа
         if response.status_code == 200:
@@ -565,7 +569,7 @@ class ChatModel:
         clean_text = re.sub(r"<[^>]+>.*?</[^>]+>", "", text)
         clean_text = replace_numbers_with_words(clean_text)
 
-        clean_text = transliterate_english_to_russian(clean_text)
+        #clean_text = transliterate_english_to_russian(clean_text)
 
 
         # Если текст пустой, заменяем его на "Вот"

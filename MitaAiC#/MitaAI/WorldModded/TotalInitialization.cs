@@ -2,7 +2,7 @@
 using Il2CppEPOOutline;
 using MelonLoader;
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Text;
@@ -33,19 +33,26 @@ namespace MitaAI
 
         public static void initCornerSofa(Transform world)
         {
+            MelonLogger.Msg("initCornerSofa");
             GameObject sofa = MitaCore.TryfindChild(world, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair");
-
-            var objectAnimationPlayer =  sofa.AddComponent<ObjectAnimationPlayer>();
+            GameObject sofaChil = new GameObject("OI");
+            sofaChil.transform.parent = sofa.transform;
+            sofaChil.transform.localPosition = new Vector3(-0.4855f, 0.3255f, 0.0982f);
+            sofaChil.transform.localRotation = Quaternion.Euler(10f, 90f, 90f);
+            var objectAnimationPlayer = sofaChil.AddComponent<ObjectAnimationPlayer>();
             var objectInteractive = sofa.AddComponent<ObjectInteractive>();
+            objectAnimationPlayer.angleHeadRotate = 90;
             Utils.CopyComponentValues(exampleComponent, objectInteractive);
 
             objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
-            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player IdleSit1");
+            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player Sit");
 
             //objectInteractive.eventClick = EventsProxy.ChangeAnimationEvent(sofa, "SofaSit");
 
-            GameObject GameAihastion = MitaCore.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
+            //GameObject GameAihastion = MitaCore.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
+          
         }
+
 
         public static void initTVGames(Transform world)
         {

@@ -208,7 +208,15 @@ namespace MitaAI
         {
             try
             {
-                gameObject.GetComponent<ObjectAnimationPlayer>().AnimationPlay();
+                ObjectAnimationPlayer animPlayer = gameObject.GetComponent<ObjectAnimationPlayer>()
+                ?? gameObject.transform.Find("OI")?.GetComponent<ObjectAnimationPlayer>();
+
+                if (animPlayer != null)
+                {
+                    animPlayer.AnimationPlay();
+                    MelonCoroutines.Start(endWhenAnotherState(animPlayer));
+                }
+
 
             }
             catch (Exception ex)
@@ -217,6 +225,17 @@ namespace MitaAI
                 MelonLogger.Msg($"Problem with playAnimObject {ex}");
             }
 
+        }
+
+
+        public static IEnumerator endWhenAnotherState(ObjectAnimationPlayer objectAnimationPlayer)
+        {
+            while (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit)
+            {
+
+                yield return null;
+            }
+            objectAnimationPlayer.AnimationStop();
         }
 
         public static void stopAnim() {

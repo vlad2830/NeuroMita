@@ -319,6 +319,10 @@ namespace MitaAI
             worldTogether.gameObject.SetActive(false);
             PlayerAnimationModded.FindPlayerAnimationsRecursive(worldTogether.transform);
             PlayerAnimationModded.Check();
+
+            TotalInitialization.initTVGames(worldHouse);
+            TotalInitialization.initCornerSofa(worldHouse);
+
         }
 
         public void playerKilled()
@@ -557,8 +561,6 @@ namespace MitaAI
             //MelonCoroutines.Start(UpdateLighitng());
 
 
-            TotalInitialization.initTVGames(worldHouse);
-            TotalInitialization.initCornerSofa(worldHouse);
 
 
             try
@@ -949,40 +951,10 @@ namespace MitaAI
         }
 
 
-        public IEnumerator ToggleObjectActiveAfterTime(GameObject obj, float delay)
-        {
-            // Проверяем, не null ли объект
-            if (obj == null)
-            {
-                LoggerInstance.Msg("GameObject is null. Cannot toggle.");
-                yield break;
-            }
-
-            // Ждём заданное время
-            yield return new WaitForSeconds(delay);
-
-            // Переключаем активность объекта
-            obj.SetActive(!obj.activeSelf);
-            LoggerInstance.Msg($"GameObject {obj.name} is now {(obj.activeSelf ? "active" : "inactive")}");
-        }
-
-        public IEnumerator DestroyObjecteAfterTime(GameObject obj, float delay)
-        {
-            // Проверяем, не null ли объект
-            if (obj == null)
-            {
-                LoggerInstance.Msg("GameObject is null. Cannot toggle.");
-                yield break;
-            }
-
-            // Ждём заданное время
-            yield return new WaitForSeconds(delay);
-
-            GameObject.Destroy(obj);
-        }
 
 
-        public float getDistance()
+
+        public float getDistanceToPlayer()
         {
             if (Mita == null || playerPerson == null) { return 0f; }
             return Vector3.Distance(Mita.transform.GetChild(0).position, playerPerson.transform.position);
@@ -1080,7 +1052,7 @@ namespace MitaAI
             }
             if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
 
-            distance = getDistance();
+            distance = getDistanceToPlayer();
             roomIDPlayer = GetRoomID(playerPerson.transform);
             roomIDMita = GetRoomID(Mita.transform);
             currentInfo = formCurrentInfo();
@@ -1279,6 +1251,7 @@ namespace MitaAI
 
                 MelonCoroutines.Start(PlayMitaSound(delay, audioClip));
 
+
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 50);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
@@ -1455,7 +1428,7 @@ namespace MitaAI
 
             while (mitaState == MitaState.hunt)
             {
-                if (getDistance() > 1f)
+                if (getDistanceToPlayer() > 1f)
                 {
                     Mita.AiWalkToTarget(playerPerson.transform);
                 }
@@ -1561,8 +1534,8 @@ namespace MitaAI
             yield return new WaitForSeconds(0.1f);
             AnimationKiller.GetComponent<Location6_MitaKiller>().Kill(); // Вызываем метод Kill()
             endHunt();
-            yield return new WaitForSeconds(3f);
-            systemMessages.Enqueue("Ты успешно зарезала игрока и он где-то зареспавнился");
+            yield return new WaitForSecondsRealtime(delay);
+            systemMessages.Enqueue("You successfully killed the player using knife, and he respawned somewhere.");
             AnimationKiller.SetActive(false); // Включаем объект
             // Возвращаем Миту в исходное положение
             TryTurnChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);
@@ -1798,10 +1771,12 @@ namespace MitaAI
                         movementStyle = MovementStyles.follow;
                         Location34_Communication.ActivationCanWalk(false);
                         MelonCoroutines.Start(FollowPlayer());
+                        MelonCoroutines.Start(LookOnPlayer());
                         break;
                     case "Стоять на месте":
                         movementStyle = MovementStyles.stay;
                         Location34_Communication.ActivationCanWalk(false);
+                        MelonCoroutines.Start(LookOnPlayer());
                         break;
                     case "NoClip":
                         movementStyle = MovementStyles.noclip;
@@ -1822,14 +1797,23 @@ namespace MitaAI
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
-        
+
+        public IEnumerator LookOnPlayer()
+        {
+            while (movementStyle != MovementStyles.walkNear)
+            {
+                MitaLook.LookOnPlayerAndRotate();
+                yield return new WaitForSecondsRealtime(2);
+            }
+        }
+
 
         public IEnumerator FollowPlayer()
         {
 
             while (movementStyle == MovementStyles.follow)
             {
-                if (getDistance() > 1f)
+                if (getDistanceToPlayer() > 1f)
                 {
                     Mita.AiWalkToTarget(playerPerson.transform);
                     
@@ -1840,7 +1824,7 @@ namespace MitaAI
                     yield break;
                 }
 
-                yield return new WaitForSeconds(0.25f);
+                yield return new WaitForSeconds(0.15f);
             }
 
 
@@ -1848,7 +1832,7 @@ namespace MitaAI
         public IEnumerator FollowPlayerNoclip()
         {
 
-            while (movementStyle == MovementStyles.noclip && getDistance() > 0.9f)
+            while (movementStyle == MovementStyles.noclip && getDistanceToPlayer() > 0.9f)
             {
 
                 MoveToPositionNoClip(5);
@@ -1860,7 +1844,7 @@ namespace MitaAI
         }
         private IEnumerator MoveToPositionNoClip(float speed)
         {
-            while (movementStyle == MovementStyles.noclip && getDistance() > 0.9f)
+            while (movementStyle == MovementStyles.noclip && getDistanceToPlayer() > 0.9f)
             {
                 Vector3 targetPosition = playerPerson.gameObject.transform.position;
                 // Двигаем персонажа напрямую к цели (без учета препятствий)
@@ -2157,8 +2141,20 @@ namespace MitaAI
 
         public override void OnUpdate()
         {
+            try
+            {
+                processInpute();
+            }
+            catch (Exception e)
+            {
 
+                MelonLogger.Msg(e);
+            }
+            
+        }
 
+        public void processInpute() 
+        { 
             // Обрабатываем нажатие Tab для переключения InputField
             if (Input.GetKeyDown(KeyCode.Tab)) // Используем GetKeyDown для одноразового срабатывания
             {
@@ -2219,8 +2215,18 @@ namespace MitaAI
             }
             else if (Input.GetKeyDown(KeyCode.Y) && !InputFieldComponent.activeSelf)
             {
-                if (PlayerAnimationModded.currentPlayerMovement==PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
-                PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+                try
+                {
+                    LoggerInstance.Msg("Y pressed");
+                    //if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
+                    PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+                }
+                catch (Exception e)
+                {
+
+                    MelonLogger.Msg(e);
+                }
+
             }
 
         }

@@ -84,7 +84,7 @@ namespace MitaAI
             {
                 foreach (var item in objectViewTime)
                 {
-                    if (item.Value >= 0.5f)
+                    if (item.Value >= 0.9f)
                     {
                         answer.Append($"{item.Key}:{item.Value.ToString("F2")}s\n");
                         //toRemove.Add(item.Key);

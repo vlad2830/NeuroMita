@@ -36,7 +36,8 @@ namespace MitaAI
 
             while (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken)
             {
-                MitaCore.Instance.playerObject.transform.localPosition = new UnityEngine.Vector3(-0.7f,-1.2f,-0.7f); //-0,7 -1,2 -0,7
+                float playerSize = MitaCore.Instance.playerObject.transform.localScale.x;
+                MitaCore.Instance.playerObject.transform.localPosition = new UnityEngine.Vector3(-0.7f,-1.2f,-0.7f)*playerSize; //-0,7 -1,2 -0,7
                 yield return null;
             }
             MitaCore.Instance.playerObject.GetComponent<Rigidbody>().useGravity = true;

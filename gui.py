@@ -13,6 +13,7 @@ import tkinter as tk
 
 class ChatGUI:
     def __init__(self):
+
         self.silero_connected = False
         self.game_connected = False
 
@@ -33,6 +34,7 @@ class ChatGUI:
         self.root.title("Чат с MitaAI")
         self.api_key = os.getenv("NM_API_KEY")
         self.api_url = os.getenv("NM_API_URL")
+        self.api_model = os.getenv("NM_API_MODEL")
         self.last_price = ""
 
         self.delete_all_wav_files()
@@ -420,48 +422,87 @@ class ChatGUI:
         self.api_url_entry.grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
 
         tk.Label(
-            self.api_settings_frame, text="Telegram API ID:", bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text="Модель:", bg="#2c2c2c", fg="#ffffff"
         ).grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
+
+        self.api_model_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
+                                      insertbackground="white")
+        self.api_model_entry.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
+
+        tk.Label(
+            self.api_settings_frame, text="Telegram API ID:", bg="#2c2c2c", fg="#ffffff"
+        ).grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_id_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                      insertbackground="white")
-        self.api_id_entry.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
+        self.api_id_entry.grid(row=7, column=0, padx=5, pady=5, sticky=tk.W)
 
         tk.Label(
             self.api_settings_frame, text="Telegram API Hash:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=8, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_hash_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                        insertbackground="white")
-        self.api_hash_entry.grid(row=7, column=0, padx=5, pady=5, sticky=tk.W)
+        self.api_hash_entry.grid(row=9, column=0, padx=5, pady=5, sticky=tk.W)
 
         tk.Label(
             self.api_settings_frame, text="Telegram Phone:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=8, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=10, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.phone_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                     insertbackground="white")
-        self.phone_entry.grid(row=9, column=0, padx=5, pady=5, sticky=tk.W)
+        self.phone_entry.grid(row=11, column=0, padx=5, pady=5, sticky=tk.W)
 
         save_button = tk.Button(
             self.api_settings_frame, text="Сохранить", command=self.save_api_settings,
             bg="#8a2be2", fg="#ffffff"
         )
-        save_button.grid(row=10, column=0, pady=10, sticky=tk.W)
+        save_button.grid(row=12, column=0, pady=10, sticky=tk.W)
 
     def save_api_settings(self):
 
-        self.api_key = self.api_key_entry.get()
-        self.api_url = self.api_url_entry.get()
-        self.api_id = self.api_id_entry.get()
-        self.api_hash = self.api_hash_entry.get()
-        self.phone = self.phone_entry.get()
+        api_key = self.api_key_entry.get()
+        if api_key:
+            self.api_key = api_key
 
-        self.model.set_api_key(self.api_key)
-        self.model.set_api_url(self.api_url)
+        api_url = self.api_url_entry.get()
+        if api_url:
+            self.api_url = api_url
+
+        api_model = self.api_model_entry.get()
+        if api_model:
+            self.api_model = api_model
+
+        api_id = self.api_id_entry.get()
+        if api_id:
+            self.api_id = api_id
+
+        api_hash = self.api_hash_entry.get()
+        if api_hash:
+            self.api_hash = api_hash
+
+        phone = self.phone_entry.get()
+        if phone:
+            self.phone = phone
+
+        # В чат модел пишем
+        if self.api_key:
+            self.model.set_api_key(self.api_key)
+        if self.api_url:
+            self.model.set_api_url(self.api_url)
+        if self.api_model:
+            self.model.api_model = self.api_model
+
+        # В силеро пишем
+        if not self.silero_connected:
+            self.bot_handler.api_id = int(self.api_id)
+            self.bot_handler.api_hash = self.api_hash
+            self.bot_handler.phone = self.phone
+            self.bot_handler.start()
 
         set_system_variable("NM_API_KEY", self.api_key)
         set_system_variable("NM_API_URL", self.api_url)
+        set_system_variable("NM_API_MODEL", self.api_url)
         set_system_variable("NM_TELEGRAM_API_ID", self.api_id)
         set_system_variable("NM_TELEGRAM_API_HASH", self.api_hash)
         set_system_variable("NM_TELEGRAM_PHONE", self.phone)
@@ -470,6 +511,7 @@ class ChatGUI:
         print(f"Сохранение данных авторизации")
         print(f"API-ключ сохранён: {self.api_key}")
         print(f"Ссылка API сохранена: {self.api_url}")
+        print(f"Модель сохранена: {self.api_model}")
         print(f"Telegram API ID сохранён: {self.api_id}")
         print(f"Telegram API Hash сохранён: {self.api_hash}")
         print(f"Telegram Phone сохранён: {self.phone}")
