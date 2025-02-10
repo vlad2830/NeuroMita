@@ -502,7 +502,7 @@ class ChatGUI:
 
         set_system_variable("NM_API_KEY", self.api_key)
         set_system_variable("NM_API_URL", self.api_url)
-        set_system_variable("NM_API_MODEL", self.api_url)
+        set_system_variable("NM_API_MODEL", self.api_model)
         set_system_variable("NM_TELEGRAM_API_ID", self.api_id)
         set_system_variable("NM_TELEGRAM_API_HASH", self.api_hash)
         set_system_variable("NM_TELEGRAM_PHONE", self.phone)
