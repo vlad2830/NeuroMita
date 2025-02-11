@@ -23,7 +23,6 @@ https://console.proxyapi.ru/billing, отсюда нужен ключ.
 Варианты model и url:
 gpt-4o-mini https://api.proxyapi.ru/openai/v1
 gemini-1.5-flash https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent - сорян, там пришлось через реквест делать. 
-
 Для тех кто знает, можете попробовать ввести что надо свое, но не тестировал.
 Сохраняется все в системные переменные. 
 
