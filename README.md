@@ -18,11 +18,22 @@
 1) Мой мод идет в комплекте питон+промты+папкаКонвертации (их ставьте где угодно вместе) и также файлы мода (MitaAI.dll и assetbudle.test) непосредственно в папку mods, 
 созданную мелоном (вроде в релизы кинул).
 
-2) Мод сейчас запустить получится только платно, в плане том, что генерация текста идет от посредника Proxi Api (да да, напрямую в рф туго с прямым доступом):
-https://console.proxyapi.ru/billing, отсюда нужен ключ.
-Варианты model и url:
-gpt-4o-mini https://api.proxyapi.ru/openai/v1
-gemini-1.5-flash https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent - сорян, там пришлось через реквест делать. 
+2) Мод в плане генерации текста можно запустить в двух форматах.
+   а) Бесплатно, используя открытые ключи https://openrouter.ai/settings/keys
+   б) Платно, оплачивая клюс тут https://console.proxyapi.ru/billing (рф вариант)
+   в) Если у вас есть ключи напрямую (вы не в рф), то как бы тоже варик)
+
+Сейчас пойдут настройки, которые нужно прописать в запущенном приложении exe
+Варианты model,url и кнопки реквест:
+
+Бесплатно:
+https://openrouter.ai/api/v1/chat/completions google/gemini-2.0-pro-exp-02-05:free request
+https://openrouter.ai/api/v1 deepseek/deepseek-r1-distill-llama-8b open api
+Платно: 
+gpt-4o-mini https://api.proxyapi.ru/openai/v1 open api
+gemini-1.5-flash https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent request
+В общем, смысл вы поняли, можно еще поискать варианты. Потом улучшу, просто гемени там отдельная струтура + request.
+
 Для тех кто знает, можете попробовать ввести что надо свое, но не тестировал.
 Сохраняется все в системные переменные. 
 
