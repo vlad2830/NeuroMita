@@ -1409,7 +1409,8 @@ namespace MitaAI
                 mitaState = MitaState.hunt;
                 MelonCoroutines.Start(hunting());
                 Location34_Communication.ActivationCanWalk(false);
-                MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita RunWalkKnife")); //
+                //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita RunWalkKnife")); //
+                MitaAnimationModded.setIdleWalk("Mita WalkKnife");
                 knife.SetActive(true);
                 knife.transform.rotation = Quaternion.identity;
                 MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
@@ -1468,13 +1469,19 @@ namespace MitaAI
         public void endHunt()
         {
             //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk"));
+            MitaAnimationModded.setIdleWalk("walk");
             knife.SetActive(false);
             movementStyle = MovementStyles.walkNear;
             Location34_Communication.ActivationCanWalk(true);
             mitaState = MitaState.normal;
-            Mita.AiShraplyStop();
+            MitaSharplyStopTimed(0.5f);
         }
         
+        private IEnumerator MitaSharplyStopTimed(float time)
+        {
+            yield return new WaitForSeconds(time);
+            Mita.AiShraplyStop();
+        }
 
         public void spawnManeken()
         {

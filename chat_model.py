@@ -24,7 +24,7 @@ class ChatModel:
         self.api_key = os.getenv("NM_API_KEY")
         self.api_url = os.getenv("NM_API_URL")
         self.api_model = os.getenv("NM_API_MODEL")
-
+        self.makeRequest = bool(os.getenv("NM_API_REQ", 0))
         try:
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
         except:
@@ -416,7 +416,7 @@ class ChatModel:
         print(self.gui.last_price)
 
         # Преобразование system messages для Gemini
-        if self.api_model == "gemini-1.5-flash":
+        if self.makeRequest or self.api_model == "gemini-1.5-flash":
             formatted_messages = []  # Список для хранения отформатированных сообщений
 
             for msg in combined_messages:
@@ -457,6 +457,7 @@ class ChatModel:
         return response
 
     def generate_responseGemini(self, combined_messages):
+        print("Через реквест делаем")
         # Подготовка тела запроса
         data = {
             "contents": [
@@ -464,7 +465,7 @@ class ChatModel:
             ],
             "generationConfig": {
                 "maxOutputTokens": self.max_response_tokens,
-                "temperature": 0.5,
+                "temperature": 0.7,
                 "presencePenalty": 1.5
             }
         }
@@ -478,6 +479,7 @@ class ChatModel:
         # Отправка запроса
         response = requests.post(self.api_url, headers=headers, json=data)
 
+        #   print("ключ"+self.api_key)
         # Обработка ответа
         if response.status_code == 200:
             response_data = response.json()

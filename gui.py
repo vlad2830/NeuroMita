@@ -14,6 +14,8 @@ import tkinter as tk
 class ChatGUI:
     def __init__(self):
 
+
+
         self.silero_connected = False
         self.game_connected = False
 
@@ -32,9 +34,13 @@ class ChatGUI:
         self.ConnectedToGame = False
         self.root = tk.Tk()
         self.root.title("Чат с MitaAI")
+        self.api_hash = None
+        self.api_id = None
+        self.phone = None
         self.api_key = os.getenv("NM_API_KEY")
         self.api_url = os.getenv("NM_API_URL")
         self.api_model = os.getenv("NM_API_MODEL")
+        self.makeRequest = int(os.getenv("NM_API_REQ",0))
         self.last_price = ""
 
         self.delete_all_wav_files()
@@ -453,12 +459,32 @@ class ChatGUI:
                                     insertbackground="white")
         self.phone_entry.grid(row=11, column=0, padx=5, pady=5, sticky=tk.W)
 
+        tk.Label(
+            self.api_settings_frame, text="Make request:", bg="#2c2c2c", fg="#ffffff"
+        ).grid(row=12, column=0, padx=5, pady=5, sticky=tk.W)
+
+        # Переменная для тумблера
+
+        #self.makeRequest_entry = tk.Checkbutton(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",text="Делать через request",variable=self.toggle_state)
+        self.makeRequest_entry = tk.Checkbutton(
+            self.api_settings_frame, text="Делать через request", variable=self.show_api_var,
+            command=self.toggle_makeRequest, bg="#2c2c2c", fg="#ffffff"
+        )
+        self.makeRequest_entry.grid(row=13, column=0, padx=5, pady=5, sticky=tk.W)
+
         save_button = tk.Button(
             self.api_settings_frame, text="Сохранить", command=self.save_api_settings,
             bg="#8a2be2", fg="#ffffff"
         )
-        save_button.grid(row=12, column=0, pady=10, sticky=tk.W)
+        save_button.grid(row=14, column=0, pady=10, sticky=tk.W)
 
+    def toggle_makeRequest(self):
+        print("FFF")
+        self.makeRequest = not self.makeRequest
+        if self.makeRequest:
+            self.makeRequest_entry.config(text="Сейчас делается через реквест + структура гемини")
+        else:
+            self.makeRequest_entry.config(text="Сейчас делается через open api + стркуткура гпт")
     def save_api_settings(self):
 
         api_key = self.api_key_entry.get()
@@ -493,6 +519,8 @@ class ChatGUI:
         if self.api_model:
             self.model.api_model = self.api_model
 
+        self.model.makeRequest = self.makeRequest
+
         # В силеро пишем
         if not self.silero_connected:
             self.bot_handler.api_id = int(self.api_id)
@@ -503,6 +531,7 @@ class ChatGUI:
         set_system_variable("NM_API_KEY", self.api_key)
         set_system_variable("NM_API_URL", self.api_url)
         set_system_variable("NM_API_MODEL", self.api_model)
+        set_system_variable("NM_API_REQ", str(self.makeRequest))
         set_system_variable("NM_TELEGRAM_API_ID", self.api_id)
         set_system_variable("NM_TELEGRAM_API_HASH", self.api_hash)
         set_system_variable("NM_TELEGRAM_PHONE", self.phone)
