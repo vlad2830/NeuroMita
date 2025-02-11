@@ -1,15 +1,12 @@
 from telethon import TelegramClient, events
 import os
-
+import sys
 import time
 import random
 import pygame
 import asyncio
 from telethon.tl.types import MessageMediaDocument
-from pydub import AudioSegment
 
-import audioread
-import soundfile as sf
 import ffmpeg
 import platform
 
@@ -25,13 +22,27 @@ class TelegramBotHandler:
         self.gui = gui
         self.patch_to_sound_file = ""
 
-        # Путь к FFMPEG
-        self.ffmpeg_path = os.path.join(
-            os.path.dirname(__file__),
-            "ffmpeg-7.1-essentials_build",
-            "bin",
-            "ffmpeg.exe"
-        )
+        if getattr(sys, 'frozen', False):
+            # Если программа собрана в exe, получаем путь к исполняемому файлу
+            base_dir = os.path.dirname(sys.executable)
+
+            # Альтернативный вариант: если ffmpeg всё же упакован в _MEIPASS
+            alt_base_dir = sys._MEIPASS
+        else:
+            # Если программа запускается как скрипт
+            base_dir = os.path.dirname(__file__)
+            alt_base_dir = base_dir  # Для единообразия
+
+        # Проверяем, где лежит ffmpeg
+        ffmpeg_rel_path = os.path.join("ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe")
+
+        ffmpeg_path = os.path.join(base_dir, ffmpeg_rel_path)
+        if not os.path.exists(ffmpeg_path):
+            # Если не нашли в base_dir, пробуем _MEIPASS (актуально для PyInstaller)
+            ffmpeg_path = os.path.join(alt_base_dir, ffmpeg_rel_path)
+
+        self.ffmpeg_path = ffmpeg_path
+
 
         # Системные параметры
         device_model = platform.node()  # Имя устройства

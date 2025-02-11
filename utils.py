@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import datetime
 import requests
 
 def clamp(value, min_value, max_value):

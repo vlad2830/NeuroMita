@@ -4,10 +4,10 @@ import requests
 import tiktoken
 from openai import OpenAI
 import os
-import sys
+
 import datetime
-import time
-from g4f.client import Client
+
+
 import re
 import shutil
 from num2words import num2words
@@ -618,7 +618,8 @@ class ChatModel:
                     self.MitaLongMemory["content"] = f" ДолгаяПамять< {content} >КонецДолгойПамяти "
 
             # Убираем все теги из ответа
-            response = re.sub(memory_pattern, "", response)
+            if self.HideAiData:
+                response = re.sub(memory_pattern, "", response)
 
         return response
 
