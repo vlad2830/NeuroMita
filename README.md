@@ -1,5 +1,8 @@
 Мита на питоне (юзает доступ к нейронкам по api) + Мелон Мод на юнити, пока не очень работающий.
 
+UPD: Пока ничего не сработало на тестах с другими, ждите.
+
+
 Гитхаб засветился слишком рано, щас я в темпе пытаюсь предоставить временную демку, но пока тестов не было на других устройствах.
 
 ![image](https://github.com/user-attachments/assets/1baad23d-d58a-484c-ba83-25a9f3dcbc03)
@@ -19,19 +22,22 @@
 созданную мелоном (вроде в релизы кинул).
 
 2) Мод в плане генерации текста можно запустить в двух форматах.
+   
    а) Бесплатно, используя открытые ключи https://openrouter.ai/settings/keys
    б) Платно, оплачивая клюс тут https://console.proxyapi.ru/billing (рф вариант)
    в) Если у вас есть ключи напрямую (вы не в рф), то как бы тоже варик)
-
-Сейчас пойдут настройки, которые нужно прописать в запущенном приложении exe
-Варианты model,url и кнопки реквест:
-
-Бесплатно:
-https://openrouter.ai/api/v1/chat/completions google/gemini-2.0-pro-exp-02-05:free request
-https://openrouter.ai/api/v1 deepseek/deepseek-r1-distill-llama-8b open api
-Платно: 
-gpt-4o-mini https://api.proxyapi.ru/openai/v1 open api
-gemini-1.5-flash https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent request
+   
+   Сейчас пойдут настройки, которые нужно прописать в запущенном приложении exe
+   Варианты model,url и кнопки реквест:
+   
+   Бесплатно:
+      (https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent) google/gemini-2.0-pro-exp-02-05:free request
+      https://openrouter.ai/api/v1 deepseek/deepseek-r1-distill-llama-8b open api
+   
+   Платно: 
+      gpt-4o-mini https://api.proxyapi.ru/openai/v1 open api
+      gemini-1.5-flash https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent request
+   
 В общем, смысл вы поняли, можно еще поискать варианты. Потом улучшу, просто гемени там отдельная струтура + request.
 
 Для тех кто знает, можете попробовать ввести что надо свое, но не тестировал.
