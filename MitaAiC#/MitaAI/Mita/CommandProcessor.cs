@@ -135,8 +135,9 @@ namespace MitaAI.Mita
                     break;
 
                 case "continue":
+                    ContinueCounter++;
                     if (ContinueCounter<3) mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль");
-                    else mitaCore.sendSystemInfo("Ты не смогла продолжить фразу, так как лимит в 3 подряд был превышен");
+                    else mitaCore.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен");
                     break;
 
                 // Дополнительные команды...

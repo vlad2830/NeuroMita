@@ -1802,8 +1802,8 @@ namespace MitaAI
         {
             while (movementStyle != MovementStyles.walkNear)
             {
-                MitaLook.LookOnPlayerAndRotate();
-                yield return new WaitForSecondsRealtime(2);
+                if (Mita.animMita.GetAnimatorStateName(0,true) != "walk") MitaLook.LookOnPlayerAndRotate();
+                yield return new WaitForSecondsRealtime(1);
             }
         }
 

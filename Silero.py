@@ -6,7 +6,7 @@ import pygame
 import asyncio
 from telethon.tl.types import MessageMediaDocument
 from pydub import AudioSegment
-from RVC import BnmRvcModel
+
 import audioread
 import soundfile as sf
 import ffmpeg

@@ -24,8 +24,11 @@ class ChatModel:
         self.api_key = os.getenv("NM_API_KEY")
         self.api_url = os.getenv("NM_API_URL")
         self.api_model = os.getenv("NM_API_MODEL")
-        self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
+        try:
+            self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
+        except:
+            print("Со старта не получилось запустить OpenAi client")
 
         # test openai
         if False:
@@ -169,18 +172,19 @@ class ChatModel:
 
     def set_api_key(self, api_key):
         self.api_key = api_key
-        self.set_api_key_url()
 
     def set_api_url(self, api_url):
         self.api_url = api_url
-        self.set_api_key_url()
 
     def set_api_key_url(self):
-        if self.api_url != "":
-            self.client = OpenAI(api_key=self.api_key,
-                                 base_url=self.api_url)
-        else:
-            self.client = OpenAI(api_key=self.api_key)
+        try:
+            if self.api_url != "":
+                self.client = OpenAI(api_key=self.api_key,
+                                     base_url=self.api_url)
+            else:
+                self.client = OpenAI(api_key=self.api_key)
+        except:
+            print("set_api_key_url не сработал")
 
     def generate_response(self, user_input, system_input=""):
         self.repeatResponse = False
@@ -436,6 +440,9 @@ class ChatModel:
                 print("Проблема с префиксами или постфиками")
 
         else:
+
+            if not self.client:
+                self.set_api_key_url()
 
             completion = self.client.chat.completions.create(
                 model=self.api_model,
