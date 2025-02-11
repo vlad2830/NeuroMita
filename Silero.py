@@ -1,5 +1,6 @@
 from telethon import TelegramClient, events
 import os
+
 import time
 import random
 import pygame
@@ -63,7 +64,7 @@ class TelegramBotHandler:
         """Конвертирует MP3 в WAV с использованием ffmpeg."""
         try:
             if not os.path.exists(input_path):
-                print(f"Файл {input_path} не найден.")
+                print(f"Файл {input_path} не найден при попытке конвертации.")
                 return
 
             # Указываем путь к ffmpeg
@@ -179,7 +180,7 @@ class TelegramBotHandler:
 
                     absolute_wav_path = os.path.abspath(wav_path)
                     # Конвертируем MP3 в WAV
-                    await self.convert_mp3_to_wav(file_path, absolute_wav_path)
+                    await self.convert_mp3_to_wav(absolute_mp3_path, absolute_wav_path)
 
                     try:
                         print(f"Удаляю файл: {absolute_mp3_path}")
