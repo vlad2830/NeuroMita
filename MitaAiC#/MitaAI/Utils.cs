@@ -10,6 +10,29 @@ namespace MitaAI
 {
     public static class Utils
     {
+
+        /// <summary>
+        /// Возвращает true с вероятностью a/b
+        /// </summary>
+        /// <param name="a">Числитель (шанс успеха)</param>
+        /// <param name="b">Знаменатель (общий диапазон)</param>
+        /// <returns>True, если шанс произошел, иначе False</returns>
+        public static bool Random(int a, int b)
+        {
+            // Проверка на корректность входных данных
+            if (a < 0 || b <= 0 || a > b)
+            {
+                Debug.LogError("Некорректные значения a и b. Должно быть: 0 <= a <= b, b > 0");
+                return false;
+            }
+
+            // Генерация случайного числа в диапазоне [0, b)
+            int randomValue = UnityEngine.Random.Range(0, b);
+
+            // Возвращаем true, если randomValue < a
+            return randomValue < a;
+        }
+
         public static void CopyComponentValues(ObjectInteractive source, ObjectInteractive destination)
         {
             if (source == null || destination == null)

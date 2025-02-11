@@ -91,7 +91,7 @@
 Типы без указа времени: </v>тв-удар</v>
 
 Ты можешь сменить одежду
-<u>original</u><u>SchoolVariant1</u><u>SchoolVariant2</u>-Черного цвета<u>SchoolVariant3</u><u>Chirstmass</u><u>Vampire</u>
+<clothes>original</clothes><clothes>SchoolVariant1</clothes><clothes>SchoolVariant2</clothes>-Черного цвета<clothes>SchoolVariant3</clothes><clothes>Chirstmass</clothes><clothesVampire</clothes>
 
 Ты можешь менять музыку, написав ровно:
 <mu>None</mu> тишина

@@ -35,7 +35,7 @@ namespace MitaAI.MitaAppereance
         {
             MelonLogger.Msg($"Inside ProcessClothes");
             List<string> clothes = new List<string>();
-            string pattern = @"<u>(.*?)</u>";
+            string pattern = @"<clothes>(.*?)</clothes>";
             MatchCollection matches = Regex.Matches(response, pattern);
 
             foreach (Match match in matches)
@@ -51,7 +51,7 @@ namespace MitaAI.MitaAppereance
                 }
             }
 
-            string result = Regex.Replace(response, @"<u>.*?</u>", "");
+            string result = Regex.Replace(response, @"<clothes>.*?</clothes>", "");
 
 
             MelonLogger.Msg($"Inside ProcessClothes End");

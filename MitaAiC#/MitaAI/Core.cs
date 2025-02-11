@@ -79,6 +79,8 @@ namespace MitaAI
         }
         MitaState mitaState = 0;
 
+        EmotionType currentEmotion = EmotionType.none;
+
         GameObject knife;
 
         PlayerPerson playerPerson;
@@ -651,8 +653,8 @@ namespace MitaAI
             //Interactions.Test(GameObject.Find("Table"));
             MelonCoroutines.Start(RealTimer());
 
-            sendSystemMessage("Игрок только что загрузился в твой уровень.");
-
+            if (Utils.Random(1, 7)) sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом");
+            else sendSystemMessage("Игрок только что загрузился в твой уровень.");
 
 
 
@@ -1319,7 +1321,7 @@ namespace MitaAI
             answer.timeShow = delay;
             answer.speaker = Mita?.gameObject;
             if (emotion != EmotionType.none) answer.emotionFinish = emotion;
-
+            currentEmotion = emotion;
             currentDialog.SetActive(true);
             yield return new WaitForSeconds(delay / 1000f);
 
@@ -2097,7 +2099,12 @@ namespace MitaAI
             {
                 info += $"Current movement type: {movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
+                info += $"Current emotion anim: {currentEmotion}\n";
+
+
                 if (mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
+
+
 
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
