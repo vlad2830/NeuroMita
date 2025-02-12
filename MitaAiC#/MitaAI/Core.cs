@@ -1811,7 +1811,12 @@ namespace MitaAI
         {
             while (movementStyle != MovementStyles.walkNear)
             {
-                if (Mita.animMita.GetAnimatorStateName(0,true) != "walk") MitaLook.LookOnPlayerAndRotate();
+                if (!Mita.GetComponent<NavMeshAgent>().isActiveAndEnabled) {
+
+                    if (Utils.Random(6, 10)) MitaLook.LookOnPlayerAndRotate();
+                    else MitaLook.LookRandom();
+                
+                }
                 yield return new WaitForSecondsRealtime(1);
             }
         }

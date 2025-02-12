@@ -21,15 +21,18 @@ class ChatModel:
 
         self.gui = gui
 
-        self.api_key = os.getenv("NM_API_KEY")
-        self.api_url = os.getenv("NM_API_URL")
-        self.api_model = os.getenv("NM_API_MODEL")
-        self.makeRequest = bool(os.getenv("NM_API_REQ", 0))
+
         try:
+            self.api_key = os.getenv("NM_API_KEY")
+            self.api_url = os.getenv("NM_API_URL")
+            self.api_model = os.getenv("NM_API_MODEL")
+            self.makeRequest = bool(os.getenv("NM_API_REQ", 0))
+
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
         except:
             print("Со старта не получилось запустить OpenAi client")
 
+        """
         # test openai
         if False:
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
@@ -38,14 +41,12 @@ class ChatModel:
         # test deepseek
         if False:
             self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
-            #self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
             self.api_model = "deepseek-chat"
         # test gemini
         if False:
             self.api_url = "https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent"
-            #self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/google")
             self.api_model = "gemini-1.5-flash"
-
+        """
 
         try:
             self.tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
@@ -266,6 +267,7 @@ class ChatModel:
                 'secretExposedFirst': self.secretExposedFirst
             })
 
+            self.gui.update_debug_info()
             return response
         except Exception as e:
             print(f"Ошибка на фазе генерации: {e}")
@@ -505,8 +507,8 @@ class ChatModel:
             # Обрабатывает ответ, изменяет показатели на основе скрытой строки формата <p>x,x,x,x<p>.
             response = self.process_behavior_changes(response)
 
-            #Выполняет команды
-            response = self.process_commands(response, messages)
+            #Выполняет команды - вынесено в логику юнити мода
+            #response = self.process_commands(response, messages)
 
             # Возвращаем обработанный ответ для дальнейшей работы
             return response.strip()

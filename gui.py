@@ -14,8 +14,6 @@ import tkinter as tk
 class ChatGUI:
     def __init__(self):
 
-
-
         self.silero_connected = False
         self.game_connected = False
 
@@ -37,10 +35,15 @@ class ChatGUI:
         self.api_hash = None
         self.api_id = None
         self.phone = None
-        self.api_key = os.getenv("NM_API_KEY")
-        self.api_url = os.getenv("NM_API_URL")
-        self.api_model = os.getenv("NM_API_MODEL")
-        self.makeRequest = int(os.getenv("NM_API_REQ",0))
+
+        try:
+            self.api_key = os.getenv("NM_API_KEY")
+            self.api_url = os.getenv("NM_API_URL")
+            self.api_model = os.getenv("NM_API_MODEL")
+            self.makeRequest = bool(os.getenv("NM_API_REQ", False))
+        except:
+            print("Не удалось удачно получить из сис переменных все про апи")
+
         self.last_price = ""
 
         self.delete_all_wav_files()
@@ -58,8 +61,6 @@ class ChatGUI:
         # Запуск проверки переменной textToTalk через after
         self.root.after(100, self.check_text_to_talk)
 
-
-
     def delete_all_wav_files(self):
         # Получаем список всех .wav файлов в корневой директории
         wav_files = glob.glob("*.wav")
@@ -71,6 +72,7 @@ class ChatGUI:
                 print(f"Удален файл: {wav_file}")
             except Exception as e:
                 print(f"Ошибка при удалении файла {wav_file}: {e}")
+
     def start_asyncio_loop(self):
         """Запускает цикл событий asyncio в отдельном потоке."""
         try:
@@ -264,17 +266,16 @@ class ChatGUI:
     def updateAll(self):
         self.update_status_colors()
         self.update_debug_info()
+
     def update_status_colors(self):
         self.game_connected.set(self.ConnectedToGame)  # Статус подключения к игре
         # Обновление цвета для подключения к игре
         game_color = "#00ff00" if self.game_connected.get() else "#ffffff"
         self.game_status_checkbox.config(fg=game_color)
 
-
         # Обновление цвета для подключения к Silero
         silero_color = "#00ff00" if self.silero_connected.get() else "#ffffff"
         self.silero_status_checkbox.config(fg=silero_color)
-
 
     def setup_attitude_controls(self, parent):
         attitude_frame = tk.Frame(parent, bg="#2c2c2c")
@@ -395,7 +396,6 @@ class ChatGUI:
 
         self.update_debug_info()  # Отобразить изначальное состояние переменных
 
-
     def setup_api_controls(self, parent):
         api_frame = tk.Frame(parent, bg="#2c2c2c")
         api_frame.pack(fill=tk.X, pady=10)
@@ -432,7 +432,7 @@ class ChatGUI:
         ).grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_model_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                      insertbackground="white")
+                                        insertbackground="white")
         self.api_model_entry.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
 
         tk.Label(
@@ -485,6 +485,7 @@ class ChatGUI:
             self.makeRequest_entry.config(text="Сейчас делается через реквест + структура гемини")
         else:
             self.makeRequest_entry.config(text="Сейчас делается через open api + стркуткура гпт")
+
     def save_api_settings(self):
 
         api_key = self.api_key_entry.get()
