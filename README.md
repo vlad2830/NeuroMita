@@ -31,9 +31,7 @@ UPD: Пока ничего не сработало на тестах с друг
    Варианты model,url и кнопки реквест:
    
    Бесплатно:
-      (https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent) google/gemini-2.0-pro-exp-02-05:free request
-      https://openrouter.ai/api/v1 deepseek/deepseek-r1-distill-llama-8b open api
-   
+      https://openrouter.ai/api/v1 google/gemini-2.0-flash-lite-preview-02-05:free open api
    Платно: 
       gpt-4o-mini https://api.proxyapi.ru/openai/v1 open api
       gemini-1.5-flash https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent request
