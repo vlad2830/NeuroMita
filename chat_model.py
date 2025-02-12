@@ -188,6 +188,10 @@ class ChatModel:
             print("set_api_key_url не сработал")
 
     def generate_response(self, user_input, system_input=""):
+
+
+
+
         self.repeatResponse = False
         # Загрузка истории из файла
         history_data = self.load_history()
@@ -237,6 +241,10 @@ class ChatModel:
 
         # Генерация ответа с использованием клиента
         try:
+
+
+
+
             response = self._generate_chat_response(combined_messages)
 
             response_message = {
@@ -417,6 +425,12 @@ class ChatModel:
             print("Не получилось сделать с токенайзером")
         print(self.gui.last_price)
 
+        print("Перед отправкой на генерацию")
+        print(self.api_key)
+        print(self.api_url)
+        print(self.api_model)
+        print(self.makeRequest)
+
         # Преобразование system messages для Gemini
         if self.makeRequest or self.api_model == "gemini-1.5-flash":
             formatted_messages = []  # Список для хранения отформатированных сообщений
@@ -480,12 +494,13 @@ class ChatModel:
 
         # Отправка запроса
         response = requests.post(self.api_url, headers=headers, json=data)
-
+        print("Ответ гемени: ", response)
         #   print("ключ"+self.api_key)
         # Обработка ответа
         if response.status_code == 200:
             response_data = response.json()
             # Извлечение текста ответа (зависит от структуры ответа Gemini)
+
             generated_text = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get(
                 "text", "")
             print("Gemini Flash: \n" + generated_text)
