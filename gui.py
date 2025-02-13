@@ -205,15 +205,21 @@ class ChatGUI:
 
         # Второй столбец
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
-        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
 
-        self.setup_attitude_controls(right_frame)
-        self.setup_boredom_controls(right_frame)
-        self.setup_stress_controls(right_frame)
-        self.setup_secret_controls(right_frame)
+        # Настройка элементов управления
+        # Создаем контейнер для всех элементов управления
+        self.controls_frame = tk.Frame(right_frame, bg="#2c2c2c")
+        self.controls_frame.pack(fill=tk.X, pady=3)
+
+        # Настройка элементов управления
+        self.setup_control("Настроение", "attitude", self.model.attitude)
+        self.setup_control("Скука", "boredom", self.model.boredom)
+        self.setup_control("Стресс", "stress", self.model.stress)
+        self.setup_secret_control()
 
         self.setup_history_controls(right_frame)
         self.setup_debug_controls(right_frame)
@@ -234,7 +240,7 @@ class ChatGUI:
     def setup_status_indicators(self, parent):
         # Создаем фрейм для индикаторов
         status_frame = tk.Frame(parent, bg="#2c2c2c")
-        status_frame.pack(fill=tk.X, pady=5)
+        status_frame.pack(fill=tk.X, pady=3)
 
         # Переменные статуса
         self.game_connected = tk.BooleanVar(value=False)  # Статус подключения к игре
@@ -250,7 +256,7 @@ class ChatGUI:
             fg="#ffffff",
             selectcolor="#2c2c2c"
         )
-        self.game_status_checkbox.pack(side=tk.LEFT, padx=5, pady=5)
+        self.game_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
 
         self.silero_status_checkbox = tk.Checkbutton(
             status_frame,
@@ -261,7 +267,7 @@ class ChatGUI:
             fg="#ffffff",
             selectcolor="#2c2c2c"
         )
-        self.silero_status_checkbox.pack(side=tk.LEFT, padx=5, pady=5)
+        self.silero_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
 
     def updateAll(self):
         self.update_status_colors()
@@ -277,84 +283,73 @@ class ChatGUI:
         silero_color = "#00ff00" if self.silero_connected.get() else "#ffffff"
         self.silero_status_checkbox.config(fg=silero_color)
 
-    def setup_attitude_controls(self, parent):
-        attitude_frame = tk.Frame(parent, bg="#2c2c2c")
-        attitude_frame.pack(fill=tk.X, pady=5)
+    def setup_control(self, label_text, attribute_name, initial_value):
+        """
+        Создает элементы управления для настроения, скуки и стресса.
+        :param label_text: Текст метки (например, "Настроение").
+        :param attribute_name: Имя атрибута модели (например, "attitude").
+        :param initial_value: Начальное значение атрибута.
+        """
+        frame = tk.Frame(self.controls_frame, bg="#2c2c2c")
+        frame.pack(fill=tk.X, pady=5)
 
-        self.mood_label = tk.Label(
-            attitude_frame, text=f"Настроение: {self.model.attitude}", bg="#2c2c2c", fg="#ffffff"
-        )
-        self.mood_label.pack(side=tk.LEFT, padx=5)
+        # Метка для отображения текущего значения
+        label = tk.Label(frame, text=f"{label_text}: {initial_value}", bg="#2c2c2c", fg="#ffffff")
+        label.pack(side=tk.LEFT, padx=5)
 
-        mood_up_button = tk.Button(
-            attitude_frame, text="+", command=lambda: self.adjust_attitude(15),
+        # Кнопки для увеличения и уменьшения значения
+        up_button = tk.Button(
+            frame, text="+", command=lambda: self.adjust_value(attribute_name, 15, label),
             bg="#8a2be2", fg="#ffffff"
         )
-        mood_up_button.pack(side=tk.RIGHT, padx=5)
+        up_button.pack(side=tk.RIGHT, padx=5)
 
-        mood_down_button = tk.Button(
-            attitude_frame, text="-", command=lambda: self.adjust_attitude(-15),
+        down_button = tk.Button(
+            frame, text="-", command=lambda: self.adjust_value(attribute_name, -15, label),
             bg="#8a2be2", fg="#ffffff"
         )
-        mood_down_button.pack(side=tk.RIGHT, padx=5)
+        down_button.pack(side=tk.RIGHT, padx=5)
 
-    def setup_boredom_controls(self, parent):
-        boredom_frame = tk.Frame(parent, bg="#2c2c2c")
-        boredom_frame.pack(fill=tk.X, pady=5)
+        # Сохраняем ссылку на метку для обновления
+        setattr(self, f"{attribute_name}_label", label)
 
-        self.boredom_label = tk.Label(
-            boredom_frame, text=f"Скука: {self.model.boredom}", bg="#2c2c2c", fg="#ffffff"
-        )
-        self.boredom_label.pack(side=tk.LEFT, padx=5)
-
-        stress_up_button = tk.Button(
-            boredom_frame, text="+", command=lambda: self.adjust_boredom(15),
-            bg="#8a2be2", fg="#ffffff"
-        )
-        stress_up_button.pack(side=tk.RIGHT, padx=5)
-
-        stress_down_button = tk.Button(
-            boredom_frame, text="-", command=lambda: self.adjust_boredom(-15),
-            bg="#8a2be2", fg="#ffffff"
-        )
-        stress_down_button.pack(side=tk.RIGHT, padx=5)
-
-    def setup_stress_controls(self, parent):
-        stress_frame = tk.Frame(parent, bg="#2c2c2c")
-        stress_frame.pack(fill=tk.X, pady=5)
-
-        self.stress_label = tk.Label(
-            stress_frame, text=f"Стресс: {self.model.stress}", bg="#2c2c2c", fg="#ffffff"
-        )
-        self.stress_label.pack(side=tk.LEFT, padx=5)
-
-        stress_up_button = tk.Button(
-            stress_frame, text="+", command=lambda: self.adjust_stress(15),
-            bg="#8a2be2", fg="#ffffff"
-        )
-        stress_up_button.pack(side=tk.RIGHT, padx=5)
-
-        stress_down_button = tk.Button(
-            stress_frame, text="-", command=lambda: self.adjust_stress(-15),
-            bg="#8a2be2", fg="#ffffff"
-        )
-        stress_down_button.pack(side=tk.RIGHT, padx=5)
-
-    def setup_secret_controls(self, parent):
-        secret_frame = tk.Frame(parent, bg="#2c2c2c")
-        secret_frame.pack(fill=tk.X, pady=5)
+    def setup_secret_control(self):
+        """
+        Создает чекбокс для управления состоянием "Секрет раскрыт".
+        """
+        frame = tk.Frame(self.controls_frame, bg="#2c2c2c")
+        frame.pack(fill=tk.X, pady=5)
 
         self.secret_var = tk.BooleanVar(value=self.model.secretExposed)
 
         secret_checkbox = tk.Checkbutton(
-            secret_frame, text="Секрет раскрыт", variable=self.secret_var,
+            frame, text="Секрет раскрыт", variable=self.secret_var,
             bg="#2c2c2c", fg="#ffffff", command=self.adjust_secret
         )
         secret_checkbox.pack(side=tk.LEFT, padx=5)
 
+    def adjust_value(self, attribute_name, delta, label):
+        """
+        Обновляет значение атрибута модели и метки.
+        :param attribute_name: Имя атрибута модели (например, "attitude").
+        :param delta: Изменение значения (например, +15 или -15).
+        :param label: Метка, которую нужно обновить.
+        """
+        current_value = getattr(self.model, attribute_name)
+        new_value = current_value + delta
+        setattr(self.model, attribute_name, new_value)
+
+        # Обновляем текст метки
+        label.config(text=f"{label.cget('text').split(':')[0]}: {new_value}")
+
+    def adjust_secret(self):
+        """
+        Обновляет состояние "Секрет раскрыт" в модели.
+        """
+        self.model.secretExposed = self.secret_var.get()
     def setup_history_controls(self, parent):
         history_frame = tk.Frame(parent, bg="#2c2c2c")
-        history_frame.pack(fill=tk.X, pady=5)
+        history_frame.pack(fill=tk.X, pady=4)
 
         clear_button = tk.Button(
             history_frame, text="Очистить историю", command=self.clear_history,
@@ -398,7 +393,7 @@ class ChatGUI:
 
     def setup_api_controls(self, parent):
         api_frame = tk.Frame(parent, bg="#2c2c2c")
-        api_frame.pack(fill=tk.X, pady=7)
+        api_frame.pack(fill=tk.X, pady=3)
 
         self.show_api_var = tk.BooleanVar(value=False)
 
@@ -567,6 +562,18 @@ class ChatGUI:
         else:
             self.api_settings_frame.pack_forget()
 
+    def update_controls(self):
+        """
+        Обновляет значения всех элементов управления на основе текущих данных в self.model.
+        """
+        # Обновляем метки для настроения, скуки и стресса
+        self.attitude_label.config(text=f"Настроение: {self.model.attitude}")
+        self.boredom_label.config(text=f"Скука: {self.model.boredom}")
+        self.stress_label.config(text=f"Стресс: {self.model.stress}")
+
+        # Обновляем чекбокс "Секрет раскрыт"
+        self.secret_var.set(self.model.secretExposed)
+
     def update_debug_info(self):
         """Обновить окно отладки с отображением актуальных данных."""
         self.debug_window.delete(1.0, tk.END)  # Очистить старые данные
@@ -577,7 +584,7 @@ class ChatGUI:
             f"Секрет: {self.model.secretExposed}\n"
         )
         self.debug_window.insert(tk.END, debug_info)
-
+        self.update_controls()
     def adjust_attitude(self, amount):
         self.model.adjust_attitude(amount)
         self.mood_label.config(text=f"Отношение: {self.model.attitude}")

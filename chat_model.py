@@ -457,7 +457,7 @@ class ChatModel:
 
         else:
 
-            print("SADASDASDASDASDASDASDASDASDSDDDDDDDDDDDDDDDDDDDDDD")
+            print("Обычный open api")
             if not self.client:
                 self.update_openai_client()
             #self.client = OpenAI(api_key="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",base_url="https://openrouter.ai/api/v1")
