@@ -14,10 +14,14 @@ import platform
 class TelegramBotHandler:
     def __init__(self, gui, message_limit_per_minute=20):
         # Получение параметров из окружения
-        api_id = int(os.getenv("NM_TELEGRAM_API_ID"))
-        api_hash = os.getenv("NM_TELEGRAM_API_HASH")
-        phone = os.getenv("NM_TELEGRAM_PHONE")
-        silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
+        try:
+            api_hash = os.getenv("NM_TELEGRAM_API_HASH")
+            phone = os.getenv("NM_TELEGRAM_PHONE")
+            silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
+            api_id = int(os.getenv("NM_TELEGRAM_API_ID"))
+        except:
+            print("Проблема в ините тг")
+
 
         self.gui = gui
         self.patch_to_sound_file = ""

@@ -484,33 +484,46 @@ class ChatGUI:
         if self.makeRequest:
             self.makeRequest_entry.config(text="Сейчас делается через реквест + структура гемини")
         else:
-            self.makeRequest_entry.config(text="Сейчас делается через open api + стркуткура гпт")
+            self.makeRequest_entry.config(text="Сейчас делается через open api + структура гпт")
 
     def save_api_settings(self):
 
         api_key = self.api_key_entry.get()
         if api_key:
             self.api_key = api_key
+            set_system_variable("NM_API_KEY", self.api_key)
+            print(f"API-ключ сохранён: {self.api_key}")
 
         api_url = self.api_url_entry.get()
         if api_url:
             self.api_url = api_url
+            set_system_variable("NM_API_URL", self.api_url)
+            print(f"Ссылка API сохранена: {self.api_url}")
 
         api_model = self.api_model_entry.get()
         if api_model:
             self.api_model = api_model
+            set_system_variable("NM_API_MODEL", self.api_model)
+            print(f"Модель сохранена: {self.api_model}")
+
 
         api_id = self.api_id_entry.get()
         if api_id:
             self.api_id = api_id
+            set_system_variable("NM_TELEGRAM_API_ID", self.api_id)
+            print(f"Telegram API ID сохранён: {self.api_id}")
 
         api_hash = self.api_hash_entry.get()
         if api_hash:
             self.api_hash = api_hash
+            set_system_variable("NM_TELEGRAM_API_HASH", self.api_hash)
+            print(f"Telegram API Hash сохранён: {self.api_hash}")
 
         phone = self.phone_entry.get()
         if phone:
             self.phone = phone
+            set_system_variable("NM_TELEGRAM_PHONE", self.phone)
+            print(f"Telegram Phone сохранён: {self.phone}")
 
         # В чат модел пишем
         if self.api_key:
@@ -519,9 +532,13 @@ class ChatGUI:
             self.model.set_api_url(self.api_url)
         if self.api_model:
             self.model.api_model = self.api_model
+        print(f"Сохранение данных авторизации")
 
+        set_system_variable("NM_API_REQ", str(self.makeRequest))
         self.model.makeRequest = self.makeRequest
 
+
+        self.model.update_openai_client()
         # В силеро пишем
         if not self.silero_connected:
             self.bot_handler.api_id = int(self.api_id)
@@ -529,22 +546,16 @@ class ChatGUI:
             self.bot_handler.phone = self.phone
             self.bot_handler.start()
 
-        set_system_variable("NM_API_KEY", self.api_key)
-        set_system_variable("NM_API_URL", self.api_url)
-        set_system_variable("NM_API_MODEL", self.api_model)
-        set_system_variable("NM_API_REQ", str(self.makeRequest))
-        set_system_variable("NM_TELEGRAM_API_ID", self.api_id)
-        set_system_variable("NM_TELEGRAM_API_HASH", self.api_hash)
-        set_system_variable("NM_TELEGRAM_PHONE", self.phone)
+
+
+
+
+
+
+
         os.environ.update(os.environ)
 
-        print(f"Сохранение данных авторизации")
-        print(f"API-ключ сохранён: {self.api_key}")
-        print(f"Ссылка API сохранена: {self.api_url}")
-        print(f"Модель сохранена: {self.api_model}")
-        print(f"Telegram API ID сохранён: {self.api_id}")
-        print(f"Telegram API Hash сохранён: {self.api_hash}")
-        print(f"Telegram Phone сохранён: {self.phone}")
+
 
     def paste_from_clipboard(self, event=None):
         try:
@@ -657,7 +668,7 @@ class ChatGUI:
 
     def on_closing(self):
         self.stop_server()
-        self.send_message("Игрок покинул игру")
+        #self.send_message("Игрок покинул игру")
         print("Закрываемся")
         self.root.destroy()
         #1

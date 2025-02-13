@@ -26,7 +26,7 @@ class ChatModel:
             self.api_key = os.getenv("NM_API_KEY")
             self.api_url = os.getenv("NM_API_URL")
             self.api_model = os.getenv("NM_API_MODEL")
-            self.makeRequest = bool(os.getenv("NM_API_REQ", 0))
+            self.makeRequest = bool(os.getenv("NM_API_REQ", False))
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
         except:
@@ -177,12 +177,14 @@ class ChatModel:
     def set_api_url(self, api_url):
         self.api_url = api_url
 
-    def set_api_key_url(self):
+    def update_openai_client(self):
         try:
             if self.api_url != "":
+                print("И люч и ссылка")
                 self.client = OpenAI(api_key=self.api_key,
                                      base_url=self.api_url)
             else:
+                print("Только ключ")
                 self.client = OpenAI(api_key=self.api_key)
         except:
             print("set_api_key_url не сработал")
@@ -457,11 +459,13 @@ class ChatModel:
 
         else:
 
+            print("SADASDASDASDASDASDASDASDASDSDDDDDDDDDDDDDDDDDDDDDD")
             if not self.client:
-                self.set_api_key_url()
-
+                self.update_openai_client()
+            #self.client = OpenAI(api_key="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",base_url="https://openrouter.ai/api/v1")
             completion = self.client.chat.completions.create(
                 model=self.api_model,
+                #model="deepseek/deepseek-r1:free",
                 messages=combined_messages,
                 max_tokens=self.max_response_tokens,
                 presence_penalty=1.5,
@@ -493,6 +497,8 @@ class ChatModel:
         }
 
         # Отправка запроса
+        print("Отправляю")
+        save_combined_messages(data, "Gem2")
         response = requests.post(self.api_url, headers=headers, json=data)
         print("Ответ гемени: ", response)
         #   print("ключ"+self.api_key)
