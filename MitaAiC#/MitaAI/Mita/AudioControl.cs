@@ -132,19 +132,15 @@ namespace MitaAI.Mita
         public static IEnumerator PlayTextAudio(string text)
         {
             MelonLogger.Msg("Chibi Sound Play");
-            for (int i = 0; i < text.Length; i++)
+            for (int i = 0; i < text.Length; i = i + 3)
             {
                 GameObject currentDialog = MitaCore.Instance.InstantiateDialog();
-                if (text[i] == ' ' || i % 3 != 0)
+                if (text[i] != ' ')
                 {
-
-                    yield return new WaitForSecondsRealtime(0.14f);
-                }
-                else
-                {
+                    
                     currentDialog.SetActive(true);
                     Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
-
+                    
                     answer.timeSound = AudioControl.chibiMitaAudio.length * UnityEngine.Random.Range(60, 141) * 0.01f;
 
                     answer.speaker = MitaCore.Instance.Mita?.gameObject;
@@ -152,8 +148,10 @@ namespace MitaAI.Mita
                     answer.LoadVoice(AudioControl.chibiMitaAudio);
 
                     yield return new WaitForSecondsRealtime(0.07f);
-                
-                    
+                }
+                else
+                {
+                    yield return new WaitForSecondsRealtime(0.14f);
                 }
                 
                 GameObject.Destroy(currentDialog);

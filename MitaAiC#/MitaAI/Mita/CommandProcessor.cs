@@ -40,9 +40,9 @@ namespace MitaAI.Mita
                 }
             }
 
-            
+            bool wasContinue = response.Contains("Сontinue");
             string result = Regex.Replace(response, @"<c>.*?</c>", "");
-            if (response.Contains("continue")) result += " ▶▶▶";
+            if (wasContinue) result += " ▶▶▶";
             // Удаляем теги эмоций из текста
             return (commands, result);
 

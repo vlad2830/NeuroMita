@@ -1355,7 +1355,7 @@ namespace MitaAI
             currentEmotion = emotion;
 
             currentDialog.SetActive(true);
-            MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
+            if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
             yield return new WaitForSeconds(delay / 1000f);
 
