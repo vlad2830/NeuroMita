@@ -40,7 +40,7 @@ namespace MitaAI.Mita
                 }
             }
 
-            string result = Regex.Replace(response, @"<c>.*?</c>", "");
+            string result = Regex.Replace(response, @"<c>.*?</c>", "")+ " ▶▶▶";
             // Удаляем теги эмоций из текста
             return (commands, result);
 
@@ -65,7 +65,7 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Error processing command '{command}': {ex.Message}");
                 }
             }
-            ContinueCounter--;
+            if (ContinueCounter>0) ContinueCounter--;
         }
 
         private static void ProcessSimpleCommand(string command)

@@ -163,7 +163,7 @@ class TelegramBotHandler:
         await asyncio.sleep(0.7)
         while attempts <= 24:  # Попытки получения ответа
 
-            async for message in self.client.iter_messages(self.silero_bot, limit=1):
+            async for message in self.client.iter_messages(self.silero_bot, limit=2):
                 if message.media and isinstance(message.media, MessageMediaDocument):
                     # Проверяем тип файла и его атрибуты
                     if 'audio/mpeg' in message.media.document.mime_type:
@@ -224,6 +224,14 @@ class TelegramBotHandler:
             await self.client.start(phone=self.phone)
             self.gui.silero_connected.set(True)
             print("Успешно авторизован!")
+            await self.client.send_message(self.silero_bot, "/start")
+            await asyncio.sleep(0.50)
+            await self.client.send_message(self.silero_bot, "/speaker mita")
+            await asyncio.sleep(0.50)
+            await self.client.send_message(self.silero_bot, "/mp3")
+            await asyncio.sleep(0.50)
+            await self.client.send_message(self.silero_bot, "/hd")
+            print("Включено все для сообщений миты")
         except Exception as e:
             self.gui.silero_connected.set(False)
             print(f"Ошибка авторизации: {e}")

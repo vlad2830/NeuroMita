@@ -40,7 +40,7 @@ class ChatGUI:
             self.api_key = os.getenv("NM_API_KEY")
             self.api_url = os.getenv("NM_API_URL")
             self.api_model = os.getenv("NM_API_MODEL")
-            self.makeRequest = bool(os.getenv("NM_API_REQ", False))
+            self.makeRequest = os.getenv("NM_API_REQ", "False").lower() == "true"
         except:
             print("Не удалось удачно получить из сис переменных все про апи")
 
@@ -398,7 +398,7 @@ class ChatGUI:
 
     def setup_api_controls(self, parent):
         api_frame = tk.Frame(parent, bg="#2c2c2c")
-        api_frame.pack(fill=tk.X, pady=10)
+        api_frame.pack(fill=tk.X, pady=7)
 
         self.show_api_var = tk.BooleanVar(value=False)
 
@@ -406,85 +406,81 @@ class ChatGUI:
             api_frame, text="Показать настройки API", variable=self.show_api_var,
             command=self.toggle_api_settings, bg="#2c2c2c", fg="#ffffff"
         )
-        api_toggle.pack(side=tk.LEFT, padx=5)
+        api_toggle.pack(side=tk.LEFT, padx=4)
 
         self.api_settings_frame = tk.Frame(parent, bg="#2c2c2c")
 
         # Элементы в одном столбце
         tk.Label(
             self.api_settings_frame, text="API-ключ:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=0, column=0, padx=4, pady=4, sticky=tk.W)
 
         self.api_key_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                       insertbackground="white")
-        self.api_key_entry.grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
+        self.api_key_entry.grid(row=0, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
             self.api_settings_frame, text="Ссылка:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_url_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                       insertbackground="white")
-        self.api_url_entry.grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
+        self.api_url_entry.grid(row=1, column=1, padx=4, pady=5, sticky=tk.W)
 
         tk.Label(
             self.api_settings_frame, text="Модель:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_model_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                         insertbackground="white")
-        self.api_model_entry.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
+        self.api_model_entry.grid(row=2, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
             self.api_settings_frame, text="Telegram API ID:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_id_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                      insertbackground="white")
-        self.api_id_entry.grid(row=7, column=0, padx=5, pady=5, sticky=tk.W)
+        self.api_id_entry.grid(row=3, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
             self.api_settings_frame, text="Telegram API Hash:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=8, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_hash_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                        insertbackground="white")
-        self.api_hash_entry.grid(row=9, column=0, padx=5, pady=5, sticky=tk.W)
+        self.api_hash_entry.grid(row=4, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
             self.api_settings_frame, text="Telegram Phone:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=10, column=0, padx=5, pady=5, sticky=tk.W)
+        ).grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.phone_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
                                     insertbackground="white")
-        self.phone_entry.grid(row=11, column=0, padx=5, pady=5, sticky=tk.W)
-
-        tk.Label(
-            self.api_settings_frame, text="Make request:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=12, column=0, padx=5, pady=5, sticky=tk.W)
+        self.phone_entry.grid(row=5, column=1, padx=4, pady=4, sticky=tk.W)
 
         # Переменная для тумблера
-
-        #self.makeRequest_entry = tk.Checkbutton(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",text="Делать через request",variable=self.toggle_state)
         self.makeRequest_entry = tk.Checkbutton(
-            self.api_settings_frame, text="Делать через request", variable=self.show_api_var,
+            self.api_settings_frame, text="openapi or req", variable=self.show_api_var,
             command=self.toggle_makeRequest, bg="#2c2c2c", fg="#ffffff"
         )
-        self.makeRequest_entry.grid(row=13, column=0, padx=5, pady=5, sticky=tk.W)
+        self.makeRequest_entry.grid(row=6, column=0, padx=15, pady=0, sticky=tk.W)
+        self.toggle_makeRequest(False)
 
         save_button = tk.Button(
             self.api_settings_frame, text="Сохранить", command=self.save_api_settings,
             bg="#8a2be2", fg="#ffffff"
         )
-        save_button.grid(row=14, column=0, pady=10, sticky=tk.W)
+        save_button.grid(row=6, column=1, padx=5, sticky=tk.E)
 
-    def toggle_makeRequest(self):
-        print("FFF")
-        self.makeRequest = not self.makeRequest
+    def toggle_makeRequest(self, change_to_opposite=True):
+        if change_to_opposite:
+            self.makeRequest = not self.makeRequest
+
         if self.makeRequest:
-            self.makeRequest_entry.config(text="Сейчас делается через реквест + структура гемини")
+            self.makeRequest_entry.config(text="Сейчас Стр.Гемини рек.")
         else:
-            self.makeRequest_entry.config(text="Сейчас делается через open api + структура гпт")
+            self.makeRequest_entry.config(text="Сейчас Стр. OpenAi.")
 
     def save_api_settings(self):
 
@@ -505,7 +501,6 @@ class ChatGUI:
             self.api_model = api_model
             set_system_variable("NM_API_MODEL", self.api_model)
             print(f"Модель сохранена: {self.api_model}")
-
 
         api_id = self.api_id_entry.get()
         if api_id:
@@ -537,7 +532,6 @@ class ChatGUI:
         set_system_variable("NM_API_REQ", str(self.makeRequest))
         self.model.makeRequest = self.makeRequest
 
-
         self.model.update_openai_client()
         # В силеро пишем
         if not self.silero_connected:
@@ -546,16 +540,7 @@ class ChatGUI:
             self.bot_handler.phone = self.phone
             self.bot_handler.start()
 
-
-
-
-
-
-
-
         os.environ.update(os.environ)
-
-
 
     def paste_from_clipboard(self, event=None):
         try:

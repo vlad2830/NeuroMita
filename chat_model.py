@@ -26,7 +26,8 @@ class ChatModel:
             self.api_key = os.getenv("NM_API_KEY")
             self.api_url = os.getenv("NM_API_URL")
             self.api_model = os.getenv("NM_API_MODEL")
-            self.makeRequest = bool(os.getenv("NM_API_REQ", False))
+            print((os.getenv("NM_API_REQ")))
+            self.makeRequest = os.getenv("NM_API_REQ", "False").lower() == "true"
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
         except:
@@ -180,7 +181,7 @@ class ChatModel:
     def update_openai_client(self):
         try:
             if self.api_url != "":
-                print("И люч и ссылка")
+                print("И ключ и ссылка")
                 self.client = OpenAI(api_key=self.api_key,
                                      base_url=self.api_url)
             else:
@@ -190,9 +191,6 @@ class ChatModel:
             print("set_api_key_url не сработал")
 
     def generate_response(self, user_input, system_input=""):
-
-
-
 
         self.repeatResponse = False
         # Загрузка истории из файла
