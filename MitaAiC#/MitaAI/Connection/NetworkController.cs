@@ -11,12 +11,14 @@ namespace MitaAI
         private const string ServerAddress = "127.0.0.1";
         private const int Port = 12345;
 
+        public static bool connectedToSilero;
+
         static public void Initialize()
         {
             mitaCore = MitaCore.Instance;
         }
 
-        static public async Task<(string, string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo)
+        static public async Task<(string,string,string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 
@@ -25,7 +27,7 @@ namespace MitaAI
                 bool connected = await TryConnectAsync(clientSocket, ServerAddress, Port);
                 if (!connected)
                 {
-                    return (string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
+                    return (string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
                 }
 
                 bool waitResponse = input != "waiting" || dataToSentSystem != "-";
@@ -54,17 +56,18 @@ namespace MitaAI
                     // Логируем ответ
                     string response = parts[0];
                     string patch = "";
+                    string sileroConnected = parts[1];
                     //MelonLogger.Msg("Reveiced data" + parts[0] + "" + parts[2]);
                     //waitForSounds = parts[1];
 
                     if (!string.IsNullOrEmpty(parts[2])) patch = parts[2];
                     //patch_to_sound_file = parts[1];
-                    return (response, patch);
+                    return (response,sileroConnected,patch);
                 }
                 catch (Exception)
                 {
                     //LoggerInstance.Msg($"Error receiving data: {ex.Message}");
-                    return (string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
+                    return (string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
                 }
             }
 

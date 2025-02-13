@@ -163,7 +163,7 @@ class TelegramBotHandler:
         await asyncio.sleep(0.7)
         while attempts <= 24:  # Попытки получения ответа
 
-            async for message in self.client.iter_messages(self.silero_bot, limit=2):
+            async for message in self.client.iter_messages(self.silero_bot, limit=1):
                 if message.media and isinstance(message.media, MessageMediaDocument):
                     # Проверяем тип файла и его атрибуты
                     if 'audio/mpeg' in message.media.document.mime_type:

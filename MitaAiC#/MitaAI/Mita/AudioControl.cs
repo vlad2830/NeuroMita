@@ -1,5 +1,6 @@
-﻿using MelonLoader;
-using System.Collections.Generic;
+﻿using Il2Cpp;
+using MelonLoader;
+using System.Collections;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -12,6 +13,10 @@ namespace MitaAI.Mita
         private static Dictionary<string, GameObject> _audioObjects = new Dictionary<string, GameObject>();
 
         public static GameObject currentAudioObject;
+
+        static DataValues_Sounds dataValues_Sounds;
+        public static AudioClip chibiMitaAudio;
+        static AudioSource mitaAudioSourse;
         public static string getCurrrentMusic()
         {
             if (currentAudioObject == null) return "None";
@@ -59,6 +64,20 @@ namespace MitaAI.Mita
             }
 
             MelonLogger.Msg($"_audioObjects count {_audioObjects.Count()}");
+
+
+            try
+            {
+                dataValues_Sounds =  worldHouse.Find("Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>();
+                chibiMitaAudio = dataValues_Sounds.sounds[0];
+                mitaAudioSourse = MitaCore.Instance.MitaObject.transform.Find("MitaPerson Mita/Armature/Hips/Spine").GetComponent<AudioSource>();
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error($"Failed to find or add 'Dialogues/DialogueMita Speak': {e.Message}");
+            }
+
             // По умолчанию все объекты выключены
             //   foreach (var audioObject in _audioObjects.Values)
             //{
@@ -107,6 +126,37 @@ namespace MitaAI.Mita
             else
             {
                 MelonLogger.Msg($"Audio object with name '{audioName}' not found!");
+            }
+        }
+
+        public static IEnumerator PlayTextAudio(string text)
+        {
+            MelonLogger.Msg("Chibi Sound Play");
+            for (int i = 0; i < text.Length; i++)
+            {
+                GameObject currentDialog = MitaCore.Instance.InstantiateDialog();
+                if (text[i] == ' ' || i % 3 != 0)
+                {
+
+                    yield return new WaitForSecondsRealtime(0.14f);
+                }
+                else
+                {
+                    currentDialog.SetActive(true);
+                    Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
+
+                    answer.timeSound = AudioControl.chibiMitaAudio.length * UnityEngine.Random.Range(60, 141) * 0.01f;
+
+                    answer.speaker = MitaCore.Instance.Mita?.gameObject;
+                    //AudioControl.chibiMitaAudio.SetSpeed(1 * (UnityEngine.Random.Range(1, 40)*0.01) );
+                    answer.LoadVoice(AudioControl.chibiMitaAudio);
+
+                    yield return new WaitForSecondsRealtime(0.07f);
+                
+                    
+                }
+                
+                GameObject.Destroy(currentDialog);
             }
         }
     }

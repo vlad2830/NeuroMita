@@ -56,7 +56,7 @@ namespace MitaAI
             Instance = this;
         }
         // Метод, который будет вызываться после выполнения PrivateMethod
-
+        
         public GameObject MitaObject;
         public GameObject MitaPersonObject;
         public MitaPerson Mita;
@@ -77,7 +77,7 @@ namespace MitaAI
             hunt = 1
 
         }
-        MitaState mitaState = 0;
+        MitaState mitaState = MitaState.normal;
 
         EmotionType currentEmotion = EmotionType.none;
 
@@ -132,9 +132,10 @@ namespace MitaAI
         public string hierarchy = "-";
 
         static List<AnimationClip> MitaAnims = new List<AnimationClip>();
-        static Il2CppAssetBundle bundle;
-
         
+        static public Il2CppAssetBundle bundle;
+        //static public Il2CppAssetBundle bundle2;
+
         string requiredSceneName = "Scene 4 - StartSecret";
         string requiredSave = "SaveGame startsecret";
         string CurrentSceneName;
@@ -626,6 +627,34 @@ namespace MitaAI
             CustomDialogText.indexString = -1;
             CustomDialogText.showSubtitles = true;
 
+
+/*
+            MelonLogger.Msg("Begin adding sound chibi");
+            //bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
+            try
+            {
+                DataValues_Sounds dataValues_Sounds = new DataValues_Sounds();
+                Il2CppReferenceArray<AudioClip> sounds = new Il2CppReferenceArray<AudioClip>(50);
+
+                AudioClip audioClip = TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>().sounds[0];
+                for (int i = 0; i < 50; i++)
+                {
+
+                    sounds[i] = audioClip;
+                        //AssetBundleLoader.LoadAudioClipByName(bundle, "Mita Chibi");
+                    //if (Utils.Random(1, 2)) sounds[i].SetSpeed(0.5);
+                }
+                dataValues_Sounds.sounds = sounds;
+                CustomDialogText.sounds = TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>();
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }*/
+
+            MelonLogger.Msg("End adding sound chibi");
+
             MelonLogger.Msg($"Attempt Interactions before");
             Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
             
@@ -1020,12 +1049,13 @@ namespace MitaAI
 
 
             prepareForSend();
-            Task<(string,string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
+            Task<(string, string,string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
             while (!responseTask.IsCompleted)
                 yield return null;
 
             response = responseTask.Result.Item1;
-            string patch = responseTask.Result.Item2;
+            NetworkController.connectedToSilero = responseTask.Result.Item2=="1";
+            string patch = responseTask.Result.Item3;
             if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
             if (response != "")
             {
@@ -1190,7 +1220,7 @@ namespace MitaAI
 
 
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
-            while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout) //&& waitForSounds=="1")
+            while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
             {
                 //LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
                 if (patches_to_sound_file.Count > CountPathesWere)
@@ -1251,7 +1281,7 @@ namespace MitaAI
 
                 int delay = 3500 * modifiedResponse.Length / 50;
 
-                MelonCoroutines.Start(PlayMitaSound(delay, audioClip));
+                MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 50);
@@ -1273,6 +1303,7 @@ namespace MitaAI
 
                 string partCleaned = Regex.Replace(part, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
                 int delay = Mathf.Max(3500 * partCleaned.Length / 50, 500);
+
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay));
             }
 
@@ -1322,7 +1353,10 @@ namespace MitaAI
             answer.speaker = Mita?.gameObject;
             if (emotion != EmotionType.none) answer.emotionFinish = emotion;
             currentEmotion = emotion;
+
             currentDialog.SetActive(true);
+            MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
+
             yield return new WaitForSeconds(delay / 1000f);
 
             GameObject.Destroy(currentDialog);
@@ -1331,27 +1365,46 @@ namespace MitaAI
             TurnBlockInputField(false);
         }
 
-        private IEnumerator PlayMitaSound(int delay, AudioClip audioClip)
+        private IEnumerator PlayMitaSound(int delay, AudioClip audioClip, int len)
         {
             LoggerInstance.Msg("PlayMitaSound");
 
-            GameObject currentDialog = InstantiateDialog();
-            currentDialog.SetActive(true);
-            Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
+
 
             // Если есть аудио, проигрываем его до начала текста
             if (audioClip != null)
             {
+                GameObject currentDialog = InstantiateDialog();
+                currentDialog.SetActive(true);
+                Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
                 LoggerInstance.Msg("Loading voice...");
                 answer.timeSound = delay;
                 answer.LoadVoice(audioClip);
                 audioClip = null;
+                answer.speaker = Mita?.gameObject;
+
+                yield return new WaitForSeconds(delay);
+                GameObject.Destroy(currentDialog);
             }
-            answer.speaker = Mita?.gameObject;
+            else
+            {
+         /*       for (int i = 0; i < len; i=i+2)
+                {
+                    GameObject currentDialog = InstantiateDialog();
+                    currentDialog.SetActive(true);
+                    Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
+                    LoggerInstance.Msg("Loading voice...");
+                    answer.timeSound = (1f * (UnityEngine.Random.Range(1, 60) * 0.01f) ) - 0.3f;
 
-            yield return new WaitForSeconds(delay);
+                    answer.speaker = Mita?.gameObject;
+                    //AudioControl.chibiMitaAudio.SetSpeed(1 * (UnityEngine.Random.Range(1, 40)*0.01) );
+                    answer.LoadVoice( AudioControl.chibiMitaAudio);
+                    yield return new WaitForSecondsRealtime(0.07f);
+                    GameObject.Destroy(currentDialog);
+                }*/
+            }
 
-            GameObject.Destroy(currentDialog);
+            
             LoggerInstance.Msg("Dialogue part finished and destroyed.");
         }
 
@@ -1624,7 +1677,7 @@ namespace MitaAI
 
 
 
-        private GameObject InstantiateDialog(bool Mita = true)
+        public GameObject InstantiateDialog(bool Mita = true)
         {
             Transform world = GameObject.Find("World")?.transform;
             if (world == null)

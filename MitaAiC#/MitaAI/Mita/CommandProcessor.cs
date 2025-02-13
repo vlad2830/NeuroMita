@@ -40,7 +40,9 @@ namespace MitaAI.Mita
                 }
             }
 
-            string result = Regex.Replace(response, @"<c>.*?</c>", "")+ " ▶▶▶";
+            
+            string result = Regex.Replace(response, @"<c>.*?</c>", "");
+            if (response.Contains("continue")) result += " ▶▶▶";
             // Удаляем теги эмоций из текста
             return (commands, result);
 
