@@ -26,7 +26,6 @@ class ChatModel:
             self.api_key = os.getenv("NM_API_KEY")
             self.api_url = os.getenv("NM_API_URL")
             self.api_model = os.getenv("NM_API_MODEL")
-            print((os.getenv("NM_API_REQ")))
             self.makeRequest = os.getenv("NM_API_REQ", "False").lower() == "true"
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
@@ -62,7 +61,7 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         self.history_file = "chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
-        self.memory_limit = 20  # Ограничение сообщения
+        self.memory_limit = 40  # Ограничение сообщения
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
@@ -188,7 +187,7 @@ class ChatModel:
                 print("Только ключ")
                 self.client = OpenAI(api_key=self.api_key)
         except:
-            print("set_api_key_url не сработал")
+            print("update_openai_client не сработал")
 
     def generate_response(self, user_input, system_input=""):
 

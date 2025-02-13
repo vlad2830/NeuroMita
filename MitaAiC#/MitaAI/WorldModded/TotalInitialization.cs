@@ -41,16 +41,16 @@ namespace MitaAI
             sofaChil.transform.localRotation = Quaternion.Euler(10f, 90f, 90f);
             var objectAnimationPlayer = sofaChil.AddComponent<ObjectAnimationPlayer>();
             var objectInteractive = sofa.AddComponent<ObjectInteractive>();
-            objectAnimationPlayer.angleHeadRotate = 90;
+            objectAnimationPlayer.angleHeadRotate = 70;
             Utils.CopyComponentValues(exampleComponent, objectInteractive);
 
             objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
             objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player Sit");
-
+            objectAnimationPlayer.animationStop = PlayerAnimationModded.getPlayerAnimationClip("Player Stand");
             //objectInteractive.eventClick = EventsProxy.ChangeAnimationEvent(sofa, "SofaSit");
 
             //GameObject GameAihastion = MitaCore.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
-          
+
         }
 
 

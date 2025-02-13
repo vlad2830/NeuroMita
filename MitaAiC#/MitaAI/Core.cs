@@ -149,7 +149,7 @@ namespace MitaAI
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Синхронизируем доступ ко всем этим операциям
 
 
-        private const float MitaBoringInterval = 75f;
+        private const float MitaBoringInterval = 50f;
         private float MitaBoringtimer = 0f;
 
         bool manekenGame = false;
@@ -1046,9 +1046,9 @@ namespace MitaAI
                 }
 
             }
+            
+            if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
-
-            prepareForSend();
             Task<(string, string,string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
             while (!responseTask.IsCompleted)
                 yield return null;
@@ -2248,6 +2248,7 @@ namespace MitaAI
 
                     // Переключаем видимость InputField
                     bool isActive = InputFieldComponent.activeSelf;
+                    //PlayerAnimationModded.playerMove.speed  
                     InputFieldComponent.SetActive(!isActive);
 
                     // Если объект стал активным, активируем InputField
@@ -2264,7 +2265,7 @@ namespace MitaAI
             }
 
             // Обрабатываем нажатие Enter для передачи текста в функцию
-            else if (Input.GetKeyDown(KeyCode.Return) && InputFieldComponent != null)
+            else if (Input.GetKeyDown(KeyCode.Return) && checkInput())
             {
                 var ifc = InputFieldComponent.GetComponent<InputField>();
                 if (ifc.text != "")
@@ -2276,7 +2277,7 @@ namespace MitaAI
 
 
             // Обрабатываем нажатие Enter для передачи текста в функцию
-            else if (Input.GetKeyDown(KeyCode.C) && !InputFieldComponent.activeSelf)
+            else if (Input.GetKeyDown(KeyCode.C) && !checkInput())
             {
                 playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = true;
                 
@@ -2285,11 +2286,11 @@ namespace MitaAI
             {
                 playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = false;
             }
-            else if (Input.GetKeyDown(KeyCode.Y) && !InputFieldComponent.activeSelf)
+            else if (Input.GetKeyDown(KeyCode.Space) && !checkInput())
             {
                 try
                 {
-                    LoggerInstance.Msg("Y pressed");
+                    LoggerInstance.Msg("Space pressed");
                     //if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
                     PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
                 }
@@ -2302,6 +2303,15 @@ namespace MitaAI
             }
 
         }
+        bool checkInput()
+        {
+            if (InputFieldComponent !=null )
+            {
+                return InputFieldComponent.active;
+            }
+            return false;
+        }
+
         private void TurnBlockInputField(bool blocked)
         {
             isInputBlocked = blocked; // Устанавливаем блокировку

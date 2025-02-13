@@ -183,9 +183,11 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Time of day changed to {time}");
                     break;
                 case "изменить размер игрока":
+                    time = Math.Clamp(time,0.5f,3f);
                     playerPerson.localScale = new Vector3(time, time, time);
                     break;
                 case "изменить свой размер":
+                    time = Math.Clamp(time, 0.5f, 3f);
                     MitaPersonObject.transform.localScale = new Vector3(time, time, time);
                     break;
                 case "изменить скорость игрока":

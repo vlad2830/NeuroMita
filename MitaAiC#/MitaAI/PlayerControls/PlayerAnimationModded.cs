@@ -206,17 +206,15 @@ namespace MitaAI
         }
         public static void playAnimObject(GameObject gameObject)
         {
+            ObjectAnimationPlayer animPlayer = gameObject.GetComponent<ObjectAnimationPlayer>() ?? gameObject.transform.Find("OI")?.GetComponent<ObjectAnimationPlayer>();
             try
             {
-                ObjectAnimationPlayer animPlayer = gameObject.GetComponent<ObjectAnimationPlayer>()
-                ?? gameObject.transform.Find("OI")?.GetComponent<ObjectAnimationPlayer>();
 
                 if (animPlayer != null)
                 {
                     animPlayer.AnimationPlay();
-                    MelonCoroutines.Start(endWhenAnotherState(animPlayer));
+                    
                 }
-
 
             }
             catch (Exception ex)
@@ -224,18 +222,34 @@ namespace MitaAI
 
                 MelonLogger.Msg($"Problem with playAnimObject {ex}");
             }
+            if (animPlayer != null)
+            {
+                MelonCoroutines.Start(endWhenAnotherState(animPlayer));
 
+            }
+            
         }
 
 
         public static IEnumerator endWhenAnotherState(ObjectAnimationPlayer objectAnimationPlayer)
         {
+            MelonLogger.Msg("Begin endWhenAnotherState");
             while (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit)
+            {
+
+                yield return new WaitForSeconds(0.25f);
+            }
+            MelonLogger.Msg("End endWhenAnotherState");
+            objectAnimationPlayer.AnimationStop();
+
+            
+            while (!objectAnimationPlayer.firstEventFinishReady)
             {
 
                 yield return null;
             }
             objectAnimationPlayer.AnimationStop();
+
         }
 
         public static void stopAnim() {
