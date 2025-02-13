@@ -1,3 +1,4 @@
+
 Мита на питоне (юзает доступ к нейронкам по api) + Мелон Мод на юнити, пока не очень работающий.
 
 UPD: Пока ничего не сработало на тестах с другими, ждите.
@@ -31,10 +32,11 @@ UPD: Пока ничего не сработало на тестах с друг
    Варианты model,url и кнопки реквест:
    
    Бесплатно:
-      https://openrouter.ai/api/v1 google/gemini-2.0-flash-lite-preview-02-05:free open api
+      ссылка https://openrouter.ai/api/v1 модель google/gemini-2.0-flash-lite-preview-02-05:free open api ключ от https://openrouter.ai/settings/keys
+   
    Платно: 
-      gpt-4o-mini https://api.proxyapi.ru/openai/v1 open api
-      gemini-1.5-flash https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent request
+      ссылка https://api.proxyapi.ru/openai/v1 модель gpt-4o-mini  open api
+      ссылка https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent модель gemini-1.5-flash request ключ от https://console.proxyapi.ru/billing
    
 В общем, смысл вы поняли, можно еще поискать варианты. Потом улучшу, просто гемени там отдельная струтура + request.
 
