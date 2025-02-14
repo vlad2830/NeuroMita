@@ -7,7 +7,6 @@ import os
 
 import datetime
 
-
 import re
 import shutil
 from num2words import num2words
@@ -17,16 +16,15 @@ from utils import clamp, print_ip_and_country, get_resource_path, load_text_from
 
 
 class ChatModel:
-    def __init__(self, gui):
+    def __init__(self, gui, api_key, api_url, api_model, api_make_request):
 
         self.gui = gui
 
-
         try:
-            self.api_key = os.getenv("NM_API_KEY")
-            self.api_url = os.getenv("NM_API_URL")
-            self.api_model = os.getenv("NM_API_MODEL")
-            self.makeRequest = os.getenv("NM_API_REQ", "False").lower() == "true"
+            self.api_key = api_key
+            self.api_url = api_url
+            self.api_model = api_model
+            self.makeRequest = api_make_request
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
         except:
@@ -171,13 +169,8 @@ class ChatModel:
         self.stress = clamp(self.stress + amount, 0, 100)
         print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
-    def set_api_key(self, api_key):
-        self.api_key = api_key
-
-    def set_api_url(self, api_url):
-        self.api_url = api_url
-
     def update_openai_client(self):
+        print("Попытка обновить клиент")
         try:
             if self.api_url != "":
                 print("И ключ и ссылка")
@@ -241,10 +234,11 @@ class ChatModel:
         # Генерация ответа с использованием клиента
         try:
 
+            response, success = self._generate_chat_response(combined_messages)
 
-
-
-            response = self._generate_chat_response(combined_messages)
+            if not success:
+                print("Неудачная генерация")
+                return response
 
             response_message = {
                 "role": "assistant",
@@ -415,6 +409,8 @@ class ChatModel:
         return combined_messages
 
     def _generate_chat_response(self, combined_messages):
+        success = True
+
         """Генерация ответа с помощью клиента"""
         save_combined_messages(combined_messages)
         try:
@@ -431,7 +427,7 @@ class ChatModel:
         print(self.makeRequest)
 
         # Преобразование system messages для Gemini
-        if self.makeRequest or self.api_model == "gemini-1.5-flash":
+        if self.makeRequest:
             formatted_messages = []  # Список для хранения отформатированных сообщений
 
             for msg in combined_messages:
@@ -446,7 +442,11 @@ class ChatModel:
             save_combined_messages(formatted_messages, "Gem")
 
             # Генерация ответа с использованием Gemini
-            response = self.generate_responseGemini(formatted_messages)
+            try:
+                response = self.generate_responseGemini(formatted_messages)
+            except Exception as e:
+                print("Что-то не так при генере гемини" + e)
+                success = False
             print(response)
             try:
                 response = response.removeprefix("```\n")
@@ -459,19 +459,22 @@ class ChatModel:
             print("Обычный open api")
             if not self.client:
                 self.update_openai_client()
-            #self.client = OpenAI(api_key="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",base_url="https://openrouter.ai/api/v1")
-            completion = self.client.chat.completions.create(
-                model=self.api_model,
-                #model="deepseek/deepseek-r1:free",
-                messages=combined_messages,
-                max_tokens=self.max_response_tokens,
-                presence_penalty=1.5,
-                temperature=0.5,
-            )
-            response = completion.choices[0].message.content
+
+            try:
+                completion = self.client.chat.completions.create(
+                    model=self.api_model,
+                    messages=combined_messages,
+                    max_tokens=self.max_response_tokens,
+                    presence_penalty=1.5,
+                    temperature=0.5,
+                )
+                response = completion.choices[0].message.content
+            except Exception as e:
+                print("Что-то не так при генере обычном" + e)
+                success = False
 
         print("Мита: \n" + response)
-        return response
+        return response, success
 
     def generate_responseGemini(self, combined_messages):
         print("Через реквест делаем")
@@ -599,7 +602,6 @@ class ChatModel:
         clean_text = replace_numbers_with_words(clean_text)
 
         #clean_text = transliterate_english_to_russian(clean_text)
-
 
         # Если текст пустой, заменяем его на "Вот"
         if clean_text.strip() == "":

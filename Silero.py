@@ -12,17 +12,14 @@ import platform
 
 # Пример использования:
 class TelegramBotHandler:
-    def __init__(self, gui, message_limit_per_minute=20):
+    def __init__(self, gui, api_id,api_hash,phone, message_limit_per_minute=20):
         # Получение параметров из окружения
-        try:
-            api_hash = os.getenv("NM_TELEGRAM_API_HASH")
-            phone = os.getenv("NM_TELEGRAM_PHONE")
-            silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
-            api_id = int(os.getenv("NM_TELEGRAM_API_ID"))
-        except:
-            print("Проблема в ините тг")
 
 
+        self.api_id = api_id
+        self.api_hash = api_hash
+        self.phone = phone
+        self.silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
         self.gui = gui
         self.patch_to_sound_file = ""
 
@@ -47,30 +44,29 @@ class TelegramBotHandler:
 
         self.ffmpeg_path = ffmpeg_path
 
-
         # Системные параметры
         device_model = platform.node()  # Имя устройства
         system_version = f"{platform.system()} {platform.release()}"  # ОС и версия
         app_version = "1.0.0"  # Версия приложения задается вручную
 
         # Параметры бота
-        self.api_id = api_id
-        self.api_hash = api_hash
-        self.phone = phone
-        self.silero_bot = silero_bot
         self.message_limit_per_minute = message_limit_per_minute
         self.message_count = 0
         self.start_time = time.time()
 
-        # Создание клиента Telegram с системными параметрами
-        self.client = TelegramClient(
-            'session_name',
-            self.api_id,
-            self.api_hash,
-            device_model=device_model,
-            system_version=system_version,
-            app_version=app_version
-        )
+        self.client = None
+        try:
+            # Создание клиента Telegram с системными параметрами
+            self.client = TelegramClient(
+                'session_name',
+                int(self.api_id),
+                self.api_hash,
+                device_model=device_model,
+                system_version=system_version,
+                app_version=app_version
+            )
+        except:
+            print("Проблема в ините тг")
 
     import ffmpeg
     import os

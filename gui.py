@@ -4,6 +4,10 @@ from server import ChatServer
 from Silero import TelegramBotHandler
 
 import os
+import base64
+import pickle
+from pathlib import Path
+
 import glob
 
 import asyncio
@@ -22,7 +26,21 @@ class ChatGUI:
 
         self.bot_handler = None
         self.bot_handler_ready = False
-        self.model = ChatModel(self)
+
+        self.api_key = ""
+        self.api_url = ""
+        self.api_model = ""
+        self.makeRequest = False
+        self.api_hash = None
+        self.api_id = None
+        self.phone = None
+        try:
+            self.config_path = Path.home() / ".myapp_config.bin"  # Путь к файлу в домашней директории
+            self.load_api_settings(False)  # Загружаем настройки при инициализации
+        except:
+            print("Не удалось удачно получить из сис переменных все данные")
+
+        self.model = ChatModel(self, self.api_key, self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -32,17 +50,6 @@ class ChatGUI:
         self.ConnectedToGame = False
         self.root = tk.Tk()
         self.root.title("Чат с MitaAI")
-        self.api_hash = None
-        self.api_id = None
-        self.phone = None
-
-        try:
-            self.api_key = os.getenv("NM_API_KEY")
-            self.api_url = os.getenv("NM_API_URL")
-            self.api_model = os.getenv("NM_API_MODEL")
-            self.makeRequest = os.getenv("NM_API_REQ", "False").lower() == "true"
-        except:
-            print("Не удалось удачно получить из сис переменных все про апи")
 
         self.last_price = ""
 
@@ -98,7 +105,7 @@ class ChatGUI:
         """Асинхронный запуск обработчика Telegram Bot."""
         print("Telegram Bot запускается!")
         try:
-            self.bot_handler = TelegramBotHandler(self)
+            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
             await self.bot_handler.start()
             self.bot_handler_ready = True
             print("Telegram Bot запущен!")
@@ -347,6 +354,7 @@ class ChatGUI:
         Обновляет состояние "Секрет раскрыт" в модели.
         """
         self.model.secretExposed = self.secret_var.get()
+
     def setup_history_controls(self, parent):
         history_frame = tk.Frame(parent, bg="#2c2c2c")
         history_frame.pack(fill=tk.X, pady=4)
@@ -478,64 +486,81 @@ class ChatGUI:
             self.makeRequest_entry.config(text="Сейчас Стр. OpenAi.")
 
     def save_api_settings(self):
+        """Собирает данные из полей ввода и сохраняет только непустые значения"""
+        settings = {}
 
-        api_key = self.api_key_entry.get()
-        if api_key:
-            self.api_key = api_key
-            set_system_variable("NM_API_KEY", self.api_key)
-            print(f"API-ключ сохранён: {self.api_key}")
+        # Для строковых полей сохраняем только если не пустые
+        if api_key := self.api_key_entry.get().strip():
+            settings["NM_API_KEY"] = api_key
+        if api_url := self.api_url_entry.get().strip():
+            settings["NM_API_URL"] = api_url
+        if api_model := self.api_model_entry.get().strip():
+            settings["NM_API_MODEL"] = api_model
+        if api_id := self.api_id_entry.get().strip():
+            settings["NM_TELEGRAM_API_ID"] = api_id
+        if api_hash := self.api_hash_entry.get().strip():
+            settings["NM_TELEGRAM_API_HASH"] = api_hash
+        if phone := self.phone_entry.get().strip():
+            settings["NM_TELEGRAM_PHONE"] = phone
 
-        api_url = self.api_url_entry.get()
-        if api_url:
-            self.api_url = api_url
-            set_system_variable("NM_API_URL", self.api_url)
-            print(f"Ссылка API сохранена: {self.api_url}")
+        # Булево значение сохраняем всегда
+        settings["NM_API_REQ"] = self.makeRequest
 
-        api_model = self.api_model_entry.get()
-        if api_model:
-            self.api_model = api_model
-            set_system_variable("NM_API_MODEL", self.api_model)
-            print(f"Модель сохранена: {self.api_model}")
+        # Удаляем пустые значения
+        settings = {k: v for k, v in settings.items() if v}
 
-        api_id = self.api_id_entry.get()
-        if api_id:
-            self.api_id = api_id
-            set_system_variable("NM_TELEGRAM_API_ID", self.api_id)
-            print(f"Telegram API ID сохранён: {self.api_id}")
+        # Сериализация и кодирование
+        try:
+            encoded = base64.b64encode(pickle.dumps(settings))
+            with open(self.config_path, "wb") as f:
+                f.write(encoded)
+            print("Настройки успешно сохранены в файл")
+        except Exception as e:
+            print(f"Ошибка сохранения: {e}")
 
-        api_hash = self.api_hash_entry.get()
-        if api_hash:
-            self.api_hash = api_hash
-            set_system_variable("NM_TELEGRAM_API_HASH", self.api_hash)
-            print(f"Telegram API Hash сохранён: {self.api_hash}")
+        # Сразу же их загружаем
+        self.load_api_settings(update_model=True)
 
-        phone = self.phone_entry.get()
-        if phone:
-            self.phone = phone
-            set_system_variable("NM_TELEGRAM_PHONE", self.phone)
-            print(f"Telegram Phone сохранён: {self.phone}")
 
-        # В чат модел пишем
-        if self.api_key:
-            self.model.set_api_key(self.api_key)
-        if self.api_url:
-            self.model.set_api_url(self.api_url)
-        if self.api_model:
-            self.model.api_model = self.api_model
-        print(f"Сохранение данных авторизации")
-
-        set_system_variable("NM_API_REQ", str(self.makeRequest))
-        self.model.makeRequest = self.makeRequest
-
-        self.model.update_openai_client()
-        # В силеро пишем
         if not self.silero_connected:
-            self.bot_handler.api_id = int(self.api_id)
-            self.bot_handler.api_hash = self.api_hash
-            self.bot_handler.phone = self.phone
-            self.bot_handler.start()
+            print("попытка запустить силеро заново")
+            self.start_silero_async()
 
-        os.environ.update(os.environ)
+    def load_api_settings(self,update_model):
+        """Загружает настройки из файла"""
+        if not self.config_path.exists():
+            return
+
+        try:
+            with open(self.config_path, "rb") as f:
+                encoded = f.read()
+            decoded = base64.b64decode(encoded)
+            settings = pickle.loads(decoded)
+
+            # Устанавливаем значения
+            self.api_key = settings.get("NM_API_KEY", "")
+            self.api_url = settings.get("NM_API_URL", "")
+            self.api_model = settings.get("NM_API_MODEL", "")
+            self.makeRequest = settings.get("NM_API_REQ", False)
+            self.api_id = settings.get("NM_TELEGRAM_API_ID", "")
+            self.api_hash = settings.get("NM_TELEGRAM_API_HASH", "")
+            self.phone = settings.get("NM_TELEGRAM_PHONE", "")
+
+            if update_model:
+                self.model.api_key = self.api_key
+                self.model.api_url = self.api_url
+                self.model.api_model = self.api_model
+                self.model.makeRequest = self.makeRequest
+                self.model.update_openai_client()
+
+            # Обновляем поля ввода (если нужно)
+            #self.api_key_entry.insert(0, self.api_key)
+            #self.api_url_entry.insert(0, self.api_url)
+            # ... аналогично для остальных полей
+
+            print("Настройки загружены из файла")
+        except Exception as e:
+            print(f"Ошибка загрузки: {e}")
 
     def paste_from_clipboard(self, event=None):
         try:
@@ -585,24 +610,6 @@ class ChatGUI:
         )
         self.debug_window.insert(tk.END, debug_info)
         self.update_controls()
-    def adjust_attitude(self, amount):
-        self.model.adjust_attitude(amount)
-        self.mood_label.config(text=f"Отношение: {self.model.attitude}")
-        self.update_debug_info()
-
-    def adjust_boredom(self, amount):
-        self.model.adjust_boredom(amount)
-        self.boredom_label.config(text=f"Скука: {self.model.boredom}")
-        self.update_debug_info()
-
-    def adjust_stress(self, amount):
-        self.model.adjust_stress(amount)
-        self.stress_label.config(text=f"Стресс: {self.model.stress}")
-        self.update_debug_info()
-
-    def adjust_secret(self):
-        self.model.secretExposed = not self.model.secretExposed
-        self.update_debug_info()
 
     def update_token_count(self, event=None):
         if False and self.model.hasTokenizer:
