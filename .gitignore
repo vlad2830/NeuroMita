@@ -15,3 +15,5 @@ __pycache__/chat_model.cpython-312.pyc
 /build
 /dist
 NeuroMita.spec
+*.mp3
+/memory
