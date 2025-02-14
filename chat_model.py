@@ -107,7 +107,7 @@ class ChatModel:
         self.examplesLong = self.load_text_from_file("Promts/Context/examplesLong.txt")
         self.examplesLongCrazy = self.load_text_from_file("Promts/Context/examplesLongCrazy.txt")
 
-        self.world = self.load_text_from_file("Promts/Context/world.txt")
+        self.world = self.load_text_from_file("Promts/NotUsedNow/world.txt")
         self.mita_history = self.load_text_from_file("Promts/Context/mita_history.txt")
 
         self.variableEffects = self.load_text_from_file("Promts/Structural/VariablesEffects.txt")
@@ -449,7 +449,7 @@ class ChatModel:
                 success = False
             print(response)
             try:
-                response = response.removeprefix("```\n")
+                response = response.lstrip("```\n")
                 response = response.removesuffix("\n```\n")
             except:
                 print("Проблема с префиксами или постфиками")
@@ -469,6 +469,9 @@ class ChatModel:
                     temperature=0.5,
                 )
                 response = completion.choices[0].message.content
+
+                # Убираем все символы новой строки в начале строки
+                response = response.lstrip("\n")
             except Exception as e:
                 print("Что-то не так при генере обычном" + e)
                 success = False
@@ -702,7 +705,7 @@ class ChatModel:
         self.examplesLong = self.load_text_from_file("Promts/Context/examplesLong.txt")
         self.examplesLongCrazy = self.load_text_from_file("Promts/Context/examplesLongCrazy.txt")
 
-        self.world = self.load_text_from_file("Promts/Context/world.txt")
+        self.world = self.load_text_from_file("Promts/NotUsedNow/world.txt")
         self.mita_history = self.load_text_from_file("Promts/Context/mita_history.txt")
         self.variableEffects = self.load_text_from_file("Promts/Structural/VariablesEffects.txt")
         self.response_structure = self.load_text_from_file("Promts/Structural/response_structure.txt")

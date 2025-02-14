@@ -87,7 +87,7 @@ namespace MitaAI.Mita
         public static string ProcessMusic(string response)
         {
             MelonLogger.Msg($"Inside ProcessMusic");
-            string pattern = @"<mu>(.*?)</mu>";
+            string pattern = @"<music>(.*?)</music>";
             MatchCollection matches = Regex.Matches(response, pattern);
 
             foreach (Match match in matches)
@@ -99,7 +99,7 @@ namespace MitaAI.Mita
                 }
             }
 
-            string result = Regex.Replace(response, @"<mu>.*?</mu>", "");
+            string result = Regex.Replace(response, @"<music>.*?</music>", "");
 
 
             MelonLogger.Msg($"Inside ProcessMusic End");

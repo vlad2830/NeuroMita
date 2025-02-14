@@ -9,7 +9,7 @@ Movement types (block <m>, example: <m>NoClip</m>).
 Animations (block <a>, example: <a>Щелчек</a>).
 Face effects (block <f> <f>Смущаться</f>).
 Player (Visual) Effects (block <v>, <v>Глитч,4.1</v>).
-Music (block <m>, <mu>Music 2</mu>).
+Music (block <music>, <music>Music 2</music>).
 Your clothes (<clothes>,<clothes>SchoolVariant2</clothes>).
 
 Do not use any other formatting like with a smirk or emojis!

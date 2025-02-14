@@ -42,7 +42,7 @@ namespace MitaAI
             }
             MitaCore.Instance.playerObject.GetComponent<Rigidbody>().useGravity = true;
             PlayerAnimationModded.playerMove.dontMove = false;
-            MitaCore.Instance.playerObject.transform.SetParent(MitaCore.Instance.playerController.transform);
+            MitaCore.Instance.playerObject.transform.SetParent(MitaCore.Instance.playerControllerObject.transform);
             MelonLogger.Msg("Player throwned!");
             MitaAnimationModded.resetToIdleAnimation();
         }

@@ -87,7 +87,8 @@ namespace MitaAI
         public GameObject playerObject;
         PlayerCameraEffects playerEffects;
         GameObject playerEffectsObject;
-        public GameObject playerController;
+        public GameObject playerControllerObject;
+        public GameController playerController;
 
         public float distance = 0f;
         public string currentInfo = "";
@@ -521,8 +522,8 @@ namespace MitaAI
 
             playerPerson = GameObject.Find("Person")?.GetComponent<PlayerPerson>();
             playerObject = playerPerson.transform.parent.gameObject;
-            playerController = playerObject.transform.parent.gameObject;
-
+            playerControllerObject = playerObject.transform.parent.gameObject;
+            playerController = playerControllerObject.GetComponent<GameController>();
 
             playerObject.GetComponent<PlayerMove>().speedPlayer = 1f;
             playerObject.GetComponent<PlayerMove>().canRun = true;
@@ -1270,7 +1271,7 @@ namespace MitaAI
                     try
                     {
                         LoggerInstance.Msg("patch_to_sound_file not null");
-                        audioClip =NetworkController.LoadAudioClipFromFileAsync(patch_to_sound_file).Result;
+                        audioClip = NetworkController.LoadAudioClipFromFileAsync(patch_to_sound_file).Result;
                         patch_to_sound_file = "";
                     }
                     catch (Exception ex)
@@ -1351,6 +1352,7 @@ namespace MitaAI
             answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Mita;
             answer.timeShow = delay;
             answer.speaker = Mita?.gameObject;
+            addDialogueMemory(answer);
             if (emotion != EmotionType.none) answer.emotionFinish = emotion;
             currentEmotion = emotion;
 
@@ -1430,6 +1432,8 @@ namespace MitaAI
                     answer.textPrint = text;
                     answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Player;
                     answer.timeShow = delay;
+                    addDialogueMemory(answer);
+
 
                     currentDialog.SetActive(true);
 
@@ -1453,7 +1457,24 @@ namespace MitaAI
                 }
             }
         }
-
+        // Добавляет диалог в историю
+        private void addDialogueMemory(Dialogue_3DText dialogue_3DText)
+        {
+            TextDialogueMemory textDialogueMemory = new TextDialogueMemory();
+            textDialogueMemory.text = dialogue_3DText.textPrint;
+            if (dialogue_3DText.themeDialogue == Dialogue_3DText.Dialogue3DTheme.Mita)
+            {
+                textDialogueMemory.clr = new Color(0.515f, 0f, 1f);
+                textDialogueMemory.clr2 = new Color(0.5f, 0f, 0.9f);
+            }
+            else
+            {
+                textDialogueMemory.clr = new Color(1f, 0.6f, 0f);
+                textDialogueMemory.clr2 = new Color(0.9f, 0.5f, 0f);
+            }
+            //textDialogueMemory.clr = dialogue_3DText.
+            playerController.dialoguesMemory.Add(textDialogueMemory);
+        }
         public void beginHunt()
         {
             try

@@ -7,7 +7,7 @@ class PromptsManager:
         self.mainCrazy = self.load_text_from_file("../Promts/Main/mainCrazy.txt")
         self.examplesLong = self.load_text_from_file("../Promts/Context/examplesLong.txt")
         self.examplesLongCrazy = self.load_text_from_file("../Promts/Context/examplesLongCrazy.txt")
-        self.world = self.load_text_from_file("../Promts/Context/world.txt")
+        self.world = self.load_text_from_file("../Promts/NotUsedNow/world.txt")
         self.mita_history = self.load_text_from_file("../Promts/Context/mita_history.txt")
         self.variableEffects = self.load_text_from_file("../Promts/Structural/VariablesEffects.txt")
         self.response_structure = self.load_text_from_file("../Promts/Structural/response_structure.txt")
