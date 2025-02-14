@@ -111,7 +111,7 @@ class ChatGUI:
             print("Telegram Bot запущен!")
         except Exception as e:
             print(f"Ошибка при запуске Telegram Bot: {e}")
-            self.gui.silero_connected.set(False)
+            self.silero_connected = False
 
     def run_in_thread(self, response):
         """Запуск асинхронной задачи в отдельном потоке."""
@@ -476,6 +476,10 @@ class ChatGUI:
         )
         save_button.grid(row=6, column=1, padx=5, sticky=tk.E)
 
+        # Обновляем поля ввода (если нужно)
+        self.api_url_entry.insert(0, self.api_url)
+        self.api_model_entry.insert(0, self.api_model)
+
     def toggle_makeRequest(self, change_to_opposite=True):
         if change_to_opposite:
             self.makeRequest = not self.makeRequest
@@ -521,12 +525,11 @@ class ChatGUI:
         # Сразу же их загружаем
         self.load_api_settings(update_model=True)
 
-
         if not self.silero_connected:
             print("попытка запустить силеро заново")
             self.start_silero_async()
 
-    def load_api_settings(self,update_model):
+    def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
         if not self.config_path.exists():
             return
@@ -552,11 +555,6 @@ class ChatGUI:
                 self.model.api_model = self.api_model
                 self.model.makeRequest = self.makeRequest
                 self.model.update_openai_client()
-
-            # Обновляем поля ввода (если нужно)
-            #self.api_key_entry.insert(0, self.api_key)
-            #self.api_url_entry.insert(0, self.api_url)
-            # ... аналогично для остальных полей
 
             print("Настройки загружены из файла")
         except Exception as e:
