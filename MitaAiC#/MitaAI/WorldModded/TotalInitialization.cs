@@ -214,7 +214,7 @@ namespace MitaAI
                 MelonLogger.Msg($"WaitForSceneAndInstantiate2 found: {ex}");
             }
 
-            SceneManager.UnloadScene(sceneToLoad);
+            //SceneManager.UnloadScene(sceneToLoad);
 
         }
         private static IEnumerator WaitForSceneAndInstantiateWorldTogether(string sceneToLoad)
@@ -248,7 +248,7 @@ namespace MitaAI
             TotalInitialization.initTVGames(MitaCore.worldHouse);
             TotalInitialization.initCornerSofa(MitaCore.worldHouse);
 
-            SceneManager.UnloadScene(sceneToLoad);
+            //SceneManager.UnloadScene(sceneToLoad);
 
         }
         private static void InitializeGameObjectsWhenReady()

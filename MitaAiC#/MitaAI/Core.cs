@@ -145,9 +145,7 @@ namespace MitaAI
         private bool AllLoaded = false;
 
 
-        private readonly object _lockObj = new object();
 
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // Синхронизируем доступ ко всем этим операциям
 
 
         private const float MitaBoringInterval = 50f;

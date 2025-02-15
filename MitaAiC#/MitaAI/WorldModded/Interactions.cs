@@ -40,7 +40,7 @@ namespace MitaAI
         {
             try
             {
-                if (Camera.main.isActiveAndEnabled && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
                 {
                     GameObject hitObject = hit.collider.gameObject;
                     string objectName = hitObject.name; // Используем имя как ключ
