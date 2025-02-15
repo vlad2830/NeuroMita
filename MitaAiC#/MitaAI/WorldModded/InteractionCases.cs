@@ -39,14 +39,14 @@ namespace MitaAI.WorldModded
         {
             yield return new WaitForSeconds(1.75f);
 
-            var Button1 = MitaCore.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey FindButton");
+            var Button1 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey FindButton");
             Button1?.SetActive(true);
 
             while (Button1!=null)
             {
                 yield return new WaitForSeconds(0.25f);
             }
-            var Button2 = MitaCore.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey Holding");
+            var Button2 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey Holding");
             while (Button2 != null)
             {
                 yield return new WaitForSeconds(0.25f);

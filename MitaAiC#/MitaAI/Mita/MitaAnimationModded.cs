@@ -345,6 +345,7 @@ namespace MitaAI.Mita
             {
                 if (clip.name == animationName)
                 {
+                    MelonLogger.Msg($"{animationName} found in runtimeAnimatorController");
                     return clip;
                 }
             }
@@ -479,18 +480,26 @@ namespace MitaAI.Mita
         }
         static public void setIdleWalk(string animName)
         {
+            MelonLogger.Msg($"Try setIdleWalk {animName}");
             if (bundle == null)
             {
                 bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
             }
 
-            if (!string.IsNullOrEmpty(animName))
+            if (!string.IsNullOrEmpty(animName) )
             {
                 AnimationClip anim = FindAnimationClipByName(animName);
                 if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
 
-                location34_Communication.mitaAnimationWalk = anim;
-                mitaAnimatorFunctions.AnimationClipWalk(anim);
+                if (anim == null) { 
+                    MelonLogger.Msg($"setIdleWalk {animName} is null"); 
+                }
+                else
+                {
+                    location34_Communication.mitaAnimationWalk = anim;
+                    mitaAnimatorFunctions.AnimationClipWalk(anim);
+                }
+
             }
 
 

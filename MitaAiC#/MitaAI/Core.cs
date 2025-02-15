@@ -81,7 +81,7 @@ namespace MitaAI
 
         EmotionType currentEmotion = EmotionType.none;
 
-        GameObject knife;
+        public GameObject knife;
 
         PlayerPerson playerPerson;
         public GameObject playerObject;
@@ -101,14 +101,14 @@ namespace MitaAI
         public static Transform worldBackrooms2;
         
 
-        GameObject ManekenTemplate;
+        public GameObject ManekenTemplate;
         List<GameObject> activeMakens = new List<GameObject>();
 
         public Menu MainMenu;
         private GameObject CustomDialog;
         private GameObject CustomDialogPlayer;
         GameObject playerCamera;
-        GameObject AnimationKiller;
+        public GameObject AnimationKiller;
         BlackScreen blackScreen;
 
 
@@ -141,7 +141,7 @@ namespace MitaAI
         string requiredSave = "SaveGame startsecret";
         string CurrentSceneName;
 
-        private HashSet<string> additiveLoadedScenes = new HashSet<string>();
+
         private bool AllLoaded = false;
 
 
@@ -168,7 +168,6 @@ namespace MitaAI
             //Test2();
         }
 
-
         public void sendSystemMessage(string m)
         {
             systemMessages.Enqueue(m);
@@ -176,157 +175,6 @@ namespace MitaAI
         public void sendSystemInfo(string m)
         {
             systemInfos.Enqueue(m);
-        }
-
-        public void AddOtherScenes()
-        {
-            // Запускаем корутину для ожидания загрузки сцены
-            string sceneToLoad;
-            try
-            {
-                sceneToLoad = "Scene 6 - BasementFirst";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiate(sceneToLoad));
-            }
-            catch (Exception)
-            {
-
-
-            }
-
-            try
-            {
-                sceneToLoad = "Scene 11 - Backrooms";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiate2(sceneToLoad));
-            }
-            catch (Exception)
-            {
-
-
-            }
-
-            try
-            {
-                sceneToLoad = "Scene 3 - WeTogether";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiate3(sceneToLoad));
-            }
-            catch (Exception)
-            {
-
-
-            }
-
-
-        }
-
-        private IEnumerator WaitForSceneAndInstantiate(string sceneToLoad)
-        {
-            // Загружаем сцену
-            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
-            additiveLoadedScenes.Add(sceneToLoad);
-            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
-
-            // Ожидание завершения загрузки сцены
-            Scene scene;
-            do
-            {
-                scene = SceneManager.GetSceneByName(sceneToLoad);
-                yield return null; // Ждем следующий кадр
-            } while (!scene.isLoaded);
-
-            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
-
-            // Находим объект в загруженной сцене
-            worldBasement = FindObjectInScene(scene.name, "World");
-            if (worldBasement == null)
-            {
-                MelonLogger.Msg("World object not found.");
-                yield break; // Прерываем выполнение, если объект не найден
-            }
-
-            MelonLogger.Msg($"Object found: {worldBasement.name}");
-
-
-
-            InitializeGameObjectsWhenReady();
-        }
-        private IEnumerator WaitForSceneAndInstantiate2(string sceneToLoad)
-        {
-            // Загружаем сцену
-            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
-            additiveLoadedScenes.Add(sceneToLoad);
-            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
-
-            // Ожидание завершения загрузки сцены
-            Scene scene;
-            do
-            {
-                scene = SceneManager.GetSceneByName(sceneToLoad);
-                yield return null; // Ждем следующий кадр
-            } while (!scene.isLoaded);
-
-            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
-
-            // Находим объект в загруженной сцене
-            worldBackrooms2 = FindObjectInScene(scene.name, "World");
-            if (worldBackrooms2 == null)
-            {
-                MelonLogger.Msg("World object not found.");
-                yield break; // Прерываем выполнение, если объект не найден
-            }
-            worldBackrooms2.gameObject.SetActive(false);
-            MelonLogger.Msg($"Object found: {worldBackrooms2.name}");
-            try
-            {
-                ManekenTemplate = GameObject.Instantiate(TryfindChild(worldBackrooms2, "Quest/Quest 1 (Room 1 - Room 6)/Mita Maneken 1"), worldHouse);
-
-                ManekenTemplate.transform.position = Vector3.zero;
-                ManekenTemplate.transform.Find("MitaManeken 1").gameObject.GetComponent<Mob_Maneken>().speedNav = 4;
-
-
-
-            }
-            catch (Exception ex)
-            {
-
-                MelonLogger.Msg($"WaitForSceneAndInstantiate2 found: {ex}");
-            }
-
-        }
-
-        private IEnumerator WaitForSceneAndInstantiate3(string sceneToLoad)
-        {
-            // Загружаем сцену
-            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
-            additiveLoadedScenes.Add(sceneToLoad);
-            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
-
-            // Ожидание завершения загрузки сцены
-            Scene scene;
-            do
-            {
-                scene = SceneManager.GetSceneByName(sceneToLoad);
-                yield return null; // Ждем следующий кадр
-            } while (!scene.isLoaded);
-
-            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
-
-            // Находим объект в загруженной сцене
-            worldTogether = FindObjectInScene(scene.name, "World");
-            if (worldTogether == null)
-            {
-                MelonLogger.Msg("worldTogether object not found.");
-                yield break; // Прерываем выполнение, если объект не найден
-            }
-            worldTogether.gameObject.SetActive(false);
-            PlayerAnimationModded.FindPlayerAnimationsRecursive(worldTogether.transform);
-            PlayerAnimationModded.Check();
-
-            TotalInitialization.initTVGames(worldHouse);
-            TotalInitialization.initCornerSofa(worldHouse);
-
         }
 
         public void playerKilled()
@@ -354,32 +202,7 @@ namespace MitaAI
             sendSystemMessage("Игрок кликает на кнопку твоего сейфа");
         }
 
-        public static Transform FindObjectInScene(string sceneName, string objectPath)
-        {
-            // Получаем сцену по имени
-            Scene scene = SceneManager.GetSceneByName(sceneName);
 
-            // Проверяем, загружена ли сцена
-            if (!scene.IsValid() || !scene.isLoaded)
-            {
-                MelonLoader.MelonLogger.Msg($"Scene {sceneName} not loaded or broken");
-                return null;
-            }
-
-            // Получаем корневые объекты сцены
-            var rootObjects = scene.GetRootGameObjects();
-            foreach (var rootObject in rootObjects)
-            {
-                MelonLogger.Msg(rootObject.name);
-                if (rootObject.name == "World")
-                {
-                    return rootObject.transform;
-                }
-            }
-
-            MelonLoader.MelonLogger.Msg($" {objectPath} not found in {sceneName}.");
-            return null;
-        }
 
         public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
         {
@@ -396,7 +219,7 @@ namespace MitaAI
             ;
 
             LoggerInstance.Msg("Scene loaded " + sceneName);
-            if (!additiveLoadedScenes.Contains(sceneName))
+            if (!TotalInitialization.additiveLoadedScenes.Contains(sceneName))
             {
                 LoggerInstance.Msg("Scene loaded not addictive" + sceneName);
                 CurrentSceneName = sceneName;
@@ -407,14 +230,7 @@ namespace MitaAI
                 return;
             }
 
-
-            if (CurrentSceneName == "AiHasto")
-            {
-
-                //GameObject GameObject = GameObject.Find("MenuGame")>
-            }
-
-            else if (CurrentSceneName == "SceneMenu")
+            if (CurrentSceneName == "SceneMenu")
             {
 
                 GameObject NeuroMitaButton = GameObject.Instantiate(GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu/Button Continue").gameObject);
@@ -513,9 +329,9 @@ namespace MitaAI
             MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
             Mita.AiShraplyStop();
 
-            //GameObject eyeObject = TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");
+            //GameObject eyeObject = Utils.TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");
             //eyeModifier = new EyeGlowModifier(eyeObject);
-            //eyeObject = TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Left Eye");
+            //eyeObject = Utils.TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Left Eye");
             //eyeModifier = new EyeGlowModifier(eyeObject);
 
             //Mita.gameObject.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = true;
@@ -597,7 +413,7 @@ namespace MitaAI
             }
 
             CustomDialog = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
-            CustomDialog.name = "Custom Dialogue";
+            CustomDialog.name = "Custom Dialogue Mita";
 
             // Опускаем объект CustomDialog на 200 единиц по оси Y
             Vector3 newPosition = CustomDialog.transform.position; // Получаем текущую позицию
@@ -637,7 +453,7 @@ namespace MitaAI
                 DataValues_Sounds dataValues_Sounds = new DataValues_Sounds();
                 Il2CppReferenceArray<AudioClip> sounds = new Il2CppReferenceArray<AudioClip>(50);
 
-                AudioClip audioClip = TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>().sounds[0];
+                AudioClip audioClip = Utils.TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>().sounds[0];
                 for (int i = 0; i < 50; i++)
                 {
 
@@ -646,7 +462,7 @@ namespace MitaAI
                     //if (Utils.Random(1, 2)) sounds[i].SetSpeed(0.5);
                 }
                 dataValues_Sounds.sounds = sounds;
-                CustomDialogText.sounds = TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>();
+                CustomDialogText.sounds = Utils.TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>();
             }
             catch (Exception e)
             {
@@ -657,18 +473,21 @@ namespace MitaAI
             MelonLogger.Msg("End adding sound chibi");
 
             MelonLogger.Msg($"Attempt Interactions before");
-            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
             
-            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
-            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
-            Interactions.CreateObjectInteractable(TryfindChild(worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
             //MelonLogger.Msg($"Attempt after");
             MelonLogger.Msg($"Attempt Interactions end");
             try
             {
-                AddOtherScenes();
+                TotalInitialization.AddOtherScenes();
             }
-            catch { }
+            catch (Exception e)
+            {
+                MelonLogger.Error(e);
+            }
 
             try
             {
@@ -701,7 +520,7 @@ namespace MitaAI
 
             try
             {
-                GameObject floor = GameObject.Instantiate(TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/FloorBedroom").gameObject);
+                GameObject floor = GameObject.Instantiate(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/FloorBedroom").gameObject);
                 floor.transform.localScale = new Vector3(30f, 1, 30f);
             }
             catch (Exception ex)
@@ -713,165 +532,10 @@ namespace MitaAI
             worldBasement.Find("House").gameObject.SetActive(false);
 
         }
-        private void InitializeGameObjectsWhenReady()
-        {
 
-            // Ваши действия после инициализации worldBasement
-            try
-            {
-                // Пробуем найти и безопасно преобразовать объект в Transform
-                var wardrobeTransform = worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bedroom Wardrobe");
 
-                try
-                {
-                        var wardrobeGameObject = wardrobeTransform.gameObject;
-                        wardrobeGameObject.GetComponent<BoxCollider>().enabled = false;
-                    TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorL", false);
-                    TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorR", false);
-                }
-                catch (Exception)
-                {
-                    LoggerInstance.Msg("Error while handling wardrobe transform.");
-                }
 
-                try
-                {
-                    TotalInitialization.initConsole(worldBasement);
-                }
-                catch (Exception ex)
-                {
 
-                    LoggerInstance.Msg("Error while handling initConsole: "+ex);
-                }
-               
-                TryfindChild(worldBasement, "Act/ContinueScene").SetActive(false);
-                TryfindChild(worldBasement, "Quests/Quest1 Start").SetActive(true);
-                TryfindChild(worldBasement, "Quests/Quest1 Start/Trigger Near").SetActive(false);
-                //TryfindChild(worldBasement, "/Act/ContinueScene\"").SetActive(false);
-
-                //TryTurnChild(worldBasement, "Quests/Quest1 Start",false);
-                TryTurnChild(worldBasement, "Mita Future", false);
-                try
-                {
-                    var door = TryfindChild(worldBasement, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame");
-                    door.SetActive(true);
-                    TryTurnChild(door.transform, "BasementDoor", false);
-                }
-                catch (Exception)
-                {
-
-                    
-                } 
-                // Работа с AnimationKiller
-                LoggerInstance.Msg("AnimationKiller start");
-                string objectPath = "Quests/Quest2 HideAndSeek/Animation Killer";
-                AnimationKiller = FindAndInstantiateObject(worldBasement, objectPath, "222");
-
-                knife = FindAndInstantiateObject(AnimationKiller.transform, "Mita/MitaPerson Mita/Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item/Knife", "333");
-                knife.transform.SetParent(TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item").transform);
-                knife.transform.localPosition = new Vector3(0,0,0);
-                knife.transform.rotation = Quaternion.identity;
-                knife.SetActive(false);
-
-                //AnimationKiller.GetComponent<Location6_MitaKiller>().mita = Mita.transform;
-                TryfindChild(worldBasement, "Sounds/Ambient 1").transform.parent = worldHouse.FindChild("Audio");
-                AnimationKiller.SetActive(false);
-                //DeleteChildren(AnimationKiller.transform.Find("PositionsKill").gameObject);
-
-                if (AnimationKiller != null)
-                {
-                    LoggerInstance.Msg("AnimationKiller instantiated and ready for use.");
-                    var mitaChild = AnimationKiller.transform.Find("Mita");
-
-                    if (mitaChild != null)
-                    {
-                        //mitaChild.gameObject.SetActive(false);
-                        //Mita.transform.SetParent(AnimationKiller.transform, true);
-                        LoggerInstance.Msg("Child object 'Mita' deactivated.");
-                    }
-                    else
-                    {
-                        LoggerInstance.Msg("Child object 'Mita' not found.");
-                    }
-                }
-                else
-                {
-                    LoggerInstance.Msg("Failed to initialize AnimationKiller.");
-                }
-            }
-            catch (Exception e)
-            {
-                LoggerInstance.Msg($"Error in InitializeGameObjectsWhenReady: {e.Message}");
-            }
-        }
-        public static GameObject TryfindChild(Transform parent, string path)
-        {
-            try
-            {
-                return parent.Find(path).gameObject;
-            }
-            catch (Exception e)
-            {
-
-                MelonLogger.Msg($"Tried found {path} but {e}");
-                return null;
-            }
-        }
-        public static void TryTurnChild(Transform parent, string path, bool on)
-        {
-            try
-            {
-                TryfindChild(parent, path).gameObject.SetActive(on);
-            }
-            catch (Exception e)
-            {
-
-                MelonLogger.Msg("Tried turn "+ path +" "+ e);
-                return;
-            }
-        }
-
-        private GameObject FindAndInstantiateObject(Transform parent, string path, string logPrefix)
-        {
-            try
-            {
-                LoggerInstance.Msg($"{logPrefix}: Attempting to find object at path: {path}");
-
-                // Проверяем, что родитель не null
-                if (parent == null)
-                {
-                    LoggerInstance.Msg($"{logPrefix}: Parent is null. Cannot search for object.");
-                    return null;
-                }
-
-                // Ищем объект по указанному пути
-                Transform target = parent.Find(path);
-                if (target == null)
-                {
-                    LoggerInstance.Msg($"{logPrefix}: Object not found at path: {path}");
-                    return null;
-                }
-
-                // Логируем успешный поиск
-                LoggerInstance.Msg($"{logPrefix}: Object found. Instantiating...");
-                GameObject instance = GameObject.Instantiate(target.gameObject);
-
-                // Проверяем успешную инстанциацию
-                if (instance == null)
-                {
-                    LoggerInstance.Msg($"{logPrefix}: Failed to instantiate object.");
-                    return null;
-                }
-
-                LoggerInstance.Msg($"{logPrefix}: Object instantiated successfully.");
-                return instance;
-            }
-            catch (Exception e)
-            {
-                LoggerInstance.Msg($"{logPrefix}: Exception occurred - {e.Message}");
-                return null;
-            }
-        }
 
         public static void DeleteChildren(GameObject parent)
         {
@@ -1050,7 +714,7 @@ namespace MitaAI
             
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
-            Task<(string, string,string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
+            Task<(string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
             while (!responseTask.IsCompleted)
                 yield return null;
 
@@ -1352,12 +1016,14 @@ namespace MitaAI
             answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Mita;
             answer.timeShow = delay;
             answer.speaker = Mita?.gameObject;
-            addDialogueMemory(answer);
+
+            MelonLogger.Msg($"Text is {answer.textPrint}");
+            //addDialogueMemory(answer);
             if (emotion != EmotionType.none) answer.emotionFinish = emotion;
             currentEmotion = emotion;
 
-            currentDialog.SetActive(true);
-            if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
+            currentDialog.SetActive(true);  
+            //if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
             yield return new WaitForSeconds(delay / 1000f);
 
@@ -1388,23 +1054,6 @@ namespace MitaAI
                 yield return new WaitForSeconds(delay);
                 GameObject.Destroy(currentDialog);
             }
-            else
-            {
-         /*       for (int i = 0; i < len; i=i+2)
-                {
-                    GameObject currentDialog = InstantiateDialog();
-                    currentDialog.SetActive(true);
-                    Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
-                    LoggerInstance.Msg("Loading voice...");
-                    answer.timeSound = (1f * (UnityEngine.Random.Range(1, 60) * 0.01f) ) - 0.3f;
-
-                    answer.speaker = Mita?.gameObject;
-                    //AudioControl.chibiMitaAudio.SetSpeed(1 * (UnityEngine.Random.Range(1, 40)*0.01) );
-                    answer.LoadVoice( AudioControl.chibiMitaAudio);
-                    yield return new WaitForSecondsRealtime(0.07f);
-                    GameObject.Destroy(currentDialog);
-                }*/
-            }
 
             
             LoggerInstance.Msg("Dialogue part finished and destroyed.");
@@ -1430,9 +1079,10 @@ namespace MitaAI
 
                     answer.speaker = playerPerson.gameObject;
                     answer.textPrint = text;
+                    MelonLogger.Msg($"Text is {answer.textPrint}");
                     answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Player;
                     answer.timeShow = delay;
-                    addDialogueMemory(answer);
+                    //addDialogueMemory(answer);
 
 
                     currentDialog.SetActive(true);
@@ -1484,10 +1134,11 @@ namespace MitaAI
                 MelonCoroutines.Start(hunting());
                 Location34_Communication.ActivationCanWalk(false);
                 //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita RunWalkKnife")); //
+                MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
                 MitaAnimationModded.setIdleWalk("Mita WalkKnife");
                 knife.SetActive(true);
                 knife.transform.rotation = Quaternion.identity;
-                MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
+                
             }
             catch (Exception ex)
             {
@@ -1543,7 +1194,7 @@ namespace MitaAI
         public void endHunt()
         {
             //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk"));
-            MitaAnimationModded.setIdleWalk("walk");
+            MitaAnimationModded.setIdleWalk("Mita Walk_1");
             knife.SetActive(false);
             movementStyle = MovementStyles.walkNear;
             Location34_Communication.ActivationCanWalk(true);
@@ -1621,7 +1272,7 @@ namespace MitaAI
             systemMessages.Enqueue("You successfully killed the player using knife, and he respawned somewhere.");
             AnimationKiller.SetActive(false); // Включаем объект
             // Возвращаем Миту в исходное положение
-            TryTurnChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);
+            Utils.TryTurnChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);
             Mita.transform.SetPositionAndRotation(originalPosition, originalRotation);
             Mita.AiShraplyStop();
         }

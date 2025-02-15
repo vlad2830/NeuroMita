@@ -51,6 +51,7 @@ class ChatServer:
             response = ""
             if message == "waiting":
                 if system_message != "-":
+                    print("Получено system_message")
                     response = self.generate_response("", system_message)
                     self.gui.insertDialog("", response)
                 elif len(self.MessagesToSay) > 0:
@@ -62,6 +63,7 @@ class ChatServer:
                 self.gui.insertDialog("", response)
                 print("Отправлено Мите на озвучку: " + response)
             else:
+                print("Получено message")
                 # Если игрок отправил внутри игры, message его
                 response = self.generate_response(message, "")
                 #self.gui.insertDialog(message,response)
@@ -95,7 +97,6 @@ class ChatServer:
         """Генерирует текст с помощью модели."""
         try:
             response = self.chat_model.generate_response(input_text, system_input_text)
-            counter = 0
             #while self.chat_model.repeatResponse and counter<3:
             #   response += self.chat_model.generate_response("", "")
             # counter+=1

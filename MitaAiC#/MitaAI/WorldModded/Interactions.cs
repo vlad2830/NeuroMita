@@ -40,7 +40,7 @@ namespace MitaAI
         {
             try
             {
-                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
+                if (Camera.main.isActiveAndEnabled && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
                 {
                     GameObject hitObject = hit.collider.gameObject;
                     string objectName = hitObject.name; // Используем имя как ключ
@@ -61,7 +61,7 @@ namespace MitaAI
 
                     if (Input.GetMouseButtonDown(0))
                     {
-                        MelonLogger.Msg("Mouse clicked.");
+                       // MelonLogger.Msg("Mouse clicked.");
                         OnGameObjectClicked(hitObject);
                     }
 
@@ -112,7 +112,7 @@ namespace MitaAI
         {
 
             //MitaCore.Instance.sendSystemInfo($"Игрок стукнул по {gameObject.name}.");
-            MelonLogger.Msg($"The GameObject {gameObject.name} was clicked!");
+            //MelonLogger.Msg($"The GameObject {gameObject.name} was clicked!");
 
             if (gameObject.GetComponent<ObjectInteractive>())
             {

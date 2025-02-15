@@ -91,7 +91,32 @@ namespace MitaAI
         }
 
 
+        public static GameObject TryfindChild(Transform parent, string path)
+        {
+            try
+            {
+                return parent.Find(path).gameObject;
+            }
+            catch (Exception e)
+            {
 
+                MelonLogger.Msg($"Tried found {path} but {e}");
+                return null;
+            }
+        }
+        public static void TryTurnChild(Transform parent, string path, bool on)
+        {
+            try
+            {
+                TryfindChild(parent, path).gameObject.SetActive(on);
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Msg("Tried turn " + path + " " + e);
+                return;
+            }
+        }
     }
 
 

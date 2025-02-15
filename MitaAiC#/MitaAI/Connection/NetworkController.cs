@@ -30,7 +30,7 @@ namespace MitaAI
                     return (string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
                 }
 
-                bool waitResponse = input != "waiting" || dataToSentSystem != "-";
+                bool waitResponse = (input != "waiting" || dataToSentSystem != "-");
                 // Дополнительная логика для подготовки данных
 
 
@@ -82,7 +82,7 @@ namespace MitaAI
                     await Task.Factory.FromAsync(socket.BeginConnect(address, port, null, null), socket.EndConnect);
                     return true; // Если подключение прошло успешно
                 }
-                catch (SocketException ex)
+                catch (SocketException)
                 {
                     attempt++;
                     if (attempt >= maxRetries)
@@ -92,7 +92,7 @@ namespace MitaAI
                     }
                     await Task.Delay(delayBetweenRetries); // Задержка перед повторной попыткой
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //LoggerInstance.Msg($"Unexpected error connecting to {address}:{port}: {ex.Message}");
                     return false; // Если произошла неожиданная ошибка

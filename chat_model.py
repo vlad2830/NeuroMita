@@ -54,7 +54,7 @@ class ChatModel:
             self.hasTokenizer = False
 
         self.max_input_tokens = 2048
-        self.max_response_tokens = 4000
+        self.max_response_tokens = 3200
         self.cost_input_per_1000 = 0.0432
         self.cost_response_per_1000 = 0.1728
         self.history_file = "chat_history.json"
@@ -238,6 +238,9 @@ class ChatModel:
 
             if not success:
                 print("Неудачная генерация")
+                return response
+            elif response == "":
+                print("Пустая генерация")
                 return response
 
             response_message = {
