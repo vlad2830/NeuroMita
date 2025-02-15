@@ -28,10 +28,13 @@ def get_resource_path(filename):
     print(f"Ошибка: Папка 'Promts' не найдена рядом с исполнимым файлом.")
     return None
 @staticmethod
-def load_text_from_file(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
-        return file.read()
-
+def load_text_from_file(filename):
+    try:
+        with open(get_resource_path(filename), 'r', encoding='utf-8') as file:
+            return file.read()
+    except Exception as e:
+        print(f"Ошибка при чтении файла {filename}: {e}")
+        return ""
 @staticmethod
 def load_json_file(filepath):
     try:
@@ -40,13 +43,7 @@ def load_json_file(filepath):
     except FileNotFoundError:
         print(f"Файл {filepath} не найден.")
         return {}
-def load_text_from_file(filename):
-    try:
-        with open(get_resource_path(filename), 'r', encoding='utf-8') as file:
-            return file.read()
-    except Exception as e:
-        print(f"Ошибка при чтении файла {filename}: {e}")
-        return ""
+
 
 def save_combined_messages(combined_messages, output_folder="SavedMessages"):
     os.makedirs(output_folder, exist_ok=True)

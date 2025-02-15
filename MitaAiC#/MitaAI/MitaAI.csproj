@@ -327,7 +327,6 @@
 		<Compile Include="Vosk\VoskBatchRecognizer.cs" />
 		<Compile Include="Vosk\VoskPINVOKE.cs" />
 		<Compile Include="Vosk\VoskRecognizer.cs" />
-		<Compile Include="E:\Games\OpenAI_API_TEST\VoskUsing.cs" Link="VoskUsing.cs" />
 		<Compile Include="WorldModded\Events\EventsProxy.cs" />
 		<Compile Include="Mita\AudioControl.cs" />
 		<Compile Include="PlayerControls\PlayerAnimationModded.cs" />
@@ -348,6 +347,10 @@
 		<Compile Include="Mita\ObjectHierarchyHelper.cs" />
 		<Compile Include="Core.cs" />
 		<Compile Include="WorldModded\VoiseInput.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="WorldModded\Games\" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
