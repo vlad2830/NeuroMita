@@ -330,10 +330,10 @@ class ChatModel:
         repeated_system_message += f"You are in {self.get_room_name(int(self.roomMita))}, player is in {self.get_room_name(int(self.roomPlayer))}. "
 
         if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Запомни факты за 3 сообщения пользователя используя <+h>Факт который нужно запомнить</h>"
+            repeated_system_message += " Запомни факты за 3 сообщения пользователя используя <+memory>Факт который нужно запомнить</memory>"
 
         if self.LongMemoryRememberCount % 6 == 0:
-            repeated_system_message += " Реструктуризируй память при необходимости используя <#h>Итоговые факты об игроке</h>"
+            repeated_system_message += " Реструктуризируй память при необходимости используя <#memory>Итоговые факты об игроке</memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -445,7 +445,7 @@ class ChatModel:
             try:
                 response = self.generate_responseGemini(formatted_messages)
             except Exception as e:
-                print("Что-то не так при генере гемини" + e)
+                print("Что-то не так при генере гемини",e)
                 success = False
             print(response)
             try:
@@ -458,6 +458,7 @@ class ChatModel:
 
             print("Обычный open api")
             if not self.client:
+                print("Попытка переподключения клиента")
                 self.update_openai_client()
 
             try:
@@ -473,7 +474,7 @@ class ChatModel:
                 # Убираем все символы новой строки в начале строки
                 response = response.lstrip("\n")
             except Exception as e:
-                print("Что-то не так при генере обычном" + e)
+                print("Что-то не так при генере обычном",e)
                 success = False
 
         print("Мита: \n" + response)
@@ -614,7 +615,7 @@ class ChatModel:
 
     def extract_and_process_memory_data(self, response):
         """
-        Извлекает данные из ответа, содержащего теги <+h>...</+h> или <#h>...</#h>,
+        Извлекает данные из ответа, содержащего теги <+memory>...</+h> или <#memory>...</#h>,
         и добавляет или переписывает их в память Миты.
 
         :param response: Ответ, который нужно обработать.
@@ -623,8 +624,8 @@ class ChatModel:
         if self.MitaLongMemory == {}:
             print("MitaLongMemory создана с  нуля тк {}")
             self.MitaLongMemory = {"role": "system", "content": f" ДолгаяПамять<  >КонецДолгойПамяти "}
-        # Регулярное выражение для поиска тегов <+h>...</+h> или <#h>...</#h>
-        memory_pattern = r"<([+#]h)>(.*?)<\/h>"
+        # Регулярное выражение для поиска тегов <+memory>...</+h> или <#memory>...</#h>
+        memory_pattern = r"<([+#]memory)>(.*?)<\/memory>"
 
         # Ищем все совпадения
         matches = re.findall(memory_pattern, response)
@@ -632,14 +633,14 @@ class ChatModel:
         if matches:
             print("ПОПЫТКА ИЗМЕНЕНИЯ ПАМЯТИ!!!!!!!")
             for tag_type, content in matches:
-                if tag_type == "+h":
+                if tag_type == "+memory":
                     print("Добавление воспоминания.")
                     # Добавление нового воспоминания
                     self.MitaLongMemory["content"] = self.MitaLongMemory["content"].replace(
                         " >КонецДолгойПамяти",
                         f" | {content} >КонецДолгойПамяти"
                     )
-                elif tag_type == "#h":
+                elif tag_type == "#memory":
                     print("Переписывание воспоминания.")
                     # Переписывание всего воспоминания
                     self.MitaLongMemory["content"] = f" ДолгаяПамять< {content} >КонецДолгойПамяти "

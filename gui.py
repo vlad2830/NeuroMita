@@ -40,6 +40,7 @@ class ChatGUI:
         except:
             print("Не удалось удачно получить из сис переменных все данные")
 
+
         self.model = ChatModel(self, self.api_key, self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
@@ -105,7 +106,9 @@ class ChatGUI:
         """Асинхронный запуск обработчика Telegram Bot."""
         print("Telegram Bot запускается!")
         try:
+            print(f"Передаю в тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто)")
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
+            print("333")
             await self.bot_handler.start()
             self.bot_handler_ready = True
             print("Telegram Bot запущен!")
@@ -500,6 +503,8 @@ class ChatGUI:
             settings["NM_API_URL"] = api_url
         if api_model := self.api_model_entry.get().strip():
             settings["NM_API_MODEL"] = api_model
+
+
         if api_id := self.api_id_entry.get().strip():
             settings["NM_TELEGRAM_API_ID"] = api_id
         if api_hash := self.api_hash_entry.get().strip():
@@ -532,6 +537,7 @@ class ChatGUI:
     def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
         if not self.config_path.exists():
+            print("Не найден путь настроек")
             return
 
         try:
@@ -545,15 +551,23 @@ class ChatGUI:
             self.api_url = settings.get("NM_API_URL", "")
             self.api_model = settings.get("NM_API_MODEL", "")
             self.makeRequest = settings.get("NM_API_REQ", False)
+
+            # ТГ
             self.api_id = settings.get("NM_TELEGRAM_API_ID", "")
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH", "")
             self.phone = settings.get("NM_TELEGRAM_PHONE", "")
 
+            print(f"Итого до гуи дошло {self.api_key},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
+            print(f"Передаю в тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто)")
             if update_model:
-                self.model.api_key = self.api_key
-                self.model.api_url = self.api_url
-                self.model.api_model = self.api_model
-                self.model.makeRequest = self.makeRequest
+                if self.api_key:
+                    self.model.api_key = self.api_key
+                if self.api_url:
+                    self.model.api_url = self.api_url
+                if self.api_model:
+                    self.model.api_model = self.api_model
+                if self.makeRequest:
+                    self.model.makeRequest = self.makeRequest
                 self.model.update_openai_client()
 
             print("Настройки загружены из файла")
@@ -674,21 +688,3 @@ class ChatGUI:
         """Закрытие приложения корректным образом."""
         print("Завершение программы...")
         self.root.destroy()  # Закрывает GUI
-
-
-import winreg
-
-
-def set_system_variable(name, value):
-    try:
-        reg_key = winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER,
-            "Environment",
-            0,
-            winreg.KEY_SET_VALUE
-        )
-        winreg.SetValueEx(reg_key, name, 0, winreg.REG_SZ, value)
-        winreg.CloseKey(reg_key)
-        print(f"Переменная {name} успешно установлена в системных настройках.")
-    except Exception as e:
-        print(f"Ошибка при установке переменной {name}: {e}")

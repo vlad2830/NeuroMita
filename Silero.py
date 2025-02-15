@@ -10,11 +10,11 @@ from telethon.tl.types import MessageMediaDocument
 import ffmpeg
 import platform
 
+
 # Пример использования:
 class TelegramBotHandler:
-    def __init__(self, gui, api_id,api_hash,phone, message_limit_per_minute=20):
+    def __init__(self, gui, api_id, api_hash, phone, message_limit_per_minute=20):
         # Получение параметров из окружения
-
 
         self.api_id = api_id
         self.api_hash = api_hash
@@ -67,6 +67,8 @@ class TelegramBotHandler:
             )
         except:
             print("Проблема в ините тг")
+            print(self.api_id)
+            print(self.api_hash)
 
     import ffmpeg
     import os
@@ -79,7 +81,6 @@ class TelegramBotHandler:
                 return
 
             # Указываем путь к ffmpeg
-
 
             print(f"Начинаю конвертацию {input_path} в {output_path} с помощью {self.ffmpeg_path}")
 
@@ -217,7 +218,9 @@ class TelegramBotHandler:
 
         print("Запуск коннектора ТГ!")
         try:
+            print("444")
             await self.client.start(phone=self.phone)
+            print("555")
             self.gui.silero_connected.set(True)
             print("Успешно авторизован!")
             await self.client.send_message(self.silero_bot, "/start")
