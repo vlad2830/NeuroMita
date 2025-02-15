@@ -38,7 +38,7 @@ class ChatGUI:
             self.config_path = Path.home() / ".myapp_config.bin"  # Путь к файлу в домашней директории
             self.load_api_settings(False)  # Загружаем настройки при инициализации
         except:
-            print("Не удалось удачно получить из сис переменных все данные")
+            print("Не удалось удачно получить из системных переменных все данные")
 
 
         self.model = ChatModel(self, self.api_key, self.api_url, self.api_model, self.makeRequest)
@@ -108,7 +108,6 @@ class ChatGUI:
         try:
             print(f"Передаю в тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто)")
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
-            print("333")
             await self.bot_handler.start()
             self.bot_handler_ready = True
             print("Telegram Bot запущен!")
@@ -482,9 +481,9 @@ class ChatGUI:
             self.makeRequest = not self.makeRequest
 
         if self.makeRequest:
-            self.makeRequest_entry.config(text="Сейчас Стр.Гемини рек.")
+            self.makeRequest_entry.config(text="Сейчас режим прокси Gemini")
         else:
-            self.makeRequest_entry.config(text="Сейчас Стр. OpenAi.")
+            self.makeRequest_entry.config(text="Сейчас обычный режим")
 
     def save_api_settings(self):
         """Собирает данные из полей ввода и сохраняет только непустые значения"""
@@ -644,10 +643,7 @@ class ChatGUI:
             self.user_entry.delete("1.0", "end")
 
         response = self.model.generate_response(user_input, system_input)
-        counter = 0
-        #while self.model.repeatResponse and counter<3:
-        #   response += self.model.generate_response("", "")
-        #  counter+=1
+
         self.insert_message("assistant", response)
         self.user_entry.delete("1.0", "end")
         self.updateAll()
@@ -657,9 +653,9 @@ class ChatGUI:
                 # Отправляем сообщение клиенту через сервер
                 if self.server.client_socket:
                     self.server.send_message_to_server(response)
-                    print("Сообщение отправлено на сервер.")
+                    print("Сообщение отправлено на сервер (связь с игрой есть)")
                 else:
-                    print("Нет активного подключения к клиенту.")
+                    print("Нет активного подключения к клиенту игры")
             except Exception as e:
                 print(f"Ошибка при отправке сообщения на сервер: {e}")
 
@@ -673,10 +669,8 @@ class ChatGUI:
 
     def on_closing(self):
         self.stop_server()
-        #self.send_message("Игрок покинул игру")
         print("Закрываемся")
         self.root.destroy()
-        #1
 
     def close_app(self):
         """Закрытие приложения корректным образом."""
