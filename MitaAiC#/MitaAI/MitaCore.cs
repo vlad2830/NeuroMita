@@ -103,7 +103,7 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 10;
+        const int simbolsPerSecond = 8;
 
         public Menu MainMenu;
         private GameObject CustomDialog;
@@ -917,7 +917,7 @@ namespace MitaAI
                 LoggerInstance.Msg("foreach foreach " + part);
 
                 string partCleaned = Regex.Replace(part, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
-                float delay = Mathf.Max(partCleaned.Length / simbolsPerSecond, 5f); 
+                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 1,8f); 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay));
             }
@@ -1016,7 +1016,7 @@ namespace MitaAI
             GameObject currentDialog = null;
 
 
-            float delay = text.Length / simbolsPerSecond;
+            float delay = Math.Clamp(text.Length / simbolsPerSecond, 1f,8f);
 
             currentDialog = InstantiateDialog(false);
             if (currentDialog != null)
@@ -1032,7 +1032,7 @@ namespace MitaAI
 
                     answer.speaker = playerPerson.gameObject;
                     answer.textPrint = text;
-                    MelonLogger.Msg($"Text is {answer.textPrint}");
+                    MelonLogger.Msg($"Player Text is {answer.textPrint}");
                     answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Player;
                     answer.timeShow = delay;
                     addDialogueMemory(answer);
@@ -1463,7 +1463,7 @@ namespace MitaAI
 
             while (movementStyle == MovementStyles.follow)
             {
-                if (getDistanceToPlayer() > 1f)
+                if (getDistanceToPlayer() > 1.1f)
                 {
                     Mita.AiWalkToTarget(playerPerson.transform);
                     
