@@ -218,9 +218,9 @@ class TelegramBotHandler:
 
         print("Запуск коннектора ТГ!")
         try:
-            print("444")
+
             await self.client.start(phone=self.phone)
-            print("555")
+
             self.gui.silero_connected.set(True)
             print("Успешно авторизован!")
             await self.client.send_message(self.silero_bot, "/start")
@@ -230,7 +230,7 @@ class TelegramBotHandler:
             await self.client.send_message(self.silero_bot, "/mp3")
             await asyncio.sleep(0.50)
             await self.client.send_message(self.silero_bot, "/hd")
-            print("Включено все для сообщений миты")
+            print("Включено все в ТГ для сообщений миты")
         except Exception as e:
             self.gui.silero_connected.set(False)
             print(f"Ошибка авторизации: {e}")

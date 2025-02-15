@@ -318,7 +318,16 @@
 
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
+		<Compile Include="PlayerControls\InputControl.cs" />
 		<Compile Include="Utils.cs" />
+		<Compile Include="Vosk\BatchModel.cs" />
+		<Compile Include="Vosk\Model.cs" />
+		<Compile Include="Vosk\SpkModel.cs" />
+		<Compile Include="Vosk\Vosk.cs" />
+		<Compile Include="Vosk\VoskBatchRecognizer.cs" />
+		<Compile Include="Vosk\VoskPINVOKE.cs" />
+		<Compile Include="Vosk\VoskRecognizer.cs" />
+		<Compile Include="E:\Games\OpenAI_API_TEST\VoskUsing.cs" Link="VoskUsing.cs" />
 		<Compile Include="WorldModded\Events\EventsProxy.cs" />
 		<Compile Include="Mita\AudioControl.cs" />
 		<Compile Include="PlayerControls\PlayerAnimationModded.cs" />
@@ -338,6 +347,7 @@
 		<Compile Include="WorldModded\LightingAndDaytime.cs" />
 		<Compile Include="Mita\ObjectHierarchyHelper.cs" />
 		<Compile Include="Core.cs" />
+		<Compile Include="WorldModded\VoiseInput.cs" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

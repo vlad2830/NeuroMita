@@ -41,6 +41,7 @@ using static Il2CppSystem.Uri;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MitaAI.MitaAppereance;
 using MitaAI.Mita;
+using MitaAI.PlayerControls;
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -123,7 +124,7 @@ namespace MitaAI
         string waitForSounds = "0";
         //private readonly object waitForSoundsLock = new object();
 
-        string playerMessage = "";
+        public string playerMessage = "";
         public Queue<string> systemMessages = new Queue<string>();
         Queue<string> systemInfos = new Queue<string>();
 
@@ -441,34 +442,6 @@ namespace MitaAI
             CustomDialogText.xPrint = 0.413f;
             CustomDialogText.indexString = -1;
             CustomDialogText.showSubtitles = true;
-
-
-/*
-            MelonLogger.Msg("Begin adding sound chibi");
-            //bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            try
-            {
-                DataValues_Sounds dataValues_Sounds = new DataValues_Sounds();
-                Il2CppReferenceArray<AudioClip> sounds = new Il2CppReferenceArray<AudioClip>(50);
-
-                AudioClip audioClip = Utils.TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>().sounds[0];
-                for (int i = 0; i < 50; i++)
-                {
-
-                    sounds[i] = audioClip;
-                        //AssetBundleLoader.LoadAudioClipByName(bundle, "Mita Chibi");
-                    //if (Utils.Random(1, 2)) sounds[i].SetSpeed(0.5);
-                }
-                dataValues_Sounds.sounds = sounds;
-                CustomDialogText.sounds = Utils.TryfindChild(worldHouse, "Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>();
-            }
-            catch (Exception e)
-            {
-
-                MelonLogger.Error(e);
-            }*/
-
-            MelonLogger.Msg("End adding sound chibi");
 
             MelonLogger.Msg($"Attempt Interactions before");
             Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
@@ -920,7 +893,7 @@ namespace MitaAI
         {
             LoggerInstance.Msg("DisplayResponseAndEmotion");
 
-            TurnBlockInputField(true);
+            InputControl.TurnBlockInputField(true);
             try
             {
 
@@ -1028,7 +1001,7 @@ namespace MitaAI
             GameObject.Destroy(currentDialog);
             LoggerInstance.Msg("Dialogue part finished and destroyed.");
 
-            TurnBlockInputField(false);
+            InputControl.TurnBlockInputField(false);
         }
 
         private IEnumerator PlayMitaSound(int delay, AudioClip audioClip, int len)
@@ -1057,7 +1030,7 @@ namespace MitaAI
             LoggerInstance.Msg("Dialogue part finished and destroyed.");
         }
 
-        private void PlayerTalk(string text)
+        public void PlayerTalk(string text)
         {
             GameObject currentDialog = null;
 
@@ -1342,10 +1315,6 @@ namespace MitaAI
 
             return parts;
         }
-
-
-
-
 
         public GameObject InstantiateDialog(bool Mita = true)
         {
@@ -1878,14 +1847,13 @@ namespace MitaAI
 
         // Ввод
 
-        private bool isInputBlocked = false; // Флаг для блокировки
-        private static GameObject InputFieldComponent;
+
 
         public override void OnUpdate()
         {
             try
             {
-                processInpute();
+                InputControl.processInpute();
             }
             catch (Exception e)
             {
@@ -1895,239 +1863,6 @@ namespace MitaAI
             
         }
 
-        public void processInpute() 
-        { 
-            // Обрабатываем нажатие Tab для переключения InputField
-            if (Input.GetKeyDown(KeyCode.Tab)) // Используем GetKeyDown для одноразового срабатывания
-            {
-                if (InputFieldComponent == null)
-                {
-                    try
-                    {
-                        CreateInputComponent();
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerInstance.Msg("CreateInputComponent ex:" + ex);
-                    }
-                }
-                else
-                {
-
-                    if (isInputBlocked) return;
-
-                    // Переключаем видимость InputField
-                    bool isActive = InputFieldComponent.activeSelf;
-                    //PlayerAnimationModded.playerMove.speed  
-                    InputFieldComponent.SetActive(!isActive);
-
-                    // Если объект стал активным, активируем InputField
-                    if (InputFieldComponent.activeSelf)
-                    {
-                        var ifc = InputFieldComponent.GetComponent<InputField>();
-                        if (ifc != null)
-                        {
-                            ifc.Select();
-                            ifc.ActivateInputField();
-                        }
-                    }
-                }
-            }
-
-            // Обрабатываем нажатие Enter для передачи текста в функцию
-            else if (Input.GetKeyDown(KeyCode.Return) && checkInput())
-            {
-                var ifc = InputFieldComponent.GetComponent<InputField>();
-                if (ifc.text != "")
-                {
-                    ProcessInput(ifc.text); // Пустышка для обработки текста
-                    ifc.text = "";
-                }
-            }
-
-
-            // Обрабатываем нажатие Enter для передачи текста в функцию
-            else if (Input.GetKeyDown(KeyCode.C) && !checkInput())
-            {
-                playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = true;
-                
-            }
-            else if (Input.GetKeyUp(KeyCode.C))
-            {
-                playerPerson.transform.parent.GetComponent<PlayerMove>().canSit = false;
-            }
-            else if (Input.GetKeyDown(KeyCode.Space) && !checkInput())
-            {
-                try
-                {
-                    LoggerInstance.Msg("Space pressed");
-                    //if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) PlayerAnimationModded.stopAnim();
-                    PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
-                }
-                catch (Exception e)
-                {
-
-                    MelonLogger.Msg(e);
-                }
-
-            }
-
-        }
-        bool checkInput()
-        {
-            if (InputFieldComponent !=null )
-            {
-                return InputFieldComponent.active;
-            }
-            return false;
-        }
-
-        private void TurnBlockInputField(bool blocked)
-        {
-            isInputBlocked = blocked; // Устанавливаем блокировку
-            if (InputFieldComponent != null)
-            {
-                InputFieldComponent.SetActive(!blocked); // Отключаем поле ввода, если оно активно
-            }
-
-        }
-
-        private void CreateInputComponent()
-        {
-
-
-            // Создаем объект InputField
-            InputFieldComponent = new GameObject("InputFieldComponent");
-
-            var ifc = InputFieldComponent.AddComponent<InputField>();
-            var _interface = GameObject.Find("Interface");
-            if (_interface == null) return;
-
-            InputFieldComponent.transform.parent = _interface.transform;
-
-
-            var rect = InputFieldComponent.AddComponent<RectTransform>();
-            rect.anchoredPosition = Vector2.zero;
-
-            rect.anchorMin = new Vector2(0.5f, 0);
-            rect.anchorMax = new Vector2(0.5f, 0);
-            rect.pivot = new Vector2(0.5f, 0);
-
-
-
-            var image = InputFieldComponent.AddComponent<UnityEngine.UI.Image>();
-            /*            try
-                        {
-                            var KeyRun = _interface.transform.Find("GameController/Interface/SubtitlesFrame/Text 2").GetComponent<UnityEngine.UI.Image>();
-                            LoggerInstance.Msg("KeyRun");
-                            image.sprite = KeyRun.sprite;
-                        }
-                        catch (Exception ex)
-                        {*/
-            Sprite blackSprite = CreateBlackSprite(100, 100);
-            image.sprite = blackSprite;
-            //}
-
-            image.color = new Color(0f, 0f, 0f, 0.7f);
-            ifc.image = image;
-
-
-            var TextLegacy = new GameObject("TextLegacy");
-            var textComponent = TextLegacy.AddComponent<Text>();
-            TextLegacy.transform.parent = InputFieldComponent.transform;
-            var rectText = TextLegacy.GetComponent<RectTransform>();
-            rectText.sizeDelta = new Vector2(500, 100);
-            rectText.anchoredPosition = Vector2.zero;
-            var texts = GameObject.FindObjectsOfType<Text>();
-
-
-
-            foreach (var text in texts)
-            {
-                textComponent.font = text.font;
-                textComponent.fontStyle = text.fontStyle;
-                textComponent.fontSize = 35;
-                if (textComponent.font != null) break;
-            }
-
-
-            var textInputField = InputFieldComponent.GetComponent<InputField>();
-            textInputField.textComponent = TextLegacy.GetComponent<Text>();
-            textInputField.text = "Введи текст";
-            textInputField.textComponent.color = Color.yellow;
-            textInputField.textComponent.alignment = TextAnchor.MiddleCenter;
-
-
-
-            // Устанавливаем 70% ширины от родителя
-            RectTransform parentRect = _interface.GetComponent<RectTransform>();
-            float parentWidth = parentRect.rect.width;
-            rect.sizeDelta = new Vector2(parentWidth * 0.7f, rect.sizeDelta.y);
-            rectText.sizeDelta = rect.sizeDelta;
-            textInputField.Select();
-            textInputField.ActivateInputField();
-
-        }
-
-
-        bool Test = false;
-        // Пустышка для обработки ввода
-        private void ProcessInput(string inputText)
-        {
-            LoggerInstance.Msg("Input received: " + inputText);
-            PlayerTalk(inputText);
-            playerMessage += $"{inputText}\n";
-
-            //PlayerAnimationModded.EnqueueAnimation(inputText);
-
-            //PlayMitaAnim(inputText);
-            
-            //MitaAnimationModded.EnqueueAnimation(inputText);
-            //MitaAnimationModded.setAnimation($"<a>{inputText}</a>");
-            //MitaAnimationModded.EnqueueAnimation("Mita StartShow Knifes");
-            //MitaAnimationModded.EnqueueAnimation("Mita Throw Knifes");
-            //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
-            //MitaAnimationModded.EnqueueAnimation("Mita Hide 2");
-            //MitaAnimationModded.EnqueueAnimation("Mita StartDisappointment");
-
-            //PlayMitaAnim("Mita StartShow Knifes");
-            //PlayMitaAnim("Mita Click_1");
-            //PlayMitaAnim("Mita Click_2");
-            //PlayMitaAnim("Mita ThrowPlayer");
-            //List<AnimationClip> r = Test2();
-            // LoggerInstance.Msg(r[0].name);
-            // AnimationClip randimAnim = r[UnityEngine.Random.Range(0, r.Count)];
-            //LoggerInstance.Msg(randimAnim.name);
-            // Log the start of the operation
-
-
-        }
-        public Sprite CreateBlackSprite(int width, int height)
-        {
-            // Создаем текстуру с заданными размерами
-            Texture2D texture = new Texture2D(width, height);
-
-            // Задаем все пиксели как черные
-            Color darkColor = new Color(0f, 0f, 0f, 0f);  // Черный цвет
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    texture.SetPixel(x, y, darkColor);
-                }
-            }
-
-            // Применяем изменения
-            texture.Apply();
-
-            // Создаем и возвращаем спрайт из текстуры
-            return Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
-        }
-
-
-
-
-        // Метод для обработки события
 
 
     }
