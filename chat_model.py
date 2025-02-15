@@ -90,7 +90,6 @@ class ChatModel:
         self.MitaExamples = []
         self.systemMessages = []
         self.HideAiData = True
-        #print_ip_and_country()
 
         self.repeatResponse = False
 
@@ -118,8 +117,6 @@ class ChatModel:
         self.response_structure = load_text_from_file("Promts/Structural/response_structure.txt")
 
         self.SecretExposedText = load_text_from_file("Promts/Events/SecretExposed.txt")
-
-
 
     def calculate_cost(self, user_input):
         # Загружаем историю
@@ -251,7 +248,7 @@ class ChatModel:
             print("До фразы")
             self.gui.textToTalk = self.process_text_to_voice(response)
             print("self.gui.textToTalk: " + self.gui.textToTalk)
-            #self.update_memory_in_history()
+
             self.save_history({
                 'messages': messages,
                 'currentInfo': current_info,
@@ -327,8 +324,8 @@ class ChatModel:
         if self.LongMemoryRememberCount % 3 == 0:
             repeated_system_message += " Запомни факты за 3 сообщения пользователя используя <+memory>Факт который нужно запомнить</memory>"
 
-        if self.LongMemoryRememberCount % 6 == 0:
-            repeated_system_message += " Реструктуризируй память при необходимости используя <#memory>Итоговые факты об игроке</memory>"
+        if self.LongMemoryRememberCount % 15 == 0:
+            repeated_system_message += "При необходимости реструктуризируй память, используя <#memory>Итоговые факты об игроке</memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -346,7 +343,7 @@ class ChatModel:
             1: "Зал",  # Главная комната
             2: "Комната",  # Спальня
             3: "Туалет",  # Туалет
-            4: "Подвал"  # Туалет
+            4: "Подвал"  # Подвал
         }
 
         # Возвращаем название комнаты, если оно есть, иначе возвращаем сообщение о неизвестной комнате
@@ -651,7 +648,7 @@ class ChatModel:
 
     def process_behavior_changes(self, response):
         """
-        Обрабатывает изменения переменных на основе строки формата <p>x,x,x,x<p>.
+        Обрабатывает изменения переменных на основе строки формата <p>x,x,x<p>.
         """
         start_tag = "<p>"
         end_tag = "</p>"
@@ -694,6 +691,8 @@ class ChatModel:
         return response
 
     def reload_promts(self):
+        print("Перезагрузка промптов")
+
         self.common = load_text_from_file("Promts/Main/common.txt")
         self.main = load_text_from_file("Promts/Main/main.txt")
 

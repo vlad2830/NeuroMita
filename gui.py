@@ -205,12 +205,6 @@ class ChatGUI:
         )
         self.send_button.pack(side=tk.RIGHT, padx=5)
 
-        self.token_count_label = tk.Label(
-            left_frame, text=f"Последнее сообщение: {self.last_price}",
-            bg="#2c2c2c", fg="#ffffff", font=("Arial", 12)
-        )
-        self.token_count_label.pack(fill=tk.X, pady=5)
-
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Второй столбец
@@ -388,7 +382,7 @@ class ChatGUI:
             content = entry["content"]
             self.insert_message(role, content)
         self.update_debug_info()
-        self.token_count_label.text = self.last_price
+
 
     def setup_debug_controls(self, parent):
         debug_frame = tk.Frame(parent, bg="#2c2c2c")
