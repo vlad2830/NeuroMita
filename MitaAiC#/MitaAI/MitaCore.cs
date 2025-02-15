@@ -1586,7 +1586,7 @@ namespace MitaAI
                             {
                                 // Если это стандартный MonoBehaviour
                                 monoBehaviourComponent.enabled = true; // Включаем компонент
-                                MelonCoroutines.Start(ToggleComponentAfterTime(monoBehaviourComponent, time)); // Запускаем корутину
+                                MelonCoroutines.Start(Utils.ToggleComponentAfterTime(monoBehaviourComponent, time)); // Запускаем корутину
                             }
                             else if (effectComponent is Il2CppObjectBase il2cppComponent)
                             {

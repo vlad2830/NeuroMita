@@ -200,10 +200,10 @@ namespace MitaAI
             MelonLogger.Msg($"Object found: {MitaCore.worldBackrooms2.name}");
             try
             {
-                MitaCore.Instance.ManekenTemplate = GameObject.Instantiate(Utils.TryfindChild(MitaCore.worldBackrooms2, "Quest/Quest 1 (Room 1 - Room 6)/Mita Maneken 1"), MitaCore.worldHouse);
+                MitaGames.ManekenTemplate = GameObject.Instantiate(Utils.TryfindChild(MitaCore.worldBackrooms2, "Quest/Quest 1 (Room 1 - Room 6)/Mita Maneken 1"), MitaCore.worldHouse);
 
-                MitaCore.Instance.ManekenTemplate.transform.position = Vector3.zero;
-                MitaCore.Instance.ManekenTemplate.transform.Find("MitaManeken 1").gameObject.GetComponent<Mob_Maneken>().speedNav = 4;
+                MitaGames.ManekenTemplate.transform.position = Vector3.zero;
+                MitaGames.ManekenTemplate.transform.Find("MitaManeken 1").gameObject.GetComponent<Mob_Maneken>().speedNav = 4;
 
 
 
