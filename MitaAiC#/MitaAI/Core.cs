@@ -102,21 +102,21 @@ namespace MitaAI
         public static Transform worldBackrooms2;
         
 
-        public GameObject ManekenTemplate;
-        List<GameObject> activeMakens = new List<GameObject>();
+
+        
 
         public Menu MainMenu;
         private GameObject CustomDialog;
         private GameObject CustomDialogPlayer;
-        GameObject playerCamera;
+        public static GameObject playerCamera;
         public GameObject AnimationKiller;
-        BlackScreen blackScreen;
+        public static BlackScreen blackScreen;
 
 
 
         private const float Interval = 0.35f;
         private float timer = 0f;
-        public float blinkTimer = 7f;
+
 
         Vector3 lastPosition;
 
@@ -192,7 +192,7 @@ namespace MitaAI
                 behaviour.enabled = true;
 
                 // Запускаем корутину, передавая Il2Cpp-компонент
-                MelonCoroutines.Start(HandleIl2CppComponent(il2cppComponent, 5f));
+                MelonCoroutines.Start(Utils.HandleIl2CppComponent(il2cppComponent, 5f));
 
             }
         }
@@ -595,27 +595,7 @@ namespace MitaAI
         }
 
 
-        private IEnumerator CheckManekenGame()
-        {
-            while (true)
-            {
-                try
-                {
-                    if (!manekenGame) yield break;
 
-                    if (blackScreen != null && playerCamera != null)
-                    {
-                        blackScreen.BlackScreenAlpha(0.75f);
-                        playerCamera.GetComponent<Camera>().enabled = false;
-                        MelonCoroutines.Start(ToggleComponentAfterTime(playerCamera.GetComponent<Camera>(), 0.75f)); // Отключит playerCamera через 1 секунду
-                    }
-
-                    yield return new WaitForSeconds(blinkTimer); // Ждем 7 секунд перед следующим циклом
-                }
-                finally { }
-
-            }
-        }
 
 
 
@@ -989,12 +969,12 @@ namespace MitaAI
             answer.speaker = Mita?.gameObject;
 
             MelonLogger.Msg($"Text is {answer.textPrint}");
-            //addDialogueMemory(answer);
+            addDialogueMemory(answer);
             if (emotion != EmotionType.none) answer.emotionFinish = emotion;
             currentEmotion = emotion;
 
             currentDialog.SetActive(true);  
-            //if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
+            if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
             yield return new WaitForSeconds(delay / 1000f);
 
@@ -1053,7 +1033,7 @@ namespace MitaAI
                     MelonLogger.Msg($"Text is {answer.textPrint}");
                     answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Player;
                     answer.timeShow = delay;
-                    //addDialogueMemory(answer);
+                    addDialogueMemory(answer);
 
 
                     currentDialog.SetActive(true);
@@ -1179,46 +1159,7 @@ namespace MitaAI
             Mita.AiShraplyStop();
         }
 
-        public void spawnManeken()
-        {
-            GameObject someManeken = GameObject.Instantiate(ManekenTemplate, worldHouse.Find("House"));
-            someManeken.SetActive(true);
-            activeMakens.Add(someManeken);
 
-
-
-
-
-            if (manekenGame == false)
-            {
-                manekenGame = true;
-                MelonCoroutines.Start(CheckManekenGame());
-            }
-            someManeken.transform.SetPositionAndRotation(GetRandomLoc().position, GetRandomLoc().rotation);
-
-
-        }
-        public void TurnAllMenekens(bool on)
-        {
-            if (activeMakens.Count <= 0) return;
-
-            foreach (GameObject m in activeMakens)
-            {
-                if (on) m.transform.FindChild("MitaManeken 1").gameObject.GetComponent<Mob_Maneken>().ResetManeken();
-                else m.transform.FindChild("MitaManeken 1").gameObject.GetComponent<Mob_Maneken>().DeactivationManeken();
-
-            }
-            manekenGame = on;
-        }
-        public void removeAllMenekens()
-        {
-            foreach (GameObject m in activeMakens)
-            {
-                GameObject.Destroy(m);
-            }
-            activeMakens.Clear();
-            manekenGame = false;
-        }
 
         // Корутин для активации и деактивации объекта
         public IEnumerator ActivateAndDisableKiller(float delay)
@@ -1658,7 +1599,7 @@ namespace MitaAI
                                 behaviour.enabled = true;
 
                                 // Запускаем корутину, передавая Il2Cpp-компонент
-                                MelonCoroutines.Start(HandleIl2CppComponent(il2cppComponent, time));
+                                MelonCoroutines.Start(Utils.HandleIl2CppComponent(il2cppComponent, time));
 
                             }
                             else
@@ -1683,87 +1624,7 @@ namespace MitaAI
             return result;
         }
 
-        // Корутинa для переключения активности компоненты
-        public IEnumerator ToggleComponentAfterTime(Component component, float delay)
-        {
-            LoggerInstance.Msg($"Starting ToggleComponentAfterTime for {component?.GetType().Name} with delay {delay}...");
-
-            if (component == null)
-            {
-                LoggerInstance.Msg("Component is null. Cannot toggle.");
-                yield break;
-            }
-
-            if (component is MonoBehaviour monoBehaviourComponent)
-            {
-                yield return new WaitForSeconds(delay);
-
-                monoBehaviourComponent.enabled = !monoBehaviourComponent.enabled;
-                LoggerInstance.Msg($"{monoBehaviourComponent.GetType().Name} is now {(monoBehaviourComponent.enabled ? "enabled" : "disabled")}");
-            }
-            else if (component is Il2CppObjectBase il2cppComponent)
-            {
-                LoggerInstance.Msg($"Detected Il2Cpp component: {il2cppComponent.GetType().Name}");
-
-                // Проверяем, есть ли у компонента свойство enabled
-                var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
-                if (enabledProperty != null && enabledProperty.PropertyType == typeof(bool))
-                {
-                    // Читаем текущее значение свойства
-                    bool isEnabled = (bool)enabledProperty.GetValue(il2cppComponent);
-                    LoggerInstance.Msg($"Current enabled state of {il2cppComponent.GetType().Name}: {isEnabled}");
-
-                    yield return new WaitForSeconds(delay);
-
-                    // Переключаем значение
-                    enabledProperty.SetValue(il2cppComponent, !isEnabled);
-                    LoggerInstance.Msg($"{il2cppComponent.GetType().Name} is now {(!isEnabled ? "enabled" : "disabled")}");
-                }
-                else
-                {
-                    LoggerInstance.Warning($"The component {il2cppComponent.GetType().Name} does not have an 'enabled' property.");
-                }
-            }
-            else
-            {
-                LoggerInstance.Warning($"Component {component?.GetType().Name} is not a MonoBehaviour or Il2CppObjectBase. Cannot toggle.");
-            }
-
-            LoggerInstance.Msg($"Finished ToggleComponentAfterTime for {component?.GetType().Name}.");
-        }
-
-        public IEnumerator HandleIl2CppComponent(Il2CppObjectBase il2cppComponent, float delay)
-        {
-            LoggerInstance.Msg($"Starting HandleIl2CppComponent for {il2cppComponent?.GetType().Name} with delay {delay}...");
-
-            if (il2cppComponent == null)
-            {
-                LoggerInstance.Msg("Il2CppComponent is null. Cannot toggle.");
-                yield break;
-            }
-
-            // Пробуем преобразовать объект в Behaviour
-            var behaviour = il2cppComponent.TryCast<Behaviour>();
-            if (behaviour != null)
-            {
-                LoggerInstance.Msg($"Il2Cpp Behaviour detected: {behaviour.GetType().Name}");
-
-                // Читаем текущее состояние и переключаем
-                bool currentState = behaviour.enabled;
-                LoggerInstance.Msg($"Current enabled state of {behaviour.GetType().Name}: {currentState}");
-
-                yield return new WaitForSeconds(delay);
-
-                behaviour.enabled = !currentState;
-                LoggerInstance.Msg($"{behaviour.GetType().Name} is now {(behaviour.enabled ? "enabled" : "disabled")}");
-            }
-            else
-            {
-                LoggerInstance.Warning($"The Il2Cpp component {il2cppComponent.GetType().Name} is not a Behaviour or does not support 'enabled' property.");
-            }
-
-            LoggerInstance.Msg($"Finished HandleIl2CppComponent for {il2cppComponent?.GetType().Name}.");
-        }
+        
 
         private IEnumerator DisableEffectAfterDelay(Il2CppObjectBase il2cppComponent, string effectMethodName, float delay)
         {
@@ -1823,7 +1684,7 @@ namespace MitaAI
                     info += $"Current lighing color: {location21_World.timeDay.colorDay}\n";
                     }
                 
-                if (activeMakens.Count>0) info = info + $"Menekens count: {activeMakens.Count}\n";
+                if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
                 info += $"Current music: {AudioControl.getCurrrentMusic()}\n";
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
 
