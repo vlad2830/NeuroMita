@@ -732,18 +732,6 @@ class ChatModel:
         else:
             self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}"}
 
-    def save_history_patter(self, messages, current_info):
-        self.save_history({
-            'messages': messages,
-            'currentInfo': current_info,
-            # Сохраняем переменные в историю
-            'attitude': self.attitude,
-            'boredom': self.boredom,
-            'stress': self.stress,
-            'secretExposed': self.secretExposed,
-            'secretExposedFirst': self.secretExposedFirst
-        })
-
     def load_history(self):
         """Загружаем историю из файла, создаем пустую структуру, если файл пуст или не существует."""
         try:
@@ -843,33 +831,6 @@ class ChatModel:
             'secretExposedFirst': False,
         }
 
-    def generate_response_check(self, message_text, system_input=""):
-        # Формируем сообщение для запроса к модели
-        messages = [
-            {
-                "role": "system",
-                "content": "Далее будет сообщение от лица персонажа. Не теряй и не удаляй служебные сообщения. Исправь сообщение, где оно звучит неестественно. С высоким шансом убери фразы по типу 'В этом мире...' "
-            },
-            {
-                "role": "user",
-                "content": message_text
-            }
-        ]
-
-        try:
-            # Отправляем запрос к модели
-            completion = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages
-            )
-            # Достаем сообщение из ответа API
-            response_message = completion.choices[0].message.content
-            return response_message
-        except Exception as e:
-            # Обрабатываем возможные ошибки
-            return f"Ошибка при генерации ответа: {str(e)}"
-
-
 def add_temporary_system_message(messages, content):
     """
     Добавляет одноразовое системное сообщение в список сообщений.
@@ -892,37 +853,3 @@ def replace_numbers_with_words(text):
         text = text.replace(number, word)
     return text
 
-
-# Функция 2: Транслитерация английского текста на русский с сохранением произношения
-def transliterate_english_to_russian(text):
-    # Словарь для транслитерации
-    translit_dict = {
-        'a': 'а', 'b': 'б', 'c': 'к', 'd': 'д', 'e': 'е', 'f': 'ф', 'g': 'г',
-        'h': 'х', 'i': 'и', 'j': 'дж', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н',
-        'o': 'о', 'p': 'п', 'q': 'к', 'r': 'р', 's': 'с', 't': 'т', 'u': 'у',
-        'v': 'в', 'w': 'в', 'x': 'кс', 'y': 'й', 'z': 'з',
-        'A': 'А', 'B': 'Б', 'C': 'К', 'D': 'Д', 'E': 'Е', 'F': 'Ф', 'G': 'Г',
-        'H': 'Х', 'I': 'И', 'J': 'Дж', 'K': 'К', 'L': 'Л', 'M': 'М', 'N': 'Н',
-        'O': 'О', 'P': 'П', 'Q': 'К', 'R': 'Р', 'S': 'С', 'T': 'Т', 'U': 'У',
-        'V': 'В', 'W': 'В', 'X': 'Кс', 'Y': 'Й', 'Z': 'З',
-        'th': 'з', 'sh': 'ш', 'ch': 'ч', 'ph': 'ф', 'oo': 'у', 'ee': 'и',
-        'Th': 'З', 'Sh': 'Ш', 'Ch': 'Ч', 'Ph': 'Ф', 'Oo': 'У', 'Ee': 'И',
-    }
-
-    # Обрабатываем сочетания букв
-    for combo in ['th', 'sh', 'ch', 'ph', 'oo', 'ee', 'Th', 'Sh', 'Ch', 'Ph', 'Oo', 'Ee']:
-        text = text.replace(combo, translit_dict[combo])
-
-    # Транслитерируем оставшиеся символы
-    transliterated_text = []
-    i = 0
-    while i < len(text):
-        # Проверяем, есть ли текущий символ в словаре
-        if text[i] in translit_dict:
-            transliterated_text.append(translit_dict[text[i]])
-        else:
-            # Если символа нет в словаре, оставляем его как есть (например, пробелы, знаки препинания)
-            transliterated_text.append(text[i])
-        i += 1
-
-    return ''.join(transliterated_text)
