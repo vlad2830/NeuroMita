@@ -14,6 +14,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Platforms>AnyCPU;x64</Platforms>
 	</PropertyGroup>
+	<ItemGroup>
+	  <EmbeddedResource Remove="Vosk\**" />
+	  <None Remove="Vosk\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<Reference Include="Assembly-CSharp-firstpass">
@@ -320,17 +324,10 @@
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
 		<Compile Include="PlayerControls\InputControl.cs" />
 		<Compile Include="Utils.cs" />
-		<Compile Include="Vosk\BatchModel.cs" />
-		<Compile Include="Vosk\Model.cs" />
-		<Compile Include="Vosk\SpkModel.cs" />
-		<Compile Include="Vosk\Vosk.cs" />
-		<Compile Include="Vosk\VoskBatchRecognizer.cs" />
-		<Compile Include="Vosk\VoskPINVOKE.cs" />
-		<Compile Include="Vosk\VoskRecognizer.cs" />
 		<Compile Include="WorldModded\Events\EventsProxy.cs" />
 		<Compile Include="Mita\AudioControl.cs" />
 		<Compile Include="PlayerControls\PlayerAnimationModded.cs" />
-		<Compile Include="PlayerControls\TextInput.cs" />
+		<Compile Include="WorldModded\Games\MitaGames.cs" />
 		<Compile Include="WorldModded\InteractionCases.cs" />
 		<Compile Include="WorldModded\TotalInitialization.cs" />
 		<Compile Include="Mita\MitaAppereance\EyeModifier.cs" />
@@ -345,12 +342,7 @@
 		<Compile Include="AssetBandle\Il2CppAssetBundleRequest.cs" />
 		<Compile Include="WorldModded\LightingAndDaytime.cs" />
 		<Compile Include="Mita\ObjectHierarchyHelper.cs" />
-		<Compile Include="Core.cs" />
-		<Compile Include="WorldModded\VoiseInput.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="WorldModded\Games\" />
+		<Compile Include="MitaCore.cs" />
 	</ItemGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

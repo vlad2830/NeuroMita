@@ -1,4 +1,5 @@
 ﻿using Il2Cpp;
+using Il2CppInterop.Runtime.InteropTypes;
 using MelonLoader;
 using System;
 using System.Collections;
@@ -116,6 +117,88 @@ namespace MitaAI
                 MelonLogger.Msg("Tried turn " + path + " " + e);
                 return;
             }
+        }
+
+        // Корутинa для переключения активности компоненты
+        public static IEnumerator ToggleComponentAfterTime(Component component, float delay)
+        {
+            MelonLogger.Msg($"Starting ToggleComponentAfterTime for {component?.GetType().Name} with delay {delay}...");
+
+            if (component == null)
+            {
+                MelonLogger.Msg("Component is null. Cannot toggle.");
+                yield break;
+            }
+
+            if (component is MonoBehaviour monoBehaviourComponent)
+            {
+                yield return new WaitForSeconds(delay);
+
+                monoBehaviourComponent.enabled = !monoBehaviourComponent.enabled;
+                MelonLogger.Msg($"{monoBehaviourComponent.GetType().Name} is now {(monoBehaviourComponent.enabled ? "enabled" : "disabled")}");
+            }
+            else if (component is Il2CppObjectBase il2cppComponent)
+            {
+                MelonLogger.Msg($"Detected Il2Cpp component: {il2cppComponent.GetType().Name}");
+
+                // Проверяем, есть ли у компонента свойство enabled
+                var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
+                if (enabledProperty != null && enabledProperty.PropertyType == typeof(bool))
+                {
+                    // Читаем текущее значение свойства
+                    bool isEnabled = (bool)enabledProperty.GetValue(il2cppComponent);
+                    MelonLogger.Msg($"Current enabled state of {il2cppComponent.GetType().Name}: {isEnabled}");
+
+                    yield return new WaitForSeconds(delay);
+
+                    // Переключаем значение
+                    enabledProperty.SetValue(il2cppComponent, !isEnabled);
+                    MelonLogger.Msg($"{il2cppComponent.GetType().Name} is now {(!isEnabled ? "enabled" : "disabled")}");
+                }
+                else
+                {
+                    MelonLogger.Warning($"The component {il2cppComponent.GetType().Name} does not have an 'enabled' property.");
+                }
+            }
+            else
+            {
+                MelonLogger.Warning($"Component {component?.GetType().Name} is not a MonoBehaviour or Il2CppObjectBase. Cannot toggle.");
+            }
+
+            MelonLogger.Msg($"Finished ToggleComponentAfterTime for {component?.GetType().Name}.");
+        }
+
+        public static IEnumerator HandleIl2CppComponent(Il2CppObjectBase il2cppComponent, float delay)
+        {
+            MelonLogger.Msg($"Starting HandleIl2CppComponent for {il2cppComponent?.GetType().Name} with delay {delay}...");
+
+            if (il2cppComponent == null)
+            {
+                MelonLogger.Msg("Il2CppComponent is null. Cannot toggle.");
+                yield break;
+            }
+
+            // Пробуем преобразовать объект в Behaviour
+            var behaviour = il2cppComponent.TryCast<Behaviour>();
+            if (behaviour != null)
+            {
+                MelonLogger.Msg($"Il2Cpp Behaviour detected: {behaviour.GetType().Name}");
+
+                // Читаем текущее состояние и переключаем
+                bool currentState = behaviour.enabled;
+                MelonLogger.Msg($"Current enabled state of {behaviour.GetType().Name}: {currentState}");
+
+                yield return new WaitForSeconds(delay);
+
+                behaviour.enabled = !currentState;
+                MelonLogger.Msg($"{behaviour.GetType().Name} is now {(behaviour.enabled ? "enabled" : "disabled")}");
+            }
+            else
+            {
+                MelonLogger.Warning($"The Il2Cpp component {il2cppComponent.GetType().Name} is not a Behaviour or does not support 'enabled' property.");
+            }
+
+            MelonLogger.Msg($"Finished HandleIl2CppComponent for {il2cppComponent?.GetType().Name}.");
         }
     }
 

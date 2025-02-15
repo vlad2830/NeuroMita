@@ -100,10 +100,10 @@ namespace MitaAI
         public static Transform worldHouse;
         public static Transform worldBasement;
         public static Transform worldBackrooms2;
-        
 
 
-        
+
+        const int simbolsPerSecond = 10;
 
         public Menu MainMenu;
         private GameObject CustomDialog;
@@ -164,7 +164,6 @@ namespace MitaAI
             MitaClothesModded.init(harmony);
             NetworkController.Initialize();
 
-            //Test2();
         }
 
         public void sendSystemMessage(string m)
@@ -895,7 +894,7 @@ namespace MitaAI
                     }
                 }
 
-                int delay = 3500 * modifiedResponse.Length / 50;
+                float delay = modifiedResponse.Length / simbolsPerSecond;
 
                 MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
@@ -918,7 +917,7 @@ namespace MitaAI
                 LoggerInstance.Msg("foreach foreach " + part);
 
                 string partCleaned = Regex.Replace(part, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
-                int delay = Mathf.Max(3500 * partCleaned.Length / 50, 500);
+                float delay = Mathf.Max(partCleaned.Length / simbolsPerSecond, 5f); 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay));
             }
@@ -926,7 +925,7 @@ namespace MitaAI
         }
 
 
-        private IEnumerator ShowDialogue(string part, int delay)
+        private IEnumerator ShowDialogue(string part, float delay)
         {
 
             LoggerInstance.Msg("ShowDialogue");
@@ -976,15 +975,15 @@ namespace MitaAI
             currentDialog.SetActive(true);  
             if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
-            yield return new WaitForSeconds(delay / 1000f);
-
+            yield return new WaitForSeconds(delay);
+            MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
             GameObject.Destroy(currentDialog);
-            LoggerInstance.Msg("Dialogue part finished and destroyed.");
+
 
             InputControl.TurnBlockInputField(false);
         }
 
-        private IEnumerator PlayMitaSound(int delay, AudioClip audioClip, int len)
+        private IEnumerator PlayMitaSound(float delay, AudioClip audioClip, int len)
         {
             LoggerInstance.Msg("PlayMitaSound");
 
@@ -1003,24 +1002,27 @@ namespace MitaAI
                 answer.speaker = Mita?.gameObject;
 
                 yield return new WaitForSeconds(delay);
+                MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
                 GameObject.Destroy(currentDialog);
+                
             }
 
             
             LoggerInstance.Msg("Dialogue part finished and destroyed.");
         }
 
-        public void PlayerTalk(string text)
+        public IEnumerator PlayerTalk(string text)
         {
             GameObject currentDialog = null;
 
-            try
+
+            float delay = text.Length / simbolsPerSecond;
+
+            currentDialog = InstantiateDialog(false);
+            if (currentDialog != null)
             {
 
-                int delay = 4000 * text.Length / 50;
-
-                currentDialog = InstantiateDialog(false);
-                if (currentDialog != null)
+                try
                 {
                     Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
                     if (answer == null)
@@ -1037,26 +1039,24 @@ namespace MitaAI
 
 
                     currentDialog.SetActive(true);
-
                     MitaBoringtimer = 0f;
                 }
-                else
+                catch (Exception ex)
                 {
-                    LoggerInstance.Msg("currentDialog is null.");
+                    LoggerInstance.Msg($"PlayerTalk: {ex.Message}");
                 }
+                
+                yield return new WaitForSeconds(delay);
+                MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
+                GameObject.Destroy(currentDialog);
 
             }
-            catch (Exception ex)
+            else
             {
-                LoggerInstance.Msg($"PlayerTalk: {ex.Message}");
+                LoggerInstance.Msg("currentDialog is null.");
             }
-            finally
-            {
-                if (currentDialog != null)
-                {
 
-                }
-            }
+
         }
         // Добавляет диалог в историю
         private void addDialogueMemory(Dialogue_3DText dialogue_3DText)
@@ -1076,6 +1076,8 @@ namespace MitaAI
             //textDialogueMemory.clr = dialogue_3DText.
             playerController.dialoguesMemory.Add(textDialogueMemory);
         }
+
+        #region Hunting
         public void beginHunt()
         {
             try
@@ -1141,7 +1143,6 @@ namespace MitaAI
             }
 
         }
-
         public void endHunt()
         {
             //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk"));
@@ -1152,7 +1153,9 @@ namespace MitaAI
             mitaState = MitaState.normal;
             MitaSharplyStopTimed(0.5f);
         }
-        
+
+        #endregion
+
         private IEnumerator MitaSharplyStopTimed(float time)
         {
             yield return new WaitForSeconds(time);
@@ -1703,13 +1706,7 @@ namespace MitaAI
             return info;
         }
 
-       
-
-
-        // Ввод
-
-
-
+      
         public override void OnUpdate()
         {
             try

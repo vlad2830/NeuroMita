@@ -1,5 +1,6 @@
 ﻿using Il2Cpp;
 using MelonLoader;
+using MitaAI.WorldModded;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -110,19 +111,19 @@ namespace MitaAI.Mita
 
                 // Блок Манекенов
                 case "заспавнить манекен":
-                    mitaCore.spawnManeken();
+                    MitaGames.spawnManeken();
                     break;
 
                 case "отключить все манекены":
-                    mitaCore.TurnAllMenekens(false);
+                    MitaGames.TurnAllMenekens(false);
                     break;
 
                 case "включить все манекены":
-                    mitaCore.TurnAllMenekens(true);
+                    MitaGames.TurnAllMenekens(true);
                     break;
 
                 case "удалить все манекены":
-                    mitaCore.removeAllMenekens();
+                    MitaGames.removeAllMenekens();
                     break;
 
                 case "начать охоту с ножом":
@@ -132,7 +133,7 @@ namespace MitaAI.Mita
                     mitaCore.endHunt();
                     break;
                 case "вернуться к норме":
-                    mitaCore.removeAllMenekens();
+                    MitaGames.removeAllMenekens();
                     mitaCore.endHunt();
                     break;
 
@@ -175,7 +176,7 @@ namespace MitaAI.Mita
             switch (command)
             {
                 case "изменить моргание игрока":
-                    mitaCore.blinkTimer = Math.Max(2, Math.Min(time, 10));
+                    MitaGames.blinkTimer = Math.Max(2, Math.Min(time, 10));
                     break;
 
                 case "изменить время дня":
@@ -238,7 +239,7 @@ namespace MitaAI.Mita
                 }
                 catch (Exception e)
                 {
-                    MelonLogger.Msg($"Unknown point: {command}");
+                    MelonLogger.Msg($"Unknown point: {command} error {e}");
                 }
             }
             else

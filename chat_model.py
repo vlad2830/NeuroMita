@@ -450,7 +450,7 @@ class ChatModel:
     def _generate_gemini_response(self, formatted_messages):
         try:
             response = self.generate_responseGemini(formatted_messages)
-            logger.info("Ответ Gemini: " + response)
+            logger.info("Ответ Gemini: ",response)
             return response
         except Exception as e:
             logger.error("Что-то не так при генерации Gemini", exc_info=True)

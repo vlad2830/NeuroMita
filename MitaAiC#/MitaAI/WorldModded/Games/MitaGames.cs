@@ -11,7 +11,10 @@ namespace MitaAI
 {
     static class MitaGames
     {
+        #region HuntingWithKnife
 
+
+        #endregion
 
         #region Manekens
 

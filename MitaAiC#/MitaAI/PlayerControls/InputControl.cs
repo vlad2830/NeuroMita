@@ -192,7 +192,7 @@ namespace MitaAI.PlayerControls
         private static void ProcessInput(string inputText)
         {
             MelonLogger.Msg("Input received: " + inputText);
-            MitaCore.Instance.PlayerTalk(inputText);
+            MelonCoroutines.Start(MitaCore.Instance.PlayerTalk(inputText));
             MitaCore.Instance.playerMessage += $"{inputText}\n";
 
         }
