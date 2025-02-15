@@ -27,7 +27,19 @@ def get_resource_path(filename):
         return os.path.join(promts_path, filename)
     print(f"Ошибка: Папка 'Promts' не найдена рядом с исполнимым файлом.")
     return None
+@staticmethod
+def load_text_from_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as file:
+        return file.read()
 
+@staticmethod
+def load_json_file(filepath):
+    try:
+        with open(filepath, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        print(f"Файл {filepath} не найден.")
+        return {}
 def load_text_from_file(filename):
     try:
         with open(get_resource_path(filename), 'r', encoding='utf-8') as file:

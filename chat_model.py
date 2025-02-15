@@ -11,8 +11,27 @@ import re
 import shutil
 from num2words import num2words
 
-from utils import clamp, print_ip_and_country, get_resource_path, load_text_from_file, save_combined_messages, \
-    calculate_cost_for_combined_messages, count_tokens
+from utils import *
+
+
+# Настройка логирования
+import logging
+import colorlog
+# Настройка цветного логирования
+handler = colorlog.StreamHandler()
+handler.setFormatter(colorlog.ColoredFormatter(
+    '%(log_color)s%(asctime)s - %(levelname)s - %(message)s',
+    log_colors={
+        'INFO': 'white',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'red,bg_white',
+    }
+))
+
+logger = colorlog.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 
 class ChatModel:
@@ -30,21 +49,6 @@ class ChatModel:
         except:
             print("Со старта не получилось запустить OpenAi client")
 
-        """
-        # test openai
-        if False:
-            self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
-            self.api_model = "gpt-4o-mini"
-
-        # test deepseek
-        if False:
-            self.client = OpenAI(api_key=self.api_key, base_url="https://api.proxyapi.ru/deepseek")
-            self.api_model = "deepseek-chat"
-        # test gemini
-        if False:
-            self.api_url = "https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent"
-            self.api_model = "gemini-1.5-flash"
-        """
 
         try:
             self.tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
@@ -98,36 +102,24 @@ class ChatModel:
         self.infos.append(message)
 
     def load_prompts(self):
-        self.common = self.load_text_from_file("Promts/Main/common.txt")
-        self.main = self.load_text_from_file("Promts/Main/main.txt")
-        self.player = self.load_text_from_file("Promts/Main/player.txt")
-        self.mainPlaying = self.load_text_from_file("Promts/Main/mainPlaing.txt")
-        self.mainCrazy = self.load_text_from_file("Promts/Main/mainCrazy.txt")
+        self.common = load_text_from_file("Promts/Main/common.txt")
+        self.main = load_text_from_file("Promts/Main/main.txt")
+        self.player = load_text_from_file("Promts/Main/player.txt")
+        self.mainPlaying = load_text_from_file("Promts/Main/mainPlaing.txt")
+        self.mainCrazy = load_text_from_file("Promts/Main/mainCrazy.txt")
 
-        self.examplesLong = self.load_text_from_file("Promts/Context/examplesLong.txt")
-        self.examplesLongCrazy = self.load_text_from_file("Promts/Context/examplesLongCrazy.txt")
+        self.examplesLong = load_text_from_file("Promts/Context/examplesLong.txt")
+        self.examplesLongCrazy = load_text_from_file("Promts/Context/examplesLongCrazy.txt")
 
-        self.world = self.load_text_from_file("Promts/NotUsedNow/world.txt")
-        self.mita_history = self.load_text_from_file("Promts/Context/mita_history.txt")
+        self.world = load_text_from_file("Promts/NotUsedNow/world.txt")
+        self.mita_history = load_text_from_file("Promts/Context/mita_history.txt")
 
-        self.variableEffects = self.load_text_from_file("Promts/Structural/VariablesEffects.txt")
-        self.response_structure = self.load_text_from_file("Promts/Structural/response_structure.txt")
+        self.variableEffects = load_text_from_file("Promts/Structural/VariablesEffects.txt")
+        self.response_structure = load_text_from_file("Promts/Structural/response_structure.txt")
 
-        self.SecretExposedText = self.load_text_from_file("Promts/Events/SecretExposed.txt")
+        self.SecretExposedText = load_text_from_file("Promts/Events/SecretExposed.txt")
 
-    @staticmethod
-    def load_text_from_file(file_path):
-        with open(file_path, "r", encoding="utf-8") as file:
-            return file.read()
 
-    @staticmethod
-    def load_json_file(filepath):
-        try:
-            with open(filepath, "r", encoding="utf-8") as file:
-                return json.load(file)
-        except FileNotFoundError:
-            print(f"Файл {filepath} не найден.")
-            return {}
 
     def calculate_cost(self, user_input):
         # Загружаем историю
@@ -413,79 +405,88 @@ class ChatModel:
 
     def _generate_chat_response(self, combined_messages):
         success = True
+        response = None
 
-        """Генерация ответа с помощью клиента"""
+        self._log_generation_start()
+        self._save_and_calculate_cost(combined_messages)
+
+        if self.makeRequest:
+            formatted_messages = self._format_messages_for_gemini(combined_messages)
+            response = self._generate_gemini_response(formatted_messages)
+        else:
+            response = self._generate_openai_response(combined_messages)
+
+        if response:
+            response = self._clean_response(response)
+            logger.info("Мита: \n" + response)
+        else:
+            success = False
+
+        return response, success
+
+    def _log_generation_start(self):
+        logger.info("Перед отправкой на генерацию")
+        logger.info(f"API Key: {self.api_key}")
+        logger.info(f"API URL: {self.api_url}")
+        logger.info(f"API Model: {self.api_model}")
+        logger.info(f"Make Request: {self.makeRequest}")
+
+    def _save_and_calculate_cost(self, combined_messages):
         save_combined_messages(combined_messages)
         try:
             self.gui.last_price = calculate_cost_for_combined_messages(self, combined_messages,
                                                                        self.cost_input_per_1000)
-        except:
-            print("Не получилось сделать с токенайзером")
-        print(self.gui.last_price)
+            logger.info(f"Calculated cost: {self.gui.last_price}")
+        except Exception as e:
+            logger.error("Не получилось сделать с токенайзером", exc_info=True)
 
-        print("Перед отправкой на генерацию")
-        print(self.api_key)
-        print(self.api_url)
-        print(self.api_model)
-        print(self.makeRequest)
+    def _format_messages_for_gemini(self, combined_messages):
+        formatted_messages = []
+        for msg in combined_messages:
+            if msg["role"] == "system":
+                formatted_messages.append({"role": "user", "content": f"[System Prompt]\n{msg['content']}"})
+            else:
+                formatted_messages.append(msg)
+        save_combined_messages(formatted_messages, "Gem")
+        return formatted_messages
 
-        # Преобразование system messages для Gemini
-        if self.makeRequest:
-            formatted_messages = []  # Список для хранения отформатированных сообщений
+    def _generate_gemini_response(self, formatted_messages):
+        try:
+            response = self.generate_responseGemini(formatted_messages)
+            logger.info("Ответ Gemini: " + response)
+            return response
+        except Exception as e:
+            logger.error("Что-то не так при генерации Gemini", exc_info=True)
+            return None
 
-            for msg in combined_messages:
-                if msg["role"] == "system":
-                    # Добавляем системные инструкции с меткой [Инструкция модели]
-                    formatted_messages.append({"role": "user", "content": f"[System Prompt]\n{msg['content']}"})
-                else:
-                    # Остальные сообщения добавляем как есть
-                    formatted_messages.append(msg)
+    def _generate_openai_response(self, combined_messages):
+        if not self.client:
+            logger.info("Попытка переподключения клиента")
+            self.update_openai_client()
 
-            # Сохраняем отформатированные сообщения
-            save_combined_messages(formatted_messages, "Gem")
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.api_model,
+                messages=combined_messages,
+                max_tokens=self.max_response_tokens,
+                presence_penalty=1.5,
+                temperature=0.5,
+            )
+            response = completion.choices[0].message.content
+            return response.lstrip("\n")
+        except Exception as e:
+            logger.error("Что-то не так при генерации OpenAI", exc_info=True)
+            return None
 
-            # Генерация ответа с использованием Gemini
-            try:
-                response = self.generate_responseGemini(formatted_messages)
-            except Exception as e:
-                print("Что-то не так при генере гемини",e)
-                success = False
-            print(response)
-            try:
-                response = response.lstrip("```\n")
-                response = response.removesuffix("\n```\n")
-            except:
-                print("Проблема с префиксами или постфиками")
-
-        else:
-
-            print("Обычный open api")
-            if not self.client:
-                print("Попытка переподключения клиента")
-                self.update_openai_client()
-
-            try:
-                completion = self.client.chat.completions.create(
-                    model=self.api_model,
-                    messages=combined_messages,
-                    max_tokens=self.max_response_tokens,
-                    presence_penalty=1.5,
-                    temperature=0.5,
-                )
-                response = completion.choices[0].message.content
-
-                # Убираем все символы новой строки в начале строки
-                response = response.lstrip("\n")
-            except Exception as e:
-                print("Что-то не так при генере обычном",e)
-                success = False
-
-        print("Мита: \n" + response)
-        return response, success
+    def _clean_response(self, response):
+        try:
+            response = response.lstrip("```\n")
+            response = response.removesuffix("\n```\n")
+        except Exception as e:
+            logger.error("Проблема с префиксами или постфиксами", exc_info=True)
+        return response
 
     def generate_responseGemini(self, combined_messages):
-        print("Через реквест делаем")
-        # Подготовка тела запроса
         data = {
             "contents": [
                 {"role": "user", "parts": [{"text": msg["content"]}]} for msg in combined_messages
@@ -497,29 +498,23 @@ class ChatModel:
             }
         }
 
-        # Заголовки запроса
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}"
         }
 
-        # Отправка запроса
-        print("Отправляю")
+        logger.info("Отправляю запрос к Gemini")
         save_combined_messages(data, "Gem2")
         response = requests.post(self.api_url, headers=headers, json=data)
-        print("Ответ гемени: ", response)
-        #   print("ключ"+self.api_key)
-        # Обработка ответа
+
         if response.status_code == 200:
             response_data = response.json()
-            # Извлечение текста ответа (зависит от структуры ответа Gemini)
-
             generated_text = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get(
                 "text", "")
-            print("Gemini Flash: \n" + generated_text)
+            logger.info("Gemini Flash: \n" + generated_text)
             return generated_text
         else:
-            print("Ошибка:", response.status_code, response.text)
+            logger.error(f"Ошибка: {response.status_code}, {response.text}")
             return None
 
     def process_response(self, user_input, response, messages):
@@ -699,21 +694,21 @@ class ChatModel:
         return response
 
     def reload_promts(self):
-        self.common = self.load_text_from_file("Promts/Main/common.txt")
-        self.main = self.load_text_from_file("Promts/Main/main.txt")
+        self.common = load_text_from_file("Promts/Main/common.txt")
+        self.main = load_text_from_file("Promts/Main/main.txt")
 
-        self.player = self.load_text_from_file("Promts/Main/player.txt")
-        self.mainPlaying = self.load_text_from_file("Promts/Main/mainPlaing.txt")
-        self.mainCrazy = self.load_text_from_file("Promts/Main/mainCrazy.txt")
+        self.player = load_text_from_file("Promts/Main/player.txt")
+        self.mainPlaying = load_text_from_file("Promts/Main/mainPlaing.txt")
+        self.mainCrazy = load_text_from_file("Promts/Main/mainCrazy.txt")
 
-        self.examplesLong = self.load_text_from_file("Promts/Context/examplesLong.txt")
-        self.examplesLongCrazy = self.load_text_from_file("Promts/Context/examplesLongCrazy.txt")
+        self.examplesLong = load_text_from_file("Promts/Context/examplesLong.txt")
+        self.examplesLongCrazy = load_text_from_file("Promts/Context/examplesLongCrazy.txt")
 
-        self.world = self.load_text_from_file("Promts/NotUsedNow/world.txt")
-        self.mita_history = self.load_text_from_file("Promts/Context/mita_history.txt")
-        self.variableEffects = self.load_text_from_file("Promts/Structural/VariablesEffects.txt")
-        self.response_structure = self.load_text_from_file("Promts/Structural/response_structure.txt")
-        self.SecretExposedText = self.load_text_from_file("Promts/Events/SecretExposed.txt")
+        self.world = load_text_from_file("Promts/NotUsedNow/world.txt")
+        self.mita_history = load_text_from_file("Promts/Context/mita_history.txt")
+        self.variableEffects = load_text_from_file("Promts/Structural/VariablesEffects.txt")
+        self.response_structure = load_text_from_file("Promts/Structural/response_structure.txt")
+        self.SecretExposedText = load_text_from_file("Promts/Events/SecretExposed.txt")
 
         self.systemMessages.clear()
 
@@ -831,6 +826,7 @@ class ChatModel:
             'secretExposedFirst': False,
         }
 
+
 def add_temporary_system_message(messages, content):
     """
     Добавляет одноразовое системное сообщение в список сообщений.
@@ -852,4 +848,3 @@ def replace_numbers_with_words(text):
         word = num2words(int(number), lang='ru')
         text = text.replace(number, word)
     return text
-
