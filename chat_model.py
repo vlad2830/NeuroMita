@@ -11,7 +11,7 @@ import re
 import shutil
 from num2words import num2words
 
-from character import Character
+from character import *
 from utils import *
 from MemorySystem import MemorySystem
 
@@ -85,6 +85,8 @@ class ChatModel:
         self.PlayingFirst = False
 
         self.mita_character = Character("Mita", "/speaker Mita")
+        crazy_mita_prompts(self.mita_character)
+
         self.load_prompts()
 
         self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
@@ -105,22 +107,22 @@ class ChatModel:
         self.infos.append(message)
 
     def load_prompts(self):
-        self.common = load_text_from_file("Promts/Main/common.txt")
-        self.main = load_text_from_file("Promts/Main/main.txt")
-        self.player = load_text_from_file("Promts/Main/player.txt")
-        self.mainPlaying = load_text_from_file("Promts/Main/mainPlaing.txt")
-        self.mainCrazy = load_text_from_file("Promts/Main/mainCrazy.txt")
+        self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
+        self.main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
+        self.player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
+        self.mainPlaying = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainPlaing.txt")
+        self.mainCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainCrazy.txt")
 
-        self.examplesLong = load_text_from_file("Promts/Context/examplesLong.txt")
-        self.examplesLongCrazy = load_text_from_file("Promts/Context/examplesLongCrazy.txt")
+        self.examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
+        self.examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
 
-        self.world = load_text_from_file("Promts/NotUsedNow/world.txt")
-        self.mita_history = load_text_from_file("Promts/Context/mita_history.txt")
+        self.world = load_text_from_file("Prompts/CrazyMitaPrompts/NotUsedNow/world.txt")
+        self.mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
 
-        self.variableEffects = load_text_from_file("Promts/Structural/VariablesEffects.txt")
-        self.response_structure = load_text_from_file("Promts/Structural/response_structure.txt")
+        self.variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
+        self.response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
 
-        self.SecretExposedText = load_text_from_file("Promts/Events/SecretExposed.txt")
+        self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
 
     def calculate_cost(self, user_input):
         # Загружаем историю
@@ -176,8 +178,6 @@ class ChatModel:
             print("update_openai_client не сработал")
 
     def generate_response(self, user_input, system_input=""):
-
-        self.repeatResponse = False
         # Загрузка истории из файла
         history_data = self.load_history()
 
@@ -222,7 +222,7 @@ class ChatModel:
         })
         current_info['MitaSystemMessages'] = self.systemMessages
 
-        combined_messages = self._combine_messages(messages, timed_system_message)
+        combined_messages = self._combine_messages_Test2(self.mita_character, messages, timed_system_message)
 
         # Генерация ответа с использованием клиента
         try:
@@ -311,6 +311,14 @@ class ChatModel:
         }
 
     def _process_user_input(self, user_input, system_input, messages):
+        """
+        Перед сообщением пользователя будет контекст, он не запишется в историю.
+        :param user_input:
+        :param system_input:
+        :param messages:
+        :return: сообщение с добавленным временным сообщением до
+        """
+
         self.LongMemoryRememberCount += 1
 
         """Обработка пользовательского ввода и добавление сообщений"""
@@ -327,9 +335,6 @@ class ChatModel:
 
         if self.LongMemoryRememberCount % 3 == 0:
             repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaked me</memory>"
-
-        #if self.LongMemoryRememberCount % 15 == 0:
-        #   repeated_system_message += "При необходимости реструктуризируй память, используя <#memory>Итоговые факты об игроке</memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -352,6 +357,33 @@ class ChatModel:
 
         # Возвращаем название комнаты, если оно есть, иначе возвращаем сообщение о неизвестной комнате
         return room_names.get(room_id, "?")
+
+    def _combine_messages_Test2(self, character: Character, messages, timed_system_message):
+        """Комбинирование всех сообщений перед отправкой"""
+        # Чем выше здесь, тем дальше от начала будет
+
+        combined_messages = character.prepare_fixed_messages()
+
+        # Добавляем timed_system_message, если это словарь
+        if isinstance(timed_system_message, dict):
+            combined_messages.append(timed_system_message)
+            print("timed_system_message успешно добавлено.")
+
+        if self.nearObjects != "" and self.nearObjects != "-":
+            text = f"В радиусе от тебя следующие объекты (object tree) {self.nearObjects}"
+            messageNear = {"role": "system", "content": text}
+            combined_messages.append(messageNear)
+
+        if self.actualInfo != "" and self.actualInfo != "-":
+            messageActual = {"role": "system", "content": self.actualInfo}
+            combined_messages.append(messageActual)
+
+        # Добавляем messages, если они не пустые
+        if messages:
+            combined_messages.extend(messages)
+            print("messages успешно добавлены. Количество:", len(messages))
+
+        return combined_messages
 
     def _combine_messages(self, messages, timed_system_message):
         """Комбинирование всех сообщений перед отправкой"""
@@ -734,21 +766,21 @@ class ChatModel:
     def reload_promts(self):
         print("Перезагрузка промптов")
 
-        self.common = load_text_from_file("Promts/Main/common.txt")
-        self.main = load_text_from_file("Promts/Main/main.txt")
+        self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
+        self.main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
 
-        self.player = load_text_from_file("Promts/Main/player.txt")
-        self.mainPlaying = load_text_from_file("Promts/Main/mainPlaing.txt")
-        self.mainCrazy = load_text_from_file("Promts/Main/mainCrazy.txt")
+        self.player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
+        self.mainPlaying = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainPlaing.txt")
+        self.mainCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainCrazy.txt")
 
-        self.examplesLong = load_text_from_file("Promts/Context/examplesLong.txt")
-        self.examplesLongCrazy = load_text_from_file("Promts/Context/examplesLongCrazy.txt")
+        self.examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
+        self.examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
 
-        self.world = load_text_from_file("Promts/NotUsedNow/world.txt")
-        self.mita_history = load_text_from_file("Promts/Context/mita_history.txt")
-        self.variableEffects = load_text_from_file("Promts/Structural/VariablesEffects.txt")
-        self.response_structure = load_text_from_file("Promts/Structural/response_structure.txt")
-        self.SecretExposedText = load_text_from_file("Promts/Events/SecretExposed.txt")
+        self.world = load_text_from_file("Prompts/CrazyMitaPrompts/NotUsedNow/world.txt")
+        self.mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
+        self.variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
+        self.response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
+        self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
 
         self.systemMessages.clear()
 
