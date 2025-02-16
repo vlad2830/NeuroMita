@@ -50,6 +50,7 @@ namespace MitaAI.Mita
         }
         public static void ProcessCommands(List<string> commands)
         {
+            MelonLogger.Msg("ProcessCommands start");
             foreach (string command in commands)
             {
                 try

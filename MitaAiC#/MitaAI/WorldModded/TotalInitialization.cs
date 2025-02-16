@@ -308,7 +308,7 @@ namespace MitaAI
                 MitaCore.Instance.knife = FindAndInstantiateObject(MitaCore.Instance.AnimationKiller.transform, "Mita/MitaPerson Mita/Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item/Knife", "333");
                 MitaCore.Instance.knife.transform.SetParent(Utils.TryfindChild(MitaCore.Instance.MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item").transform);
                 MitaCore.Instance.knife.transform.localPosition = new Vector3(0, 0, 0);
-                MitaCore.Instance.knife.transform.rotation = Quaternion.identity;
+                MitaCore.Instance.knife.transform.localRotation = Quaternion.identity;
                 MitaCore.Instance.knife.SetActive(false);
 
                 //AnimationKiller.GetComponent<Location6_MitaKiller>().mita = Mita.transform;

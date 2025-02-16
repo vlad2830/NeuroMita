@@ -496,8 +496,19 @@ namespace MitaAI.Mita
                 }
                 else
                 {
+                    AnimationClip curretAnim = location34_Communication.mitaAnimationWalk;
+                    if (curretAnim == null) {
+                        MelonLogger.Msg($"location34_Communication.mitaAnimationWalk is null");
+                        curretAnim = FindAnimationClipByName("Mita Walk_1");
+                        if (curretAnim == null) {
+                            MelonLogger.Msg($"FindAnimationClipByName(\"Mita Walk\"); is null");
+                        }
+
+                    }
+
                     location34_Communication.mitaAnimationWalk = anim;
-                    mitaAnimatorFunctions.AnimationClipWalk(anim);
+                    mitaAnimatorFunctions.ReAnimationClip("Mita Walk_1", anim);
+                    
                 }
 
             }

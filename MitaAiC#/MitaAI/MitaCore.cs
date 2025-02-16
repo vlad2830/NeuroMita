@@ -71,7 +71,7 @@ namespace MitaAI
             noclip = 3
 
         }
-        MovementStyles movementStyle = 0;
+        MovementStyles movementStyle = MovementStyles.walkNear;
         enum MitaState
         {
             normal = 0,
@@ -103,7 +103,7 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 8;
+        const int simbolsPerSecond = 11;
 
         public Menu MainMenu;
         private GameObject CustomDialog;
@@ -602,8 +602,10 @@ namespace MitaAI
 
         public float getDistanceToPlayer()
         {
-            if (Mita == null || playerPerson == null) { return 0f; }
-            return Vector3.Distance(Mita.transform.GetChild(0).position, playerPerson.transform.position);
+            if (MitaPersonObject == null || playerObject == null) { return 0f; }
+            return Utils.getDistanceBetweenObjects(MitaPersonObject, playerObject);
+
+
         }
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
@@ -917,7 +919,7 @@ namespace MitaAI
                 LoggerInstance.Msg("foreach foreach " + part);
 
                 string partCleaned = Regex.Replace(part, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
-                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 1,8f); 
+                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.6f,8f); 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay));
             }
@@ -1083,14 +1085,15 @@ namespace MitaAI
             try
             {
                 LoggerInstance.Msg("beginHunt ");
+                knife.SetActive(true);
                 mitaState = MitaState.hunt;
                 MelonCoroutines.Start(hunting());
                 Location34_Communication.ActivationCanWalk(false);
                 //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita RunWalkKnife")); //
                 MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
                 MitaAnimationModded.setIdleWalk("Mita WalkKnife");
-                knife.SetActive(true);
-                knife.transform.rotation = Quaternion.identity;
+                
+                
                 
             }
             catch (Exception ex)
@@ -1447,7 +1450,8 @@ namespace MitaAI
         {
             while (movementStyle != MovementStyles.walkNear)
             {
-                if (!Mita.GetComponent<NavMeshAgent>().isActiveAndEnabled) {
+                if (!Mita.GetComponent<NavMeshAgent>().enabled) 
+                { 
 
                     if (Utils.Random(6, 10)) MitaLook.LookOnPlayerAndRotate();
                     else MitaLook.LookRandom();
@@ -1458,12 +1462,12 @@ namespace MitaAI
         }
 
 
-        public IEnumerator FollowPlayer()
+        public IEnumerator FollowPlayer(float distance = 1.15f)
         {
 
             while (movementStyle == MovementStyles.follow)
             {
-                if (getDistanceToPlayer() > 1.1f)
+                if (getDistanceToPlayer() > distance)
                 {
                     Mita.AiWalkToTarget(playerPerson.transform);
                     
@@ -1479,17 +1483,18 @@ namespace MitaAI
 
 
         }
-        public IEnumerator FollowPlayerNoclip()
+        public IEnumerator FollowPlayerNoclip(float distance = 1.1f)
         {
-
-            while (movementStyle == MovementStyles.noclip && getDistanceToPlayer() > 0.9f)
+            MelonLogger.Msg("Begin noClip");
+            MitaPersonObject.GetComponent<CapsuleCollider>().enabled = false;
+            while (movementStyle == MovementStyles.noclip && getDistanceToPlayer() > distance)
             {
 
-                MoveToPositionNoClip(5);
+                yield return MelonCoroutines.Start(MoveToPositionNoClip(5));
 
-                yield return new WaitForSeconds(2f);
+                yield return new WaitForSeconds(1f);
             }
-
+            MitaPersonObject.GetComponent<CapsuleCollider>().enabled = true;
 
         }
         private IEnumerator MoveToPositionNoClip(float speed)
@@ -1676,6 +1681,8 @@ namespace MitaAI
 
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
+
+                if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere";
 
                 info += $"Player size: {playerObject.transform.localScale.x}\n";
                 info += $"Player speed: {playerObject.GetComponent<PlayerMove>().speedPlayer}\n";

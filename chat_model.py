@@ -418,6 +418,7 @@ class ChatModel:
             logger.info("Мита: \n" + response)
         else:
             success = False
+            print("Ответ пустой")
 
         return response, success
 
@@ -462,6 +463,14 @@ class ChatModel:
             self.update_openai_client()
 
         try:
+
+            # Гемини нужно всегда последнее сообщение пользователя
+            if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
+                print("gemini последнее системное сообщение")
+                combined_messages[-1]["role"] = "user"
+                combined_messages[-1]["content"] = "[SYSTEM INFO]"+combined_messages[-1]["content"]
+
+            print("in completion ", combined_messages)
             completion = self.client.chat.completions.create(
                 model=self.api_model,
                 messages=combined_messages,
@@ -470,6 +479,8 @@ class ChatModel:
                 temperature=0.5,
             )
             response = completion.choices[0].message.content
+
+            print("out completion ",completion)
             return response.lstrip("\n")
         except Exception as e:
             logger.error("Что-то не так при генерации OpenAI", exc_info=True)
