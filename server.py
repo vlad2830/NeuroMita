@@ -69,16 +69,14 @@ class ChatServer:
                 #self.gui.insertDialog(message,response)
                 print("Отправлено Мите на озвучку: " + response)
 
-            # Отправка ответа обратно клиенту
-            # Формируем сообщение через f-string с разделителем |||
-            #print(f"Попытка отправить путь к файлу{self.gui.patch_to_sound_file}")
-
             # Ждать ли на той стороне файла озвучки
             if self.gui.silero_connected.get():
                 silero = "1"
             else:
                 silero = "0"
-            message = f"{response}|||{silero}|||{self.gui.patch_to_sound_file}"
+
+
+            message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}"
             self.gui.patch_to_sound_file = ""
 
             # Отправляем сообщение через сокет

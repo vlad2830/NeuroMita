@@ -39,7 +39,8 @@ namespace MitaAI
                 if (string.IsNullOrEmpty(mitaCore.currentInfo)) _currentInfo = "-";
                 if (string.IsNullOrEmpty(systemInfo)) systemInfo = "-";
 
-                string total_input = $"{input}|||{dataToSentSystem}|||{systemInfo}|||{mitaCore.distance.ToString("F2")}|||{mitaCore.roomIDPlayer}|||{mitaCore.roomIDMita}|||{mitaCore.hierarchy}|||{_currentInfo}";
+                string character = "Mita";
+                string total_input = $"{character}|||{input}|||{dataToSentSystem}|||{systemInfo}|||{mitaCore.distance.ToString("F2")}|||{mitaCore.roomIDPlayer}|||{mitaCore.roomIDMita}|||{mitaCore.hierarchy}|||{_currentInfo}";
 
                 byte[] messageBytes = Encoding.UTF8.GetBytes(total_input);
                 await clientSocket.SendAsync(messageBytes, SocketFlags.None);
@@ -54,13 +55,14 @@ namespace MitaAI
                     string[] parts = receivedMessage.Split(new string[] { "|||" }, StringSplitOptions.None);
 
                     // Логируем ответ
-                    string response = parts[0];
+                    character = parts[0];
+                    string response = parts[1];
                     string patch = "";
-                    string sileroConnected = parts[1];
+                    string sileroConnected = parts[2];
                     //MelonLogger.Msg("Reveiced data" + parts[0] + "" + parts[2]);
                     //waitForSounds = parts[1];
 
-                    if (!string.IsNullOrEmpty(parts[2])) patch = parts[2];
+                    if (!string.IsNullOrEmpty(parts[3])) patch = parts[3];
                     //patch_to_sound_file = parts[1];
                     return (response,sileroConnected,patch);
                 }
