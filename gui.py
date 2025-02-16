@@ -5,9 +5,8 @@ from Silero import TelegramBotHandler
 
 import os
 import base64
-import pickle
 from pathlib import Path
-
+import json
 import glob
 
 import asyncio
@@ -35,10 +34,13 @@ class ChatGUI:
         self.api_id = None
         self.phone = None
         try:
-            self.config_path = Path.home() / ".myapp_config.bin"  # Путь к файлу в домашней директории
+            target_folder = "Settings"
+            os.makedirs(target_folder, exist_ok=True)
+            self.config_path  = os.path.join(target_folder, "settings.json")
+            #self.config_path = Path.home() / ".myapp_config.bin"  # Путь к файлу в домашней директории
             self.load_api_settings(False)  # Загружаем настройки при инициализации
-        except:
-            print("Не удалось удачно получить из системных переменных все данные")
+        except Exception as e:
+            print("Не удалось удачно получить из системных переменных все данные",e)
 
 
         self.model = ChatModel(self, self.api_key, self.api_url, self.api_model, self.makeRequest)
@@ -110,7 +112,11 @@ class ChatGUI:
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
             await self.bot_handler.start()
             self.bot_handler_ready = True
-            print("Telegram Bot запущен!")
+            if self.silero_connected:
+                print("ТГ успешно подключен")
+            else:
+                print("ТГ не подключен")
+
         except Exception as e:
             print(f"Ошибка при запуске Telegram Bot: {e}")
             self.silero_connected = False
@@ -497,7 +503,6 @@ class ChatGUI:
         if api_model := self.api_model_entry.get().strip():
             settings["NM_API_MODEL"] = api_model
 
-
         if api_id := self.api_id_entry.get().strip():
             settings["NM_TELEGRAM_API_ID"] = api_id
         if api_hash := self.api_hash_entry.get().strip():
@@ -513,7 +518,11 @@ class ChatGUI:
 
         # Сериализация и кодирование
         try:
-            encoded = base64.b64encode(pickle.dumps(settings))
+            # Сериализуем в JSON
+            json_data = json.dumps(settings, ensure_ascii=False)
+            # Кодируем в base64
+            encoded = base64.b64encode(json_data.encode("utf-8"))
+            # Сохраняем в файл
             with open(self.config_path, "wb") as f:
                 f.write(encoded)
             print("Настройки успешно сохранены в файл")
@@ -524,20 +533,23 @@ class ChatGUI:
         self.load_api_settings(update_model=True)
 
         if not self.silero_connected:
-            print("попытка запустить силеро заново")
+            print("Попытка запустить силеро заново")
             self.start_silero_async()
 
     def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
-        if not self.config_path.exists():
-            print("Не найден путь настроек")
+        if not os.path.exists(self.config_path):
+            print("Не найден файл настроек")
             return
 
         try:
+            # Читаем закодированные данные из файла
             with open(self.config_path, "rb") as f:
                 encoded = f.read()
+            # Декодируем из base64
             decoded = base64.b64decode(encoded)
-            settings = pickle.loads(decoded)
+            # Десериализуем JSON
+            settings = json.loads(decoded.decode("utf-8"))
 
             # Устанавливаем значения
             self.api_key = settings.get("NM_API_KEY", "")
@@ -550,7 +562,8 @@ class ChatGUI:
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH", "")
             self.phone = settings.get("NM_TELEGRAM_PHONE", "")
 
-            print(f"Итого до гуи дошло {self.api_key},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
+            print(
+                f"Итого до гуи дошло {self.api_key},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
             print(f"Передаю в тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто)")
             if update_model:
                 if self.api_key:
@@ -559,14 +572,13 @@ class ChatGUI:
                     self.model.api_url = self.api_url
                 if self.api_model:
                     self.model.api_model = self.api_model
-                if self.makeRequest:
-                    self.model.makeRequest = self.makeRequest
+
+                self.model.makeRequest = self.makeRequest
                 self.model.update_openai_client()
 
             print("Настройки загружены из файла")
         except Exception as e:
             print(f"Ошибка загрузки: {e}")
-
     def paste_from_clipboard(self, event=None):
         try:
             clipboard_content = self.root.clipboard_get()

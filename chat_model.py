@@ -779,7 +779,7 @@ class ChatModel:
             json.dump(history_data, f, ensure_ascii=False, indent=4)
 
     def save_chat_history(self):
-        print("@!@#!23@#! КАКОГО ОНО ОТРАБОТАЛО??")
+        print("save_chat_history")
         # Имя исходного файла
         source_file = "chat_history.json"
         # Папка для сохранения историй
