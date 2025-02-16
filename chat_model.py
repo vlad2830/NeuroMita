@@ -12,7 +12,7 @@ import shutil
 from num2words import num2words
 
 from utils import *
-
+from MemorySystem import MemorySystem
 
 # Настройка логирования
 import logging
@@ -85,7 +85,9 @@ class ChatModel:
 
         self.load_prompts()
 
-        self.MitaLongMemory = {"role": "system", "content": f" ДолгаяПамять<  >КонецДолгойПамяти "}
+        self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
+        self.MemorySystem = MemorySystem("mita_memories.json")
+
         self.MitaMainBehaviour = []
         self.MitaExamples = []
         self.systemMessages = []
@@ -322,10 +324,10 @@ class ChatModel:
         repeated_system_message += f"You are in {self.get_room_name(int(self.roomMita))}, player is in {self.get_room_name(int(self.roomPlayer))}. "
 
         if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Запомни факты за 3 сообщения пользователя используя <+memory>Факт который нужно запомнить</memory>"
+            repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaked me</memory>"
 
-        if self.LongMemoryRememberCount % 15 == 0:
-            repeated_system_message += "При необходимости реструктуризируй память, используя <#memory>Итоговые факты об игроке</memory>"
+        #if self.LongMemoryRememberCount % 15 == 0:
+         #   repeated_system_message += "При необходимости реструктуризируй память, используя <#memory>Итоговые факты об игроке</memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -372,7 +374,7 @@ class ChatModel:
         # Добавляем MitaLongMemory, если это словарь и ключ "Role" существует и его значение не пустое
         if isinstance(self.MitaLongMemory, dict):
             if self.MitaLongMemory == {}:
-                self.MitaLongMemory = {"role": "system", "content": f" ДолгаяПамять<  >КонецДолгойПамяти "}
+                self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
             combined_messages.append(self.MitaLongMemory)
             print(self.MitaLongMemory)
             print("MitaLongMemory успешно добавлен.")
@@ -619,41 +621,67 @@ class ChatModel:
 
         return clean_text
 
+    import re
+
+    import re
+
     def extract_and_process_memory_data(self, response):
         """
-        Извлекает данные из ответа, содержащего теги <+memory>...</+h> или <#memory>...</#h>,
-        и добавляет или переписывает их в память Миты.
-
-        :param response: Ответ, который нужно обработать.
-        :return: Обработанный ответ.
+        Извлекает данные из ответа с тегами памяти и выполняет операции.
+        Форматы тегов:
+        - Добавление: <+memory>priority|content</memory>
+        - Обновление: <#memory>number|priority|content</memory>
+        - Удаление: <-memory>number</memory>
         """
-        if self.MitaLongMemory == {}:
-            print("MitaLongMemory создана с  нуля тк {}")
-            self.MitaLongMemory = {"role": "system", "content": f" ДолгаяПамять<  >КонецДолгойПамяти "}
-        # Регулярное выражение для поиска тегов <+memory>...</+h> или <#memory>...</#h>
-        memory_pattern = r"<([+#]memory)>(.*?)<\/memory>"
-
-        # Ищем все совпадения
-        matches = re.findall(memory_pattern, response)
+        # Регулярное выражение для захвата тегов памяти
+        memory_pattern = r"<([+#-])memory>(.*?)</memory>"
+        matches = re.findall(memory_pattern, response, re.DOTALL)
 
         if matches:
-            print("ПОПЫТКА ИЗМЕНЕНИЯ ПАМЯТИ!!!!!!!")
-            for tag_type, content in matches:
-                if tag_type == "+memory":
-                    print("Добавление воспоминания.")
-                    # Добавление нового воспоминания
-                    self.MitaLongMemory["content"] = self.MitaLongMemory["content"].replace(
-                        " >КонецДолгойПамяти",
-                        f" | {content} >КонецДолгойПамяти"
-                    )
-                elif tag_type == "#memory":
-                    print("Переписывание воспоминания.")
-                    # Переписывание всего воспоминания
-                    self.MitaLongMemory["content"] = f" ДолгаяПамять< {content} >КонецДолгойПамяти "
+            print("Обнаружены команды изменения памяти!")
+            for operation, content in matches:
+                content = content.strip()
+                try:
+                    # Обработка добавления
+                    if operation == "+":
+                        parts = [p.strip() for p in content.split('|', 1)]
+                        if len(parts) != 2:
+                            raise ValueError("Неверный формат данных для добавления")
 
-            # Убираем все теги из ответа
+                        priority, mem_content = parts
+                        self.MemorySystem.add_memory(
+                            priority=priority,
+                            content=mem_content
+                        )
+                        print(f"Добавлено воспоминание #{mem_content}")
+
+                    # Обработка обновления
+                    elif operation == "#":
+                        parts = [p.strip() for p in content.split('|', 2)]
+                        if len(parts) != 3:
+                            raise ValueError("Неверный формат данных для обновления")
+
+                        number, priority, mem_content = parts
+                        self.MemorySystem.update_memory(
+                            number=int(number),
+                            priority=priority,
+                            content=mem_content
+                        )
+                        print(f"Обновлено воспоминание #{number}")
+
+                    # Обработка удаления
+                    elif operation == "-":
+                        number = content.strip()
+                        self.MemorySystem.delete_memory(number=int(number))
+                        print(f"Удалено воспоминание #{number}")
+
+                    self.MitaLongMemory = {"role": "system", "content": self.MemorySystem.get_memories_formatted()}
+                except Exception as e:
+                    print(f"Ошибка обработки памяти: {str(e)}")
+
+            # Удаление тегов из ответа
             if self.HideAiData:
-                response = re.sub(memory_pattern, "", response)
+                response = re.sub(memory_pattern, "", response, flags=re.DOTALL)
 
         return response
 
@@ -820,7 +848,8 @@ class ChatModel:
         self.secretExposedFirst = False
         # Сохраняем пустую историю
         self.save_history(self._default_history())
-        self.MitaLongMemory = {"role": "system", "content": f" ДолгаяПамять<  >КонецДолгойПамяти "}
+        self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
+        self.MemorySystem.clear_memories()
 
     def _default_history(self):
         print("ИСТОРИЧЕСКИЙ ДЕФОЛТ!!!")

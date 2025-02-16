@@ -492,40 +492,50 @@ class ChatGUI:
             self.makeRequest_entry.config(text="Сейчас обычный режим")
 
     def save_api_settings(self):
-        """Собирает данные из полей ввода и сохраняет только непустые значения"""
-        settings = {}
-
-        # Для строковых полей сохраняем только если не пустые
-        if api_key := self.api_key_entry.get().strip():
-            settings["NM_API_KEY"] = api_key
-        if api_url := self.api_url_entry.get().strip():
-            settings["NM_API_URL"] = api_url
-        if api_model := self.api_model_entry.get().strip():
-            settings["NM_API_MODEL"] = api_model
-
-        if api_id := self.api_id_entry.get().strip():
-            settings["NM_TELEGRAM_API_ID"] = api_id
-        if api_hash := self.api_hash_entry.get().strip():
-            settings["NM_TELEGRAM_API_HASH"] = api_hash
-        if phone := self.phone_entry.get().strip():
-            settings["NM_TELEGRAM_PHONE"] = phone
-
-        # Булево значение сохраняем всегда
-        settings["NM_API_REQ"] = self.makeRequest
-
-        # Удаляем пустые значения
-        settings = {k: v for k, v in settings.items() if v}
-
-        # Сериализация и кодирование
+        """Собирает данные из полей ввода и сохраняет только непустые значения, не перезаписывая существующие."""
         try:
-            # Сериализуем в JSON
+            # Загружаем текущие настройки, если файл существует
+            if os.path.exists(self.config_path):
+                with open(self.config_path, "rb") as f:
+                    encoded = f.read()
+                decoded = base64.b64decode(encoded)
+                settings = json.loads(decoded.decode("utf-8"))
+            else:
+                settings = {}
+
+            # Обновляем настройки новыми значениями, если они не пустые
+            if api_key := self.api_key_entry.get().strip():
+                print("Сохранение апи ключа")
+                settings["NM_API_KEY"] = api_key
+            if api_url := self.api_url_entry.get().strip():
+                print("Сохранение апи ссылки")
+                settings["NM_API_URL"] = api_url
+            if api_model := self.api_model_entry.get().strip():
+                print("Сохранение апи модели")
+                settings["NM_API_MODEL"] = api_model
+
+            if api_id := self.api_id_entry.get().strip():
+                print("Сохранение тг айди")
+                settings["NM_TELEGRAM_API_ID"] = api_id
+            if api_hash := self.api_hash_entry.get().strip():
+                print("Сохранение тг хеш")
+                settings["NM_TELEGRAM_API_HASH"] = api_hash
+            if phone := self.phone_entry.get().strip():
+                print("Сохранение тг телефона")
+                settings["NM_TELEGRAM_PHONE"] = phone
+
+            # Булево значение сохраняем всегда
+            settings["NM_API_REQ"] = self.makeRequest
+
+            # Сериализация и кодирование
             json_data = json.dumps(settings, ensure_ascii=False)
-            # Кодируем в base64
             encoded = base64.b64encode(json_data.encode("utf-8"))
+
             # Сохраняем в файл
             with open(self.config_path, "wb") as f:
                 f.write(encoded)
             print("Настройки успешно сохранены в файл")
+
         except Exception as e:
             print(f"Ошибка сохранения: {e}")
 
@@ -538,6 +548,8 @@ class ChatGUI:
 
     def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
+        print("Начинаю загрузку настроек")
+
         if not os.path.exists(self.config_path):
             print("Не найден файл настроек")
             return
@@ -552,19 +564,18 @@ class ChatGUI:
             settings = json.loads(decoded.decode("utf-8"))
 
             # Устанавливаем значения
-            self.api_key = settings.get("NM_API_KEY", "")
-            self.api_url = settings.get("NM_API_URL", "")
-            self.api_model = settings.get("NM_API_MODEL", "")
+            self.api_key = settings.get("NM_API_KEY")
+            self.api_url = settings.get("NM_API_URL")
+            self.api_model = settings.get("NM_API_MODEL")
             self.makeRequest = settings.get("NM_API_REQ", False)
 
             # ТГ
-            self.api_id = settings.get("NM_TELEGRAM_API_ID", "")
-            self.api_hash = settings.get("NM_TELEGRAM_API_HASH", "")
-            self.phone = settings.get("NM_TELEGRAM_PHONE", "")
+            self.api_id = settings.get("NM_TELEGRAM_API_ID")
+            self.api_hash = settings.get("NM_TELEGRAM_API_HASH")
+            self.phone = settings.get("NM_TELEGRAM_PHONE")
 
-            print(
-                f"Итого до гуи дошло {self.api_key},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
-            print(f"Передаю в тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто)")
+            print(f"Итого загружено {self.api_key},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
+            print(f"По тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто если тг)")
             if update_model:
                 if self.api_key:
                     self.model.api_key = self.api_key
