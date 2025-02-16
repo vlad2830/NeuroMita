@@ -149,7 +149,7 @@ namespace MitaAI
 
 
 
-        private const float MitaBoringInterval = 50f;
+        private const float MitaBoringInterval = 40;
         private float MitaBoringtimer = 0f;
 
         bool manekenGame = false;
