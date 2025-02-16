@@ -8,12 +8,15 @@ def clamp(value, min_value, max_value):
     return max(min_value, min(value, max_value))
 
 def load_text_from_file(filename):
+
     """
     Загружает текст из файла, расположенного в папке 'Promts'.
 
     :param filename: Имя файла или относительный путь к файлу.
     :return: Содержимое файла в виде строки. Если файл не найден, возвращает пустую строку.
     """
+
+    print(f"Загружаю {filename}")
     try:
         # Получаем полный путь к файлу
         filepath = get_resource_path(filename)
