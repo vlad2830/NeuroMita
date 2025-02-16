@@ -426,7 +426,7 @@ class ChatModel:
 
     def _log_generation_start(self):
         logger.info("Перед отправкой на генерацию")
-        logger.info(f"API Key: {self.api_key}")
+        logger.info(f"API Key: {SH(self.api_key)}")
         logger.info(f"API URL: {self.api_url}")
         logger.info(f"API Model: {self.api_model}")
         logger.info(f"Make Request: {self.makeRequest}")

@@ -13,6 +13,8 @@ import asyncio
 import threading
 import tkinter as tk
 
+from utils import SH
+
 
 class ChatGUI:
     def __init__(self):
@@ -108,7 +110,7 @@ class ChatGUI:
         """Асинхронный запуск обработчика Telegram Bot."""
         print("Telegram Bot запускается!")
         try:
-            print(f"Передаю в тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто)")
+            print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
             await self.bot_handler.start()
             self.bot_handler_ready = True
@@ -574,8 +576,8 @@ class ChatGUI:
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH")
             self.phone = settings.get("NM_TELEGRAM_PHONE")
 
-            print(f"Итого загружено {self.api_key},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
-            print(f"По тг {self.api_id},{self.api_hash},{self.phone} (Должно быть не пусто если тг)")
+            print(f"Итого загружено {SH(self.api_key)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
+            print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто если тг)")
             if update_model:
                 if self.api_key:
                     self.model.api_key = self.api_key

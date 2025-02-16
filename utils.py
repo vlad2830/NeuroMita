@@ -7,8 +7,8 @@ import requests
 def clamp(value, min_value, max_value):
     return max(min_value, min(value, max_value))
 
-def load_text_from_file(filename):
 
+def load_text_from_file(filename):
     """
     Загружает текст из файла, расположенного в папке 'Promts'.
 
@@ -95,3 +95,27 @@ def calculate_cost_for_combined_messages(self, combined_messages, cost_input_per
 def count_tokens(self, messages):
     return sum(
         len(self.tokenizer.encode(msg["content"])) for msg in messages if isinstance(msg, dict) and "content" in msg)
+
+
+def SH(s, placeholder=" *** ",pescent = 0.20):
+    """
+    Сокращает строку, оставляя % символов в начале и % в конце.
+    Средняя часть заменяется на placeholder.
+
+    :param s: Исходная строка.
+    :param placeholder: Заполнитель для скрытой части строки (по умолчанию "***").
+    :return: Сокращенная строка.
+    """
+    if not s:
+        return s
+
+    length = len(s)
+    # Вычисляем 20% от длины строки
+    visible_length = max(1, int(length * pescent))  # Минимум 1 символ
+
+    # Берем начало и конец строки
+    start = s[:visible_length]
+    end = s[-visible_length:]
+
+    # Собираем результат
+    return f"{start}{placeholder}{end}"

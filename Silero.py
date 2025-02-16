@@ -10,6 +10,8 @@ from telethon.tl.types import MessageMediaDocument
 import ffmpeg
 import platform
 
+from utils import SH
+
 
 # Пример использования:
 class TelegramBotHandler:
@@ -67,8 +69,8 @@ class TelegramBotHandler:
             )
         except:
             print("Проблема в ините тг")
-            print(self.api_id)
-            print(self.api_hash)
+            print(SH(self.api_id))
+            print(SH(self.api_hash))
 
     import ffmpeg
     import os
