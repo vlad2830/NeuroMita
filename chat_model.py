@@ -11,12 +11,14 @@ import re
 import shutil
 from num2words import num2words
 
+from character import Character
 from utils import *
 from MemorySystem import MemorySystem
 
 # Настройка логирования
 import logging
 import colorlog
+
 # Настройка цветного логирования
 handler = colorlog.StreamHandler()
 handler.setFormatter(colorlog.ColoredFormatter(
@@ -48,7 +50,6 @@ class ChatModel:
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
         except:
             print("Со старта не получилось запустить OpenAi client")
-
 
         try:
             self.tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
@@ -83,6 +84,7 @@ class ChatModel:
         # Загрузка данных из файлов
         self.PlayingFirst = False
 
+        self.mita_character = Character("Mita", "/speaker Mita")
         self.load_prompts()
 
         self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
@@ -327,7 +329,7 @@ class ChatModel:
             repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaked me</memory>"
 
         #if self.LongMemoryRememberCount % 15 == 0:
-         #   repeated_system_message += "При необходимости реструктуризируй память, используя <#memory>Итоговые факты об игроке</memory>"
+        #   repeated_system_message += "При необходимости реструктуризируй память, используя <#memory>Итоговые факты об игроке</memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -438,7 +440,7 @@ class ChatModel:
                                                                        self.cost_input_per_1000)
             logger.info(f"Calculated cost: {self.gui.last_price}")
         except Exception as e:
-            logger.error("Не получилось сделать с токенайзером", exc_info=True)
+            logger.info("Не получилось сделать с токенайзером", str(e))
 
     def _format_messages_for_gemini(self, combined_messages):
         formatted_messages = []
@@ -453,10 +455,10 @@ class ChatModel:
     def _generate_gemini_response(self, formatted_messages):
         try:
             response = self.generate_responseGemini(formatted_messages)
-            logger.info("Ответ Gemini: ",response)
+            logger.info("Ответ Gemini: ", response)
             return response
         except Exception as e:
-            logger.error("Что-то не так при генерации Gemini", exc_info=True)
+            logger.error("Что-то не так при генерации Gemini", str(e))
             return None
 
     def _generate_openai_response(self, combined_messages):
@@ -470,9 +472,9 @@ class ChatModel:
             if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
                 print("gemini последнее системное сообщение")
                 combined_messages[-1]["role"] = "user"
-                combined_messages[-1]["content"] = "[SYSTEM INFO]"+combined_messages[-1]["content"]
+                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]
 
-            print("in completion ", combined_messages)
+            #print("in completion ", )
             completion = self.client.chat.completions.create(
                 model=self.api_model,
                 messages=combined_messages,
@@ -482,10 +484,10 @@ class ChatModel:
             )
             response = completion.choices[0].message.content
 
-            print("out completion ",completion)
+            #print("out completion ", completion)
             return response.lstrip("\n")
         except Exception as e:
-            logger.error("Что-то не так при генерации OpenAI", exc_info=True)
+            logger.error("Что-то не так при генерации OpenAI", str(e))
             return None
 
     def _clean_response(self, response):
@@ -493,7 +495,7 @@ class ChatModel:
             response = response.lstrip("```\n")
             response = response.removesuffix("\n```\n")
         except Exception as e:
-            logger.error("Проблема с префиксами или постфиксами", exc_info=True)
+            logger.error("Проблема с префиксами или постфиксами", str(e))
         return response
 
     def generate_responseGemini(self, combined_messages):

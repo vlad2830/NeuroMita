@@ -97,7 +97,7 @@ def count_tokens(self, messages):
         len(self.tokenizer.encode(msg["content"])) for msg in messages if isinstance(msg, dict) and "content" in msg)
 
 
-def SH(s, placeholder=" *** ",pescent = 0.20):
+def SH(s, placeholder=" *** ",percent = 0.20):
     """
     Сокращает строку, оставляя % символов в начале и % в конце.
     Средняя часть заменяется на placeholder.
@@ -111,7 +111,7 @@ def SH(s, placeholder=" *** ",pescent = 0.20):
 
     length = len(s)
     # Вычисляем 20% от длины строки
-    visible_length = max(1, int(length * pescent))  # Минимум 1 символ
+    visible_length = max(1, int(length * percent))  # Минимум 1 символ
 
     # Берем начало и конец строки
     start = s[:visible_length]
