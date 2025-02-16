@@ -15,7 +15,7 @@ https://discord.com/channels/508309955686957057/1338859139102670890
 Сначала прочитай, потом делай, на пункте с источниками мб передумаешь(
 
 0) Мелон лоадер:
-Либо тут инсталлер ставите https://melonwiki.xyz/#/?id=requirements
+Либо тут инсталлер ставите https://melonwiki.xyz/#/?id=requirements 0.6.6 Версию!!!
 Либо тут ищите https://github.com/LavaGang/MelonLoader
 Есть файл MelonLoader.Installer.exe?
 Отлично, выбирайте там мисайд, он его пропатчит, чтобы моды на основе мелона могли работать.
