@@ -38,12 +38,11 @@ class ChatGUI:
         try:
             target_folder = "Settings"
             os.makedirs(target_folder, exist_ok=True)
-            self.config_path  = os.path.join(target_folder, "settings.json")
+            self.config_path = os.path.join(target_folder, "settings.json")
             #self.config_path = Path.home() / ".myapp_config.bin"  # Путь к файлу в домашней директории
             self.load_api_settings(False)  # Загружаем настройки при инициализации
         except Exception as e:
-            print("Не удалось удачно получить из системных переменных все данные",e)
-
+            print("Не удалось удачно получить из системных переменных все данные", e)
 
         self.model = ChatModel(self, self.api_key, self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
@@ -51,6 +50,7 @@ class ChatGUI:
         self.running = False
         self.start_server()
         self.textToTalk = ""
+        self.textSpeaker = "/Speaker Mita"
         self.patch_to_sound_file = ""
         self.ConnectedToGame = False
         self.root = tk.Tk()
@@ -130,14 +130,14 @@ class ChatGUI:
         if self.loop and self.loop.is_running():
             print("Запускаем асинхронную задачу в цикле событий...")
             # Здесь мы вызываем асинхронную задачу через главный цикл
-            self.loop.create_task(self.run_send_and_receive(self.textToTalk))
+            self.loop.create_task(self.run_send_and_receive(self.textToTalk, self.textSpeaker))
         else:
             print("Ошибка: Цикл событий asyncio не готов.")
 
-    async def run_send_and_receive(self, response):
+    async def run_send_and_receive(self, response, speaker_command):
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
-        await self.bot_handler.send_and_receive(response)
+        await self.bot_handler.send_and_receive(response, speaker_command)
         print("Завершение получения фразы")
 
     def check_text_to_talk(self):
@@ -148,7 +148,8 @@ class ChatGUI:
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
                 print("Цикл событий готов. Отправка текста.")
-                asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk), self.loop)
+                asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                                                 self.loop)
                 self.textToTalk = ""  # Очищаем текст после отправки
                 print("Выполнено")
             else:
@@ -390,7 +391,6 @@ class ChatGUI:
             self.insert_message(role, content)
         self.update_debug_info()
 
-
     def setup_debug_controls(self, parent):
         debug_frame = tk.Frame(parent, bg="#2c2c2c")
         debug_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -576,7 +576,8 @@ class ChatGUI:
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH")
             self.phone = settings.get("NM_TELEGRAM_PHONE")
 
-            print(f"Итого загружено {SH(self.api_key)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
+            print(
+                f"Итого загружено {SH(self.api_key)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
             print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто если тг)")
             if update_model:
                 if self.api_key:
@@ -592,6 +593,7 @@ class ChatGUI:
             print("Настройки загружены из файла")
         except Exception as e:
             print(f"Ошибка загрузки: {e}")
+
     def paste_from_clipboard(self, event=None):
         try:
             clipboard_content = self.root.clipboard_get()

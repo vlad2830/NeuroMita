@@ -84,8 +84,13 @@ class ChatModel:
         # Загрузка данных из файлов
         self.PlayingFirst = False
 
-        self.mita_character = Character("Mita", "/speaker Mita")
-        crazy_mita_prompts(self.mita_character)
+        self.crazy_mita_character = Character("Mita", "/speaker mita")
+        crazy_mita_prompts(self.crazy_mita_character)
+        self.cappy_mita_character = Character("Cappy", "/speaker cap")
+        cappy_mita_prompts(self.cappy_mita_character)
+        self.cart_space = Character("Space", "/speaker  wheatley")
+        cart_space_prompts(self.cart_space)
+        self.mita_character = self.crazy_mita_character
 
         self.load_prompts()
 
@@ -251,7 +256,9 @@ class ChatModel:
 
             print("До фразы")
             self.gui.textToTalk = self.process_text_to_voice(response)
+            self.gui.textSpeaker = self.mita_character.silero_command
             print("self.gui.textToTalk: " + self.gui.textToTalk)
+            print("self.gui.textSpeaker: " + self.gui.textSpeaker)
 
             self.save_history({
                 'messages': messages,
@@ -282,6 +289,7 @@ class ChatModel:
         print("Играет с игроком в якобы невиновную")
         self.PlayingFirst = True
         self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}\n"}
+        self.mita_character.replace_prompt("main", "mainPlaying")
 
     def _reveal_secret(self, messages):
         """Логика раскрытия секрета"""
@@ -296,6 +304,9 @@ class ChatModel:
         add_temporary_system_message(messages, f"{self.SecretExposedText}")
         system_message = {"role": "system", "content": f"{self.mita_history}\n"}
         self.systemMessages.append(system_message)
+
+        self.mita_character.replace_prompt("main", "mainCrazy")
+        self.mita_character.replace_prompt("mainPlaying", "mainCrazy")
 
     def _generate_timed_system_message(self):
         """Генерация сообщения с текущим состоянием персонажа"""

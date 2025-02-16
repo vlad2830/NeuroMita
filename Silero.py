@@ -24,7 +24,7 @@ class TelegramBotHandler:
         self.silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
         self.gui = gui
         self.patch_to_sound_file = ""
-
+        self.last_speaker_command = ""
         if getattr(sys, 'frozen', False):
             # Если программа собрана в exe, получаем путь к исполняемому файлу
             base_dir = os.path.dirname(sys.executable)
@@ -140,9 +140,18 @@ class TelegramBotHandler:
         except Exception as e:
             print(f"Ошибка при воспроизведении файла: {e}")
 
-    async def send_and_receive(self, input_message):
+    async def send_and_receive(self, input_message, speaker_command):
         """Отправляет сообщение боту и обрабатывает ответ."""
         global message_count
+
+        if not input_message or not speaker_command:
+            return
+
+        if self.last_speaker_command != speaker_command:
+            await self.client.send_message(self.silero_bot, speaker_command)
+            self.last_speaker_command = speaker_command
+            await asyncio.sleep(0.25)
+        self.last_speaker_command = speaker_command
 
         self.reset_message_count()
 
@@ -228,6 +237,7 @@ class TelegramBotHandler:
             await self.client.send_message(self.silero_bot, "/start")
             await asyncio.sleep(0.50)
             await self.client.send_message(self.silero_bot, "/speaker mita")
+            self.last_speaker_command = "/speaker mita"
             await asyncio.sleep(0.50)
             await self.client.send_message(self.silero_bot, "/mp3")
             await asyncio.sleep(0.50)

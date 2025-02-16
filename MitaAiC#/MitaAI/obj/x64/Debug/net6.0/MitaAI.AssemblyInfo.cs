@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MitaAI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+193548cf51d2bcdb805dda27c9de551558ac5832")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+318d3ccd1cb46bd467ef0b19778a9831730ad864")]
 [assembly: System.Reflection.AssemblyProductAttribute("MitaAI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MitaAI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

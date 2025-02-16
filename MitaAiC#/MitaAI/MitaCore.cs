@@ -61,8 +61,44 @@ namespace MitaAI
         public GameObject MitaObject;
         public GameObject MitaPersonObject;
         public MitaPerson Mita;
+
+        public static GameObject CappyObject;
+        public static GameObject KindObject;
+
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;
+
+
+        public void changeMita(GameObject NewMitaObject)
+        {
+            MelonLogger.Msg("Change Mita Begin");
+            NewMitaObject.SetActive(true);
+            MitaObject = NewMitaObject;
+            // Перебираем всех дочерних объектов
+            foreach (Transform child in Mita.transform)
+            {
+                // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
+                if (child.name.Contains("Mita Person"))
+                {
+                    MitaPersonObject = child.gameObject;
+                    break; // Прерываем цикл, как только нашли первый подходящий объект
+                }
+            }
+            MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
+            MitaAnimatorFunctions = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Animator_FunctionsOverride>();
+            Mita = MitaPersonObject.GetComponent<MitaPerson>();
+
+            MelonLogger.Msg("Change Mita Final");
+        }
+
+        public enum character
+        {
+            Mita = 0,
+            Cappy = 1,
+            Kind = 2,
+            cart_portal = 3
+        }
+
         enum MovementStyles
         {
             walkNear = 0,
@@ -99,6 +135,7 @@ namespace MitaAI
         public static Transform worldTogether;
         public static Transform worldHouse;
         public static Transform worldBasement;
+        public static Transform worldBackrooms;
         public static Transform worldBackrooms2;
 
 
@@ -166,11 +203,11 @@ namespace MitaAI
 
         }
 
-        public void sendSystemMessage(string m)
+        public void sendSystemMessage(string m,character character = character.Mita)
         {
             systemMessages.Enqueue(m);
         }
-        public void sendSystemInfo(string m)
+        public void sendSystemInfo(string m, character character = character.Mita)
         {
             systemInfos.Enqueue(m);
         }
@@ -475,7 +512,7 @@ namespace MitaAI
             if (Utils.Random(1, 7)) sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом");
             else sendSystemMessage("Игрок только что загрузился в твой уровень.");
 
-
+            
 
             //TestBigMita();
         }
@@ -1453,8 +1490,9 @@ namespace MitaAI
                 if (!Mita.GetComponent<NavMeshAgent>().enabled) 
                 { 
 
-                    if (Utils.Random(6, 10)) MitaLook.LookOnPlayerAndRotate();
-                    else MitaLook.LookRandom();
+                    //if (Utils.Random(6, 10))
+                    MitaLook.LookOnPlayerAndRotate();
+                    //else MitaLook.LookRandom();
                 
                 }
                 yield return new WaitForSecondsRealtime(1);

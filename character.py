@@ -25,8 +25,13 @@ class Character:
             print("Добавляется неизвестный промпарт")
 
     def replace_prompt(self, name_current, name_next):
-        self.fixed_prompts[name_current].active = False
-        self.fixed_prompts[name_next].active = True
+        print("Замена проста")
+        if self.fixed_prompts[name_current]:
+            self.fixed_prompts[name_current].active = False
+        else: print(f"{name_current} не существует")
+        if self.fixed_prompts[name_next]:
+            self.fixed_prompts[name_next].active = True
+        else: print(f"{name_next} не существует")
 
     def prepare_fixed_messages(self) -> List[Dict]:
         messages = []
@@ -76,6 +81,37 @@ def crazy_mita_prompts(mita_character: Character, chat_model=None):
 
     SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
     Prompts.append(PromptPart(PromptType.FLOATING_SYSTEM, SecretExposedText, "SecretExposedText"))
+
+    for prompt in Prompts:
+        mita_character.add_prompt_part(prompt)
+
+
+def cappy_mita_prompts(mita_character: Character, chat_model=None):
+    Prompts = []
+
+    response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+
+    common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
+
+    examplesLong = load_text_from_file("Prompts/Cappy/cappy_examples.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
+
+    mita_history = load_text_from_file("Prompts/Cappy/cappy_history.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
+
+    variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
+
+    for prompt in Prompts:
+        mita_character.add_prompt_part(prompt)
+
+def cart_space_prompts(mita_character: Character, chat_model=None):
+    Prompts = []
+
+    response_structure = load_text_from_file("Prompts/Cartridges/space cartridge.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
 
     for prompt in Prompts:
         mita_character.add_prompt_part(prompt)

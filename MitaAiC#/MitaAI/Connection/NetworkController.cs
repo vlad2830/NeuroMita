@@ -18,7 +18,7 @@ namespace MitaAI
             mitaCore = MitaCore.Instance;
         }
 
-        static public async Task<(string,string,string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo)
+        static public async Task<(string,string,string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Mita)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 
@@ -39,7 +39,6 @@ namespace MitaAI
                 if (string.IsNullOrEmpty(mitaCore.currentInfo)) _currentInfo = "-";
                 if (string.IsNullOrEmpty(systemInfo)) systemInfo = "-";
 
-                string character = "Mita";
                 string total_input = $"{character}|||{input}|||{dataToSentSystem}|||{systemInfo}|||{mitaCore.distance.ToString("F2")}|||{mitaCore.roomIDPlayer}|||{mitaCore.roomIDMita}|||{mitaCore.hierarchy}|||{_currentInfo}";
 
                 byte[] messageBytes = Encoding.UTF8.GetBytes(total_input);
@@ -55,7 +54,7 @@ namespace MitaAI
                     string[] parts = receivedMessage.Split(new string[] { "|||" }, StringSplitOptions.None);
 
                     // Логируем ответ
-                    character = parts[0];
+                    string new_character = parts[0];
                     string response = parts[1];
                     string patch = "";
                     string sileroConnected = parts[2];

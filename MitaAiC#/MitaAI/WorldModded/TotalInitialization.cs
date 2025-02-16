@@ -105,6 +105,19 @@ namespace MitaAI
         {
             // Запускаем корутину для ожидания загрузки сцены
             string sceneToLoad;
+
+            try
+            {
+                sceneToLoad = "Scene 7 - Backrooms";
+                additiveLoadedScenes.Add(sceneToLoad);
+                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
+            }
+            catch (Exception)
+            {
+
+
+            }
+
             try
             {
                 sceneToLoad = "Scene 6 - BasementFirst";
@@ -140,6 +153,7 @@ namespace MitaAI
 
 
             }
+
         }
         private static IEnumerator WaitForSceneAndInstantiateWorldBasement(string sceneToLoad)
         {
@@ -249,6 +263,52 @@ namespace MitaAI
             TotalInitialization.initCornerSofa(MitaCore.worldHouse);
 
             //SceneManager.UnloadScene(sceneToLoad);
+
+        }
+        private static IEnumerator WaitForSceneAndInstantiateWorldBackrooms(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
+
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            MitaCore.worldBackrooms = FindObjectInScene(scene.name, "World");
+            if (MitaCore.worldBackrooms == null)
+            {
+                MelonLogger.Msg("World object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            MitaCore.worldBackrooms.gameObject.SetActive(false);
+
+            MelonLogger.Msg($"Object found: {MitaCore.worldBackrooms.name}");
+            try
+            {
+                MitaCore.CappyObject = GameObject.Instantiate(Utils.TryfindChild(MitaCore.worldBackrooms, "Acts/Mita Кепка"), MitaCore.worldHouse);
+                MitaCore.CappyObject.transform.position = Vector3.zero;
+                MitaCore.KindObject = GameObject.Instantiate(Utils.TryfindChild(MitaCore.worldBackrooms, "Acts/Mita Добрая"), MitaCore.worldHouse);
+                MitaCore.KindObject.transform.position = Vector3.zero;
+
+                MitaCore.Instance.changeMita(MitaCore.KindObject);
+            }
+       
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Cappy founding error: {ex}");
+            }
+            yield return new WaitForSeconds(1f);
+            SceneManager.UnloadScene(sceneToLoad);
 
         }
         private static void InitializeGameObjectsWhenReady()
