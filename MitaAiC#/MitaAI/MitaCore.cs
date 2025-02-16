@@ -84,9 +84,11 @@ namespace MitaAI
                     break; // Прерываем цикл, как только нашли первый подходящий объект
                 }
             }
+            MitaPersonObject.transform.position = Vector3.zero;
             MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Animator_FunctionsOverride>();
             Mita = MitaPersonObject.GetComponent<MitaPerson>();
+
 
             MelonLogger.Msg("Change Mita Final");
         }
@@ -162,8 +164,8 @@ namespace MitaAI
         //private readonly object waitForSoundsLock = new object();
 
         public string playerMessage = "";
-        public Queue<string> systemMessages = new Queue<string>();
-        Queue<string> systemInfos = new Queue<string>();
+        public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
+        Queue<(string, character)> systemInfos = new Queue<(string, character)>();
 
         Queue<string> patches_to_sound_file = new Queue<string>();
         string patch_to_sound_file = "";
@@ -205,11 +207,11 @@ namespace MitaAI
 
         public void sendSystemMessage(string m,character character = character.Mita)
         {
-            systemMessages.Enqueue(m);
+            systemMessages.Enqueue( (m, character) );
         }
         public void sendSystemInfo(string m, character character = character.Mita)
         {
-            systemInfos.Enqueue(m);
+            systemInfos.Enqueue( (m, character) );
         }
 
         public void playerKilled()
@@ -489,7 +491,7 @@ namespace MitaAI
             MelonLogger.Msg($"Attempt Interactions end");
             try
             {
-                TotalInitialization.AddOtherScenes();
+                MelonCoroutines.Start( TotalInitialization.AddOtherScenes() );
             }
             catch (Exception e)
             {
@@ -673,7 +675,7 @@ namespace MitaAI
                     //Отправляю залпом.
                     while (systemMessages.Count() > 0)
                     {
-                        dataToSentSystem += systemMessages.Dequeue() + "\n";
+                        dataToSentSystem += systemMessages.Dequeue().Item1 + "\n";
                     }
                     lastActionTime = Time.time;
 
@@ -696,7 +698,7 @@ namespace MitaAI
                 //Отправляю залпом.
                 while (systemInfos.Count() > 0)
                 {
-                    info += systemInfos.Dequeue()+ "\n";
+                    info += systemInfos.Dequeue().Item1 + "\n";
                 }
 
             }
@@ -1224,7 +1226,9 @@ namespace MitaAI
             AnimationKiller.GetComponent<Location6_MitaKiller>().Kill(); // Вызываем метод Kill()
             endHunt();
             yield return new WaitForSecondsRealtime(delay);
-            systemMessages.Enqueue("You successfully killed the player using knife, and he respawned somewhere.");
+
+            sendSystemMessage("You successfully killed the player using knife, and he respawned somewhere.");
+
             AnimationKiller.SetActive(false); // Включаем объект
             // Возвращаем Миту в исходное положение
             Utils.TryTurnChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);

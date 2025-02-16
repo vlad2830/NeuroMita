@@ -101,22 +101,14 @@ namespace MitaAI
 
 
         #region getObjectsFromOtherScenes
-        public static void AddOtherScenes()
+        public static IEnumerator AddOtherScenes()
         {
             // Запускаем корутину для ожидания загрузки сцены
             string sceneToLoad;
 
-            try
-            {
-                sceneToLoad = "Scene 7 - Backrooms";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
-            }
-            catch (Exception)
-            {
-
-
-            }
+            sceneToLoad = "Scene 7 - Backrooms";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
 
             try
             {
@@ -295,11 +287,11 @@ namespace MitaAI
             try
             {
                 MitaCore.CappyObject = GameObject.Instantiate(Utils.TryfindChild(MitaCore.worldBackrooms, "Acts/Mita Кепка"), MitaCore.worldHouse);
-                MitaCore.CappyObject.transform.position = Vector3.zero;
+                //MitaCore.CappyObject.transform.position = Vector3.zero;
                 MitaCore.KindObject = GameObject.Instantiate(Utils.TryfindChild(MitaCore.worldBackrooms, "Acts/Mita Добрая"), MitaCore.worldHouse);
-                MitaCore.KindObject.transform.position = Vector3.zero;
+                //MitaCore.KindObject.transform.position = Vector3.zero;
 
-                MitaCore.Instance.changeMita(MitaCore.KindObject);
+                //MitaCore.Instance.changeMita(MitaCore.KindObject);
             }
        
             catch (Exception ex)
@@ -307,7 +299,7 @@ namespace MitaAI
 
                 MelonLogger.Error($"Cappy founding error: {ex}");
             }
-            yield return new WaitForSeconds(1f);
+            //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
 
         }

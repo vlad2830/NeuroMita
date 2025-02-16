@@ -29,6 +29,7 @@ namespace MitaAI.Mita
         public static (List<string>, string) ExtractCommands(string response)
         {
 
+
             List<string> commands = new List<string>();
             string pattern = @"<c>(.*?)</c>";
             MatchCollection matches = Regex.Matches(response, pattern);
@@ -69,7 +70,7 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Error processing command '{command}': {ex.Message}");
                 }
             }
-            if (ContinueCounter>0) ContinueCounter--;
+            
         }
 
         private static void ProcessSimpleCommand(string command)
