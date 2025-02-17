@@ -6,7 +6,7 @@ https://discord.com/channels/508309955686957057/1338859139102670890
 сам серв https://discord.gg/aihasto
 Гитхаб засветился слишком рано, щас я в темпе пытаюсь предоставить временную демку, но пока запуск это те еще танцы в бубном, кто хочет стабильности - месяцов подождите, мб больше.
 
-![image](https://github.com/user-attachments/assets/1baad23d-d58a-484c-ba83-25a9f3dcbc03)
+![NeuroMita](https://github.com/user-attachments/assets/8d1a7e10-89c9-4bfd-8bee-06023879a80d)
 
 
 
