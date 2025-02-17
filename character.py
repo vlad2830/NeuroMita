@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional
 import re
-from PromPart import PromptPart, PromptType
-#from chat_model import ChatModel
+from promptPart import PromptPart, PromptType
 from utils import load_text_from_file
 
 
@@ -13,6 +12,7 @@ class Character:
         self.fixed_prompts: List[PromptPart] = []
         self.float_prompts: List[PromptPart] = []
         self.temp_prompts: List[PromptPart] = []
+        self.events: List[PromptPart] = []
 
     def add_prompt_part(self, part: PromptPart):
         if part.is_fixed:
@@ -21,17 +21,33 @@ class Character:
             self.float_prompts.append(part)
         elif part.is_temporary:
             self.temp_prompts.append(part)
+        elif part.is_event:
+            self.events.append(part)
         else:
             print("Добавляется неизвестный промпарт")
 
-    def replace_prompt(self, name_current, name_next):
-        print("Замена проста")
-        if self.fixed_prompts[name_current]:
-            self.fixed_prompts[name_current].active = False
-        else: print(f"{name_current} не существует")
-        if self.fixed_prompts[name_next]:
-            self.fixed_prompts[name_next].active = True
-        else: print(f"{name_next} не существует")
+    def replace_prompt(self, name_current: str, name_next: str):
+        """
+        Заменяет активный промпт.
+
+        :param name_current: Имя текущего активного промпта.
+        :param name_next: Имя следующего промпта, который нужно активировать.
+        """
+        print("Замена промпта")
+
+        # Находим текущий активный промпт
+        current_prompt = next((p for p in self.fixed_prompts if p.name == name_current), None)
+        if current_prompt:
+            current_prompt.active = False
+        else:
+            print(f"Промпт '{name_current}' не существует")
+
+        # Находим следующий промпт
+        next_prompt = next((p for p in self.fixed_prompts if p.name == name_next), None)
+        if next_prompt:
+            next_prompt.active = True
+        else:
+            print(f"Промпт '{name_next}' не существует")
 
     def prepare_fixed_messages(self) -> List[Dict]:
         messages = []
@@ -106,6 +122,7 @@ def cappy_mita_prompts(mita_character: Character, chat_model=None):
 
     for prompt in Prompts:
         mita_character.add_prompt_part(prompt)
+
 
 def cart_space_prompts(mita_character: Character, chat_model=None):
     Prompts = []

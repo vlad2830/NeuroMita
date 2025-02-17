@@ -7,6 +7,7 @@ class PromptType(enum.Enum):
     FIXED_START = 1  # Фиксированный в начале
     FLOATING_SYSTEM = 2  # Плавающий системный
     CONTEXT_TEMPORARY = 3  # Временный контекстный
+    EVENT = 4  # Временный контекстный
 
 
 class PromptPart:
@@ -47,6 +48,11 @@ class PromptPart:
     def is_temporary(self) -> bool:
         """Проверяет, является ли промпт временным контекстным."""
         return self.type == PromptType.CONTEXT_TEMPORARY
+
+    @property
+    def is_event(self) -> bool:
+        """Проверяет, является ли промпт временным контекстным."""
+        return self.type == PromptType.EVENT
 
     def __str__(self) -> str:
         """Строковое представление объекта для удобного вывода."""

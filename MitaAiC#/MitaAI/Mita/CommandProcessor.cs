@@ -29,7 +29,6 @@ namespace MitaAI.Mita
         public static (List<string>, string) ExtractCommands(string response)
         {
 
-
             List<string> commands = new List<string>();
             string pattern = @"<c>(.*?)</c>";
             MatchCollection matches = Regex.Matches(response, pattern);
@@ -44,7 +43,7 @@ namespace MitaAI.Mita
 
             bool wasContinue = response.ToLower().Contains("continue");
             string result = Regex.Replace(response, @"<c>.*?</c>", "");
-            if (wasContinue) result += " ▶▶▶";
+            if (wasContinue) result += " ▶▶▶ ";
             // Удаляем теги эмоций из текста
             return (commands, result);
 
@@ -140,9 +139,15 @@ namespace MitaAI.Mita
                     break;
 
                 case "continue":
-                    ContinueCounter++;
-                    if (ContinueCounter<3) mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль");
-                    else mitaCore.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен");
+                    ContinueCounter+=1;
+                    MelonLogger.Msg("Cont times",ContinueCounter);
+                    if (ContinueCounter < 3) { 
+                        mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль"); 
+                    }
+                    else {
+                        MelonLogger.Warning("tryied 4 continue");
+                        mitaCore.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен");
+                    }
                     break;
 
                 // Дополнительные команды...

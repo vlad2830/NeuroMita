@@ -84,13 +84,7 @@ class ChatModel:
         # Загрузка данных из файлов
         self.PlayingFirst = False
 
-        self.crazy_mita_character = Character("Mita", "/speaker mita")
-        crazy_mita_prompts(self.crazy_mita_character)
-        self.cappy_mita_character = Character("Cappy", "/speaker cap")
-        cappy_mita_prompts(self.cappy_mita_character)
-        self.cart_space = Character("Space", "/speaker  wheatley")
-        cart_space_prompts(self.cart_space)
-        self.mita_character = self.crazy_mita_character
+        self.init_characters()
 
         self.load_prompts()
 
@@ -103,6 +97,19 @@ class ChatModel:
         self.HideAiData = True
 
         self.repeatResponse = False
+
+    def init_characters(self):
+        """
+        Инициализует возможных персонажей
+        :return:
+        """
+        self.crazy_mita_character = Character("Mita", "/speaker mita")
+        crazy_mita_prompts(self.crazy_mita_character)
+        self.cappy_mita_character = Character("Cappy", "/speaker cap")
+        cappy_mita_prompts(self.cappy_mita_character)
+        self.cart_space = Character("Space", "/speaker  wheatley")
+        cart_space_prompts(self.cart_space)
+        self.current_character = self.crazy_mita_character
 
     def appendInfos(self, info):
         message = {
@@ -209,14 +216,16 @@ class ChatModel:
         elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
             self._reveal_secret(messages)
 
-        # Обновление текущего настроения
-        timed_system_message = self._generate_timed_system_message()
-
         # Добавление информации о времени и пользовательского ввода
-        messages = self._process_user_input(user_input, system_input, messages)
+        messages = self._process_user_input(messages)
+
+        messages = self._add_input(user_input, system_input, messages)
 
         # Ограничение на количество сообщений
         messages = messages[-self.memory_limit:]
+
+        # Обновление текущего настроения
+        timed_system_message = self._generate_timed_system_message()
 
         # Обновление текущей информации
         current_info.update({
@@ -227,7 +236,7 @@ class ChatModel:
         })
         current_info['MitaSystemMessages'] = self.systemMessages
 
-        combined_messages = self._combine_messages_Test2(self.mita_character, messages, timed_system_message)
+        combined_messages = self._combine_messages_Test2(self.current_character, messages, timed_system_message)
 
         # Генерация ответа с использованием клиента
         try:
@@ -256,7 +265,7 @@ class ChatModel:
 
             print("До фразы")
             self.gui.textToTalk = self.process_text_to_voice(response)
-            self.gui.textSpeaker = self.mita_character.silero_command
+            self.gui.textSpeaker = self.current_character.silero_command
             print("self.gui.textToTalk: " + self.gui.textToTalk)
             print("self.gui.textSpeaker: " + self.gui.textSpeaker)
 
@@ -289,7 +298,7 @@ class ChatModel:
         print("Играет с игроком в якобы невиновную")
         self.PlayingFirst = True
         self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}\n"}
-        self.mita_character.replace_prompt("main", "mainPlaying")
+        self.current_character.replace_prompt("main", "mainPlaying")
 
     def _reveal_secret(self, messages):
         """Логика раскрытия секрета"""
@@ -305,11 +314,15 @@ class ChatModel:
         system_message = {"role": "system", "content": f"{self.mita_history}\n"}
         self.systemMessages.append(system_message)
 
-        self.mita_character.replace_prompt("main", "mainCrazy")
-        self.mita_character.replace_prompt("mainPlaying", "mainCrazy")
+        self.current_character.replace_prompt("main", "mainCrazy")
+        self.current_character.replace_prompt("mainPlaying", "mainCrazy")
 
-    def _generate_timed_system_message(self):
+    def _generate_timed_system_message(self, characher: Character = None):
         """Генерация сообщения с текущим состоянием персонажа"""
+
+        if characher != self.crazy_mita_character:
+            return None
+
         return {
             "role": "system",
             "content": (f"Твои характеристики. {self.variableEffects}"
@@ -321,11 +334,9 @@ class ChatModel:
                         f"{self.common}")
         }
 
-    def _process_user_input(self, user_input, system_input, messages):
+    def _process_user_input(self, messages):
         """
         Перед сообщением пользователя будет контекст, он не запишется в историю.
-        :param user_input:
-        :param system_input:
         :param messages:
         :return: сообщение с добавленным временным сообщением до
         """
@@ -339,8 +350,7 @@ class ChatModel:
 
         if self.distance == 0:
             repeated_system_message = f"Time: {date_now}. до игрока ? м. "
-        #elif float(self.distance) > 10:
-        #
+
         # Проверяем правильность вызова get_room_name
         repeated_system_message += f"You are in {self.get_room_name(int(self.roomMita))}, player is in {self.get_room_name(int(self.roomPlayer))}. "
 
@@ -349,11 +359,13 @@ class ChatModel:
 
         messages.append({"role": "system", "content": repeated_system_message})
 
+        return messages
+
+    def _add_input(self, user_input, system_input, messages):
         if system_input != "":
             messages.append({"role": "system", "content": system_input})
         if user_input != "":
             messages.append({"role": "user", "content": user_input})
-
         return messages
 
     def get_room_name(self, room_id):
@@ -375,8 +387,8 @@ class ChatModel:
 
         combined_messages = character.prepare_fixed_messages()
 
-        # Добавляем timed_system_message, если это словарь
-        if isinstance(timed_system_message, dict):
+        # Добавляем timed_system_message, если оно не пусто и это словарь
+        if timed_system_message and isinstance(timed_system_message, dict):
             combined_messages.append(timed_system_message)
             print("timed_system_message успешно добавлено.")
 

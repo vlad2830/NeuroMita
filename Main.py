@@ -4,6 +4,7 @@ from gui import ChatGUI
 
 
 # Установка
+#pyinstaller --onefile --name NeuroMita --add-data "Prompts/*;Prompts" --add-data "Prompts/**/*;Prompts" Main.py
 #pyinstaller --onefile --name NeuroMita --add-data "CrazyMitaPrompts/*;CrazyMitaPrompts" --add-data "CrazyMitaPrompts/**/*;CrazyMitaPrompts" Main.py
 
 # Удаление всех пакетов

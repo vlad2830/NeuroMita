@@ -154,7 +154,7 @@ class ChatGUI:
                 print("Выполнено")
             else:
                 print("Ошибка: Цикл событий не готов.")
-        #if self.patch_to_sound_file !="":
+
 
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk)  # Это обеспечит постоянную проверку

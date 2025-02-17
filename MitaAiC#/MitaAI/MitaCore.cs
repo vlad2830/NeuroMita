@@ -961,8 +961,10 @@ namespace MitaAI
                 float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.6f,8f); 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay));
-            }
 
+                
+            }
+            if (CommandProcessor.ContinueCounter > 0) CommandProcessor.ContinueCounter--;
         }
 
 
