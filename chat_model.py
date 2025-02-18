@@ -48,6 +48,7 @@ class ChatModel:
             self.makeRequest = api_make_request
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
+            print("Со старта удалось запустить OpenAi client")
         except:
             print("Со старта не получилось запустить OpenAi client")
 
