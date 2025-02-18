@@ -37,12 +37,13 @@ logger.addHandler(handler)
 
 
 class ChatModel:
-    def __init__(self, gui, api_key, api_url, api_model, api_make_request):
+    def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
 
         self.gui = gui
 
         try:
             self.api_key = api_key
+            self.api_key_res = api_key_res
             self.api_url = api_url
             self.api_model = api_model
             self.makeRequest = api_make_request
@@ -66,6 +67,7 @@ class ChatModel:
         self.history_file = "chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
         self.memory_limit = 40  # Ограничение сообщения
+
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
@@ -73,6 +75,7 @@ class ChatModel:
         self.distance = 0.0
         self.roomPlayer = -1
         self.roomMita = -1
+
         self.nearObjects = ""
         self.actualInfo = ""
         self.LongMemoryRememberCount = 0
@@ -95,9 +98,8 @@ class ChatModel:
         self.MitaMainBehaviour = []
         self.MitaExamples = []
         self.systemMessages = []
-        self.HideAiData = True
 
-        self.repeatResponse = False
+        self.HideAiData = True
 
     def init_characters(self):
         """
@@ -177,16 +179,21 @@ class ChatModel:
         self.stress = clamp(self.stress + amount, 0, 100)
         print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
-    def update_openai_client(self):
+    def update_openai_client(self, reserve_key: bool = False):
         print("Попытка обновить клиент")
+        if reserve_key:
+            key = self.api_key_res
+        else:
+            key = self.api_key
+
         try:
             if self.api_url != "":
                 print("И ключ и ссылка")
-                self.client = OpenAI(api_key=self.api_key,
+                self.client = OpenAI(api_key=key,
                                      base_url=self.api_url)
             else:
                 print("Только ключ")
-                self.client = OpenAI(api_key=self.api_key)
+                self.client = OpenAI(api_key=key)
         except:
             print("update_openai_client не сработал")
 
@@ -460,7 +467,11 @@ class ChatModel:
 
         return combined_messages
 
-    def _generate_chat_response(self, combined_messages):
+    def _generate_chat_response(self, combined_messages, times=1):
+        if times > 2:
+            success = False
+            return ""
+
         success = True
         response = None
 
@@ -477,14 +488,23 @@ class ChatModel:
             response = self._clean_response(response)
             logger.info("Мита: \n" + response)
         else:
-            success = False
-            print("Ответ пустой")
+            print("Ответ пустой в первый раз")
+
+            self.update_openai_client(self, reserve_key=True)
+            response = self._generate_chat_response(self, combined_messages, times + 1)
+            if response:
+                response = self._clean_response(response)
+                logger.info("Мита: \n" + response)
+            else:
+                print("Ответ все еще пустой")
+                success = False
 
         return response, success
 
     def _log_generation_start(self):
         logger.info("Перед отправкой на генерацию")
         logger.info(f"API Key: {SH(self.api_key)}")
+        logger.info(f"API Key res: {SH(self.api_key_res)}")
         logger.info(f"API URL: {self.api_url}")
         logger.info(f"API Model: {self.api_model}")
         logger.info(f"Make Request: {self.makeRequest}")

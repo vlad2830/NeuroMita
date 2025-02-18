@@ -1,6 +1,9 @@
 import requests
 import base64
 
+"Позволит в итоге анализировать картинки"
+
+
 # Ваш API-ключ OpenRouter
 API_KEY = "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" # халявный, я его вырублю)
 
