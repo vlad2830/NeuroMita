@@ -40,8 +40,9 @@ https://github.com/VinerX/NeuroMita/releases - тут релизы, то ест�
    
    Бесплатно:
       ссылка https://openrouter.ai/api/v1 модель google/gemini-2.0-flash-lite-preview-02-05:free open api ключ от https://openrouter.ai/settings/keys
-   
+      Также пробуйте другие модели.
    Платно: 
+      Внимание, ВАМ НЕ НУЖЕН ПРЕМ ЗА 1500, а просто пополнить баланс на 200 и более рублей.
       ссылка https://api.proxyapi.ru/openai/v1 модель gpt-4o-mini  open api
       ссылка https://api.proxyapi.ru/google/v1/models/gemini-1.5-flash:generateContent модель gemini-1.5-flash request ключ от https://console.proxyapi.ru/billing
    
