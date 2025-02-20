@@ -34,6 +34,8 @@ logger.addHandler(handler)
 class ChatModel:
     def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
 
+        self.OldSystem = True  # Временно решение, чтобы возвращать работоспособность
+
         self.gui = gui
 
         try:
@@ -106,9 +108,9 @@ class ChatModel:
         self.cart_space = SpaceCartridge("Space", "/speaker  wheatley")
         self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
 
-        self.current_character = self.cappy_mita_character
 
 
+        self.current_character = self.crazy_mita_character
 
     def load_prompts(self):
         self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
@@ -201,20 +203,28 @@ class ChatModel:
         print(
             f"mood: {self.attitude}, secretExposed: {self.secretExposed}, secretExposedFirst: {self.secretExposedFirst}")
 
-        # Логика для первой фазы (вводная информация)
-        if len(messages) == 0:
-            self._initialize_conversation()
+        if self.OldSystem:
+            # Логика для первой фазы (вводная информация)
+            if len(messages) == 0:
+                self._initialize_conversation()
 
-        # Логика для поведения при игре с игроком
-        elif self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
-            self._start_playing_with_player()
+            # Логика для поведения при игре с игроком
+            elif self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
+                self._start_playing_with_player()
 
-        # Логика для раскрытия секрета
-        elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
-            self._reveal_secret(messages)
+            # Логика для раскрытия секрета
+            elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
+                self._reveal_secret(messages)
+
+        else:
+            self.current_character.process_logic(messages)
 
         # Добавление информации о времени и пользовательского ввода
-        messages = self._process_user_input(messages)
+
+        if self.OldSystem:
+            messages = self._add_context(messages)
+        else:
+            self.current_character.add_context(messages)
 
         messages = self._add_input(user_input, system_input, messages)
 
@@ -254,7 +264,11 @@ class ChatModel:
             messages.append(response_message)
 
             # Процессинг ответа: изменяем показатели и сохраняем историю
-            response = self.process_response(user_input, response, messages)
+
+            if self.OldSystem:
+                response = self.process_response(response)
+            else:
+                response = self.current_character.process_response()
 
             current_info.update({
                 'MitaLongMemory': self.MitaLongMemory
@@ -331,7 +345,7 @@ class ChatModel:
                         f"{self.common}")
         }
 
-    def _process_user_input(self, messages):
+    def _add_context(self, messages):
         """
         Перед сообщением пользователя будет контекст, он не запишется в историю.
         :param messages:
@@ -359,6 +373,8 @@ class ChatModel:
         return messages
 
     def _add_input(self, user_input, system_input, messages):
+        """Добавляет то самое последнее сообщение"""
+
         if system_input != "":
             messages.append({"role": "system", "content": system_input})
         if user_input != "":
@@ -594,7 +610,7 @@ class ChatModel:
             logger.error(f"Ошибка: {response.status_code}, {response.text}")
             return None
 
-    def process_response(self, user_input, response, messages):
+    def process_response(self, response):
 
         try:
 

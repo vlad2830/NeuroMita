@@ -5,15 +5,15 @@ import enum
 class PromptType(enum.Enum):
     """Типы промптов."""
     FIXED_START = 1  # Фиксированный в начале
-    FLOATING_SYSTEM = 2  # Плавающий системный
-    CONTEXT_TEMPORARY = 3  # Временный контекстный
-    EVENT = 4  # Временный контекстный
+    FLOATING_SYSTEM = 2  # Плавающий системный - уходит и затухает в истории
+    CONTEXT_TEMPORARY = 3  # Временный контекстный - перед сообщением, не сохраняется в историю
+    EVENT = 4  # Одноразовый ивент - почти как плавающий
 
 
 class PromptPart:
     """Класс для представления части промпта."""
 
-    def __init__(self, type: PromptType, text: str, name=None, active=True,parameters: Optional[Dict] = None):
+    def __init__(self, part_type: PromptType, text: str, name=None, active=True, parameters: Optional[Dict] = None):
         """
         Инициализация части промпта.
 
@@ -22,7 +22,7 @@ class PromptPart:
         :param parameters: Параметры для форматирования (опционально).
         """
         self.name = name
-        self.type = type
+        self.type = part_type
         self.text = text
         self.active = active
         self.parameters = parameters or {}
