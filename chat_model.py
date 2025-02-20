@@ -1,13 +1,8 @@
-import json
-
-import requests
 import tiktoken
 from openai import OpenAI
-import os
 
 import datetime
 
-import re
 import shutil
 from num2words import num2words
 
@@ -112,7 +107,10 @@ class ChatModel:
         cappy_mita_prompts(self.cappy_mita_character)
         self.cart_space = Character("Space", "/speaker  wheatley")
         cart_space_prompts(self.cart_space)
-        self.current_character = self.crazy_mita_character
+        self.kind_mita_character = Character("Kind", "/speaker  shorthair")
+        kind_mita_prompts(self.kind_mita_character)
+
+        self.current_character = self.kind_mita_character
 
     def appendInfos(self, info):
         message = {
@@ -179,7 +177,7 @@ class ChatModel:
         self.stress = clamp(self.stress + amount, 0, 100)
         print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
-    def update_openai_client(self, reserve_key: bool = False):
+    def update_openai_client(self, reserve_key=False):
         print("Попытка обновить клиент")
         if reserve_key:
             key = self.api_key_res
@@ -490,8 +488,8 @@ class ChatModel:
         else:
             print("Ответ пустой в первый раз")
 
-            self.update_openai_client(self, reserve_key=True)
-            response = self._generate_chat_response(self, combined_messages, times + 1)
+            self.update_openai_client(True)
+            response = self._generate_chat_response(combined_messages, times + 1)
             if response:
                 response = self._clean_response(response)
                 logger.info("Мита: \n" + response)
@@ -698,10 +696,6 @@ class ChatModel:
             clean_text = "Вот"
 
         return clean_text
-
-    import re
-
-    import re
 
     def extract_and_process_memory_data(self, response):
         """

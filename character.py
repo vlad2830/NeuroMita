@@ -14,6 +14,8 @@ class Character:
         self.temp_prompts: List[PromptPart] = []
         self.events: List[PromptPart] = []
 
+        self.variables = dict()
+
     def add_prompt_part(self, part: PromptPart):
         if part.is_fixed:
             self.fixed_prompts.append(part)
@@ -100,6 +102,37 @@ def crazy_mita_prompts(mita_character: Character, chat_model=None):
 
     for prompt in Prompts:
         mita_character.add_prompt_part(prompt)
+
+def kind_mita_prompts(mita_character: Character, chat_model=None):
+    Prompts = []
+
+
+    response_structure = load_text_from_file("Prompts/Kind/Structural/response_structure.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+
+    common = load_text_from_file("Prompts/Kind/Main/common.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
+
+    main = load_text_from_file("Prompts/Kind/Main/main.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, main, "main"))
+
+    player = load_text_from_file("Prompts/Kind/Main/player.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, player))
+    # Добавляем примеры длинных диалогов
+
+    examplesLong = load_text_from_file("Prompts/Kind/Context/examplesLong.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
+
+
+    mita_history = load_text_from_file("Prompts/Kind/Context/mita_history.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
+
+    variableEffects = load_text_from_file("Prompts/Kind/Structural/VariablesEffects.txt")
+    Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
+
+    for prompt in Prompts:
+        mita_character.add_prompt_part(prompt)
+
 
 
 def cappy_mita_prompts(mita_character: Character, chat_model=None):

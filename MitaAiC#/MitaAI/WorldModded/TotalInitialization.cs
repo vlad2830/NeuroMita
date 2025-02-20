@@ -145,7 +145,7 @@ namespace MitaAI
 
 
             }
-
+            
         }
         private static IEnumerator WaitForSceneAndInstantiateWorldBasement(string sceneToLoad)
         {
@@ -292,6 +292,8 @@ namespace MitaAI
                 //MitaCore.KindObject.transform.position = Vector3.zero;
 
                 //MitaCore.Instance.changeMita(MitaCore.KindObject);
+
+                MitaCore.Instance.changeMita(MitaCore.KindObject, MitaCore.character.Kind);
             }
        
             catch (Exception ex)

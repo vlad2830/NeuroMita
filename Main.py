@@ -4,14 +4,14 @@ from gui import ChatGUI
 
 
 # Установка
+
+# Теперь делаю файлом с папкой, так как антивирусы ругаются)
+#pyinstaller --name NeuroMita --add-data "Prompts/*;Prompts" --add-data "Prompts/**/*;Prompts" Main.py
+
+# Старый вариант
 #pyinstaller --onefile --name NeuroMita --add-data "Prompts/*;Prompts" --add-data "Prompts/**/*;Prompts" Main.py
-#pyinstaller --onefile --name NeuroMita --add-data "CrazyMitaPrompts/*;CrazyMitaPrompts" --add-data "CrazyMitaPrompts/**/*;CrazyMitaPrompts" Main.py
 
-# Удаление всех пакетов
-#pip freeze | % { pip uninstall -y $_.Split('==')[0] }
-
-# При установке не забудь ffmpeg поставить питоновский
-
+# Не забудь рядом папку промптов и ffmpeg
 def main():
     gui = ChatGUI()
     gui.run()

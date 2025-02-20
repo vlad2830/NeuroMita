@@ -16,7 +16,7 @@ namespace MitaAI.Mita
         private static Transform playerPerson;
         private static Transform MitaPersonObject;
         private static Location34_Communication location34_Communication;
-        static public int ContinueCounter = 0;
+        public static int ContinueCounter = 0;
 
         public static void Initialize(MitaCore mitaCore2, Transform playerPersonTransform, Transform mitaPersonObjectTransform, Location34_Communication location34_Communication2)
         {
@@ -140,7 +140,7 @@ namespace MitaAI.Mita
 
                 case "continue":
                     ContinueCounter+=1;
-                    MelonLogger.Msg("Cont times",ContinueCounter);
+                    MelonLogger.Msg($"Cont times {ContinueCounter}");
                     if (ContinueCounter < 3) { 
                         mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль"); 
                     }

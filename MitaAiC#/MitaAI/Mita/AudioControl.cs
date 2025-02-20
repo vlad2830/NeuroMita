@@ -14,9 +14,11 @@ namespace MitaAI.Mita
 
         public static GameObject currentAudioObject;
 
-        static DataValues_Sounds dataValues_Sounds;
+        public static DataValues_Sounds dataValues_Sounds;
         public static AudioClip chibiMitaAudio;
         static AudioSource mitaAudioSourse;
+        public static GameObject MitaDualogueSpeak;
+
         public static string getCurrrentMusic()
         {
             if (currentAudioObject == null) return "None";
@@ -68,10 +70,14 @@ namespace MitaAI.Mita
 
             try
             {
-                dataValues_Sounds =  worldHouse.Find("Dialogues/DialogueMita Speak").GetComponent<DataValues_Sounds>();
+                MitaDualogueSpeak = worldHouse.Find("Dialogues/DialogueMita Speak").gameObject;
+                dataValues_Sounds = MitaDualogueSpeak.GetComponent<DataValues_Sounds>();
                 chibiMitaAudio = dataValues_Sounds.sounds[0];
                 mitaAudioSourse = MitaCore.Instance.MitaObject.transform.Find("MitaPerson Mita/Armature/Hips/Spine").GetComponent<AudioSource>();
+                
             }
+
+
             catch (Exception e)
             {
 

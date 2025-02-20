@@ -69,26 +69,129 @@ namespace MitaAI
         public Character_Look MitaLook;
 
 
-        public void changeMita(GameObject NewMitaObject)
+        public void changeMita(GameObject NewMitaObject,character character = character.Mita)
         {
             MelonLogger.Msg("Change Mita Begin");
-            NewMitaObject.SetActive(true);
-            MitaObject = NewMitaObject;
-            // Перебираем всех дочерних объектов
-            foreach (Transform child in Mita.transform)
-            {
-                // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
-                if (child.name.Contains("Mita Person"))
-                {
-                    MitaPersonObject = child.gameObject;
-                    break; // Прерываем цикл, как только нашли первый подходящий объект
-                }
-            }
-            MitaPersonObject.transform.position = Vector3.zero;
-            MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
-            MitaAnimatorFunctions = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Animator_FunctionsOverride>();
-            Mita = MitaPersonObject.GetComponent<MitaPerson>();
 
+            try
+            {
+
+
+                if (NewMitaObject == null)
+                {
+                    MelonLogger.Msg("New Mita Object is null!!!");
+                    return;
+                }
+
+                MitaObject.active = false;
+                currentCharacter = character;
+                NewMitaObject.SetActive(true);
+                MelonLogger.Msg("Change Mita activated her");
+                MitaObject = NewMitaObject;
+
+                // Рекурсивно добавляем всех детей, если текущий объект не исключен
+                int childCount = MitaObject.transform.childCount;
+                for (int i = 0; i < childCount; i++)
+                {
+                    Transform child = MitaObject.transform.GetChild(i);
+                    // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
+                    if (child != null && child.name.Contains("MitaPerson"))
+                    {
+                        MitaPersonObject = child.gameObject;
+                        break; // Прерываем цикл, как только нашли первый подходящий объект
+                    }
+                }
+                MelonLogger.Msg("Change Mita finded  MitaPersonObject");
+
+                if (MitaPersonObject == null)
+                {
+                    MelonLogger.Msg("Mita (Mita Person comp) is null");
+                    MitaPersonObject = MitaObject.transform.Find("MitaPerson Future").gameObject;
+                };
+
+                MitaPersonObject.transform.position = Vector3.zero;
+                MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
+
+                MelonLogger.Msg("333");
+
+                MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
+                Mita = MitaObject.GetComponent<MitaPerson>();
+
+
+                if (Mita == null) { 
+
+                    MelonLogger.Msg("MitaPersonObject is null");
+                };
+                MitaAnimationModded.mitaAnimatorFunctions = MitaAnimatorFunctions;
+                MitaAnimationModded.animator = MitaPersonObject.GetComponent<Animator>();
+                MitaAnimationModded.resetToIdleAnimation();
+                MelonLogger.Msg("555");
+
+                try
+                {
+                    
+                    var audioSource = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head").GetComponent<AudioSource>();
+                    AudioControl.dataValues_Sounds.audioSource = audioSource;
+                    if (audioSource == null) MelonLogger.Msg("Audiosourse is null(((");
+                    
+                    // Получаем тип компонента
+                    Type audioDialogueType = typeof(Il2Cpp.AudioDialogue);
+
+                    // Получаем поле audioVoice через Reflection
+                    FieldInfo audioVoiceField = audioDialogueType.GetField("audioVoice", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                    if (audioVoiceField != null)
+                    {
+                        // Получаем компонент AudioDialogue
+                        var audioDialogue = AudioControl.MitaDualogueSpeak.GetComponent<Il2Cpp.AudioDialogue>();
+
+                        // Устанавливаем значение поля через Reflection
+                        audioVoiceField.SetValue(audioDialogue, audioSource);
+                    }
+                    else
+                    {
+                        Debug.LogError("Поле audioVoice не найдено!");
+                    }
+
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Msg($"5a0 {ex}");
+                }
+                
+
+                try
+                {
+                    MitaAnimationModded.animator.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
+                    //AnimatorOverrideController AOC = MitaAnimationModded.animator.runtimeAnimatorController as AnimatorOverrideController;
+                    //AOC.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Msg($"5a {ex}");
+                }
+   
+
+                MelonLogger.Msg("666");
+                //MitaAnimationModded.overrideController = MitaAnimationModded.runtimeAnimatorController;
+                //location21_World.mitaTransform = MitaPersonObject.transform;
+                //location21_World.
+                MitaAnimationModded.location34_Communication.mita = Mita;
+                MitaAnimationModded.location34_Communication.mitaCanWalk = true;
+                Location34_Communication.play = true;
+
+                MelonLogger.Msg("777");
+
+                
+                
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error("Mita change: ", ex);
+            }
 
             MelonLogger.Msg("Change Mita Final");
         }
@@ -100,7 +203,7 @@ namespace MitaAI
             Kind = 2,
             cart_portal = 3
         }
-
+        public character currentCharacter = character.Mita;
         enum MovementStyles
         {
             walkNear = 0,
@@ -514,8 +617,8 @@ namespace MitaAI
             if (Utils.Random(1, 7)) sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом");
             else sendSystemMessage("Игрок только что загрузился в твой уровень.");
 
-            
 
+            
             //TestBigMita();
         }
         void TestBigMita()
@@ -725,25 +828,33 @@ namespace MitaAI
         }
         public void prepareForSend()
         {
-            if (Vector3.Distance(Mita.transform.GetChild(0).position, lastPosition) > 2f)
+            try
             {
-                try
+                if (Vector3.Distance(Mita.transform.GetChild(0).position, lastPosition) > 2f)
                 {
-                    lastPosition = Mita.transform.GetChild(0).position;
-                    List<string> excludedNames = new List<string> { "Hips", "Maneken" };
-                    if (roomIDMita == 4) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
-                    else hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldHouse.Find("House").transform, excludedNames);
 
-                    //LoggerInstance.Msg(hierarchy);
+                        lastPosition = Mita.transform.GetChild(0).position;
+                        List<string> excludedNames = new List<string> { "Hips", "Maneken" };
+                        if (roomIDMita == 4) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
+                        else hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldHouse.Find("House").transform, excludedNames);
+
+                        //LoggerInstance.Msg(hierarchy);
+                    
+
                 }
-                catch (Exception e) { LoggerInstance.Msg("hierarchy error " + e); }
-            }
-            if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
+                if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
 
-            distance = getDistanceToPlayer();
-            roomIDPlayer = GetRoomID(playerPerson.transform);
-            roomIDMita = GetRoomID(Mita.transform);
-            currentInfo = formCurrentInfo();
+                distance = getDistanceToPlayer();
+                roomIDPlayer = GetRoomID(playerPerson.transform);
+                roomIDMita = GetRoomID(Mita.transform);
+                currentInfo = formCurrentInfo();
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"prepareForSend {ex}");
+            }
+           
         }
 
         // Глобальный список для хранения дочерних объектов
@@ -953,6 +1064,7 @@ namespace MitaAI
 
         private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts)
         {
+
             foreach (string part in dialogueParts)
             {
                 LoggerInstance.Msg("foreach foreach " + part);
@@ -964,7 +1076,7 @@ namespace MitaAI
 
                 
             }
-            if (CommandProcessor.ContinueCounter > 0) CommandProcessor.ContinueCounter--;
+            if (CommandProcessor.ContinueCounter > 0) CommandProcessor.ContinueCounter -=1;
         }
 
 
@@ -1008,7 +1120,7 @@ namespace MitaAI
             answer.textPrint = modifiedPart;
             answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Mita;
             answer.timeShow = delay;
-            answer.speaker = Mita?.gameObject;
+            answer.speaker = MitaPersonObject;
 
             MelonLogger.Msg($"Text is {answer.textPrint}");
             addDialogueMemory(answer);
@@ -1036,13 +1148,16 @@ namespace MitaAI
             if (audioClip != null)
             {
                 GameObject currentDialog = InstantiateDialog();
-                currentDialog.SetActive(true);
+                
                 Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
                 LoggerInstance.Msg("Loading voice...");
                 answer.timeSound = delay;
                 answer.LoadVoice(audioClip);
                 audioClip = null;
-                answer.speaker = Mita?.gameObject;
+                MelonLogger.Msg($"Setting speaker {MitaPersonObject.name}");
+                answer.speaker = MitaPersonObject;
+
+                currentDialog.SetActive(true);
 
                 yield return new WaitForSeconds(delay);
                 MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
@@ -1225,8 +1340,17 @@ namespace MitaAI
             Quaternion originalRotation = Mita.transform.rotation;
             Mita.transform.SetPositionAndRotation(new Vector3(500, 500, 500), Quaternion.identity);
             yield return new WaitForSeconds(0.1f);
-            AnimationKiller.GetComponent<Location6_MitaKiller>().Kill(); // Вызываем метод Kill()
-            endHunt();
+            try
+            {
+                AnimationKiller.GetComponent<Location6_MitaKiller>().Kill(); // Вызываем метод Kill()
+                endHunt();
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Msg(e);
+            }
+            
             yield return new WaitForSecondsRealtime(delay);
 
             sendSystemMessage("You successfully killed the player using knife, and he respawned somewhere.");

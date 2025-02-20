@@ -13,14 +13,14 @@ namespace MitaAI.Mita
         static private Queue<string> animationQueue = new Queue<string>();
         static private bool isPlaying = false;
         static private Il2CppAssetBundle bundle;
-        static Animator_FunctionsOverride mitaAnimatorFunctions;
-        static Location34_Communication location34_Communication;
+        public static Animator_FunctionsOverride mitaAnimatorFunctions;
+        public static Location34_Communication location34_Communication;
         static AnimationClip idleAnimation;
         static AnimationClip idleWalkAnimation;
         // Основной метод для добавления анимации в очередь
-        static RuntimeAnimatorController runtimeAnimatorController;
-        static AnimatorOverrideController overrideController;
-        static Animator animator;
+        public static RuntimeAnimatorController runtimeAnimatorController;
+        public static AnimatorOverrideController overrideController;
+        public static Animator animator;
 
         static public string currentIdleAnim = "Idle";
         public enum IdleStates
@@ -367,12 +367,25 @@ namespace MitaAI.Mita
                     //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
                     MelonLogger.Msg($"Crossfade");
                     MelonLogger.Msg($"Now playing: {animName}");
-                    mitaAnimatorFunctions.anim.CrossFade(animName, 0.25f);
+                    try
+                    {
+                        mitaAnimatorFunctions.anim.CrossFade(animName, 0.25f);
 
-                    if (anim.events.Count > 0) {
-                        MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
+                        if (anim.events.Count > 0)
+                        {
+                            //MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
+                        }
+
+                        MelonLogger.Msg($"zzz1");
+                    }
+                    catch (Exception ex) 
+                    {
+
+                        MelonLogger.Msg(ex);
                     }
 
+
+                    MelonLogger.Msg($"zzz2");
                     yield return WaitForAnimationCompletion(anim, false, 0.25f);
                 }
 
