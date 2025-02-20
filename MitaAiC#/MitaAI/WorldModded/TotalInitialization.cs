@@ -293,7 +293,7 @@ namespace MitaAI
 
                 //MitaCore.Instance.changeMita(MitaCore.KindObject);
 
-                MitaCore.Instance.changeMita(MitaCore.KindObject, MitaCore.character.Kind);
+                MitaCore.Instance.changeMita(MitaCore.CappyObject, MitaCore.character.Cappy);
             }
        
             catch (Exception ex)

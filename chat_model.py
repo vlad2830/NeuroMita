@@ -2,7 +2,7 @@ import tiktoken
 from openai import OpenAI
 
 import datetime
-
+import re
 import shutil
 from num2words import num2words
 
@@ -101,23 +101,14 @@ class ChatModel:
         Инициализует возможных персонажей
         :return:
         """
-        self.crazy_mita_character = Character("Mita", "/speaker mita")
-        crazy_mita_prompts(self.crazy_mita_character)
-        self.cappy_mita_character = Character("Cappy", "/speaker cap")
-        cappy_mita_prompts(self.cappy_mita_character)
-        self.cart_space = Character("Space", "/speaker  wheatley")
-        cart_space_prompts(self.cart_space)
-        self.kind_mita_character = Character("Kind", "/speaker  shorthair")
-        kind_mita_prompts(self.kind_mita_character)
+        self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
+        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
+        self.cart_space = SpaceCartridge("Space", "/speaker  wheatley")
+        self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
 
-        self.current_character = self.kind_mita_character
+        self.current_character = self.cappy_mita_character
 
-    def appendInfos(self, info):
-        message = {
-            "role": "system",
-            "content": info
-        }
-        self.infos.append(message)
+
 
     def load_prompts(self):
         self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")

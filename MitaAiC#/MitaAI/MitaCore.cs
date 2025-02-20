@@ -1618,10 +1618,18 @@ namespace MitaAI
             while (movementStyle != MovementStyles.walkNear)
             {
                 if (!Mita.GetComponent<NavMeshAgent>().enabled) 
-                { 
+                {
+                    try
+                    {
+                        MitaLook.LookOnPlayerAndRotate();
+                    }
+                    catch (Exception e)
+                    {
 
+                        MelonLogger.Msg(e);
+                    }
                     //if (Utils.Random(6, 10))
-                    MitaLook.LookOnPlayerAndRotate();
+                   
                     //else MitaLook.LookRandom();
                 
                 }
