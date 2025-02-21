@@ -34,7 +34,8 @@ logger.addHandler(handler)
 class ChatModel:
     def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
 
-        self.OldSystem = True  # Временное решение, чтобы возвращать работоспособность
+        # Временное решение, чтобы возвращать работоспособность старого формата
+        self.OldSystem = True
 
         self.gui = gui
 
@@ -100,19 +101,18 @@ class ChatModel:
 
     def init_characters(self):
         """
-        Инициализует возможных персонажей
-        :return:
+        Инициализирует возможных персонажей
         """
         self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
         self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
         self.cart_space = SpaceCartridge("Space", "/speaker  wheatley")
         self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
 
-
-
         self.current_character = self.crazy_mita_character
 
     def load_prompts(self):
+        """старая функция, надо будет сделать через персонажей"""
+
         self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
         self.main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
         self.player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
@@ -130,6 +130,7 @@ class ChatModel:
 
         self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
 
+    #region TokensCounting
     def calculate_cost(self, user_input):
         # Загружаем историю
         history_data = self.load_history()
@@ -151,6 +152,8 @@ class ChatModel:
     def count_tokens(self, messages):
         return sum(len(self.tokenizer.encode(msg["content"])) for msg in messages if
                    isinstance(msg, dict) and "content" in msg)
+
+    #endregion
 
     def adjust_attitude(self, amount):
         amount = clamp(amount, -5, 5)
@@ -297,6 +300,7 @@ class ChatModel:
             print(f"Ошибка на фазе генерации: {e}")
             return f"Ошибка на фазе генерации: {e}"
 
+    #region CrazyOldStatesChange
     def _initialize_conversation(self):
         """Инициализация начальной беседы"""
         self.systemMessages.insert(0, {"role": "system", "content": f"{self.player}\n"})
@@ -327,6 +331,8 @@ class ChatModel:
 
         self.current_character.replace_prompt("main", "mainCrazy")
         self.current_character.replace_prompt("mainPlaying", "mainCrazy")
+
+    #endregion
 
     def _generate_timed_system_message(self, characher: Character = None):
         """Генерация сообщения с текущим состоянием персонажа"""
@@ -563,10 +569,21 @@ class ChatModel:
                 presence_penalty=1.5,
                 temperature=0.5,
             )
-            response = completion.choices[0].message.content
+            if completion:
+                if completion.choices:
+                    response = completion.choices[0].message.content
+                    return response.lstrip("\n")
+                else:
+                    print("completion.choices пусто")
+                    print(completion)
+                    return None
+            else:
+
+                print("completion пусто")
+                return None
 
             #print("out completion ", completion)
-            return response.lstrip("\n")
+
         except Exception as e:
             logger.error("Что-то не так при генерации OpenAI", str(e))
             return None
@@ -576,7 +593,7 @@ class ChatModel:
             response = response.lstrip("```\n")
             response = response.removesuffix("\n```\n")
         except Exception as e:
-            logger.error("Проблема с префиксами или постфиксами", str(e))
+            logger.error("Проблема с префиксами или постфиксами")
         return response
 
     def generate_responseGemini(self, combined_messages):

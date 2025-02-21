@@ -23,7 +23,6 @@ class ChatServer:
 
         self.gui.ConnectedToGame = True
 
-
     def handle_connection(self):
         """Обрабатывает одно подключение."""
         if not self.server_socket:
@@ -41,7 +40,7 @@ class ChatServer:
                 "|||")
 
             if system_info != "-":
-                print("Добавил систем инфо "+system_info)
+                print("Добавил систем инфо " + system_info)
                 self.chat_model.appendInfos(system_info)
 
             response = ""
@@ -70,7 +69,6 @@ class ChatServer:
                 silero = "1"
             else:
                 silero = "0"
-
 
             message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}"
             self.gui.patch_to_sound_file = ""
