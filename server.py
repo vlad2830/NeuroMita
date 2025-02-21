@@ -3,11 +3,10 @@ import datetime
 
 
 class ChatServer:
-    def __init__(self, gui, chat_model, host='127.0.0.1', port=12345, passive_port=12346):
+    def __init__(self, gui, chat_model, host='127.0.0.1', port=12345):
         self.host = host
         self.port = port
         self.gui = gui
-        self.passive_port = passive_port
         self.server_socket = None
         self.client_socket = None
         self.passive_client_socket = None
@@ -20,11 +19,8 @@ class ChatServer:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen(5)
+        print(f"Сервер запущен на {self.host}:{self.port}")
 
-        self.passive_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.passive_server_socket.bind((self.host, self.passive_port))
-        self.passive_server_socket.listen(5)
-        print(f"Сервер запущен на {self.host}:{self.passive_port}")
         self.gui.ConnectedToGame = True
 
 
