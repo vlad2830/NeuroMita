@@ -34,7 +34,7 @@ logger.addHandler(handler)
 class ChatModel:
     def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
 
-        self.OldSystem = True  # Временно решение, чтобы возвращать работоспособность
+        self.OldSystem = True  # Временное решение, чтобы возвращать работоспособность
 
         self.gui = gui
 

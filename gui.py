@@ -11,14 +11,18 @@ import glob
 
 import asyncio
 import threading
+
 import tkinter as tk
+from tkinter import ttk
 
 from utils import SH
 
+import sounddevice as sd
 
 class ChatGUI:
     def __init__(self):
 
+        self.test_microphone = None
         self.silero_connected = False
         self.game_connected = False
 
@@ -27,6 +31,8 @@ class ChatGUI:
 
         self.bot_handler = None
         self.bot_handler_ready = False
+
+        self.selected_microphone = ""
 
         self.api_key = ""
         self.api_key_res = ""
@@ -44,6 +50,8 @@ class ChatGUI:
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
 
+
+
         self.model = ChatModel(self, self.api_key, self.api_key_res,self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
@@ -60,6 +68,11 @@ class ChatGUI:
 
         self.delete_all_wav_files()
         self.setup_ui()
+
+        try:
+            self.load_mic_settings()
+        except Exception as e:
+            print("Не удалось удачно получить настройки микрофона", e)
 
         # Событие для синхронизации потоков
         self.loop_ready_event = threading.Event()
@@ -218,6 +231,8 @@ class ChatGUI:
         # Второй столбец
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+        self.setup_microphone_controls(right_frame)
 
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
@@ -737,6 +752,110 @@ class ChatGUI:
         self.model.clear_history()
         self.chat_window.delete(1.0, tk.END)
         self.update_debug_info()
+
+    # region Microphone
+
+    """Спасибо Nelxi (distrane25)"""
+    def setup_microphone_controls(self, parent):
+        mic_frame = tk.Frame(parent, bg="#2c2c2c")
+        mic_frame.pack(fill=tk.X, pady=5)
+
+        tk.Label(
+            mic_frame,
+            text="Микрофон:",
+            bg="#2c2c2c",
+            fg="#ffffff"
+        ).pack(side=tk.LEFT, padx=5)
+
+        self.mic_combobox = ttk.Combobox(
+            mic_frame,
+            values=self.get_microphone_list(),
+            state="readonly",
+            width=30
+        )
+        self.mic_combobox.pack(side=tk.LEFT, padx=5)
+        self.mic_combobox.bind("<<ComboboxSelected>>", self.on_mic_selected)
+
+        refresh_btn = tk.Button(
+            mic_frame,
+            text="↻",
+            command=self.update_mic_list,
+            bg="#8a2be2",
+            fg="#ffffff",
+            width=2
+        )
+        refresh_btn.pack(side=tk.LEFT, padx=5)
+
+        test_btn = tk.Button(
+            mic_frame,
+            text="Тест",
+            command=self.test_microphone,
+            bg="#8a2be2",
+            fg="#ffffff"
+        )
+        test_btn.pack(side=tk.RIGHT, padx=5)
+
+    def get_microphone_list(self):
+        try:
+            devices = sd.query_devices()
+            input_devices = [
+                f"{d['name']} ({i})"
+                for i, d in enumerate(devices)
+                if d['max_input_channels'] > 0
+            ]
+            return input_devices
+        except Exception as e:
+            print(f"Ошибка получения списка микрофонов: {e}")
+            return []
+
+    def update_mic_list(self):
+        self.mic_combobox['values'] = self.get_microphone_list()
+
+    def on_mic_selected(self, event):
+        selection = self.mic_combobox.get()
+        if selection:
+            self.selected_microphone = selection.split(" (")[0]
+            device_id = int(selection.split(" (")[-1].replace(")", ""))
+            print(f"Выбран микрофон: {self.selected_microphone} (ID: {device_id})")
+            self.save_mic_settings(device_id)
+
+    def save_mic_settings(self, device_id):
+        try:
+            with open(self.config_path, "rb") as f:
+                encoded = f.read()
+            decoded = base64.b64decode(encoded)
+            settings = json.loads(decoded.decode("utf-8"))
+        except FileNotFoundError:
+            settings = {}
+
+        settings["NM_MICROPHONE_ID"] = device_id
+        settings["NM_MICROPHONE_NAME"] = self.selected_microphone
+
+        json_data = json.dumps(settings, ensure_ascii=False)
+        encoded = base64.b64encode(json_data.encode("utf-8"))
+        with open(self.config_path, "wb") as f:
+            f.write(encoded)
+
+    def load_mic_settings(self):
+        try:
+            with open(self.config_path, "rb") as f:
+                encoded = f.read()
+            decoded = base64.b64decode(encoded)
+            settings = json.loads(decoded.decode("utf-8"))
+
+            device_id = settings.get("NM_MICROPHONE_ID", 0)
+            device_name = settings.get("NM_MICROPHONE_NAME", "")
+
+            devices = sd.query_devices()
+            if device_id < len(devices):
+                self.selected_microphone = device_name
+                self.mic_combobox.set(f"{device_name} ({device_id})")
+                print(f"Загружен микрофон: {device_name} (ID: {device_id})")
+
+        except Exception as e:
+            print(f"Ошибка загрузки настроек микрофона: {e}")
+
+    # endregion
 
     def run(self):
         self.root.mainloop()
