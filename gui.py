@@ -242,7 +242,7 @@ class ChatGUI:
         self.controls_frame.pack(fill=tk.X, pady=3)
 
         # Настройка элементов управления
-        self.setup_control("Настроение", "attitude", self.model.attitude)
+        self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
         self.setup_control("Скука", "boredom", self.model.boredom)
         self.setup_control("Стресс", "stress", self.model.stress)
         self.setup_secret_control()

@@ -2,6 +2,9 @@ import os
 import sys
 import json
 import requests
+import re
+
+from num2words import num2words
 
 
 def clamp(value, min_value, max_value):
@@ -120,3 +123,12 @@ def SH(s, placeholder="***", percent=0.20):
 
     # Собираем результат
     return f"{start}{placeholder}{end}"
+
+#Замена чисел на слова в русском тексте
+def replace_numbers_with_words(text):
+    numbers = re.findall(r'\d+', text)
+    for number in numbers:
+        word = num2words(int(number), lang='ru')
+        text = text.replace(number, word)
+    return text
+

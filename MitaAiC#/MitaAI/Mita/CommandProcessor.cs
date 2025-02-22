@@ -141,8 +141,9 @@ namespace MitaAI.Mita
                 case "continue":
                     ContinueCounter+=1;
                     MelonLogger.Msg($"Cont times {ContinueCounter}");
-                    if (ContinueCounter < 3) { 
-                        mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль"); 
+                    if (ContinueCounter < 3) {
+                        mitaCore.sendSystemInfo($"У тебя осталось {3 - ContinueCounter} возможностей продолжить фразу");
+                        mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль");
                     }
                     else {
                         MelonLogger.Warning("tryied 4 continue");

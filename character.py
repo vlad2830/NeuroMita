@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from EventState import EventState
 from MemorySystem import MemorySystem
 from promptPart import PromptPart, PromptType
 from HistoryManager import HistoryManager
@@ -17,15 +18,18 @@ class Character:
         self.float_prompts: List[PromptPart] = []
         self.temp_prompts: List[PromptPart] = []
         self.events: List[PromptPart] = []
+        self.variables = []
 
-        self.history_file = HistoryManager()
+        self.history_file = HistoryManager(self.name)
+        self.load_history()
+
         self.memory_file = MemorySystem()
+        self.state = EventState()
 
         """
         Спорные временные переменные
         """
         self.LongMemoryRememberCount = 0
-
 
         self.init()
 
@@ -48,7 +52,7 @@ class Character:
         :param name_current: Имя текущего активного промпта.
         :param name_next: Имя следующего промпта, который нужно активировать.
         """
-        print("Замена промпта")
+        print("Замена промпарта")
 
         # Находим текущий активный промпт
         current_prompt = next((p for p in self.fixed_prompts if p.name == name_current), None)
@@ -68,7 +72,6 @@ class Character:
         """Создает фиксированные начальные установки
         :return: сообщения до
         """
-
 
         messages = []
 
@@ -94,9 +97,25 @@ class Character:
         repeated_system_message = f"Time: {date_now}."
 
         if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaked me</memory>"
+            repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaсked me</memory> (this text is example)"
 
         messages.append({"role": "system", "content": repeated_system_message})
+
+        """
+        # Добавляем timed_system_message, если оно не пусто и это словарь
+        if timed_system_message and isinstance(timed_system_message, dict):
+            combined_messages.append(timed_system_message)
+            print("timed_system_message успешно добавлено.")
+
+        if self.nearObjects != "" and self.nearObjects != "-":
+            text = f"В радиусе от тебя следующие объекты (object tree) {self.nearObjects}"
+            messageNear = {"role": "system", "content": text}
+            combined_messages.append(messageNear)
+
+        if self.actualInfo != "" and self.actualInfo != "-":
+            messageActual = {"role": "system", "content": self.actualInfo}
+            combined_messages.append(messageActual)
+        """
 
         return messages
 
@@ -109,17 +128,42 @@ class Character:
 
     def process_response(self, messages: dict):
         """То, как должно что-то меняться в результате ответа"""
-
+        return messages
         print("Персонаж без изменяемой логики пропмтов")
+
+    def load_history(self):
+        """Кастомная обработка загрузки истории"""
+        return self.history_file.load_history()
+
+    def safe_history(self, messages: dict, temp_context: dict):
+        """Кастомная обработка сохранения истории"""
+
+        history_data = {
+            'fixed_parts': self.prepare_fixed_messages(),
+            'messages': messages,
+            'temp_context': temp_context,
+            'variables': self.variables
+        }
+
+        self.history_file.save_history(history_data)
+
+    def current_variables(self):
+        print("Попытка узнать переменные у персонажа без")
+        return ""
+
 
 class CrazyMita(Character):
 
     def __init__(self, name: str = "Mita", silero_command: str = "/speaker Mita"):
-        super().__init__(name, silero_command)
 
+        """Добавляемые переменные"""
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
+        self.secretExposed = False
+        self.secretExposedFirst = False
+
+        super().__init__(name, silero_command)
 
     def init(self):
         self.crazy_mita_prompts()
@@ -154,7 +198,7 @@ class CrazyMita(Character):
         #Prompts.append(PromptPart(PromptType.FIXED_START, world, "world"))
 
         mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history", False))
 
         variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
@@ -165,36 +209,51 @@ class CrazyMita(Character):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
-    def _initialize_conversation(self):
-        """Инициализация начальной беседы"""
-        self.systemMessages.insert(0, {"role": "system", "content": f"{self.player}\n"})
-        self.MitaExamples = {"role": "system", "content": f"{self.examplesLong}\n"}
-        self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}\n"}
-        self.systemMessages.insert(0, {"role": "system", "content": f"{self.response_structure}"})
+    def safe_history(self, messages, temp_context):
+        self.variables = {
+            "attitude": self.attitude,
+            "boredom": self.boredom,
+            "stress": self.stress,
+            "secret": self.secretExposed,
+            "secret_first": self.secretExposedFirst
+        }
+
+        super().safe_history(messages, temp_context)
+
+    def load_history(self):
+        data = super().load_history()
+
+        self.attitude = data.get("attitude", self.attitude)
+        self.boredom = data.get("boredom", self.boredom)
+        self.stress = data.get("stress", self.stress)
+        self.secretExposed = data.get("secret", self.secretExposed)
+        self.secretExposedFirst = data.get("secret_first", self.secretExposedFirst)
+        return data
 
     def _start_playing_with_player(self):
         """Игровая логика, когда персонаж начинает играть с игроком"""
         print("Играет с игроком в якобы невиновную")
         self.PlayingFirst = True
-        self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}\n"}
-        self.current_character.replace_prompt("main", "mainPlaying")
+        self.replace_prompt("main", "mainPlaying")
 
     def _reveal_secret(self, messages):
         """Логика раскрытия секрета"""
         print("Перестала играть вообще")
         self.secretExposedFirst = True
         self.secretExposed = True
-        self.MitaMainBehaviour = {
-            "role": "system",
-            "content": f"{self.mainCrazy}\n{self.response_structure}"
-        }
-        self.MitaExamples = {"role": "system", "content": f"{self.examplesLongCrazy}\n"}
-        #add_temporary_system_message(messages, f"{self.SecretExposedText}")
-        system_message = {"role": "system", "content": f"{self.mita_history}\n"}
-        self.systemMessages.append(system_message)
+        self.replace_prompt("main", "mainCrazy")
+        self.replace_prompt("mainPlaying", "mainCrazy")
+        self.replace_prompt("examplesLong", "examplesLongCrazy")
 
-        self.current_character.replace_prompt("main", "mainCrazy")
-        self.current_character.replace_prompt("mainPlaying", "mainCrazy")
+    def current_variables(self):
+        return {
+            "role": "system",
+            "content": (f"Твои характеристики:"
+                        f"Отношение: {self.attitude}/100."
+                        f"Стресс: {self.stress}/100."
+                        f"Скука: {self.boredom}/100."
+                        f"Состояние секрета: {self.secretExposed}")
+        }
 
 
 class KindMita(Character):
@@ -257,6 +316,7 @@ class CappyMita(Character):
             self.add_prompt_part(prompt)
 
 
+#region Cartridges
 class Cartridge(Character):
     ...
 
@@ -274,3 +334,5 @@ class SpaceCartridge(Cartridge):
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
+
+#endregion

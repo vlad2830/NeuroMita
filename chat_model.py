@@ -4,7 +4,6 @@ from openai import OpenAI
 import datetime
 import re
 import shutil
-from num2words import num2words
 
 from character import *
 from utils import *
@@ -35,7 +34,8 @@ class ChatModel:
     def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
 
         # Временное решение, чтобы возвращать работоспособность старого формата
-        self.OldSystem = True
+
+        self.OldSystem = False
 
         self.gui = gui
 
@@ -66,9 +66,25 @@ class ChatModel:
         self.chat_history = self.load_history().get('messages', [])
         self.memory_limit = 40  # Ограничение сообщения
 
+        """New System"""
+        self.current_character = None
+
+        """Old System"""
+
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
+
+        self.SecretExposedText = ""
+        self.secretExposed = False
+        self.secretExposedFirst = False
+        self.PlayingFirst = False
+
+        self.MitaMainBehaviour = []
+        self.MitaExamples = []
+        self.systemMessages = []
+
+        """То, что нужно будет убрать в одну переменную"""
 
         self.distance = 0.0
         self.roomPlayer = -1
@@ -76,15 +92,14 @@ class ChatModel:
 
         self.nearObjects = ""
         self.actualInfo = ""
+
+        """То, что нужно будет убрать в одну переменную"""
+
         self.LongMemoryRememberCount = 0
 
         self.infos = []
 
-        self.SecretExposedText = ""
-        self.secretExposed = False
-        self.secretExposedFirst = False
         # Загрузка данных из файлов
-        self.PlayingFirst = False
 
         self.init_characters()
 
@@ -93,22 +108,18 @@ class ChatModel:
         self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
         self.MemorySystem = MemorySystem("mita_memories.json")
 
-        self.MitaMainBehaviour = []
-        self.MitaExamples = []
-        self.systemMessages = []
-
         self.HideAiData = True
 
     def init_characters(self):
         """
         Инициализирует возможных персонажей
         """
-        self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
+        crazy_mita_character = CrazyMita("Mita", "/speaker mita")
         #self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
         #self.cart_space = SpaceCartridge("Space", "/speaker  wheatley")
         #self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
 
-        self.current_character = self.crazy_mita_character
+        self.current_character = crazy_mita_character
 
     def load_prompts(self):
         """старая функция, надо будет сделать через персонажей"""
@@ -129,31 +140,6 @@ class ChatModel:
         self.response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
 
         self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
-
-    #region TokensCounting
-    def calculate_cost(self, user_input):
-        # Загружаем историю
-        history_data = self.load_history()
-
-        # Получаем только сообщения
-        messages = history_data.get('messages', [])
-
-        # Добавляем новое сообщение от пользователя
-        messages.append({"role": "user", "content": user_input})
-
-        # Считаем токены
-        token_count = self.count_tokens(messages)
-
-        # Рассчитываем стоимость
-        cost = (token_count / 1000) * self.cost_input_per_1000
-
-        return token_count, cost
-
-    def count_tokens(self, messages):
-        return sum(len(self.tokenizer.encode(msg["content"])) for msg in messages if
-                   isinstance(msg, dict) and "content" in msg)
-
-    #endregion
 
     def adjust_attitude(self, amount):
         amount = clamp(amount, -5, 5)
@@ -195,20 +181,21 @@ class ChatModel:
 
     def generate_response(self, user_input, system_input=""):
         # Загрузка истории из файла
-        history_data = self.load_history()
-
-        messages = history_data.get('messages', [])
-        if len(self.infos) > 0:
-            print("Попытался расширить messages")
-            messages.extend(self.infos)
-            self.infos.clear()
-
-        current_info = history_data.get('currentInfo', {})
-
-        print(
-            f"mood: {self.attitude}, secretExposed: {self.secretExposed}, secretExposedFirst: {self.secretExposedFirst}")
 
         if self.OldSystem:
+            history_data = self.load_history()
+
+            messages = history_data.get('messages', [])
+            if len(self.infos) > 0:
+                print("Попытался расширить messages")
+                messages.extend(self.infos)
+                self.infos.clear()
+
+            current_info = history_data.get('currentInfo', {})
+
+            print(
+                f"mood: {self.attitude}, secretExposed: {self.secretExposed}, secretExposedFirst: {self.secretExposedFirst}")
+
             # Логика для первой фазы (вводная информация)
             if len(messages) == 0:
                 self._initialize_conversation()
@@ -222,14 +209,15 @@ class ChatModel:
                 self._reveal_secret(messages)
 
         else:
+            data = self.current_character.load_history()
+            messages = data.get("messages", [])
             self.current_character.process_logic(messages)
 
         # Добавление информации о времени и пользовательского ввода
-
         if self.OldSystem:
             messages = self._add_context(messages)
         else:
-            self.current_character.add_context(messages)
+            messages = self.current_character.add_context(messages)
 
         messages = self._add_input(user_input, system_input, messages)
 
@@ -237,21 +225,25 @@ class ChatModel:
         messages = messages[-self.memory_limit:]
 
         # Обновление текущего настроения
-        timed_system_message = self._generate_timed_system_message()
-
-        # Обновление текущей информации
-        current_info.update({
-            'MitaMainBehaviour': self.MitaMainBehaviour,
-            'MitaExamples': self.MitaExamples,
-            'timed_system_message': timed_system_message,
-            'MitaLongMemory': self.MitaLongMemory
-        })
-        current_info['MitaSystemMessages'] = self.systemMessages
+        if self.OldSystem:
+            timed_system_message = self._generate_timed_system_message()
+        else:
+            timed_system_message = self.current_character.current_variables()
 
         if self.OldSystem:
-            combined_messages = self._combine_messages_Test2(self.current_character, messages, timed_system_message)
-        else:
+            # Обновление текущей информации
+            current_info.update({
+                'MitaMainBehaviour': self.MitaMainBehaviour,
+                'MitaExamples': self.MitaExamples,
+                'timed_system_message': timed_system_message,
+                'MitaLongMemory': self.MitaLongMemory
+            })
+            current_info['MitaSystemMessages'] = self.systemMessages
+
+        if self.OldSystem:
             combined_messages = self._combine_messages(messages, timed_system_message)
+        else:
+            combined_messages = self._combine_messages_character(self.current_character, messages, timed_system_message)
         # Генерация ответа с использованием клиента
         try:
 
@@ -277,31 +269,35 @@ class ChatModel:
             else:
                 response = self.current_character.process_response(response)
 
-            current_info.update({
-                'MitaLongMemory': self.MitaLongMemory
-            })
+            if self.OldSystem:
+                current_info.update({
+                    'MitaLongMemory': self.MitaLongMemory
+                })
 
-            print("До фразы")
+            print(f"До фразы {response}")
             self.gui.textToTalk = self.process_text_to_voice(response)
             self.gui.textSpeaker = self.current_character.silero_command
             print("self.gui.textToTalk: " + self.gui.textToTalk)
             print("self.gui.textSpeaker: " + self.gui.textSpeaker)
 
-            self.save_history({
-                'messages': messages,
-                'currentInfo': current_info,
-                # Сохраняем переменные в историю
-                'attitude': self.attitude,
-                'boredom': self.boredom,
-                'stress': self.stress,
-                'secretExposed': self.secretExposed,
-                'secretExposedFirst': self.secretExposedFirst
-            })
+            if self.OldSystem:
+                self.save_history({
+                    'messages': messages,
+                    'currentInfo': current_info,
+                    # Сохраняем переменные в историю
+                    'attitude': self.attitude,
+                    'boredom': self.boredom,
+                    'stress': self.stress,
+                    'secretExposed': self.secretExposed,
+                    'secretExposedFirst': self.secretExposedFirst
+                })
+            else:
+                self.current_character.safe_history(messages, timed_system_message)
 
             self.gui.update_debug_info()
             return response
         except Exception as e:
-            print(f"Ошибка на фазе генерации: {e}")
+            logger.error(f"Ошибка на фазе генерации: {e}",exc_info=True)
             return f"Ошибка на фазе генерации: {e}"
 
     #region CrazyOldStatesChange
@@ -317,7 +313,7 @@ class ChatModel:
         print("Играет с игроком в якобы невиновную")
         self.PlayingFirst = True
         self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}\n"}
-        self.current_character.replace_prompt("main", "mainPlaying")
+        #self.current_character.replace_prompt("main", "mainPlaying")
 
     def _reveal_secret(self, messages):
         """Логика раскрытия секрета"""
@@ -333,15 +329,15 @@ class ChatModel:
         system_message = {"role": "system", "content": f"{self.mita_history}\n"}
         self.systemMessages.append(system_message)
 
-        self.current_character.replace_prompt("main", "mainCrazy")
-        self.current_character.replace_prompt("mainPlaying", "mainCrazy")
+        #self.current_character.replace_prompt("main", "mainCrazy")
+        #self.current_character.replace_prompt("mainPlaying", "mainCrazy")
 
     #endregion
 
     def _generate_timed_system_message(self, characher: Character = None):
         """Генерация сообщения с текущим состоянием персонажа"""
 
-        if characher != self.crazy_mita_character:
+        if not self.OldSystem:
             return None
 
         return {
@@ -404,25 +400,13 @@ class ChatModel:
         # Возвращаем название комнаты, если оно есть, иначе возвращаем сообщение о неизвестной комнате
         return room_names.get(room_id, "?")
 
-    def _combine_messages_Test2(self, character: Character, messages, timed_system_message):
+    def _combine_messages_character(self, character: Character, messages, timed_system_message):
         """Комбинирование всех сообщений перед отправкой"""
         # Чем выше здесь, тем дальше от начала будет
 
         combined_messages = character.prepare_fixed_messages()
 
-        # Добавляем timed_system_message, если оно не пусто и это словарь
-        if timed_system_message and isinstance(timed_system_message, dict):
-            combined_messages.append(timed_system_message)
-            print("timed_system_message успешно добавлено.")
-
-        if self.nearObjects != "" and self.nearObjects != "-":
-            text = f"В радиусе от тебя следующие объекты (object tree) {self.nearObjects}"
-            messageNear = {"role": "system", "content": text}
-            combined_messages.append(messageNear)
-
-        if self.actualInfo != "" and self.actualInfo != "-":
-            messageActual = {"role": "system", "content": self.actualInfo}
-            combined_messages.append(messageActual)
+        combined_messages = character.add_context(combined_messages)
 
         # Добавляем messages, если они не пустые
         if messages:
@@ -507,8 +491,9 @@ class ChatModel:
         else:
             print("Ответ пустой в первый раз, идем в цикле")
 
-            for time in range(0, 4):
-                print(f"Цикл {time + 1} раз")
+            # Да, это нафиг рекурсия
+            for time in range(0, 3):
+                print(f"Цикл {time * times + 1} раз")
                 try_reserve_key = time % 2 == 0
                 self.update_openai_client(try_reserve_key)
                 response, success = self._generate_chat_response(combined_messages, times + 1)
@@ -554,7 +539,7 @@ class ChatModel:
     def _generate_gemini_response(self, formatted_messages):
         try:
             response = self.generate_responseGemini(formatted_messages)
-            logger.info("Ответ Gemini: ", response)
+            logger.info(f"Ответ Gemini: {response}", )
             return response
         except Exception as e:
             logger.error("Что-то не так при генерации Gemini", str(e))
@@ -1046,11 +1031,29 @@ class ChatModel:
         self.infos.append(system_info)
         #.append(system_message)
 
+    #region TokensCounting
+    def calculate_cost(self, user_input):
+        # Загружаем историю
+        history_data = self.load_history()
 
-# Функция 1: Замена чисел на слова в русском тексте
-def replace_numbers_with_words(text):
-    numbers = re.findall(r'\d+', text)
-    for number in numbers:
-        word = num2words(int(number), lang='ru')
-        text = text.replace(number, word)
-    return text
+        # Получаем только сообщения
+        messages = history_data.get('messages', [])
+
+        # Добавляем новое сообщение от пользователя
+        messages.append({"role": "user", "content": user_input})
+
+        # Считаем токены
+        token_count = self.count_tokens(messages)
+
+        # Рассчитываем стоимость
+        cost = (token_count / 1000) * self.cost_input_per_1000
+
+        return token_count, cost
+
+    def count_tokens(self, messages):
+        return sum(len(self.tokenizer.encode(msg["content"])) for msg in messages if
+                   isinstance(msg, dict) and "content" in msg)
+
+    #endregion
+
+# Функция 1:
