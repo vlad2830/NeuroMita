@@ -91,6 +91,42 @@ namespace MitaAI.PlayerControls
 
             }
 
+            // unstack 
+            else if (Input.GetKeyDown(KeyCode.O) && (Input.GetKeyDown(KeyCode.P) ) )
+           
+            {
+                try
+                {
+                    MelonLogger.Msg("Teleport mita to player");
+                    MitaCore.Instance.Mita.MitaTeleport( MitaCore.Instance.playerObject.transform );
+                    MitaCore.Instance.Mita.AiShraplyStop();
+                }
+                catch (Exception e)
+                {
+
+                    MelonLogger.Msg(e);
+                }
+
+            }
+            // unstack player anim
+            else if (Input.GetKeyDown(KeyCode.O) && (Input.GetKeyDown(KeyCode.L)))
+
+            {
+                try
+                {
+                    MelonLogger.Msg("Teleport player to 0 0 0");
+                    PlayerAnimationModded.stopAnim();
+                    MitaCore.Instance.playerObject.transform.position = Vector3.zero;
+                   
+                }
+                catch (Exception e)
+                {
+
+                    MelonLogger.Msg(e);
+                }
+
+            }
+
         }
         static bool checkInput()
         {

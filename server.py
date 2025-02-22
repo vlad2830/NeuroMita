@@ -41,7 +41,7 @@ class ChatServer:
 
             if system_info != "-":
                 print("Добавил систем инфо " + system_info)
-                self.chat_model.appendInfos(system_info)
+                self.chat_model.add_temporary_system_info(system_info)
 
             response = ""
             if message == "waiting":

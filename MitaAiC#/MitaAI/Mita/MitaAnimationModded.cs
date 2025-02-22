@@ -38,7 +38,11 @@ namespace MitaAI.Mita
             mitaAnimatorFunctions = _mitaAnimatorFunctions;
             location34_Communication = _location34_Communication;
 
-            bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
+            if (bundle == null)
+            {
+                bundle = MitaCore.bundle; //AssetBundleLoader.LoadAssetBundle("assetbundle");
+            }
+            
             if (mitaAnimatorFunctions == null)
             {
                 MelonLogger.Msg("Animator_FunctionsOverride component not found on this object!");
@@ -373,7 +377,7 @@ namespace MitaAI.Mita
 
                         if (anim.events.Count > 0)
                         {
-                            //MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
+                            MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
                         }
 
                         MelonLogger.Msg($"zzz1");

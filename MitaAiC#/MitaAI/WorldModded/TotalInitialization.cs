@@ -33,6 +33,13 @@ namespace MitaAI
             }
         }
         #region InitObjects
+        public static void InitObjects()
+        {
+            //TotalInitialization.initTVGames(MitaCore.worldHouse);
+            TotalInitialization.initCornerSofa(MitaCore.worldHouse);
+        }
+
+
         public static void initCornerSofa(Transform world)
         {
             MelonLogger.Msg("initCornerSofa");
@@ -251,8 +258,8 @@ namespace MitaAI
             PlayerAnimationModded.FindPlayerAnimationsRecursive(MitaCore.worldTogether.transform);
             PlayerAnimationModded.Check();
 
-            TotalInitialization.initTVGames(MitaCore.worldHouse);
-            TotalInitialization.initCornerSofa(MitaCore.worldHouse);
+            InitObjects();
+
 
             //SceneManager.UnloadScene(sceneToLoad);
 
@@ -328,7 +335,7 @@ namespace MitaAI
 
                 try
                 {
-                    TotalInitialization.initConsole(MitaCore.worldBasement);
+                    // TotalInitialization.initConsole(MitaCore.worldBasement);
                 }
                 catch (Exception ex)
                 {

@@ -104,9 +104,9 @@ class ChatModel:
         Инициализирует возможных персонажей
         """
         self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
-        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
-        self.cart_space = SpaceCartridge("Space", "/speaker  wheatley")
-        self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
+        #self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
+        #self.cart_space = SpaceCartridge("Space", "/speaker  wheatley")
+        #self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
 
         self.current_character = self.crazy_mita_character
 
@@ -175,11 +175,11 @@ class ChatModel:
 
     def update_openai_client(self, reserve_key=False):
         print("Попытка обновить клиент")
-        if reserve_key:
-            print("С основным ключом")
+        if reserve_key and self.api_key_res != "":
+            print("С резервным ключом")
             key = self.api_key_res
         else:
-            print("С резевным ключом")
+            print("С основным ключом")
             key = self.api_key
 
         try:
@@ -190,8 +190,8 @@ class ChatModel:
             else:
                 print("Только ключ")
                 self.client = OpenAI(api_key=key)
-        except:
-            print("update_openai_client не сработал")
+        except Exception as e:
+            print(f"update_openai_client не сработал {e}")
 
     def generate_response(self, user_input, system_input=""):
         # Загрузка истории из файла
@@ -275,7 +275,7 @@ class ChatModel:
             if self.OldSystem:
                 response = self.process_response(response)
             else:
-                response = self.current_character.process_response()
+                response = self.current_character.process_response(response)
 
             current_info.update({
                 'MitaLongMemory': self.MitaLongMemory
@@ -329,7 +329,7 @@ class ChatModel:
             "content": f"{self.mainCrazy}\n{self.response_structure}"
         }
         self.MitaExamples = {"role": "system", "content": f"{self.examplesLongCrazy}\n"}
-        add_temporary_system_message(messages, f"{self.SecretExposedText}")
+        self.add_temporary_system_message(messages, f"{self.SecretExposedText}")
         system_message = {"role": "system", "content": f"{self.mita_history}\n"}
         self.systemMessages.append(system_message)
 
@@ -483,9 +483,11 @@ class ChatModel:
         return combined_messages
 
     def _generate_chat_response(self, combined_messages, times=1):
+        """Вообще, не мб тут избыточно с рекурсией, но пока вроде работает)"""
+        print(f"Попытка сгенерировать ответ, {times} раз")
         if times > 2:
             success = False
-            return (None,success)
+            return None, success
 
         success = True
         response = None
@@ -506,7 +508,7 @@ class ChatModel:
             print("Ответ пустой в первый раз, идем в цикле")
 
             for time in range(0, 4):
-                print(f"Цикл {time+1} раз")
+                print(f"Цикл {time + 1} раз")
                 try_reserve_key = time % 2 == 0
                 self.update_openai_client(try_reserve_key)
                 response, success = self._generate_chat_response(combined_messages, times + 1)
@@ -748,7 +750,7 @@ class ChatModel:
                 search_start = end_index + len(end_tag)
 
             except ValueError as e:
-                add_temporary_system_message(messages, f"Ошибка обработки команды: {e}")
+                self.add_temporary_system_message(messages, f"Ошибка обработки команды: {e}")
                 break
 
         return response
@@ -766,6 +768,7 @@ class ChatModel:
 
         # Удаляем все теги и их содержимое
         clean_text = re.sub(r"<[^>]+>.*?</[^>]+>", "", text)
+        clean_text = re.sub(r"<.*?>", "", clean_text)
         clean_text = replace_numbers_with_words(clean_text)
 
         #clean_text = transliterate_english_to_russian(clean_text)
@@ -1016,19 +1019,32 @@ class ChatModel:
             'secretExposedFirst': False,
         }
 
+    def add_temporary_system_message(self, messages, content):
+        """
+        Добавляет одноразовое системное сообщение в список сообщений.
 
-def add_temporary_system_message(messages, content):
-    """
-    Добавляет одноразовое системное сообщение в список сообщений.
+        :param messages: Список сообщений, в который добавляется системное сообщение.
+        :param content: Текст системного сообщения.
+        """
+        system_message = {
+            "role": "system",
+            "content": content
+        }
+        messages.append(system_message)
 
-    :param messages: Список сообщений, в который добавляется системное сообщение.
-    :param content: Текст системного сообщения.
-    """
-    system_message = {
-        "role": "system",
-        "content": content
-    }
-    messages.append(system_message)
+    def add_temporary_system_info(self, content):
+        """
+        Добавляет одноразовое системное сообщение в список сообщений.
+
+        :param messages: Список сообщений, в который добавляется системное сообщение.
+        :param content: Текст системного сообщения.
+        """
+        system_info = {
+            "role": "system",
+            "content": content
+        }
+        self.infos.append(system_info)
+        #.append(system_message)
 
 
 # Функция 1: Замена чисел на слова в русском тексте

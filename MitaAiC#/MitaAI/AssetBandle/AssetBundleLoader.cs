@@ -2,16 +2,26 @@
 using MelonLoader;
 using MelonLoader.Utils;
 using System.IO;
+using System.Reflection.Metadata;
 using UnityEngine;
 namespace MitaAI
 {
     public static class AssetBundleLoader
     {
+
+        static Il2CppAssetBundle bundle = null;
+        public static Il2CppAssetBundle initBundle()
+        {
+            bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
+            return bundle;
+        }
+
         /// <summary>
         /// Загружает AssetBundle и возвращает его.
         /// </summary>
         /// <param name="bundleName">Имя файла AssetBundle (с расширением).</param>
         /// <returns>Загруженный AssetBundle или null, если загрузка не удалась.</returns>
+        /// 
         public static Il2CppAssetBundle LoadAssetBundle(string bundleName)
         {
             // Путь к AssetBundle (например, рядом с файлом мода)

@@ -12,6 +12,15 @@ namespace MitaAI
 {
     public static class Interactions
     {
+
+        public static void init()
+        {
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
+            Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
+        }
+
         public static void CreateObjectInteractable(GameObject gameObject)
         {
             if (gameObject == null)
@@ -129,7 +138,7 @@ namespace MitaAI
             switch (gameObject.name)
             {
                 case "Console":
-                    InteractionCases.caseConsoleStart(gameObject);
+                    //InteractionCases.caseConsoleStart(gameObject);
                     break;
                 case "SofaChair":
                     InteractionCases.sofaStart(gameObject);

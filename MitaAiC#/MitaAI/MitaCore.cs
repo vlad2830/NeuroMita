@@ -245,7 +245,7 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 11;
+        const int simbolsPerSecond = 13;
 
         public Menu MainMenu;
         private GameObject CustomDialog;
@@ -305,8 +305,30 @@ namespace MitaAI
             harmony = new HarmonyLib.Harmony("1");
             MitaClothesModded.init(harmony);
             NetworkController.Initialize();
+            
+      
 
         }
+        public override void OnLateInitializeMelon()
+        {
+            base.OnLateInitializeMelon();
+            try
+            {   
+                bundle = AssetBundleLoader.initBundle();
+
+                if (bundle == null)
+                {
+                    MelonLogger.Msg("AssetBundleLoader не прогрузился(" );
+                }
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Msg(e);
+            }
+
+
+        }
+
 
         public void sendSystemMessage(string m,character character = character.Mita)
         {
@@ -585,11 +607,9 @@ namespace MitaAI
             CustomDialogText.showSubtitles = true;
 
             MelonLogger.Msg($"Attempt Interactions before");
-            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
+
+            Interactions.init();
             
-            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
-            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
-            Interactions.CreateObjectInteractable(Utils.TryfindChild(worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
             //MelonLogger.Msg($"Attempt after");
             MelonLogger.Msg($"Attempt Interactions end");
             try
@@ -601,15 +621,7 @@ namespace MitaAI
                 MelonLogger.Error(e);
             }
 
-            try
-            {
-                bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            }
-            catch (Exception)
-            {
-
-            }
-
+      
             AllLoaded = true;
             //Interactions.Test(GameObject.Find("Table"));
             MelonCoroutines.Start(RealTimer());
@@ -998,7 +1010,9 @@ namespace MitaAI
                 }
 
                 elapsedTime += Time.unscaledDeltaTime; // Увеличиваем счетчик времени
-                yield return null;             // Пауза до следующего кадра
+
+                List<String> parts = new List<String> { "***" };
+                yield return MelonCoroutines.Start(ShowDialoguesSequentially(parts)); ;             // Пауза до следующего кадра
             }
 
             yield return null;
@@ -1069,7 +1083,7 @@ namespace MitaAI
             {
                 LoggerInstance.Msg("foreach foreach " + part);
 
-                string partCleaned = Regex.Replace(part, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
+                string partCleaned = Utils.CleanFromTags(part); // Очищаем от всех тегов
                 float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.6f,8f); 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay));
@@ -1098,8 +1112,9 @@ namespace MitaAI
                 modifiedPart = AudioControl.ProcessMusic(modifiedPart);
                 (emotion, modifiedPart) = SetEmotionBasedOnResponse(modifiedPart);
                 LoggerInstance.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
-
+                
                 (commands, modifiedPart) = CommandProcessor.ExtractCommands(modifiedPart);
+                modifiedPart = Utils.CleanFromTags(modifiedPart);
                 if (commands.Count > 0)
                 {
                     CommandProcessor.ProcessCommands(commands);
@@ -1123,7 +1138,7 @@ namespace MitaAI
             answer.speaker = MitaPersonObject;
 
             MelonLogger.Msg($"Text is {answer.textPrint}");
-            addDialogueMemory(answer);
+            if (modifiedPart!="***") addDialogueMemory(answer);
             if (emotion != EmotionType.none) answer.emotionFinish = emotion;
             currentEmotion = emotion;
 
@@ -1225,11 +1240,13 @@ namespace MitaAI
             {
                 textDialogueMemory.clr = new Color(0.515f, 0f, 1f);
                 textDialogueMemory.clr2 = new Color(0.5f, 0f, 0.9f);
+                textDialogueMemory.clr1 = new Color(1, 1, 1);
             }
             else
             {
                 textDialogueMemory.clr = new Color(1f, 0.6f, 0f);
                 textDialogueMemory.clr2 = new Color(0.9f, 0.5f, 0f);
+                textDialogueMemory.clr1 = new Color(1, 1, 1);
             }
             //textDialogueMemory.clr = dialogue_3DText.
             playerController.dialoguesMemory.Add(textDialogueMemory);

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using System.Text.RegularExpressions;
 namespace MitaAI
 {
     public static class Utils
@@ -32,6 +33,14 @@ namespace MitaAI
 
             // Возвращаем true, если randomValue < a
             return randomValue < a;
+        }
+
+        public static string CleanFromTags(string text)
+        {
+            string textCleaned = Regex.Replace(text, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
+            textCleaned = Regex.Replace(textCleaned, @"<.*?>", ""); // Очищаем от всех тегов
+
+            return textCleaned;
         }
 
         public static void CopyComponentValues(ObjectInteractive source, ObjectInteractive destination)
