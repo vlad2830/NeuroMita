@@ -1,43 +1,12 @@
 ﻿using Il2Cpp;
 using MelonLoader;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using System.Net.Sockets;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System;
-using UnityEngine.UI;
-using static Il2CppRootMotion.FinalIK.InteractionObject;
-using UnityEngine.Animations;
-using UnityEngine.UIElements;
-using Harmony;
-using System.Diagnostics.Tracing;
-using UnityEngine.Events;
 using System.Reflection;
-using static MelonLoader.InteropSupport;
-using Microsoft.VisualBasic;
-using UnityEngine.Networking;
 using System.Collections;
-using UnityEngine.Playables;
-using System.Linq;
-using UnityEngine.Networking.Match;
-using System.Linq.Expressions;
-using Il2CppColorful;
-using Il2CppInterop.Runtime;
-using static MelonLoader.ICSharpCode.SharpZipLib.Zip.ZipEntryFactory;
 using System.Globalization;
 using Il2CppInterop.Runtime.InteropTypes;
-using static UnityEngine.UI.ScrollRect;
-using UnityEngine.TextCore.Text;
-using HarmonyLib;
-using MelonLoader.Utils;
-using System.Reflection.Metadata;
-using UnityEngine.XR;
-using UnityEngine.Profiling;
 using UnityEngine.AI;
-using static Il2CppRootMotion.FinalIK.IKSolverVR;
-using static Il2CppSystem.Uri;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MitaAI.MitaAppereance;
 using MitaAI.Mita;
@@ -182,6 +151,7 @@ namespace MitaAI
                 MitaAnimationModded.location34_Communication.mitaCanWalk = true;
                 Location34_Communication.play = true;
 
+                MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
                 MelonLogger.Msg("777");
 
                 
@@ -201,7 +171,7 @@ namespace MitaAI
             Mita = 0,
             Cappy = 1,
             Kind = 2,
-            cart_portal = 3
+            Cart_portal = 3
         }
         public character currentCharacter = character.Mita;
         enum MovementStyles
@@ -331,12 +301,12 @@ namespace MitaAI
 
 
         public void sendSystemMessage(string m,character character = character.Mita)
-        {
-            systemMessages.Enqueue( (m, character) );
+        {   
+            systemMessages.Enqueue( (m, currentCharacter) );
         }
         public void sendSystemInfo(string m, character character = character.Mita)
         {
-            systemInfos.Enqueue( (m, character) );
+            systemInfos.Enqueue( (m, currentCharacter) );
         }
 
         public void playerKilled()
@@ -820,7 +790,7 @@ namespace MitaAI
             
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
-            Task<(string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info);
+            Task<(string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info,currentCharacter);
             while (!responseTask.IsCompleted)
                 yield return null;
 
@@ -1011,8 +981,10 @@ namespace MitaAI
 
                 elapsedTime += Time.unscaledDeltaTime; // Увеличиваем счетчик времени
 
+                
                 List<String> parts = new List<String> { "***" };
-                yield return MelonCoroutines.Start(ShowDialoguesSequentially(parts)); ;             // Пауза до следующего кадра
+                MelonCoroutines.Start(ShowDialoguesSequentially(parts));
+                yield return null ;             // Пауза до следующего кадра
             }
 
             yield return null;

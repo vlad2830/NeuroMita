@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.UI;
 using UnityEngine;
+using System.ComponentModel.Design;
 
 namespace MitaAI.PlayerControls
 {
@@ -126,8 +127,59 @@ namespace MitaAI.PlayerControls
                 }
 
             }
+            else if (Input.GetKeyDown(KeyCode.J))
+            {
+                changeMitaButtons();
+
+            }
 
         }
+        private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
+        private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(5); // Задержка в 5 секунд
+
+        static void changeMitaButtons()
+        {
+            try
+            {
+                MelonLogger.Msg("Try change Mita");
+                // Проверяем, прошло ли 5 секунд с последнего изменения
+                if (DateTime.Now - _lastChangeTime < _cooldown)
+                {
+                    return; // Если не прошло, выходим из метода
+                }
+
+                // Проверяем нажатие клавиш
+                if (Input.GetKeyDown(KeyCode.I))
+                {
+                    MelonLogger.Msg("Try change to Kind");
+                    MitaCore.Instance.changeMita(MitaCore.KindObject, MitaCore.character.Kind);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                    _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
+                }
+                else if (Input.GetKeyDown(KeyCode.K))
+                {
+                    MelonLogger.Msg("Try change to Cappy");
+                    MitaCore.Instance.changeMita(MitaCore.CappyObject, MitaCore.character.Cappy);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                    _lastChangeTime = DateTime.Now;
+                }
+                else if (Input.GetKeyDown(KeyCode.M))
+                {
+                    MelonLogger.Msg("Try change to Crazy");
+                    MitaCore.Instance.changeMita(MitaCore.Instance.MitaObject, MitaCore.character.Mita);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                    _lastChangeTime = DateTime.Now;
+                }
+
+                
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Msg(e);
+            }
+        }
+
+
         static bool checkInput()
         {
             if (InputFieldComponent != null)

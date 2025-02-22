@@ -208,9 +208,11 @@ class Character:
         self.history_manager.save_history(history_data)
 
     def current_variables(self):
-        print("Попытка узнать переменные у персонажа без")
+        print("Попытка узнать переменные у персонажа без них")
+        return {}
+    def current_variables_string(self):
+        print("Попытка узнать переменные у персонажа без них")
         return ""
-
 
 class CrazyMita(Character):
 
