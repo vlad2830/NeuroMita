@@ -4,8 +4,9 @@ from EventState import EventState
 from MemorySystem import MemorySystem
 from promptPart import PromptPart, PromptType
 from HistoryManager import HistoryManager
-from utils import load_text_from_file
+from utils import load_text_from_file, clamp
 import datetime
+import re
 
 
 class Character:
@@ -20,16 +21,18 @@ class Character:
         self.events: List[PromptPart] = []
         self.variables = []
 
-        self.history_file = HistoryManager(self.name)
+        self.history_manager = HistoryManager(self.name)
         self.load_history()
 
-        self.memory_file = MemorySystem()
+        self.memory_system = MemorySystem(self.name)
         self.state = EventState()
 
         """
         Спорные временные переменные
         """
         self.LongMemoryRememberCount = 0
+        self.MitaLongMemory = ""
+
 
         self.init()
 
@@ -126,14 +129,71 @@ class Character:
         """То, как должно что-то менсять до получения ответа"""
         print("Персонаж без изменяемой логики пропмтов")
 
-    def process_response(self, messages: dict):
+    def process_response(self, response: str):
+        response = self.extract_and_process_memory_data(response)
         """То, как должно что-то меняться в результате ответа"""
-        return messages
+        return response
         print("Персонаж без изменяемой логики пропмтов")
+
+    def extract_and_process_memory_data(self, response):
+        """
+        Извлекает данные из ответа с тегами памяти и выполняет операции.
+        Форматы тегов:
+        - Добавление: <+memory>priority|content</memory>
+        - Обновление: <#memory>number|priority|content</memory>
+        - Удаление: <-memory>number</memory>
+        """
+        # Регулярное выражение для захвата тегов памяти
+        memory_pattern = r"<([+#-])memory>(.*?)</memory>"
+        matches = re.findall(memory_pattern, response, re.DOTALL)
+
+        if matches:
+            print("Обнаружены команды изменения памяти!")
+            for operation, content in matches:
+                content = content.strip()
+                try:
+                    # Обработка добавления
+                    if operation == "+":
+                        parts = [p.strip() for p in content.split('|', 1)]
+                        if len(parts) != 2:
+                            raise ValueError("Неверный формат данных для добавления")
+
+                        priority, mem_content = parts
+                        self.memory_system.add_memory(
+                            priority=priority,
+                            content=mem_content
+                        )
+                        print(f"Добавлено воспоминание #{mem_content}")
+
+                    # Обработка обновления
+                    elif operation == "#":
+                        parts = [p.strip() for p in content.split('|', 2)]
+                        if len(parts) != 3:
+                            raise ValueError("Неверный формат данных для обновления")
+
+                        number, priority, mem_content = parts
+                        self.memory_system.update_memory(
+                            number=int(number),
+                            priority=priority,
+                            content=mem_content
+                        )
+                        print(f"Обновлено воспоминание #{number}")
+
+                    # Обработка удаления
+                    elif operation == "-":
+                        number = content.strip()
+                        self.memory_system.delete_memory(number=int(number))
+                        print(f"Удалено воспоминание #{number}")
+
+                    self.MitaLongMemory = {"role": "system", "content": self.memory_system.get_memories_formatted()}
+                except Exception as e:
+                    print(f"Ошибка обработки памяти: {str(e)}")
+
+        return response
 
     def load_history(self):
         """Кастомная обработка загрузки истории"""
-        return self.history_file.load_history()
+        return self.history_manager.load_history()
 
     def safe_history(self, messages: dict, temp_context: dict):
         """Кастомная обработка сохранения истории"""
@@ -145,7 +205,7 @@ class Character:
             'variables': self.variables
         }
 
-        self.history_file.save_history(history_data)
+        self.history_manager.save_history(history_data)
 
     def current_variables(self):
         print("Попытка узнать переменные у персонажа без")
@@ -223,12 +283,28 @@ class CrazyMita(Character):
     def load_history(self):
         data = super().load_history()
 
-        self.attitude = data.get("attitude", self.attitude)
-        self.boredom = data.get("boredom", self.boredom)
-        self.stress = data.get("stress", self.stress)
-        self.secretExposed = data.get("secret", self.secretExposed)
-        self.secretExposedFirst = data.get("secret_first", self.secretExposedFirst)
+        variables = data.get("variables")
+        self.attitude = variables.get("attitude", self.attitude)
+        self.boredom = variables.get("boredom", self.boredom)
+        self.stress = variables.get("stress", self.stress)
+        self.secretExposed = variables.get("secret", self.secretExposed)
+        self.secretExposedFirst = variables.get("secret_first", self.secretExposedFirst)
         return data
+
+    def process_logic(self, messages: dict):
+        # Логика для поведения при игре с игроком
+        if self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
+            self._start_playing_with_player()
+
+        # Логика для раскрытия секрета
+        elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
+            self._reveal_secret(messages)
+
+    def process_response(self, response: str):
+        super().process_response(response)
+        response = self._process_behavior_changes(response)
+        response = self._detect_secret_exposure(response)
+        return response
 
     def _start_playing_with_player(self):
         """Игровая логика, когда персонаж начинает играть с игроком"""
@@ -245,16 +321,83 @@ class CrazyMita(Character):
         self.replace_prompt("mainPlaying", "mainCrazy")
         self.replace_prompt("examplesLong", "examplesLongCrazy")
 
+    def _process_behavior_changes(self, response):
+        """
+        Обрабатывает изменения переменных на основе строки формата <p>x,x,x<p>.
+        """
+        start_tag = "<p>"
+        end_tag = "</p>"
+
+        if start_tag in response and end_tag in response:
+            # Извлекаем изменения переменных
+            start_index = response.index(start_tag) + len(start_tag)
+            end_index = response.index(end_tag, start_index)
+            changes_str = response[start_index:end_index]
+
+            # Разделяем строку на отдельные значения
+            changes = [float(x.strip()) for x in changes_str.split(",")]
+
+            if len(changes) == 3:
+                # Применяем изменения к переменным
+                self.adjust_attitude(changes[0])
+                self.adjust_boredom(changes[1])
+                self.adjust_stress(changes[2])
+
+        return response
+    def adjust_attitude(self, amount):
+        amount = clamp(amount, -5, 5)
+        """Корректируем отношение."""
+        self.attitude = clamp(self.attitude + amount, 0, 100)
+        print(f"Отношение изменилось на {amount}, новое значение: {self.attitude}")
+
+    def adjust_boredom(self, amount):
+        amount = clamp(amount, -5, 5)
+        """Корректируем уровень скуки."""
+        self.boredom = clamp(self.boredom + amount, 0, 100)
+        print(f"Скука изменилась на {amount}, новое значение: {self.boredom}")
+
+    def adjust_stress(self, amount):
+        amount = clamp(amount, -5, 5)
+        """Корректируем уровень стресса."""
+        self.stress = clamp(self.stress + amount, 0, 100)
+        print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
+
+    def _detect_secret_exposure(self, response):
+        """
+        Проверяем, содержит ли ответ маркер <Secret!>, и удаляем его.
+        """
+        if "<Secret!>" in response:
+
+            if not self.secretExposedFirst:
+                self.secretExposed = True
+                print(f"Секрет раскрыт")
+                self.attitude = 15
+                self.boredom = 20
+
+            response = response.replace("<Secret!>", "")
+
+        return response
+
     def current_variables(self):
         return {
             "role": "system",
             "content": (f"Твои характеристики:"
                         f"Отношение: {self.attitude}/100."
-                        f"Стресс: {self.stress}/100."
                         f"Скука: {self.boredom}/100."
+                        f"Стресс: {self.stress}/100."
                         f"Состояние секрета: {self.secretExposed}")
         }
 
+    def current_variables_string(self) -> str:
+        characteristics = {
+            "Отношение": self.attitude,
+            "Стресс": self.stress,
+            "Скука": self.boredom,
+            "Состояние секрета": self.secretExposed,
+        }
+        return f"характеристики {self.name}:\n" + "\n".join(
+            f"- {key}: {value}" for key, value in characteristics.items()
+        )
 
 class KindMita(Character):
     def init(self):

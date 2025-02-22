@@ -1,3 +1,4 @@
+import gui
 from chat_model import ChatModel
 from server import ChatServer
 
@@ -240,6 +241,7 @@ class ChatGUI:
         # Создаем контейнер для всех элементов управления
         self.controls_frame = tk.Frame(right_frame, bg="#2c2c2c")
         self.controls_frame.pack(fill=tk.X, pady=3)
+
 
         # Настройка элементов управления
         self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
@@ -704,12 +706,16 @@ class ChatGUI:
     def update_debug_info(self):
         """Обновить окно отладки с отображением актуальных данных."""
         self.debug_window.delete(1.0, tk.END)  # Очистить старые данные
-        debug_info = (
-            f"Отношение к игроку: {self.model.attitude}\n"
-            f"Скука: {self.model.boredom}\n"
-            f"Стресс: {self.model.stress}\n"
-            f"Секрет: {self.model.secretExposed}\n"
-        )
+
+        if self.model.OldSystem:
+            debug_info = (
+                f"Отношение к игроку: {self.model.attitude}\n"
+                f"Скука: {self.model.boredom}\n"
+                f"Стресс: {self.model.stress}\n"
+                f"Секрет: {self.model.secretExposed}\n"
+            )
+        else:
+            debug_info = ( self.model.current_character.current_variables_string() )
         self.debug_window.insert(tk.END, debug_info)
         self.update_controls()
 

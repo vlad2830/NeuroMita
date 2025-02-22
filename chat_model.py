@@ -267,6 +267,7 @@ class ChatModel:
             if self.OldSystem:
                 response = self.process_response(response)
             else:
+                print("12312312312 3")
                 response = self.current_character.process_response(response)
 
             if self.OldSystem:

@@ -4,8 +4,12 @@ import datetime
 
 
 class MemorySystem:
-    def __init__(self, filename="memories.json"):
-        self.filename = filename
+    def __init__(self, character_name):
+
+        self.history_dir = f"Histories\\{character_name}"
+        os.makedirs(self.history_dir, exist_ok=True)
+
+        self.filename = os.path.join(self.history_dir, f"{character_name}_memories.json")
         self.memories = []
         self.last_memory_number = 1
         if os.path.exists(self.filename):
@@ -20,7 +24,7 @@ class MemorySystem:
         with open(self.filename, 'w', encoding='utf-8') as file:
             json.dump(self.memories, file, ensure_ascii=False, indent=4)
 
-    def add_memory(self, content,date=datetime.datetime.now().strftime("%d.%m.%Y_%H.%M"), priority="Normal"):
+    def add_memory(self, content, date=datetime.datetime.now().strftime("%d.%m.%Y_%H.%M"), priority="Normal"):
         memory = {
             "N": self.last_memory_number,
             "date": date,
@@ -31,7 +35,7 @@ class MemorySystem:
         self.memories.append(memory)
         self.save_memories()
 
-    def update_memory(self,number,content,priority=None):
+    def update_memory(self, number, content, priority=None):
         for memory in self.memories:
             if memory["N"] == number:
                 if content is not None:
@@ -58,7 +62,7 @@ class MemorySystem:
             formatted_memories.append(
                 f"N:{memory['N']}, Date {memory['date']}, Priority: {memory['priority']}: {memory['content']}"
             )
-        return "LongMemory< "+"\n".join(formatted_memories)+" >EndLongMemory"
+        return "LongMemory< " + "\n".join(formatted_memories) + " >EndLongMemory"
 
 # Пример использования
 #memory_system = MemorySystem()
