@@ -981,10 +981,9 @@ namespace MitaAI
 
                 elapsedTime += Time.unscaledDeltaTime; // Увеличиваем счетчик времени
 
-                
+
                 List<String> parts = new List<String> { "***" };
-                MelonCoroutines.Start(ShowDialoguesSequentially(parts));
-                yield return null ;             // Пауза до следующего кадра
+                yield return MelonCoroutines.Start(ShowDialoguesSequentially(parts)); ;             // Пауза до следующего кадра
             }
 
             yield return null;
