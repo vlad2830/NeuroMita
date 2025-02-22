@@ -176,8 +176,10 @@ class ChatModel:
     def update_openai_client(self, reserve_key=False):
         print("Попытка обновить клиент")
         if reserve_key:
+            print("С основным ключом")
             key = self.api_key_res
         else:
+            print("С резевным ключом")
             key = self.api_key
 
         try:
@@ -246,8 +248,10 @@ class ChatModel:
         })
         current_info['MitaSystemMessages'] = self.systemMessages
 
-        combined_messages = self._combine_messages_Test2(self.current_character, messages, timed_system_message)
-
+        if self.OldSystem:
+            combined_messages = self._combine_messages_Test2(self.current_character, messages, timed_system_message)
+        else:
+            combined_messages = self._combine_messages(messages, timed_system_message)
         # Генерация ответа с использованием клиента
         try:
 
@@ -481,7 +485,7 @@ class ChatModel:
     def _generate_chat_response(self, combined_messages, times=1):
         if times > 2:
             success = False
-            return ""
+            return (None,success)
 
         success = True
         response = None
@@ -497,12 +501,18 @@ class ChatModel:
 
         if response:
             response = self._clean_response(response)
-            logger.info("Мита: \n" + response)
+            logger.info(f"Мита: \n {response}")
         else:
-            print("Ответ пустой в первый раз")
+            print("Ответ пустой в первый раз, идем в цикле")
 
-            self.update_openai_client(True)
-            response = self._generate_chat_response(combined_messages, times + 1)
+            for time in range(0, 4):
+                print(f"Цикл {time+1} раз")
+                try_reserve_key = time % 2 == 0
+                self.update_openai_client(try_reserve_key)
+                response, success = self._generate_chat_response(combined_messages, times + 1)
+                if response and success:
+                    break
+
             if response:
                 response = self._clean_response(response)
                 logger.info("Мита: \n" + response)
@@ -566,7 +576,7 @@ class ChatModel:
                 model=self.api_model,
                 messages=combined_messages,
                 max_tokens=self.max_response_tokens,
-                presence_penalty=1.5,
+                #presence_penalty=1.5,
                 temperature=0.5,
             )
             if completion:
@@ -575,11 +585,12 @@ class ChatModel:
                     return response.lstrip("\n")
                 else:
                     print("completion.choices пусто")
-                    print(completion)
+                    logger.warning(completion)
+                    self.try_print_error(completion)
                     return None
             else:
 
-                print("completion пусто")
+                logger.warning("completion пусто")
                 return None
 
             #print("out completion ", completion)
@@ -588,12 +599,56 @@ class ChatModel:
             logger.error("Что-то не так при генерации OpenAI", str(e))
             return None
 
+    def try_print_error(self, completion):
+        try:
+            if not completion or not hasattr(completion, 'error'):
+                logger.warning("Ошибка: объект completion не содержит информации об ошибке.")
+                return
+
+            error = completion.error
+            if not error:
+                logger.warning("Ошибка: объект completion.error пуст.")
+                return
+
+            # Основное сообщение об ошибке
+
+            logger.warning(f"ChatCompletion ошибка: {error}")
+
+            # Дополнительные метаданные об ошибке
+            if hasattr(error, 'metadata'):
+                metadata = error.metadata
+                if metadata:
+                    logger.warning("Метаданные ошибки:")
+                    if hasattr(metadata, 'raw'):
+                        logger.warning(f"Raw данные: {metadata.raw}")
+                    if hasattr(metadata, 'provider_name'):
+                        logger.warning(f"Провайдер: {metadata.provider_name}")
+                    if hasattr(metadata, 'isDownstreamPipeClean'):
+                        logger.warning(f"Состояние downstream: {metadata.isDownstreamPipeClean}")
+                    if hasattr(metadata, 'isErrorUpstreamFault'):
+                        logger.warning(f"Ошибка upstream: {metadata.isErrorUpstreamFault}")
+                else:
+                    logger.warning("Метаданные ошибки отсутствуют.")
+            else:
+                logger.warning("Метаданные ошибки недоступны.")
+
+        except Exception as e:
+            logger.error(f"Ошибка при попытке обработать ошибку ChatCompletion: {e}")
+
     def _clean_response(self, response):
         try:
-            response = response.lstrip("```\n")
-            response = response.removesuffix("\n```\n")
+            # Проверяем, что response является строкой
+            if not isinstance(response, str):
+                logger.warning(f"Ожидалась строка, но получен тип: {type(response)}")
+                return response  # Возвращаем исходное значение, если это не строка
+
+            # Убираем префиксы и суффиксы
+            if response.startswith("```\n"):
+                response = response.lstrip("```\n")
+            if response.endswith("\n```\n"):
+                response = response.removesuffix("\n```\n")
         except Exception as e:
-            logger.error("Проблема с префиксами или постфиксами")
+            logger.error(f"Проблема с префиксами или постфиксами: {e}")
         return response
 
     def generate_responseGemini(self, combined_messages):
@@ -604,7 +659,7 @@ class ChatModel:
             "generationConfig": {
                 "maxOutputTokens": self.max_response_tokens,
                 "temperature": 0.7,
-                "presencePenalty": 1.5
+                #"presencePenalty": 1.5
             }
         }
 
