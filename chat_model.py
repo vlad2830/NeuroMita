@@ -35,6 +35,7 @@ class ChatModel:
 
         # Временное решение, чтобы возвращать работоспособность старого формата
 
+
         self.OldSystem = False
 
         self.gui = gui
@@ -68,6 +69,8 @@ class ChatModel:
 
         """New System"""
         self.current_character = None
+        self.current_character_to_change = ""
+        self.characters = None
 
         """Old System"""
 
@@ -106,7 +109,9 @@ class ChatModel:
         self.load_prompts()
 
         self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
-        self.MemorySystem = MemorySystem("mita_memories.json")
+
+        if self.OldSystem:
+            self.MemorySystem = MemorySystem("mita_memories_common")
 
         self.HideAiData = True
 
@@ -114,12 +119,20 @@ class ChatModel:
         """
         Инициализирует возможных персонажей
         """
-        crazy_mita_character = CrazyMita("Mita", "/speaker mita")
-        #self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
-        #self.cart_space = SpaceCartridge("Space", "/speaker  wheatley")
-        #self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
+        self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
+        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
+        self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley")
+        self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
 
-        self.current_character = crazy_mita_character
+        # Словарь для сопоставления имен персонажей с их объектами
+        self.characters = {
+            self.crazy_mita_character.name: self.crazy_mita_character,
+            self.kind_mita_character.name: self.kind_mita_character,
+            self.cappy_mita_character.name: self.cappy_mita_character,
+            self.cart_space.name: self.cart_space,
+        }
+
+        self.current_character = self.crazy_mita_character
 
     def load_prompts(self):
         """старая функция, надо будет сделать через персонажей"""
@@ -209,6 +222,9 @@ class ChatModel:
                 self._reveal_secret(messages)
 
         else:
+
+            self.check_change_current_character()
+
             data = self.current_character.load_history()
             messages = data.get("messages", [])
             self.current_character.process_logic(messages)
@@ -300,6 +316,21 @@ class ChatModel:
         except Exception as e:
             logger.error(f"Ошибка на фазе генерации: {e}",exc_info=True)
             return f"Ошибка на фазе генерации: {e}"
+
+    def check_change_current_character(self):
+        """
+        Проверяет и изменяет текущего персонажа на основе значения `current_character_to_change`.
+
+        Если `current_character_to_change` соответствует имени одного из персонажей,
+        текущий персонаж (`current_character`) обновляется, а `current_character_to_change` сбрасывается.
+        """
+        if not self.current_character_to_change:
+            return  # Если строка пустая, ничего не делаем
+
+        # Проверяем, есть ли имя в словаре
+        if self.current_character_to_change in self.characters:
+            self.current_character = self.characters[self.current_character_to_change]
+            self.current_character_to_change = ""  # Сбрасываем значение
 
     #region CrazyOldStatesChange
     def _initialize_conversation(self):

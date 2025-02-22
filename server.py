@@ -39,6 +39,8 @@ class ChatServer:
             character, message, system_message, system_info, self.chat_model.distance, self.chat_model.roomPlayer, self.chat_model.roomMita, self.chat_model.nearObjects, self.chat_model.actualInfo = received_text.split(
                 "|||")
 
+            self.chat_model.current_character_to_change = character
+
             if system_info != "-":
                 print("Добавил систем инфо " + system_info)
                 self.chat_model.add_temporary_system_info(system_info)
@@ -69,6 +71,9 @@ class ChatServer:
                 silero = "1"
             else:
                 silero = "0"
+
+            if not character:
+                character = "Mita"
 
             message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}"
             self.gui.patch_to_sound_file = ""
