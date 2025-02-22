@@ -250,6 +250,12 @@ namespace MitaAI
             }
             objectAnimationPlayer.AnimationStop();
 
+            yield return new WaitForSeconds(1f);
+             
+            if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) objectAnimationPlayer.AnimationStop();
+
+
+
         }
 
         public static void stopAnim() {

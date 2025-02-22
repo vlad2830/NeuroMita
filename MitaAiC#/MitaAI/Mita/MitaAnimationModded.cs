@@ -6,6 +6,7 @@ using UnityEngine;
 using System.Text.RegularExpressions;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.Playables;
+using UnityEngine.AI;
 namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
@@ -21,6 +22,7 @@ namespace MitaAI.Mita
         public static RuntimeAnimatorController runtimeAnimatorController;
         public static AnimatorOverrideController overrideController;
         public static Animator animator;
+        static NavMeshAgent mitaNavMeshAgent;
 
         static public string currentIdleAnim = "Idle";
         public enum IdleStates
@@ -69,6 +71,8 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("b!"); 
                 animator.Rebind();
                 animator.Update(0);
+
+                mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
             }
             catch (Exception ex)
             {
@@ -368,6 +372,9 @@ namespace MitaAI.Mita
                 AnimationClip anim = FindAnimationClipByName(animName);
                 if ( anim!=null)
                 {
+
+                    while (isMitaWalking()) yield return null;
+
                     //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
                     MelonLogger.Msg($"Crossfade");
                     MelonLogger.Msg($"Now playing: {animName}");
@@ -417,7 +424,11 @@ namespace MitaAI.Mita
             location34_Communication.enabled = true;
             isPlaying = false;
         }
-
+        static private bool isMitaWalking()
+        {
+            if (mitaAnimatorFunctions != null) return mitaNavMeshAgent.enabled;
+            return false;
+        }
         static private IEnumerator WaitForAnimationCompletion(AnimationClip animation, bool isCustomAnimation, float fadeDuration)
         {
             MelonLogger.Msg($"Begin WaitForAnimationCompletion");
