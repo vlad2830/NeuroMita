@@ -19,6 +19,7 @@ from utils import SH
 
 import sounddevice as sd
 
+
 class ChatGUI:
     def __init__(self):
 
@@ -50,9 +51,7 @@ class ChatGUI:
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
 
-
-
-        self.model = ChatModel(self, self.api_key, self.api_key_res,self.api_url, self.api_model, self.makeRequest)
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -70,7 +69,8 @@ class ChatGUI:
         self.setup_ui()
 
         try:
-            self.load_mic_settings()
+            ...
+            #self.load_mic_settings()
         except Exception as e:
             print("Не удалось удачно получить настройки микрофона", e)
 
@@ -168,7 +168,6 @@ class ChatGUI:
             else:
                 print("Ошибка: Цикл событий не готов.")
 
-
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk)  # Это обеспечит постоянную проверку
 
@@ -232,7 +231,7 @@ class ChatGUI:
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        self.setup_microphone_controls(right_frame)
+        #self.setup_microphone_controls(right_frame)
 
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
@@ -251,7 +250,7 @@ class ChatGUI:
         self.setup_history_controls(right_frame)
         self.setup_debug_controls(right_frame)
         self.setup_api_controls(right_frame)
-        self.setup_advanced_controls(right_frame)
+        #self.setup_advanced_controls(right_frame)
 
         self.load_chat_history()
 
@@ -447,7 +446,7 @@ class ChatGUI:
         ).grid(row=1, column=0, padx=4, pady=4, sticky=tk.W)
 
         self.api_key_res_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                      insertbackground="white")
+                                          insertbackground="white")
         self.api_key_res_entry.grid(row=1, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
@@ -574,9 +573,15 @@ class ChatGUI:
             if api_url := self.api_url_entry.get().strip():
                 print("Сохранение апи ссылки")
                 settings["NM_API_URL"] = api_url
+            else:
+                print("Сохранение ссылку по умолчанию, тк она пуста")
+                settings["NM_API_URL"] = "https://openrouter.ai/api/v1"
             if api_model := self.api_model_entry.get().strip():
                 print("Сохранение апи модели")
                 settings["NM_API_MODEL"] = api_model
+            else:
+                print("Сохранение модель по умолчанию, тк настройка пуста")
+                settings["NM_API_MODEL"] = "google/gemini-2.0-pro-exp-02-05:free"
 
             if api_id := self.api_id_entry.get().strip():
                 print("Сохранение тг айди")
@@ -610,12 +615,14 @@ class ChatGUI:
             print("Попытка запустить силеро заново")
             self.start_silero_async()
 
+
     def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
         print("Начинаю загрузку настроек")
 
         if not os.path.exists(self.config_path):
             print("Не найден файл настроек")
+            #self.save_api_settings(False)
             return
 
         try:
@@ -639,7 +646,8 @@ class ChatGUI:
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH")
             self.phone = settings.get("NM_TELEGRAM_PHONE")
 
-            print(f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
+            print(
+                f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
             print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто если тг)")
             if update_model:
                 if self.api_key:
@@ -756,6 +764,7 @@ class ChatGUI:
     # region Microphone
 
     """Спасибо Nelxi (distrane25)"""
+
     def setup_microphone_controls(self, parent):
         mic_frame = tk.Frame(parent, bg="#2c2c2c")
         mic_frame.pack(fill=tk.X, pady=5)
