@@ -117,6 +117,10 @@ namespace MitaAI
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
 
+            sceneToLoad = "Scene 10 - ManekenWorld";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldManekenWorld(sceneToLoad));
+
             try
             {
                 sceneToLoad = "Scene 6 - BasementFirst";
@@ -312,6 +316,50 @@ namespace MitaAI
             SceneManager.UnloadScene(sceneToLoad);
 
         }
+        private static IEnumerator WaitForSceneAndInstantiateWorldManekenWorld(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
+
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            Transform worldManekenWorld = FindObjectInScene(scene.name, "World");
+            if (worldManekenWorld == null)
+            {
+                MelonLogger.Msg("World object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            worldManekenWorld.gameObject.SetActive(false);
+
+            MelonLogger.Msg($"Object found: {worldManekenWorld.name}");
+            try
+            {
+                MitaCore.ShortHairObject = GameObject.Instantiate(Utils.TryfindChild(worldManekenWorld, "General/Mita Old"), MitaCore.worldHouse);
+
+
+            }
+
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Shorthair founding error: {ex}");
+            }
+            //yield return new WaitForSeconds(1f);
+            SceneManager.UnloadScene(sceneToLoad);
+
+        }
+
         private static void InitializeGameObjectsWhenReady()
         {
 

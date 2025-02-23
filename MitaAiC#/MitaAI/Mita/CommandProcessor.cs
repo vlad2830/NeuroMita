@@ -139,7 +139,7 @@ namespace MitaAI.Mita
                     break;
 
                 case "continue":
-                    ContinueCounter+=1;
+                    ContinueCounter = ContinueCounter + 1;
                     MelonLogger.Msg($"Cont times {ContinueCounter}");
                     if (ContinueCounter < 3) {
                         mitaCore.sendSystemInfo($"У тебя осталось {3 - ContinueCounter} возможностей продолжить фразу");

@@ -400,12 +400,21 @@ class ChatGUI:
         reload_prompts_button.pack(side=tk.LEFT, padx=15)
 
     def load_chat_history(self):
-        self.model.load_history()
-        """Загрузить историю из модели и отобразить в интерфейсе."""
-        for entry in self.model.chat_history:
-            role = entry["role"]
-            content = entry["content"]
-            self.insert_message(role, content)
+
+        if self.model.OldSystem:
+            self.model.load_history()
+            """Загрузить историю из модели и отобразить в интерфейсе."""
+            for entry in self.model.chat_history:
+                role = entry["role"]
+                content = entry["content"]
+                self.insert_message(role, content)
+        else:
+            chat_history = self.model.current_character.load_history()
+            for entry in chat_history["messages"]:
+                role = entry["role"]
+                content = entry["content"]
+                self.insert_message(role, content)
+
         self.update_debug_info()
 
     def setup_debug_controls(self, parent):
@@ -763,7 +772,10 @@ class ChatGUI:
                 print(f"Ошибка при отправке сообщения на сервер: {e}")
 
     def clear_history(self):
-        self.model.clear_history()
+        if self.model.OldSystem:
+            self.model.clear_history()
+        else:
+            self.model.current_character.clear_history()
         self.chat_window.delete(1.0, tk.END)
         self.update_debug_info()
 

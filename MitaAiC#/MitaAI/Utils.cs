@@ -38,7 +38,7 @@ namespace MitaAI
         public static string CleanFromTags(string text)
         {
             string textCleaned = Regex.Replace(text, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
-            textCleaned = Regex.Replace(textCleaned, @"<.*?>", ""); // Очищаем от всех тегов
+            textCleaned = Regex.Replace(textCleaned, @"<[^>]+>", ""); // Очищаем от всех тегов
 
             return textCleaned;
         }

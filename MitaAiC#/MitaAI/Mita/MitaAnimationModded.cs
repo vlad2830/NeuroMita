@@ -373,7 +373,7 @@ namespace MitaAI.Mita
                 if ( anim!=null)
                 {
 
-                    while (isMitaWalking()) yield return null;
+                    // while (isMitaWalking()) yield return null;
 
                     //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
                     MelonLogger.Msg($"Crossfade");

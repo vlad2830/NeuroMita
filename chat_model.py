@@ -61,8 +61,12 @@ class ChatModel:
 
         self.max_input_tokens = 2048
         self.max_response_tokens = 3200
+
+        """ Очень спорно уже """
         self.cost_input_per_1000 = 0.0432
         self.cost_response_per_1000 = 0.1728
+        """"""
+
         self.history_file = "chat_history.json"
         self.chat_history = self.load_history().get('messages', [])
         self.memory_limit = 40  # Ограничение сообщения
@@ -123,6 +127,7 @@ class ChatModel:
         self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley")
         self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
+        self.shorthair_mita_character = KindMita("ShortHair", "/speaker  shorthair")
 
         # Словарь для сопоставления имен персонажей с их объектами
         self.characters = {
@@ -130,6 +135,7 @@ class ChatModel:
             self.kind_mita_character.name: self.kind_mita_character,
             self.cappy_mita_character.name: self.cappy_mita_character,
             self.cart_space.name: self.cart_space,
+            self.shorthair_mita_character.name: self.shorthair_mita_character,
         }
 
         self.current_character = self.crazy_mita_character
@@ -146,7 +152,7 @@ class ChatModel:
         self.examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
         self.examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
 
-        self.world = load_text_from_file("Prompts/CrazyMitaPrompts/NotUsedNow/world.txt")
+        self.world = load_text_from_file("Prompts/Archive/NotUsedNow/world.txt")
         self.mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
 
         self.variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
@@ -227,6 +233,10 @@ class ChatModel:
 
             data = self.current_character.load_history()
             messages = data.get("messages", [])
+            if len(self.infos) > 0:
+                print("Попытался расширить messages")
+                messages.extend(self.infos)
+                self.infos.clear()
             self.current_character.process_logic(messages)
 
         # Добавление информации о времени и пользовательского ввода
@@ -331,6 +341,7 @@ class ChatModel:
         if self.current_character_to_change in self.characters:
             self.current_character = self.characters[self.current_character_to_change]
             self.current_character_to_change = ""  # Сбрасываем значение
+
 
     #region CrazyOldStatesChange
     def _initialize_conversation(self):
@@ -562,7 +573,7 @@ class ChatModel:
         formatted_messages = []
         for msg in combined_messages:
             if msg["role"] == "system":
-                formatted_messages.append({"role": "user", "content": f"[System Prompt]\n{msg['content']}"})
+                formatted_messages.append({"role": "user", "content": f"[System Prompt]: {msg['content']}"})
             else:
                 formatted_messages.append(msg)
         save_combined_messages(formatted_messages, "Gem")
@@ -588,7 +599,7 @@ class ChatModel:
             if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
                 print("gemini последнее системное сообщение")
                 combined_messages[-1]["role"] = "user"
-                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]
+                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"] + "[SYSTEM INFO END]"
 
             #print("in completion ", )
             completion = self.client.chat.completions.create(
@@ -903,38 +914,46 @@ class ChatModel:
     def reload_promts(self):
         print("Перезагрузка промптов")
 
-        self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
-        self.main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
+        if self.OldSystem:
 
-        self.player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
-        self.mainPlaying = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainPlaing.txt")
-        self.mainCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainCrazy.txt")
+            self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
+            self.main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
 
-        self.examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
-        self.examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
+            self.player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
+            self.mainPlaying = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainPlaing.txt")
+            self.mainCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainCrazy.txt")
 
-        self.world = load_text_from_file("Prompts/CrazyMitaPrompts/NotUsedNow/world.txt")
-        self.mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
-        self.variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
-        self.response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
-        self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
+            self.examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
+            self.examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
 
-        self.systemMessages.clear()
+            self.world = load_text_from_file("Prompts/Archive/NotUsedNow/world.txt")
+            self.mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
+            self.variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
+            self.response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
+            self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
 
-        self.systemMessages.append({"role": "system", "content": f"{self.response_structure}\n"})
-        self.systemMessages.append({"role": "system", "content": f"{self.common}\n"})
-        self.systemMessages.append({"role": "system", "content": f"{self.player}\n"})
+            self.systemMessages.clear()
 
-        if self.secretExposed:
-            self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainCrazy}"}
-            self.MitaExamples = {"role": "system", "content": f"{self.examplesLongCrazy}\n"}
+            self.systemMessages.append({"role": "system", "content": f"{self.response_structure}\n"})
+            self.systemMessages.append({"role": "system", "content": f"{self.common}\n"})
+            self.systemMessages.append({"role": "system", "content": f"{self.player}\n"})
 
-            system_message = {"role": "system", "content": f"{self.mita_history}\n"}
-            self.systemMessages.append(system_message)
-        elif self.attitude < 50:
-            self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}"}
+            if self.secretExposed:
+                self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainCrazy}"}
+                self.MitaExamples = {"role": "system", "content": f"{self.examplesLongCrazy}\n"}
+
+                system_message = {"role": "system", "content": f"{self.mita_history}\n"}
+                self.systemMessages.append(system_message)
+            elif self.attitude < 50:
+                self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}"}
+            else:
+                self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}"}
+
         else:
-            self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}"}
+
+            self.current_character.init()
+            self.current_character.process_logic()
+
 
     def load_history(self):
         """Загружаем историю из файла, создаем пустую структуру, если файл пуст или не существует."""
@@ -1088,4 +1107,3 @@ class ChatModel:
 
     #endregion
 
-# Функция 1:

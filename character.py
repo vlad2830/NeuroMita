@@ -19,7 +19,7 @@ class Character:
         self.float_prompts: List[PromptPart] = []
         self.temp_prompts: List[PromptPart] = []
         self.events: List[PromptPart] = []
-        self.variables = []
+        self.variables = {}
 
         self.history_manager = HistoryManager(self.name)
         self.load_history()
@@ -32,7 +32,6 @@ class Character:
         """
         self.LongMemoryRememberCount = 0
         self.MitaLongMemory = ""
-
 
         self.init()
 
@@ -207,12 +206,17 @@ class Character:
 
         self.history_manager.save_history(history_data)
 
+    def clear_history(self):
+        self.history_manager.clear_history()
+
     def current_variables(self):
         print("Попытка узнать переменные у персонажа без них")
         return {}
+
     def current_variables_string(self):
         print("Попытка узнать переменные у персонажа без них")
         return ""
+
 
 class CrazyMita(Character):
 
@@ -346,6 +350,7 @@ class CrazyMita(Character):
                 self.adjust_stress(changes[2])
 
         return response
+
     def adjust_attitude(self, amount):
         amount = clamp(amount, -5, 5)
         """Корректируем отношение."""
@@ -401,6 +406,7 @@ class CrazyMita(Character):
             f"- {key}: {value}" for key, value in characteristics.items()
         )
 
+
 class KindMita(Character):
     def init(self):
         self.kind_mita_prompts()
@@ -427,12 +433,37 @@ class KindMita(Character):
         mita_history = load_text_from_file("Prompts/Kind/Context/mita_history.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
 
-        variableEffects = load_text_from_file("Prompts/Kind/Structural/VariablesEffects.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
-
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
+class ShortHairMita(Character):
+    def init(self):
+        self.mita_prompts()
+
+    def mita_prompts(self):
+        Prompts = []
+
+        response_structure = load_text_from_file("Prompts/ShortHair/Structural/response_structure.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+
+        common = load_text_from_file("Prompts/ShortHair/Main/common.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
+
+        main = load_text_from_file("Prompts/ShortHair/Main/main.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, main, "main"))
+
+        player = load_text_from_file("Prompts/ShortHair/Main/player.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, player))
+        # Добавляем примеры длинных диалогов
+
+        examplesLong = load_text_from_file("Prompts/ShortHair/Context/examplesLong.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
+
+        mita_history = load_text_from_file("Prompts/ShortHair/Context/mita_history.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
 
 class CappyMita(Character):
 

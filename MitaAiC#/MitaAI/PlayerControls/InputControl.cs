@@ -170,8 +170,15 @@ namespace MitaAI.PlayerControls
                     MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
                     _lastChangeTime = DateTime.Now;
                 }
+                else if (Input.GetKeyDown(KeyCode.U))
+                {
+                    MelonLogger.Msg("Try change to ShortHair");
+                    MitaCore.Instance.changeMita(MitaCore.ShortHairObject, MitaCore.character.ShortHair);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                    _lastChangeTime = DateTime.Now;
+                }
 
-                
+
             }
             catch (Exception e)
             {
