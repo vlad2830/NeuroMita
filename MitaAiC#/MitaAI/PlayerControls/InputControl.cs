@@ -166,7 +166,7 @@ namespace MitaAI.PlayerControls
                 else if (Input.GetKeyDown(KeyCode.M))
                 {
                     MelonLogger.Msg("Try change to Crazy");
-                    MitaCore.Instance.changeMita(MitaCore.Instance.MitaObject, MitaCore.character.Mita);
+                    MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Mita);
                     MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
                     _lastChangeTime = DateTime.Now;
                 }
@@ -286,9 +286,24 @@ namespace MitaAI.PlayerControls
         // Пустышка для обработки ввода
         private static void ProcessInput(string inputText)
         {
-            MelonLogger.Msg("Input received: " + inputText);
-            MelonCoroutines.Start(MitaCore.Instance.PlayerTalk(inputText));
-            MitaCore.Instance.playerMessage += $"{inputText}\n";
+            try
+            {
+                MelonLogger.Msg("Input received: " + inputText);
+                if (MitaCore.Instance != null && MitaCore.Instance.playerMessage != null)
+                {
+                    MitaCore.Instance.playerMessage += $"{inputText}\n";
+                    MelonCoroutines.Start(MitaCore.Instance.PlayerTalk(inputText));
+                }
+                
+                
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+ 
+            
 
         }
 

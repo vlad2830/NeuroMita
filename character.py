@@ -82,6 +82,10 @@ class Character:
                 m = {"role": "system", "content": str(part)}
                 messages.append(m)
 
+        memory_message = {"role": "system", "content": self.memory_system.get_memories_formatted()}
+
+        messages.append(memory_message)
+
         return messages
 
     def add_context(self, messages):
@@ -94,30 +98,18 @@ class Character:
         self.LongMemoryRememberCount += 1
 
         """Обработка пользовательского ввода и добавление сообщений"""
+        # Получаем текущую дату и время, убираем микросекунды
         date_now = datetime.datetime.now().replace(microsecond=0)
 
-        repeated_system_message = f"Time: {date_now}."
+        # Форматируем дату: год, месяц словами, день месяца, день недели в скобках
+        formatted_date = date_now.strftime("%Y %B %d (%A)")
+
+        repeated_system_message = f"Time: {formatted_date}."
 
         if self.LongMemoryRememberCount % 3 == 0:
             repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaсked me</memory> (this text is example)"
 
         messages.append({"role": "system", "content": repeated_system_message})
-
-        """
-        # Добавляем timed_system_message, если оно не пусто и это словарь
-        if timed_system_message and isinstance(timed_system_message, dict):
-            combined_messages.append(timed_system_message)
-            print("timed_system_message успешно добавлено.")
-
-        if self.nearObjects != "" and self.nearObjects != "-":
-            text = f"В радиусе от тебя следующие объекты (object tree) {self.nearObjects}"
-            messageNear = {"role": "system", "content": text}
-            combined_messages.append(messageNear)
-
-        if self.actualInfo != "" and self.actualInfo != "-":
-            messageActual = {"role": "system", "content": self.actualInfo}
-            combined_messages.append(messageActual)
-        """
 
         return messages
 
@@ -228,7 +220,7 @@ class CrazyMita(Character):
         self.stress = 5
         self.secretExposed = False
         self.secretExposedFirst = False
-
+        self.PlayingFirst = False
         super().__init__(name, silero_command)
 
     def init(self):
@@ -280,6 +272,7 @@ class CrazyMita(Character):
             "attitude": self.attitude,
             "boredom": self.boredom,
             "stress": self.stress,
+            "playing_first" : self.PlayingFirst,
             "secret": self.secretExposed,
             "secret_first": self.secretExposedFirst
         }
@@ -293,6 +286,7 @@ class CrazyMita(Character):
         self.attitude = variables.get("attitude", self.attitude)
         self.boredom = variables.get("boredom", self.boredom)
         self.stress = variables.get("stress", self.stress)
+        self.PlayingFirst = variables.get("playing_first", self.stress)
         self.secretExposed = variables.get("secret", self.secretExposed)
         self.secretExposedFirst = variables.get("secret_first", self.secretExposedFirst)
         return data

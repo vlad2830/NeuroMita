@@ -760,6 +760,7 @@ namespace MitaAI
             {
                 if (playerMessage != "")
                 {
+                    LoggerInstance.Msg("HAS playerMessage");
                     MitaBoringtimer = 0f;
                     dataToSent = playerMessage;
                     playerMessage = "";
@@ -993,7 +994,7 @@ namespace MitaAI
                 }
 
 
-                if (elapsedTime - lastCallTime >= 2f)
+                if (elapsedTime - lastCallTime >= 0.6f)
                 {
                     List<String> parts = new List<String> { "***" };
                     MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
@@ -1135,7 +1136,7 @@ namespace MitaAI
             currentDialog.SetActive(true);  
             if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(delay+2f);
             MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
             GameObject.Destroy(currentDialog);
 
@@ -1164,7 +1165,7 @@ namespace MitaAI
 
                 currentDialog.SetActive(true);
 
-                yield return new WaitForSeconds(delay);
+                yield return new WaitForSeconds(delay+2f);
                 MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
                 GameObject.Destroy(currentDialog);
                 
@@ -1209,9 +1210,14 @@ namespace MitaAI
                     LoggerInstance.Msg($"PlayerTalk: {ex.Message}");
                 }
                 
-                yield return new WaitForSeconds(delay);
-                MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
-                GameObject.Destroy(currentDialog);
+                yield return new WaitForSeconds(delay+2f);
+
+                if (currentDialog != null)
+                {
+                    MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
+                    GameObject.Destroy(currentDialog);
+                }
+              
 
             }
             else

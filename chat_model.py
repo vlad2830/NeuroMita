@@ -35,7 +35,6 @@ class ChatModel:
 
         # Временное решение, чтобы возвращать работоспособность старого формата
 
-
         self.OldSystem = False
 
         self.gui = gui
@@ -127,7 +126,7 @@ class ChatModel:
         self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley")
         self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
-        self.shorthair_mita_character = KindMita("ShortHair", "/speaker  shorthair")
+        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair")
 
         # Словарь для сопоставления имен персонажей с их объектами
         self.characters = {
@@ -324,7 +323,7 @@ class ChatModel:
             self.gui.update_debug_info()
             return response
         except Exception as e:
-            logger.error(f"Ошибка на фазе генерации: {e}",exc_info=True)
+            logger.error(f"Ошибка на фазе генерации: {e}", exc_info=True)
             return f"Ошибка на фазе генерации: {e}"
 
     def check_change_current_character(self):
@@ -341,7 +340,6 @@ class ChatModel:
         if self.current_character_to_change in self.characters:
             self.current_character = self.characters[self.current_character_to_change]
             self.current_character_to_change = ""  # Сбрасываем значение
-
 
     #region CrazyOldStatesChange
     def _initialize_conversation(self):
@@ -448,6 +446,20 @@ class ChatModel:
         # Чем выше здесь, тем дальше от начала будет
 
         combined_messages = character.prepare_fixed_messages()
+
+        # Добавляем timed_system_message, если это словарь
+        if isinstance(timed_system_message, dict):
+            combined_messages.append(timed_system_message)
+            print("timed_system_message успешно добавлено.")
+
+        if self.nearObjects != "" and self.nearObjects != "-":
+            text = f"В радиусе от тебя следующие объекты (object tree) {self.nearObjects}"
+            messageNear = {"role": "system", "content": text}
+            combined_messages.append(messageNear)
+
+        if self.actualInfo != "" and self.actualInfo != "-":
+            messageActual = {"role": "system", "content": self.actualInfo}
+            combined_messages.append(messageActual)
 
         combined_messages = character.add_context(combined_messages)
 
@@ -599,7 +611,8 @@ class ChatModel:
             if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
                 print("gemini последнее системное сообщение")
                 combined_messages[-1]["role"] = "user"
-                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"] + "[SYSTEM INFO END]"
+                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1][
+                    "content"] + "[SYSTEM INFO END]"
 
             #print("in completion ", )
             completion = self.client.chat.completions.create(
@@ -954,7 +967,6 @@ class ChatModel:
             self.current_character.init()
             self.current_character.process_logic()
 
-
     def load_history(self):
         """Загружаем историю из файла, создаем пустую структуру, если файл пуст или не существует."""
         try:
@@ -1106,4 +1118,3 @@ class ChatModel:
                    isinstance(msg, dict) and "content" in msg)
 
     #endregion
-
