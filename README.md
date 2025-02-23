@@ -40,8 +40,8 @@ https://github.com/VinerX/NeuroMita/releases - тут релизы, то ест�
    
    - ### Бесплатно:
       Модели OpenRouter, ключи тут получаем https://openrouter.ai/settings/keys
-      - ссылка https://openrouter.ai/api/v1 модель google/gemini-2.0-flash-lite-preview-02-05:free open api  (обычный режим) УСТАРЕЕТ 24 ФЕВРАЛЯ
-      - ссылка https://openrouter.ai/api/v1 модель google/gemini-2.0-pro-exp-02-05:free open api (обычный режим)
+      - ссылка https://openrouter.ai/api/v1 модель google/gemini-2.0-flash-lite-preview-02-05:free open api         (обычный режим) УСТАРЕЕТ 24 ФЕВРАЛЯ
+      - ссылка https://openrouter.ai/api/v1 модель google/gemini-2.0-pro-exp-02-05:free      open api (обычный режим)
       - Также пробуйте другие модели, пишите которые лучше отработают
    
    - ### Платно: 
