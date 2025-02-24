@@ -29,7 +29,7 @@ namespace MitaAI
                 {
                     return (string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
                 }
-
+                MelonLogger.Msg("In GetResponseFromPythonSocketAsync");
                 bool waitResponse = (input != "waiting" || dataToSentSystem != "-");
                 // Дополнительная логика для подготовки данных
 
@@ -65,9 +65,9 @@ namespace MitaAI
                     //patch_to_sound_file = parts[1];
                     return (response,sileroConnected,patch);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    //LoggerInstance.Msg($"Error receiving data: {ex.Message}");
+                    MelonLogger.Msg($"Error receiving data: {ex.Message}");
                     return (string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
                 }
             }

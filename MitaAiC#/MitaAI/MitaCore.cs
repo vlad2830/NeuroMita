@@ -749,6 +749,8 @@ namespace MitaAI
         private const float actionCooldown = 9f;  // Интервал в секундах
         private IEnumerator HandleDialogue()
         {
+            MelonLogger.Msg("HandleDialogue");
+
             MitaBoringtimer += Time.deltaTime;
 
             string dataToSent = "waiting";
@@ -758,6 +760,7 @@ namespace MitaAI
             float currentTime = Time.time;
             if (currentTime - lastActionTime > actionCooldown)
             {
+                MelonLogger.Msg("Ready to send");
                 if (playerMessage != "")
                 {
                     LoggerInstance.Msg("HAS playerMessage");
@@ -801,16 +804,61 @@ namespace MitaAI
                 }
 
             }
-            
+
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
             Task<(string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info,currentCharacter);
-            while (!responseTask.IsCompleted)
-                yield return null;
 
-            response = responseTask.Result.Item1;
-            NetworkController.connectedToSilero = responseTask.Result.Item2=="1";
-            string patch = responseTask.Result.Item3;
+
+
+            float timeout = 10f;     // Лимит времени ожидания
+            float elapsedTime = 0f; // Счетчик времени
+            float lastCallTime = 0f; // Время последнего вызова
+
+
+            while (!responseTask.IsCompleted)
+            {
+                elapsedTime += 0.1f;
+                if (elapsedTime >= timeout)
+                {
+                    MelonLogger.Msg("Too long waiting for text");
+                    break;
+                }
+
+                MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
+                if (elapsedTime - lastCallTime >= 0.6f)
+                {
+                    try
+                    {
+                        List<String> parts = new List<String> { "..." };
+                        MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
+                        lastCallTime = elapsedTime; // Обновляем время последнего вызова
+                    }
+                    catch (Exception ex)
+                    {
+
+                        MelonLogger.Msg(ex);
+                    }
+
+                }
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            string patch = null;
+            if (responseTask.IsCompleted)
+            {
+                response = responseTask.Result.Item1;
+                NetworkController.connectedToSilero = responseTask.Result.Item2 == "1";
+                patch = responseTask.Result.Item3;
+            }
+            else
+            {
+                response = "Too long waited for text from python";
+                NetworkController.connectedToSilero = false;
+            }
+
+            
+            
             if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
             if (response != "")
             {
@@ -996,14 +1044,15 @@ namespace MitaAI
 
                 if (elapsedTime - lastCallTime >= 0.6f)
                 {
+                    MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
                     List<String> parts = new List<String> { "***" };
                     MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
                     lastCallTime = elapsedTime; // Обновляем время последнего вызова
                 }
 
-                elapsedTime += Time.unscaledDeltaTime; // Увеличиваем счетчик времени
+                elapsedTime += 0.1f; // Увеличиваем счетчик времени
 
-                yield return null;             // Пауза до следующего кадра
+                yield return new WaitForSeconds(0.1f);             // Пауза до следующего кадра
             }
 
             yield return null;
@@ -1059,7 +1108,7 @@ namespace MitaAI
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 50);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
-                MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts));
+                MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
             }
             catch (Exception ex)
             {
@@ -1067,7 +1116,7 @@ namespace MitaAI
             }
         }
 
-        private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue = false)
+        private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
         {
 
             foreach (string part in dialogueParts)
@@ -1088,36 +1137,41 @@ namespace MitaAI
         private IEnumerator ShowDialogue(string part, float delay, bool itIsWaitingDialogue = false)
         {
 
-            LoggerInstance.Msg("ShowDialogue");
+           
 
             string modifiedPart = part;
             List<string> commands;
             EmotionType emotion = EmotionType.none;
-            try
+            
+            if (!itIsWaitingDialogue)
             {
-                LoggerInstance.Msg("Begin try:" + modifiedPart);
-                modifiedPart = SetFaceStyle(modifiedPart);
-                modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
-                modifiedPart = ProcessPlayerEffects(modifiedPart);
-                modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
-                modifiedPart = AudioControl.ProcessMusic(modifiedPart);
-                (emotion, modifiedPart) = SetEmotionBasedOnResponse(modifiedPart);
-                LoggerInstance.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
-                
-                (commands, modifiedPart) = CommandProcessor.ExtractCommands(modifiedPart);
-                if (commands.Count > 0)
+                LoggerInstance.Msg("ShowDialogue");
+                try
                 {
-                    CommandProcessor.ProcessCommands(commands);
+
+                    LoggerInstance.Msg("Begin try:" + modifiedPart);
+                    modifiedPart = SetFaceStyle(modifiedPart);
+                    modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
+                    modifiedPart = ProcessPlayerEffects(modifiedPart);
+                    modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
+                    modifiedPart = AudioControl.ProcessMusic(modifiedPart);
+                    (emotion, modifiedPart) = SetEmotionBasedOnResponse(modifiedPart);
+                    LoggerInstance.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
+
+                    (commands, modifiedPart) = CommandProcessor.ExtractCommands(modifiedPart);
+                    if (commands.Count > 0)
+                    {
+                        CommandProcessor.ProcessCommands(commands);
+                    }
+                    LoggerInstance.Msg("After ExtractCommands " + modifiedPart);
+                    modifiedPart = Utils.CleanFromTags(modifiedPart);
                 }
-                LoggerInstance.Msg("After ExtractCommands " + modifiedPart);
-                modifiedPart = Utils.CleanFromTags(modifiedPart);
+                catch (Exception ex)
+                {
+                    LoggerInstance.Error($"Error processing part of response: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                LoggerInstance.Error($"Error processing part of response: {ex.Message}");
-            }
-
-
+            
             GameObject currentDialog = InstantiateDialog();
 
             Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
@@ -1134,7 +1188,7 @@ namespace MitaAI
             currentEmotion = emotion;
 
             currentDialog.SetActive(true);  
-            if (!NetworkController.connectedToSilero) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
+            if ( !NetworkController.connectedToSilero && !itIsWaitingDialogue ) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
             yield return new WaitForSeconds(delay+2f);
             MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");

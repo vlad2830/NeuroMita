@@ -85,7 +85,7 @@ class ChatGUI:
         self.start_silero_async()
 
         # Запуск проверки переменной textToTalk через after
-        self.root.after(100, self.check_text_to_talk)
+        self.root.after(150, self.check_text_to_talk)
 
     def delete_all_wav_files(self):
         # Получаем список всех .wav файлов в корневой директории

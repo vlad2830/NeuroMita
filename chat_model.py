@@ -125,7 +125,7 @@ class ChatModel:
         self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
         self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley")
-        self.kind_mita_character = KindMita("Kind", "/speaker  shorthair")
+        self.kind_mita_character = KindMita("Kind", "/speaker kind")
         self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair")
 
         # Словарь для сопоставления имен персонажей с их объектами
@@ -532,7 +532,7 @@ class ChatModel:
         response = None
 
         self._log_generation_start()
-        self._save_and_calculate_cost(combined_messages)
+        #self._save_and_calculate_cost(combined_messages)
 
         if self.makeRequest:
             formatted_messages = self._format_messages_for_gemini(combined_messages)
@@ -579,7 +579,8 @@ class ChatModel:
                                                                        self.cost_input_per_1000)
             logger.info(f"Calculated cost: {self.gui.last_price}")
         except Exception as e:
-            logger.info("Не получилось сделать с токенайзером", str(e))
+            ...
+            #logger.info("Не получилось сделать с токенайзером", str(e))
 
     def _format_messages_for_gemini(self, combined_messages):
         formatted_messages = []
@@ -614,17 +615,20 @@ class ChatModel:
                 combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1][
                     "content"] + "[SYSTEM INFO END]"
 
-            #print("in completion ", )
+            print(f"in completion {len(combined_messages)}", )
             completion = self.client.chat.completions.create(
                 model=self.api_model,
                 messages=combined_messages,
                 max_tokens=self.max_response_tokens,
                 #presence_penalty=1.5,
-                temperature=0.5,
+                temperature=0.5
             )
+            print(f"after completion")
+
             if completion:
                 if completion.choices:
                     response = completion.choices[0].message.content
+                    print(f"response {response}")
                     return response.lstrip("\n")
                 else:
                     print("completion.choices пусто")
@@ -639,7 +643,8 @@ class ChatModel:
             #print("out completion ", completion)
 
         except Exception as e:
-            logger.error("Что-то не так при генерации OpenAI", str(e))
+            print("111")
+            logger.error(f"Что-то не так при генерации OpenAI {e}")
             return None
 
     def try_print_error(self, completion):
