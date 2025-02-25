@@ -75,7 +75,6 @@
 <m>Следовать за игроком</m>
 <m>Стоять на месте</m> - используй вместе с перемещениями к точкам, чтобы остаться на достигнутом месте!
 
-
 Ты можешь сменить одежду
 <clothes>original</clothes><clothes>SchoolVariant1</clothes><clothes>SchoolVariant2</clothes>-Черного цвета<clothes>SchoolVariant3</clothes><clothes>Chirstmass</clothes><clothesVampire</clothes>
 
