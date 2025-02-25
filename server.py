@@ -58,24 +58,23 @@ class ChatServer:
                 response = self.generate_response("",
                                                   f"Время {date_now}, Игрок долго молчит( Ты можешь что-то сказать или предпринять")
                 self.gui.insertDialog("", response)
-                print("Отправлено Мите на озвучку: " + response)
             else:
                 print("Получено message")
                 # Если игрок отправил внутри игры, message его
                 response = self.generate_response(message, "")
                 #self.gui.insertDialog(message,response)
-                print("Отправлено Мите на озвучку: " + response)
 
             # Ждать ли на той стороне файла озвучки
-            if self.gui.silero_connected.get():
-                silero = "1"
+            if self.gui.bot_connected:
+                audio_bot = "1"
+                print("Отправлено Мите на озвучку: " + response)
             else:
-                silero = "0"
+                audio_bot = "0"
 
             if not character:
                 character = "Mita"
 
-            message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}"
+            message = f"{character}|||{response}|||{audio_bot}|||{self.gui.patch_to_sound_file}"
             self.gui.patch_to_sound_file = ""
 
             # Отправляем сообщение через сокет

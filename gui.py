@@ -1,3 +1,5 @@
+from asyncio.log import logger
+import warnings
 import gui
 from chat_model import ChatModel
 from server import ChatServer
@@ -25,12 +27,12 @@ class ChatGUI:
     def __init__(self):
 
         self.test_microphone = None
-        self.silero_connected = False
         self.game_connected = False
 
         self.chat_window = None
         self.token_count_label = None
 
+        self.bot_connected = False
         self.bot_handler = None
         self.bot_handler_ready = False
 
@@ -58,7 +60,6 @@ class ChatGUI:
         self.running = False
         self.start_server()
         self.textToTalk = ""
-        self.textSpeaker = "/Speaker Mita"
         self.patch_to_sound_file = ""
         self.ConnectedToGame = False
         self.root = tk.Tk()
@@ -82,7 +83,8 @@ class ChatGUI:
         self.asyncio_thread = threading.Thread(target=self.start_asyncio_loop, daemon=True)
         self.asyncio_thread.start()
 
-        self.start_silero_async()
+        if all([self.phone, self.api_id, self.api_hash]):
+            self.start_audio_bot_async()
 
         # Запуск проверки переменной textToTalk через after
         self.root.after(100, self.check_text_to_talk)
@@ -110,32 +112,35 @@ class ChatGUI:
         except Exception as e:
             print(f"Ошибка при запуске цикла событий asyncio: {e}")
 
-    def start_silero_async(self):
-        """Отправляет задачу для запуска Silero в цикл событий."""
+    def start_audio_bot_async(self):
+        """Отправляет задачу для запуска Бота для озвучки в цикл событий."""
         print("Ожидание готовности цикла событий...")
         self.loop_ready_event.wait()  # Ждем, пока цикл событий будет готов
         if self.loop and self.loop.is_running():
-            print("Запускаем Silero через цикл событий.")
-            asyncio.run_coroutine_threadsafe(self.startSilero(), self.loop)
+            print("Запускаем Озвучкера через цикл событий.")
+            asyncio.run_coroutine_threadsafe(self.startBot(), self.loop)
         else:
             print("Ошибка: Цикл событий asyncio не запущен.")
 
-    async def startSilero(self):
+    async def startBot(self):
         """Асинхронный запуск обработчика Telegram Bot."""
-        print("Telegram Bot запускается!")
+        print("Попытка запустить Telegram Bot...")
         try:
-            print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
+            if not self.api_id or not self.api_hash or not self.phone:
+                raise AttributeError("Переданы неверные параметры либо пустые")
+            
+            print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)}")
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
             await self.bot_handler.start()
             self.bot_handler_ready = True
-            if self.silero_connected:
+            if self.bot_connected:
                 print("ТГ успешно подключен")
             else:
                 print("ТГ не подключен")
 
         except Exception as e:
             print(f"Ошибка при запуске Telegram Bot: {e}")
-            self.silero_connected = False
+            self.bot_connected = False
 
     def run_in_thread(self, response):
         """Запуск асинхронной задачи в отдельном потоке."""
@@ -144,14 +149,14 @@ class ChatGUI:
         if self.loop and self.loop.is_running():
             print("Запускаем асинхронную задачу в цикле событий...")
             # Здесь мы вызываем асинхронную задачу через главный цикл
-            self.loop.create_task(self.run_send_and_receive(self.textToTalk, self.textSpeaker))
+            self.loop.create_task(self.run_send_and_receive(self.textToTalk))
         else:
             print("Ошибка: Цикл событий asyncio не готов.")
 
-    async def run_send_and_receive(self, response, speaker_command):
+    async def run_send_and_receive(self, response):
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
-        await self.bot_handler.send_and_receive(response, speaker_command)
+        await self.bot_handler.send_and_receive(response)
         print("Завершение получения фразы")
 
     def check_text_to_talk(self):
@@ -162,7 +167,7 @@ class ChatGUI:
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
                 print("Цикл событий готов. Отправка текста.")
-                asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk),
                                                  self.loop)
                 self.textToTalk = ""  # Очищаем текст после отправки
                 print("Выполнено")
@@ -273,7 +278,7 @@ class ChatGUI:
 
         # Переменные статуса
         self.game_connected = tk.BooleanVar(value=False)  # Статус подключения к игре
-        self.silero_connected = tk.BooleanVar(value=False)  # Статус подключения к Silero
+        self.bot_connected = tk.BooleanVar(value=False)  # Статус подключения к Аудио Озвучкеру
 
         # Галки для подключения
         self.game_status_checkbox = tk.Checkbutton(
@@ -287,16 +292,16 @@ class ChatGUI:
         )
         self.game_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
 
-        self.silero_status_checkbox = tk.Checkbutton(
+        self.speaker_bot_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение к Silero",
-            variable=self.silero_connected,
+            text="Подключение к озвучкеру",
+            variable=self.bot_connected,
             state="disabled",
             bg="#2c2c2c",
             fg="#ffffff",
             selectcolor="#2c2c2c"
         )
-        self.silero_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
+        self.speaker_bot_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
 
     def updateAll(self):
         self.update_status_colors()
@@ -309,8 +314,8 @@ class ChatGUI:
         self.game_status_checkbox.config(fg=game_color)
 
         # Обновление цвета для подключения к Silero
-        silero_color = "#00ff00" if self.silero_connected.get() else "#ffffff"
-        self.silero_status_checkbox.config(fg=silero_color)
+        silero_color = "#00ff00" if self.bot_connected.get() else "#ffffff"
+        self.speaker_bot_status_checkbox.config(fg=silero_color)
 
     def setup_control(self, label_text, attribute_name, initial_value):
         """
@@ -622,9 +627,9 @@ class ChatGUI:
         # Сразу же их загружаем
         self.load_api_settings(update_model=True)
 
-        if not self.silero_connected:
-            print("Попытка запустить силеро заново")
-            self.start_silero_async()
+        if not self.bot_connected and all([self.phone, self.api_id, self.api_hash]):
+            print("Попытка запустить аудио бота заново")
+            self.start_audio_bot_async()
 
 
     def load_api_settings(self, update_model):
@@ -657,9 +662,15 @@ class ChatGUI:
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH")
             self.phone = settings.get("NM_TELEGRAM_PHONE")
 
-            print(
-                f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
-            print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто если тг)")
+            print(f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest}")
+            print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)}")
+
+            if not self.api_key or not self.api_url or not self.api_model:
+                raise AttributeError("Настройки API: Переданы пустые параметры")
+
+            if not self.api_id or not self.api_hash or not self.phone:
+                logger.warning("Настройки ТГ: Переданы пустые параметры")
+
             if update_model:
                 if self.api_key:
                     self.model.api_key = self.api_key
@@ -670,6 +681,35 @@ class ChatGUI:
 
                 self.model.makeRequest = self.makeRequest
                 self.model.update_openai_client()
+
+            # Заполняем поля в GUI
+            if hasattr(self, 'api_key_entry'):
+                self.api_key_entry.delete(0, tk.END)
+                self.api_key_entry.insert(0, self.api_key or '')
+                
+            if hasattr(self, 'api_key_res_entry'):
+                self.api_key_res_entry.delete(0, tk.END)
+                self.api_key_res_entry.insert(0, self.api_key_res or '')
+                
+            if hasattr(self, 'api_url_entry'):
+                self.api_url_entry.delete(0, tk.END)
+                self.api_url_entry.insert(0, self.api_url or '')
+                
+            if hasattr(self, 'api_model_entry'):
+                self.api_model_entry.delete(0, tk.END)
+                self.api_model_entry.insert(0, self.api_model or '')
+                
+            if hasattr(self, 'api_id_entry'):
+                self.api_id_entry.delete(0, tk.END)
+                self.api_id_entry.insert(0, self.api_id or '')
+                
+            if hasattr(self, 'api_hash_entry'):
+                self.api_hash_entry.delete(0, tk.END)
+                self.api_hash_entry.insert(0, self.api_hash or '')
+                
+            if hasattr(self, 'phone_entry'):
+                self.phone_entry.delete(0, tk.END)
+                self.phone_entry.insert(0, self.phone or '')
 
             print("Настройки загружены из файла")
         except Exception as e:

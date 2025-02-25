@@ -21,7 +21,7 @@ class TelegramBotHandler:
         self.api_id = api_id
         self.api_hash = api_hash
         self.phone = phone
-        self.silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
+        self.mita_ai_bot = '@CrazyMitaAIbot'  # Юзернейм бота
         self.gui = gui
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
@@ -53,6 +53,7 @@ class TelegramBotHandler:
 
         # Параметры бота
         self.message_limit_per_minute = message_limit_per_minute
+        self.max_get_bot_answer_attempts = 30
         self.message_count = 0
         self.start_time = time.time()
 
@@ -68,14 +69,12 @@ class TelegramBotHandler:
                 app_version=app_version
             )
         except:
-            print("Проблема в ините тг")
-            print(SH(self.api_id))
-            print(SH(self.api_hash))
+            print(f"Проблема в ините тг. API ID: {self.api_id} - API HASH: {self.api_hash}")
 
     import ffmpeg
     import os
 
-    async def convert_mp3_to_wav(self, input_path, output_path):
+    async def convert_audio_to_wav(self, input_path, output_path):
         """Конвертирует MP3 в WAV с использованием ffmpeg."""
         try:
             if not os.path.exists(input_path):
@@ -110,8 +109,8 @@ class TelegramBotHandler:
             self.message_count = 0
             self.start_time = time.time()
 
-    async def play_mp3(self, file_path):
-        """Проигрывает MP3 файл."""
+    async def play_audio(self, file_path):
+        """Проигрывает audio/* файл."""
 
         def play():
             pygame.mixer.init()
@@ -129,7 +128,7 @@ class TelegramBotHandler:
         """Проигрывает звуковой файл."""
         try:
             print(f"Проигрываю файл: {file_path}")
-            await self.play_mp3(file_path)
+            await self.play_audio(file_path)
             if os.path.exists(file_path):
                 try:
                     await asyncio.sleep(0.02)
@@ -139,19 +138,13 @@ class TelegramBotHandler:
                     print(f"Файл {file_path} НЕ удалён. Ошибка: {e}")
         except Exception as e:
             print(f"Ошибка при воспроизведении файла: {e}")
-
-    async def send_and_receive(self, input_message, speaker_command):
+    
+    async def send_and_receive(self, input_message):
         """Отправляет сообщение боту и обрабатывает ответ."""
         global message_count
 
-        if not input_message or not speaker_command:
+        if not input_message:
             return
-
-        if self.last_speaker_command != speaker_command:
-            await self.client.send_message(self.silero_bot, speaker_command)
-            self.last_speaker_command = speaker_command
-            await asyncio.sleep(0.25)
-        self.last_speaker_command = speaker_command
 
         self.reset_message_count()
 
@@ -161,39 +154,39 @@ class TelegramBotHandler:
             return
 
         # Отправка сообщения боту
-        await self.client.send_message(self.silero_bot, input_message)
+        await self.client.send_message(self.mita_ai_bot, f"/voice {input_message}")
         self.message_count += 1
 
         # Ожидание ответа от бота
         print("Ожидание ответа от бота...")
         response = None
         attempts = 0
-        await asyncio.sleep(0.7)
-        while attempts <= 24:  # Попытки получения ответа
 
-            async for message in self.client.iter_messages(self.silero_bot, limit=1):
+        await asyncio.sleep(0.7)
+        while attempts < self.max_get_bot_answer_attempts:  # Попытки получения ответа
+            async for message in self.client.iter_messages(self.mita_ai_bot, limit=1):
                 if message.media and isinstance(message.media, MessageMediaDocument):
                     # Проверяем тип файла и его атрибуты
-                    if 'audio/mpeg' in message.media.document.mime_type:
+                    if 'audio/ogg' in message.media.document.mime_type: # Было audio/mpeg
                         response = message
                         break
             if response:  # Если ответ найден, выходим из цикла
                 break
-            print(f"Попытка {attempts + 1}/3. Ответ от бота не найден.")
+            print(f"Попытка {attempts + 1}/{self.max_get_bot_answer_attempts}. Ответ от бота не найден.")
             attempts += 1
             await asyncio.sleep(0.25)  # Немного подождем
 
         if not response:
-            print("Ответ от бота не получен после 3 попыток.")
+            print(f"Ответ от бота не получен после {self.max_get_bot_answer_attempts} попыток.")
             return
 
         # Обработка полученного сообщения
         if response.media and isinstance(response.media, MessageMediaDocument):
-            if 'audio/mpeg' in response.media.document.mime_type:  # Проверка MP3 файла
+            if 'audio/ogg' in response.media.document.mime_type:  # Проверка OGG файла, было audio/mpeg
                 file_path = await self.client.download_media(response.media)
 
                 print(f"Файл загружен: {file_path}")
-                absolute_mp3_path = os.path.abspath(file_path)
+                absolute_audio_from_bot_path = os.path.abspath(file_path)
                 if self.gui.ConnectedToGame:
                     # Генерируем путь для WAV-файла на основе имени исходного MP3
                     base_name = os.path.splitext(os.path.basename(file_path))[0]  # Получаем имя файла без расширения
@@ -202,25 +195,23 @@ class TelegramBotHandler:
                     # Получаем абсолютный путь
 
                     absolute_wav_path = os.path.abspath(wav_path)
-                    # Конвертируем MP3 в WAV
-                    await self.convert_mp3_to_wav(absolute_mp3_path, absolute_wav_path)
+                    # Конвертируем в WAV
+                    await self.convert_audio_to_wav(absolute_audio_from_bot_path, absolute_wav_path)
 
                     try:
-                        print(f"Удаляю файл: {absolute_mp3_path}")
-                        os.remove(absolute_mp3_path)
-                        print(f"Файл {absolute_mp3_path} удалён.")
+                        print(f"Удаляю файл: {absolute_audio_from_bot_path}")
+                        os.remove(absolute_audio_from_bot_path)
+                        print(f"Файл {absolute_audio_from_bot_path} удалён.")
                     except OSError as remove_error:
-                        print(f"Ошибка при удалении файла {absolute_mp3_path}: {remove_error}")
+                        print(f"Ошибка при удалении файла {absolute_audio_from_bot_path}: {remove_error}")
 
                     #.BnmRvcModel.process(absolute_wav_path, absolute_wav_path+"_RVC_.wav")
 
                     self.gui.patch_to_sound_file = absolute_wav_path
                     print(f"Файл wav загружен: {absolute_wav_path}")
 
-
-
                 else:
-                    print(f"Отправлен воспроизводится: {absolute_mp3_path}")
+                    print(f"Отправлен воспроизводится: {absolute_audio_from_bot_path}")
                     await self.handle_voice_file(file_path)
         elif response.text:  # Если сообщение текстовое
             print(f"Ответ от бота: {response.text}")
@@ -228,21 +219,15 @@ class TelegramBotHandler:
     async def start(self):
 
         print("Запуск коннектора ТГ!")
-        try:
-
+        try:    
             await self.client.start(phone=self.phone)
-
-            self.gui.silero_connected.set(True)
             print("Успешно авторизован!")
-            await self.client.send_message(self.silero_bot, "/start")
-            await asyncio.sleep(0.50)
-            await self.client.send_message(self.silero_bot, "/speaker mita")
-            self.last_speaker_command = "/speaker mita"
-            await asyncio.sleep(0.50)
-            await self.client.send_message(self.silero_bot, "/mp3")
-            await asyncio.sleep(0.50)
-            await self.client.send_message(self.silero_bot, "/hd")
-            print("Включено все в ТГ для сообщений миты")
+            await self.client.send_message(self.mita_ai_bot, "/start")
+            self.gui.bot_connected = True
+        except AttributeError as e:
+            self.gui.bot_connected = False
+            print(f"Переданы неверные параметры либо пустые: {str(e)}")    
         except Exception as e:
-            self.gui.silero_connected.set(False)
+            self.gui.bot_connected = False
             print(f"Ошибка авторизации: {e}")
+        

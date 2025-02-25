@@ -1,7 +1,7 @@
 import tiktoken
 from openai import OpenAI
 
-import datetime
+import time
 import re
 import shutil
 
@@ -117,6 +117,10 @@ class ChatModel:
             self.MemorySystem = MemorySystem("mita_memories_common")
 
         self.HideAiData = True
+        
+        # Настройки реквестов
+        self.max_request_attempts = 5
+        self.request_delay = 0.2
 
     def init_characters(self):
         """
@@ -521,48 +525,104 @@ class ChatModel:
 
         return combined_messages
 
-    def _generate_chat_response(self, combined_messages, times=1):
-        """Вообще, не мб тут избыточно с рекурсией, но пока вроде работает)"""
-        print(f"Попытка сгенерировать ответ, {times} раз")
-        if times > 2:
-            success = False
-            return None, success
-
-        success = True
-        response = None
+    def _generate_chat_response(self, combined_messages):
+        """Генерация ответа с поддержкой повторных попыток при ошибках"""
 
         self._log_generation_start()
         self._save_and_calculate_cost(combined_messages)
 
-        if self.makeRequest:
-            formatted_messages = self._format_messages_for_gemini(combined_messages)
-            response = self._generate_gemini_response(formatted_messages)
-        else:
-            response = self._generate_openai_response(combined_messages)
+        # Пробуем все доступные попытки
+        for attempt in range(self.max_request_attempts):
+            logger.info(f"Попытка генерации ответа #{attempt + 1}")
+            
+            # Чередуем основной и резервный ключи API
+            if attempt > 0:
+                self.update_openai_client(attempt % 2 == 0)
+            
+            # Пытаемся сгенерировать ответ
+            response = self._try_generate_chat_response(combined_messages)
+            
+            if response:
+                return self._clean_response(response), True
+            
+            logger.warning(f"Попытка #{attempt + 1} не удалась")
+            time.sleep(self.request_delay)
+                
+        logger.error("Все попытки исчерпаны, возвращаю None")
+        return None, False
 
+    def _try_generate_chat_response(self, messages):
+        """Попытка сгенерировать ответ через выбранный API"""
+        if self.makeRequest:
+            formatted = self._format_messages_for_gemini(messages)
+            response = self._generate_gemini_response(formatted)
+        else:
+            response = self._generate_openai_response(messages)
+            
         if response:
             response = self._clean_response(response)
-            logger.info(f"Мита: \n {response}")
+            logger.info(f"Успешный ответ: {response}")
+            
+        return response
+
+    def _generate_openai_response(self, combined_messages):
+        if not self.client:
+            logger.info("Попытка переподключения клиента")
+            self.update_openai_client()
+
+        try:
+            if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
+                print("gemini последнее системное сообщение")
+                combined_messages[-1]["role"] = "user"
+                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"] + "[SYSTEM INFO END]"
+
+            completion = self.client.chat.completions.create(
+                model=self.api_model,
+                messages=combined_messages,
+                max_tokens=self.max_response_tokens,
+                temperature=0.5,
+            )
+            
+            if completion and completion.choices:
+                response = completion.choices[0].message.content
+                return response.lstrip("\n")
+                    
+            logger.warning("completion пусто или нет choices")
+            self.try_print_error(completion)
+            return None
+
+        except Exception as e:
+            logger.error("Что-то не так при генерации OpenAI", str(e))
+            return None
+
+    def _generate_gemini_response(self, formatted_messages):
+        data = {
+            "contents": [
+                {"role": "user", "parts": [{"text": msg["content"]}]} for msg in formatted_messages
+            ],
+            "generationConfig": {
+                "maxOutputTokens": self.max_response_tokens,
+                "temperature": 0.7,
+            }
+        }
+
+        headers = {
+            "Content-Type": "application/json", 
+            "Authorization": f"Bearer {self.api_key}"
+        }
+
+        logger.info("Отправляю запрос к Gemini")
+        save_combined_messages(data, "Gem2")
+        
+        response = requests.post(self.api_url, headers=headers, json=data)
+        if response.status_code == 200:
+            response_data = response.json()
+            generated_text = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            logger.info("Gemini Flash: \n" + generated_text)
+            return generated_text
         else:
-            print("Ответ пустой в первый раз, идем в цикле")
-
-            # Да, это нафиг рекурсия
-            for time in range(0, 3):
-                print(f"Цикл {time * times + 1} раз")
-                try_reserve_key = time % 2 == 0
-                self.update_openai_client(try_reserve_key)
-                response, success = self._generate_chat_response(combined_messages, times + 1)
-                if response and success:
-                    break
-
-            if response:
-                response = self._clean_response(response)
-                logger.info("Мита: \n" + response)
-            else:
-                print("Ответ все еще пустой")
-                success = False
-
-        return response, success
+            logger.error(f"Ошибка: {response.status_code}, {response.text}")
+            return None
 
     def _log_generation_start(self):
         logger.info("Перед отправкой на генерацию")
@@ -590,57 +650,6 @@ class ChatModel:
                 formatted_messages.append(msg)
         save_combined_messages(formatted_messages, "Gem")
         return formatted_messages
-
-    def _generate_gemini_response(self, formatted_messages):
-        try:
-            response = self.generate_responseGemini(formatted_messages)
-            logger.info(f"Ответ Gemini: {response}", )
-            return response
-        except Exception as e:
-            logger.error("Что-то не так при генерации Gemini", str(e))
-            return None
-
-    def _generate_openai_response(self, combined_messages):
-        if not self.client:
-            logger.info("Попытка переподключения клиента")
-            self.update_openai_client()
-
-        try:
-
-            # Гемини нужно всегда последнее сообщение пользователя
-            if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
-                print("gemini последнее системное сообщение")
-                combined_messages[-1]["role"] = "user"
-                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1][
-                    "content"] + "[SYSTEM INFO END]"
-
-            #print("in completion ", )
-            completion = self.client.chat.completions.create(
-                model=self.api_model,
-                messages=combined_messages,
-                max_tokens=self.max_response_tokens,
-                #presence_penalty=1.5,
-                temperature=0.5,
-            )
-            if completion:
-                if completion.choices:
-                    response = completion.choices[0].message.content
-                    return response.lstrip("\n")
-                else:
-                    print("completion.choices пусто")
-                    logger.warning(completion)
-                    self.try_print_error(completion)
-                    return None
-            else:
-
-                logger.warning("completion пусто")
-                return None
-
-            #print("out completion ", completion)
-
-        except Exception as e:
-            logger.error("Что-то не так при генерации OpenAI", str(e))
-            return None
 
     def try_print_error(self, completion):
         try:
