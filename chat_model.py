@@ -8,7 +8,7 @@ import shutil
 from character import *
 from utils import *
 from MemorySystem import MemorySystem
-
+from requests.exceptions import Timeout
 # Настройка логирования
 import logging
 import colorlog
@@ -58,7 +58,6 @@ class ChatModel:
             print("Тиктокен не сработал(")
             self.hasTokenizer = False
 
-        self.max_input_tokens = 2048
         self.max_response_tokens = 3200
 
         """ Очень спорно уже """
@@ -292,7 +291,6 @@ class ChatModel:
             if self.OldSystem:
                 response = self.process_response(response)
             else:
-                print("12312312312 3")
                 response = self.current_character.process_response(response)
 
             if self.OldSystem:
@@ -610,12 +608,11 @@ class ChatModel:
 
             # Гемини нужно всегда последнее сообщение пользователя
             if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
-                print("gemini последнее системное сообщение")
+                print("gemini последнее системное сообщение на юзерское")
                 combined_messages[-1]["role"] = "user"
-                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1][
-                    "content"] + "[SYSTEM INFO END]"
+                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]
 
-            print(f"in completion {len(combined_messages)}", )
+            print(f"Перед запросом  {len(combined_messages)}", )
             completion = self.client.chat.completions.create(
                 model=self.api_model,
                 messages=combined_messages,
@@ -623,7 +620,7 @@ class ChatModel:
                 #presence_penalty=1.5,
                 temperature=0.5
             )
-            print(f"after completion")
+            print(f"after completion{completion}")
 
             if completion:
                 if completion.choices:
@@ -641,6 +638,10 @@ class ChatModel:
                 return None
 
             #print("out completion ", completion)
+
+        except Timeout:
+            logger.error("Тайм-аут при запросе к OpenAI")
+            return None
 
         except Exception as e:
             print("111")

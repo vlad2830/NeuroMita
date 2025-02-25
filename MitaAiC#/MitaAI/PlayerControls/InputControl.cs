@@ -1,7 +1,7 @@
 ﻿using Il2Cpp;
 using MelonLoader;
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -129,7 +129,14 @@ namespace MitaAI.PlayerControls
             }
             else if (Input.GetKeyDown(KeyCode.J))
             {
-                changeMitaButtons();
+
+                MelonLogger.Msg("Try change Mita");
+                // Проверяем, прошло ли 5 секунд с последнего изменения
+                if (DateTime.Now - _lastChangeTime > _cooldown)
+                {
+                    MelonCoroutines.Start(changeMitaButtons());
+                }
+               
 
             }
 
@@ -137,53 +144,52 @@ namespace MitaAI.PlayerControls
         private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
         private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(5); // Задержка в 5 секунд
 
-        static void changeMitaButtons()
+        static IEnumerator changeMitaButtons()
         {
-            try
-            {
-                MelonLogger.Msg("Try change Mita");
-                // Проверяем, прошло ли 5 секунд с последнего изменения
-                if (DateTime.Now - _lastChangeTime < _cooldown)
-                {
-                    return; // Если не прошло, выходим из метода
-                }
-
+         
                 // Проверяем нажатие клавиш
                 if (Input.GetKeyDown(KeyCode.I))
                 {
                     MelonLogger.Msg("Try change to Kind");
                     MitaCore.Instance.changeMita(MitaCore.KindObject, MitaCore.character.Kind);
-                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
                     _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
+
+                    yield return new WaitForSeconds(0.25f);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                   
                 }
                 else if (Input.GetKeyDown(KeyCode.K))
                 {
                     MelonLogger.Msg("Try change to Cappy");
                     MitaCore.Instance.changeMita(MitaCore.CappyObject, MitaCore.character.Cappy);
-                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
                     _lastChangeTime = DateTime.Now;
+
+                    yield return new WaitForSeconds(0.25f);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                    
                 }
                 else if (Input.GetKeyDown(KeyCode.M))
                 {
                     MelonLogger.Msg("Try change to Crazy");
                     MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Mita);
-                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
                     _lastChangeTime = DateTime.Now;
+
+                    yield return new WaitForSeconds(0.25f);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                    
                 }
                 else if (Input.GetKeyDown(KeyCode.U))
                 {
                     MelonLogger.Msg("Try change to ShortHair");
                     MitaCore.Instance.changeMita(MitaCore.ShortHairObject, MitaCore.character.ShortHair);
-                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
                     _lastChangeTime = DateTime.Now;
+
+                    yield return new WaitForSeconds(0.25f);
+                    MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
+                    
                 }
 
 
-            }
-            catch (Exception e)
-            {
-                MelonLogger.Msg(e);
-            }
         }
 
 

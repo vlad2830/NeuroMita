@@ -21,6 +21,11 @@ class Character:
         self.events: List[PromptPart] = []
         self.variables = {}
 
+        """Базовые"""
+        self.attitude = 60
+        self.boredom = 10
+        self.stress = 5
+
         self.history_manager = HistoryManager(self.name)
         self.load_history()
 
@@ -122,9 +127,33 @@ class Character:
 
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)
+        response = self._process_behavior_changes(response)
         """То, как должно что-то меняться в результате ответа"""
         return response
-        print("Персонаж без изменяемой логики пропмтов")
+
+    def _process_behavior_changes(self, response):
+        """
+        Обрабатывает изменения переменных на основе строки формата <p>x,x,x<p>.
+        """
+        start_tag = "<p>"
+        end_tag = "</p>"
+
+        if start_tag in response and end_tag in response:
+            # Извлекаем изменения переменных
+            start_index = response.index(start_tag) + len(start_tag)
+            end_index = response.index(end_tag, start_index)
+            changes_str = response[start_index:end_index]
+
+            # Разделяем строку на отдельные значения
+            changes = [float(x.strip()) for x in changes_str.split(",")]
+
+            if len(changes) == 3:
+                # Применяем изменения к переменным
+                self.adjust_attitude(changes[0])
+                self.adjust_boredom(changes[1])
+                self.adjust_stress(changes[2])
+
+        return response
 
     def extract_and_process_memory_data(self, response):
         """
@@ -183,44 +212,79 @@ class Character:
         return response
 
     def load_history(self):
+        data = self.history_manager.load_history()
+
+        variables = data.get("variables")
+        self.attitude = variables.get("attitude", self.attitude)
+        self.boredom = variables.get("boredom", self.boredom)
+        self.stress = variables.get("stress", self.stress)
         """Кастомная обработка загрузки истории"""
-        return self.history_manager.load_history()
+        return data
 
     def safe_history(self, messages: dict, temp_context: dict):
         """Кастомная обработка сохранения истории"""
-
         history_data = {
             'fixed_parts': self.prepare_fixed_messages(),
             'messages': messages,
             'temp_context': temp_context,
             'variables': self.variables
         }
-
+        self.variables = {
+            "attitude": self.attitude,
+            "boredom": self.boredom,
+            "stress": self.stress,
+        }
         self.history_manager.save_history(history_data)
 
     def clear_history(self):
         self.history_manager.clear_history()
 
     def current_variables(self):
-        print("Попытка узнать переменные у персонажа без них")
-        return {}
+        return {
+            "role": "system",
+            "content": (f"Твои характеристики:"
+                        f"Отношение: {self.attitude}/100."
+                        f"Скука: {self.boredom}/100."
+                        f"Стресс: {self.stress}/100.")
+        }
 
-    def current_variables_string(self):
-        print("Попытка узнать переменные у персонажа без них")
-        return ""
+    def current_variables_string(self) -> str:
+        characteristics = {
+            "Отношение": self.attitude,
+            "Стресс": self.stress,
+            "Скука": self.boredom
+        }
+        return f"Характеристики {self.name}:\n" + "\n".join(
+            f"- {key}: {value}" for key, value in characteristics.items()
+        )
+
+    def adjust_attitude(self, amount):
+        amount = clamp(amount, -5, 5)
+        """Корректируем отношение."""
+        self.attitude = clamp(self.attitude + amount, 0, 100)
+        print(f"Отношение изменилось на {amount}, новое значение: {self.attitude}")
+
+    def adjust_boredom(self, amount):
+        amount = clamp(amount, -5, 5)
+        """Корректируем уровень скуки."""
+        self.boredom = clamp(self.boredom + amount, 0, 100)
+        print(f"Скука изменилась на {amount}, новое значение: {self.boredom}")
+
+    def adjust_stress(self, amount):
+        amount = clamp(amount, -5, 5)
+        """Корректируем уровень стресса."""
+        self.stress = clamp(self.stress + amount, 0, 100)
+        print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
 
 class CrazyMita(Character):
 
     def __init__(self, name: str = "Mita", silero_command: str = "/speaker Mita"):
 
-        """Добавляемые переменные"""
-        self.attitude = 60
-        self.boredom = 10
-        self.stress = 5
         self.secretExposed = False
         self.secretExposedFirst = False
         self.PlayingFirst = False
+
         super().__init__(name, silero_command)
 
     def init(self):
@@ -231,6 +295,9 @@ class CrazyMita(Character):
 
         response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+
+        security = load_text_from_file("Prompts/Common/Security.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
 
         common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
@@ -268,24 +335,22 @@ class CrazyMita(Character):
             self.add_prompt_part(prompt)
 
     def safe_history(self, messages, temp_context):
+        super().safe_history(messages, temp_context)
+
         self.variables = {
             "attitude": self.attitude,
             "boredom": self.boredom,
             "stress": self.stress,
-            "playing_first" : self.PlayingFirst,
+            "playing_first": self.PlayingFirst,
             "secret": self.secretExposed,
             "secret_first": self.secretExposedFirst
         }
-
-        super().safe_history(messages, temp_context)
 
     def load_history(self):
         data = super().load_history()
 
         variables = data.get("variables")
-        self.attitude = variables.get("attitude", self.attitude)
-        self.boredom = variables.get("boredom", self.boredom)
-        self.stress = variables.get("stress", self.stress)
+
         self.PlayingFirst = variables.get("playing_first", self.stress)
         self.secretExposed = variables.get("secret", self.secretExposed)
         self.secretExposedFirst = variables.get("secret_first", self.secretExposedFirst)
@@ -302,7 +367,7 @@ class CrazyMita(Character):
 
     def process_response(self, response: str):
         super().process_response(response)
-        response = self._process_behavior_changes(response)
+
         response = self._detect_secret_exposure(response)
         return response
 
@@ -321,47 +386,6 @@ class CrazyMita(Character):
         self.replace_prompt("mainPlaying", "mainCrazy")
         self.replace_prompt("examplesLong", "examplesLongCrazy")
 
-    def _process_behavior_changes(self, response):
-        """
-        Обрабатывает изменения переменных на основе строки формата <p>x,x,x<p>.
-        """
-        start_tag = "<p>"
-        end_tag = "</p>"
-
-        if start_tag in response and end_tag in response:
-            # Извлекаем изменения переменных
-            start_index = response.index(start_tag) + len(start_tag)
-            end_index = response.index(end_tag, start_index)
-            changes_str = response[start_index:end_index]
-
-            # Разделяем строку на отдельные значения
-            changes = [float(x.strip()) for x in changes_str.split(",")]
-
-            if len(changes) == 3:
-                # Применяем изменения к переменным
-                self.adjust_attitude(changes[0])
-                self.adjust_boredom(changes[1])
-                self.adjust_stress(changes[2])
-
-        return response
-
-    def adjust_attitude(self, amount):
-        amount = clamp(amount, -5, 5)
-        """Корректируем отношение."""
-        self.attitude = clamp(self.attitude + amount, 0, 100)
-        print(f"Отношение изменилось на {amount}, новое значение: {self.attitude}")
-
-    def adjust_boredom(self, amount):
-        amount = clamp(amount, -5, 5)
-        """Корректируем уровень скуки."""
-        self.boredom = clamp(self.boredom + amount, 0, 100)
-        print(f"Скука изменилась на {amount}, новое значение: {self.boredom}")
-
-    def adjust_stress(self, amount):
-        amount = clamp(amount, -5, 5)
-        """Корректируем уровень стресса."""
-        self.stress = clamp(self.stress + amount, 0, 100)
-        print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
     def _detect_secret_exposure(self, response):
         """
@@ -411,6 +435,9 @@ class KindMita(Character):
         response_structure = load_text_from_file("Prompts/Kind/Structural/response_structure.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
 
+        security = load_text_from_file("Prompts/Common/Security.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+
         common = load_text_from_file("Prompts/Kind/Main/common.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
 
@@ -427,8 +454,12 @@ class KindMita(Character):
         mita_history = load_text_from_file("Prompts/Kind/Context/mita_history.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
 
+        world_history = load_text_from_file("Prompts/Kind/Context/world.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, world_history, "world_history"))
+
         for prompt in Prompts:
             self.add_prompt_part(prompt)
+
 
 class ShortHairMita(Character):
     def init(self):
@@ -456,8 +487,12 @@ class ShortHairMita(Character):
         mita_history = load_text_from_file("Prompts/ShortHair/Context/mita_history.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
 
+        variableEffects = load_text_from_file("Prompts/ShortHair/Structural/VariablesEffects.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
+
         for prompt in Prompts:
             self.add_prompt_part(prompt)
+
 
 class CappyMita(Character):
 
