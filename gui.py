@@ -242,7 +242,6 @@ class ChatGUI:
         self.controls_frame = tk.Frame(right_frame, bg="#2c2c2c")
         self.controls_frame.pack(fill=tk.X, pady=3)
 
-
         # Настройка элементов управления
         self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
         self.setup_control("Скука", "boredom", self.model.boredom)
@@ -626,7 +625,6 @@ class ChatGUI:
             print("Попытка запустить силеро заново")
             self.start_silero_async()
 
-
     def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
         print("Начинаю загрузку настроек")
@@ -724,7 +722,7 @@ class ChatGUI:
                 f"Секрет: {self.model.secretExposed}\n"
             )
         else:
-            debug_info = ( self.model.current_character.current_variables_string() )
+            debug_info = (self.model.current_character.current_variables_string())
         self.debug_window.insert(tk.END, debug_info)
         self.update_controls()
 

@@ -28,14 +28,14 @@ class ChatServer:
         if not self.server_socket:
             raise RuntimeError("Сервер не запущен. Вызовите start() перед handle_connection().")
         try:
-            print("Жду получения от клиента игры")
+            #print("Жду получения от клиента игры")
             # Ожидание подключения
             self.client_socket, addr = self.server_socket.accept()
             #print(f"Подключен {addr}")
 
             # Получение сообщения от клиента
             received_text = self.client_socket.recv(4086).decode('utf-8')
-            print("Получил")
+            #print("Получил")
             # Разделяем текст и ссылку по "|||"
             character, message, system_message, system_info, self.chat_model.distance, self.chat_model.roomPlayer, self.chat_model.roomMita, self.chat_model.nearObjects, self.chat_model.actualInfo = received_text.split(
                 "|||")
@@ -80,9 +80,9 @@ class ChatServer:
             self.gui.patch_to_sound_file = ""
 
             # Отправляем сообщение через сокет
-            print("Отправляю обратно в игру")
+            #print("Отправляю обратно в игру")
             self.client_socket.send(message.encode('utf-8'))
-            print("Получил")
+            #print("Получил")
             self.gui.ConnectedToGame = True
             return True
         except Exception as e:

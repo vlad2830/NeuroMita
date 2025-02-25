@@ -683,10 +683,16 @@ namespace MitaAI
             while (true)
             {
                 // Проверяем условия
-                if (CurrentSceneName != "Scene 4 - StartSecret" || !AllLoaded)
+                if (CurrentSceneName != "Scene 4 - StartSecret")
+                {
+                    yield break;
+
+                }
+
+                if (!AllLoaded)
                 {
                     yield return null; // Пропускаем итерацию, если условия не выполнены
-                    continue;
+                    continue;// Пропускаем итерацию, если условия не выполнены
                 }
 
                 // Обновляем таймеры
