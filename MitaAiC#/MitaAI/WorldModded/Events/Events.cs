@@ -111,7 +111,7 @@ namespace MitaAI
         private static void Postfix2()
         { 
             
-        MitaCore.Instance?.sendSystemMessage("Игрок открыл сейф"); 
+            MitaCore.Instance?.sendSystemMessage("Игрок открыл сейф"); 
    
         }
     }
