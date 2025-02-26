@@ -232,7 +232,7 @@ class ChatGUI:
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        #self.setup_microphone_controls(right_frame)
+        self.setup_microphone_controls(right_frame)
 
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)

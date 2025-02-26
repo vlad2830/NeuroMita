@@ -1,4 +1,3 @@
-"""
 
 import speech_recognition as sr
 import logging
@@ -21,22 +20,6 @@ class SpeechRecognition:
             return None
 
     @staticmethod
-    def recognize_speech_from_file(filename):
-        recognizer = sr.Recognizer()
-        try:
-            with sr.AudioFile(filename) as source:
-                audio = recognizer.record(source)
-            text = recognizer.recognize_google(audio,
-                                               language="ru-RU")  # Распознаём текст короче через google web speech api, потом может сменю
-            print(Fore.Magenta + "Распознанный текст:", text)
-            return text
-        except sr.UnknownValueError:
-            print(Fore.Magenta + "Google Web Speech API не смог распознать аудио.")
-            return None
-        except sr.RequestError as e:
-            print(Fore.Magenta + f"Ошибка при запросе к Google Web Speech API: {e}")
-            return None
-    @staticmethod
     async def handle_voice_message(recognized_text):
         ...
 
@@ -58,7 +41,7 @@ class SpeechRecognition:
                 with BytesIO() as audio_buffer:
                     sf.write(audio_buffer, audio_data, SAMPLE_RATE, format='WAV')
                     audio_buffer.seek(0)
-                    recognized_text = recognize_speech(audio_buffer)
+                    recognized_text = SpeechRecognition.recognize_speech(audio_buffer)
 
                     if recognized_text:
                         await SpeechRecognition.handle_voice_message(recognized_text)
@@ -66,4 +49,3 @@ class SpeechRecognition:
             logging.error(f"Ошибка обработки аудио: {e}")
 
 
-"""
