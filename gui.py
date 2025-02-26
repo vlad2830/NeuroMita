@@ -32,9 +32,9 @@ class ChatGUI:
         self.chat_window = None
         self.token_count_label = None
 
-        self.bot_connected = False
         self.bot_handler = None
         self.bot_handler_ready = False
+        self.bot_connected = False
 
         self.selected_microphone = ""
 
@@ -57,11 +57,13 @@ class ChatGUI:
         self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
+        self.patch_to_sound_file = ""
         self.running = False
+
+        self.ConnectedToGame = False
+
         self.start_server()
         self.textToTalk = ""
-        self.patch_to_sound_file = ""
-        self.ConnectedToGame = False
         self.root = tk.Tk()
         self.root.title("Чат с MitaAI")
 
@@ -140,7 +142,7 @@ class ChatGUI:
 
         except Exception as e:
             print(f"Ошибка при запуске Telegram Bot: {e}")
-            self.bot_connected = False
+            self.bot_connected.set(False)
 
     def run_in_thread(self, response):
         """Запуск асинхронной задачи в отдельном потоке."""
@@ -627,7 +629,7 @@ class ChatGUI:
         # Сразу же их загружаем
         self.load_api_settings(update_model=True)
 
-        if not self.bot_connected and all([self.phone, self.api_id, self.api_hash]):
+        if not self.bot_connected.get() and all([self.phone, self.api_id, self.api_hash]):
             print("Попытка запустить аудио бота заново")
             self.start_audio_bot_async()
 

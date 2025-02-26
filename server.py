@@ -1,5 +1,6 @@
 import socket
 import datetime
+import time
 
 
 class ChatServer:
@@ -20,8 +21,6 @@ class ChatServer:
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen(5)
         print(f"Сервер запущен на {self.host}:{self.port}")
-
-        self.gui.ConnectedToGame = True
 
     def handle_connection(self):
         """Обрабатывает одно подключение."""
@@ -63,11 +62,11 @@ class ChatServer:
                 # Если игрок отправил внутри игры, message его
                 response = self.generate_response(message, "")
                 #self.gui.insertDialog(message,response)
+                print("Отправлено Мите на озвучку: " + response)
 
             # Ждать ли на той стороне файла озвучки
-            if self.gui.bot_connected:
+            if self.gui.bot_connected.get():
                 audio_bot = "1"
-                print("Отправлено Мите на озвучку: " + response)
             else:
                 audio_bot = "0"
 
@@ -78,6 +77,11 @@ class ChatServer:
             self.gui.patch_to_sound_file = ""
 
             # Отправляем сообщение через сокет
+            if response != "" and self.gui.bot_connected.get():
+                print("Жду 9 секунд")
+                time.sleep(9)
+                # тут не понял, как по другому избавиться от спама *** в игре
+
             self.client_socket.send(message.encode('utf-8'))
             self.gui.ConnectedToGame = True
             return True

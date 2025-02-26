@@ -306,9 +306,7 @@ class ChatModel:
 
             print(f"До фразы {response}")
             self.gui.textToTalk = self.process_text_to_voice(response)
-            self.gui.textSpeaker = self.current_character.silero_command
             print("self.gui.textToTalk: " + self.gui.textToTalk)
-            print("self.gui.textSpeaker: " + self.gui.textSpeaker)
 
             if self.OldSystem:
                 self.save_history({
@@ -328,7 +326,7 @@ class ChatModel:
             return response
         except Exception as e:
             logger.error(f"Ошибка на фазе генерации: {e}", exc_info=True)
-            return f"Ошибка на фазе генерации: {e}"
+            return ""
 
     def check_change_current_character(self):
         """

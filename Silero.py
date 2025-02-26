@@ -10,6 +10,7 @@ from telethon.tl.types import MessageMediaDocument
 import ffmpeg
 import platform
 
+from AudioConverter import AudioConverter
 from utils import SH
 
 
@@ -24,7 +25,7 @@ class TelegramBotHandler:
         self.mita_ai_bot = '@CrazyMitaAIbot'  # Юзернейм бота
         self.gui = gui
         self.patch_to_sound_file = ""
-        self.last_speaker_command = ""
+
         if getattr(sys, 'frozen', False):
             # Если программа собрана в exe, получаем путь к исполняемому файлу
             base_dir = os.path.dirname(sys.executable)
@@ -53,7 +54,7 @@ class TelegramBotHandler:
 
         # Параметры бота
         self.message_limit_per_minute = message_limit_per_minute
-        self.max_get_bot_answer_attempts = 30
+        self.max_get_bot_answer_attempts = 50
         self.message_count = 0
         self.start_time = time.time()
 
@@ -71,37 +72,6 @@ class TelegramBotHandler:
         except:
             print(f"Проблема в ините тг. API ID: {self.api_id} - API HASH: {self.api_hash}")
 
-    import ffmpeg
-    import os
-
-    async def convert_audio_to_wav(self, input_path, output_path):
-        """Конвертирует MP3 в WAV с использованием ffmpeg."""
-        try:
-            if not os.path.exists(input_path):
-                print(f"Файл {input_path} не найден при попытке конвертации.")
-                return
-
-            # Указываем путь к ffmpeg
-
-            print(f"Начинаю конвертацию {input_path} в {output_path} с помощью {self.ffmpeg_path}")
-
-            # Выполняем команду конвертации с нужными параметрами
-            (
-                ffmpeg
-                .input(input_path)
-                .output(
-                    output_path,
-                    format="wav",  # Указываем формат WAV
-                    acodec="pcm_s16le",  # 16-битный PCM
-                    ar="44100",  # Частота дискретизации 44100 Hz
-                    ac=2  # Количество каналов (2 = стерео, 1 = моно)
-                )
-                .run(cmd=self.ffmpeg_path)
-            )
-
-            print(f"Конвертация завершена: {output_path}")
-        except Exception as e:
-            print(f"Ошибка при конвертации: {e}")
 
     def reset_message_count(self):
         """Сбрасывает счетчик сообщений каждую минуту."""
@@ -161,8 +131,8 @@ class TelegramBotHandler:
         print("Ожидание ответа от бота...")
         response = None
         attempts = 0
-
-        await asyncio.sleep(0.7)
+        
+        await asyncio.sleep(5)
         while attempts < self.max_get_bot_answer_attempts:  # Попытки получения ответа
             async for message in self.client.iter_messages(self.mita_ai_bot, limit=1):
                 if message.media and isinstance(message.media, MessageMediaDocument):
@@ -174,7 +144,7 @@ class TelegramBotHandler:
                 break
             print(f"Попытка {attempts + 1}/{self.max_get_bot_answer_attempts}. Ответ от бота не найден.")
             attempts += 1
-            await asyncio.sleep(0.25)  # Немного подождем
+            await asyncio.sleep(0.1)  # Немного подождем
 
         if not response:
             print(f"Ответ от бота не получен после {self.max_get_bot_answer_attempts} попыток.")
@@ -196,7 +166,7 @@ class TelegramBotHandler:
 
                     absolute_wav_path = os.path.abspath(wav_path)
                     # Конвертируем в WAV
-                    await self.convert_audio_to_wav(absolute_audio_from_bot_path, absolute_wav_path)
+                    await AudioConverter.convert_to_wav(absolute_audio_from_bot_path, absolute_wav_path)
 
                     try:
                         print(f"Удаляю файл: {absolute_audio_from_bot_path}")
@@ -223,11 +193,11 @@ class TelegramBotHandler:
             await self.client.start(phone=self.phone)
             print("Успешно авторизован!")
             await self.client.send_message(self.mita_ai_bot, "/start")
-            self.gui.bot_connected = True
+            self.gui.bot_connected.set(True)
         except AttributeError as e:
-            self.gui.bot_connected = False
+            self.gui.bot_connected.set(False)
             print(f"Переданы неверные параметры либо пустые: {str(e)}")    
         except Exception as e:
-            self.gui.bot_connected = False
+            self.gui.bot_connected.set(False)
             print(f"Ошибка авторизации: {e}")
         
