@@ -1,9 +1,6 @@
 import speech_recognition as sr
 import logging
-import numpy as np
-import soundfile as sf
-from io import BytesIO
-from typing import Optional
+
 import asyncio
 
 SAMPLE_RATE = 16000
@@ -12,6 +9,13 @@ TIMEOUT_MESSAGE = False
 
 
 class SpeechRecognition:
+    user_input = ""
+
+    @staticmethod
+    def receive_text():
+        user_input_to_send = SpeechRecognition.user_input
+        SpeechRecognition.user_input = ""
+        return user_input_to_send
 
     @staticmethod
     def list_microphones():
@@ -21,6 +25,7 @@ class SpeechRecognition:
     @staticmethod
     async def handle_voice_message(recognized_text: str) -> None:
         print(f"Распознанный текст: {recognized_text}")
+        SpeechRecognition.user_input += f" {recognized_text}"
 
     @staticmethod
     async def live_recognition(microphone_index: int) -> None:
@@ -37,7 +42,7 @@ class SpeechRecognition:
                 try:
                     audio = await asyncio.get_event_loop().run_in_executor(
                         None,
-                        lambda: recognizer.listen(source, timeout=3, phrase_time_limit=5)
+                        lambda: recognizer.listen(source)
                     )
 
                     text = await asyncio.get_event_loop().run_in_executor(

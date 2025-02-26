@@ -2,12 +2,9 @@
 using MelonLoader;
 using System;
 using System.Collections;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine.UI;
 using UnityEngine;
-using System.ComponentModel.Design;
+
 
 namespace MitaAI.PlayerControls
 {
@@ -19,6 +16,25 @@ namespace MitaAI.PlayerControls
 
         static GameObject InputFieldComponent;
         static InputField inputField; // Ссылка на компонент InputField
+
+        public static void UpdateInput(string userInput)
+        {
+            if (inputField == null || string.IsNullOrEmpty(userInput)) return;
+
+            // Сохраняем текущие позиции
+            int caretPos = inputField.caretPosition;
+            int selectionAnchor = inputField.selectionAnchorPosition;
+            int selectionFocus = inputField.selectionFocusPosition;
+
+            // Вставляем текст в позицию курсора
+            inputField.text = inputField.text.Insert(caretPos, userInput);
+
+            // Обновляем позиции курсора и выделения
+            int newCaretPos = caretPos + userInput.Length;
+            inputField.caretPosition = newCaretPos;
+            inputField.selectionAnchorPosition = newCaretPos;
+            inputField.selectionFocusPosition = newCaretPos;
+        }
 
         // Метод для блокировки/разблокировки поля ввода
         public static void TurnBlockInputField(bool blocked)

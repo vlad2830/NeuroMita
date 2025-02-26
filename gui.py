@@ -25,6 +25,8 @@ from SpeechRecognition import SpeechRecognition
 class ChatGUI:
     def __init__(self):
 
+
+
         self.test_microphone = None
         self.silero_connected = False
         self.game_connected = False
@@ -37,6 +39,8 @@ class ChatGUI:
 
         self.selected_microphone = ""
         self.device_id = 0
+        self.user_entry = None
+        self.user_input = None
 
         self.api_key = ""
         self.api_key_res = ""
@@ -172,6 +176,11 @@ class ChatGUI:
                 print("Выполнено")
             else:
                 print("Ошибка: Цикл событий не готов.")
+
+        text_from_recognition = SpeechRecognition.receive_text()
+        if text_from_recognition and self.user_entry:
+            self.user_entry.insert(tk.END, text_from_recognition)
+            self.user_input = self.user_entry.get("1.0", "end-1c").strip()
 
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk)  # Это обеспечит постоянную проверку

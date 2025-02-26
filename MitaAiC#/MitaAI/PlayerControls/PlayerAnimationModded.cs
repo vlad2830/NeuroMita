@@ -1,15 +1,8 @@
 ﻿using Il2Cpp;
-using Il2CppSteamworks;
+
 using MelonLoader;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using System.Collections;
-using Il2CppColorful;
 
 namespace MitaAI
 {

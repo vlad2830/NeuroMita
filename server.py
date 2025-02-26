@@ -76,9 +76,10 @@ class ChatServer:
             if not character:
                 character = "Mita"
 
-            message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}"
+            message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}|||{self.gui.user_input}"
             self.gui.patch_to_sound_file = ""
-
+            self.gui.user_input = ""
+            self.gui.user_entry.delete(1.0, 'end')
             # Отправляем сообщение через сокет
             #print("Отправляю обратно в игру")
             self.client_socket.send(message.encode('utf-8'))

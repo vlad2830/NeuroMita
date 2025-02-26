@@ -755,7 +755,7 @@ namespace MitaAI
         private const float actionCooldown = 9f;  // Интервал в секундах
         private IEnumerator HandleDialogue()
         {
-            MelonLogger.Msg("HandleDialogue");
+            //MelonLogger.Msg("HandleDialogue");
 
             MitaBoringtimer += Time.deltaTime;
 
@@ -813,7 +813,7 @@ namespace MitaAI
 
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
-            Task<(string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info,currentCharacter);
+            Task<(string, string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info,currentCharacter);
 
 
 
@@ -856,6 +856,7 @@ namespace MitaAI
                 response = responseTask.Result.Item1;
                 NetworkController.connectedToSilero = responseTask.Result.Item2 == "1";
                 patch = responseTask.Result.Item3;
+                InputControl.update_input(responseTask.Result.Item4);
             }
             else
             {
