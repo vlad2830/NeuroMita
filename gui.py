@@ -1,4 +1,3 @@
-
 import gui
 from chat_model import ChatModel
 from server import ChatServer
@@ -37,6 +36,7 @@ class ChatGUI:
         self.bot_handler_ready = False
 
         self.selected_microphone = ""
+        self.device_id = 0
 
         self.api_key = ""
         self.api_key_res = ""
@@ -86,12 +86,10 @@ class ChatGUI:
 
         self.start_silero_async()
 
-        SpeechRecognition.speach_recognition_start(self.selected_microphone)
+        SpeechRecognition.speach_recognition_start(self.device_id, self.loop)
 
         # Запуск проверки переменной textToTalk через after
         self.root.after(150, self.check_text_to_talk)
-
-
 
     def delete_all_wav_files(self):
         # Получаем список всех .wav файлов в корневой директории
@@ -847,6 +845,7 @@ class ChatGUI:
         if selection:
             self.selected_microphone = selection.split(" (")[0]
             device_id = int(selection.split(" (")[-1].replace(")", ""))
+            self.device_id = device_id
             print(f"Выбран микрофон: {self.selected_microphone} (ID: {device_id})")
             self.save_mic_settings(device_id)
 
@@ -880,6 +879,7 @@ class ChatGUI:
             devices = sd.query_devices()
             if device_id < len(devices):
                 self.selected_microphone = device_name
+                self.device_id = device_id
                 self.mic_combobox.set(f"{device_name} ({device_id})")
                 print(f"Загружен микрофон: {device_name} (ID: {device_id})")
 
