@@ -1,3 +1,4 @@
+
 import gui
 from chat_model import ChatModel
 from server import ChatServer
@@ -19,6 +20,7 @@ from tkinter import ttk
 from utils import SH
 
 import sounddevice as sd
+from SpeechRecognition import SpeechRecognition
 
 
 class ChatGUI:
@@ -84,8 +86,12 @@ class ChatGUI:
 
         self.start_silero_async()
 
+        SpeechRecognition.speach_recognition_start(self.selected_microphone)
+
         # Запуск проверки переменной textToTalk через after
         self.root.after(150, self.check_text_to_talk)
+
+
 
     def delete_all_wav_files(self):
         # Получаем список всех .wav файлов в корневой директории
