@@ -27,7 +27,7 @@ namespace MitaAI.PlayerControls
             int selectionFocus = inputField.selectionFocusPosition;
 
             // Вставляем текст в позицию курсора
-            inputField.text = inputField.text.Insert(caretPos, userInput);
+            inputField.text = inputField.text.Insert(caretPos, $" {userInput}");
 
             // Обновляем позиции курсора и выделения
             int newCaretPos = caretPos + userInput.Length;
@@ -156,9 +156,9 @@ namespace MitaAI.PlayerControls
                     MelonLogger.Msg(e);
                 }
             }
-            else if (Input.GetKeyDown(KeyCode.J) && !checkInput())
+            else if (Input.GetKeyDown(KeyCode.J) )
             {
-                changeMitaButtons();
+                MelonCoroutines.Start(changeMitaButtons());
             }
 
 
@@ -175,10 +175,11 @@ namespace MitaAI.PlayerControls
             }
         }
         private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
-        private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(5); // Задержка в 5 секунд
+        private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(4); // Задержка в 5 секунд
 
         static IEnumerator changeMitaButtons()
         {
+            MelonLogger.Msg("Try change Mita");
 
             // Проверяем нажатие клавиш
             if (Input.GetKeyDown(KeyCode.I))

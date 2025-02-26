@@ -766,7 +766,7 @@ namespace MitaAI
             float currentTime = Time.time;
             if (currentTime - lastActionTime > actionCooldown)
             {
-                MelonLogger.Msg("Ready to send");
+                //MelonLogger.Msg("Ready to send");
                 if (playerMessage != "")
                 {
                     LoggerInstance.Msg("HAS playerMessage");
@@ -831,7 +831,7 @@ namespace MitaAI
                     break;
                 }
 
-                MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
+                //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
                 if (elapsedTime - lastCallTime >= 0.6f)
                 {
                     try
@@ -856,7 +856,7 @@ namespace MitaAI
                 response = responseTask.Result.Item1;
                 NetworkController.connectedToSilero = responseTask.Result.Item2 == "1";
                 patch = responseTask.Result.Item3;
-                InputControl.update_input(responseTask.Result.Item4);
+                InputControl.UpdateInput(responseTask.Result.Item4);
             }
             else
             {
