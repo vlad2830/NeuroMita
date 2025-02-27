@@ -78,6 +78,7 @@ class ChatServer:
 
             message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}|||{self.gui.user_input}"
             self.gui.patch_to_sound_file = ""
+
             self.gui.user_input = ""
             self.gui.user_entry.delete(1.0, 'end')
             # Отправляем сообщение через сокет

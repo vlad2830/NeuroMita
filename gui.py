@@ -1,4 +1,3 @@
-import gui
 from chat_model import ChatModel
 from server import ChatServer
 
@@ -25,11 +24,9 @@ from SpeechRecognition import SpeechRecognition
 class ChatGUI:
     def __init__(self):
 
-
-
-        self.test_microphone = None
         self.silero_connected = False
         self.game_connected = False
+        self.ConnectedToGame = False
 
         self.chat_window = None
         self.token_count_label = None
@@ -46,6 +43,7 @@ class ChatGUI:
         self.api_key_res = ""
         self.api_url = ""
         self.api_model = ""
+
         self.makeRequest = False
         self.api_hash = None
         self.api_id = None
@@ -66,7 +64,7 @@ class ChatGUI:
         self.textToTalk = ""
         self.textSpeaker = "/Speaker Mita"
         self.patch_to_sound_file = ""
-        self.ConnectedToGame = False
+
         self.root = tk.Tk()
         self.root.title("Чат с MitaAI")
 
@@ -93,19 +91,7 @@ class ChatGUI:
         SpeechRecognition.speach_recognition_start(self.device_id, self.loop)
 
         # Запуск проверки переменной textToTalk через after
-        self.root.after(150, self.check_text_to_talk)
-
-    def delete_all_wav_files(self):
-        # Получаем список всех .wav файлов в корневой директории
-        wav_files = glob.glob("*.wav")
-
-        # Проходим по каждому файлу и удаляем его
-        for wav_file in wav_files:
-            try:
-                os.remove(wav_file)
-                print(f"Удален файл: {wav_file}")
-            except Exception as e:
-                print(f"Ошибка при удалении файла {wav_file}: {e}")
+        self.root.after(150, self.check_text_to_talk_or_send)
 
     def start_asyncio_loop(self):
         """Запускает цикл событий asyncio в отдельном потоке."""
@@ -162,7 +148,7 @@ class ChatGUI:
         await self.bot_handler.send_and_receive(response, speaker_command)
         print("Завершение получения фразы")
 
-    def check_text_to_talk(self):
+    def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
 
         if self.textToTalk != "":  #and not self.ConnectedToGame:
@@ -183,7 +169,7 @@ class ChatGUI:
             self.user_input = self.user_entry.get("1.0", "end-1c").strip()
 
         # Перезапуск проверки через 100 миллисекунд
-        self.root.after(100, self.check_text_to_talk)  # Это обеспечит постоянную проверку
+        self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
 
     def start_server(self):
         """Запускает сервер в отдельном потоке."""
@@ -315,13 +301,13 @@ class ChatGUI:
         self.update_debug_info()
 
     def update_status_colors(self):
-        self.game_connected.set(self.ConnectedToGame)  # Статус подключения к игре
+        self.game_connected = tk.BooleanVar(value=self.ConnectedToGame)  # Статус подключения к игре
         # Обновление цвета для подключения к игре
-        game_color = "#00ff00" if self.game_connected.get() else "#ffffff"
+        game_color = "#00ff00" if self.ConnectedToGame else "#ffffff"
         self.game_status_checkbox.config(fg=game_color)
 
         # Обновление цвета для подключения к Silero
-        silero_color = "#00ff00" if self.silero_connected.get() else "#ffffff"
+        silero_color = "#00ff00" if self.silero_connected else "#ffffff"
         self.silero_status_checkbox.config(fg=silero_color)
 
     def setup_control(self, label_text, attribute_name, initial_value):
@@ -824,15 +810,6 @@ class ChatGUI:
         )
         refresh_btn.pack(side=tk.LEFT, padx=5)
 
-        test_btn = tk.Button(
-            mic_frame,
-            text="Тест",
-            command=self.test_microphone,
-            bg="#8a2be2",
-            fg="#ffffff"
-        )
-        test_btn.pack(side=tk.RIGHT, padx=5)
-
     def get_microphone_list(self):
         try:
             devices = sd.query_devices()
@@ -909,3 +886,15 @@ class ChatGUI:
         """Закрытие приложения корректным образом."""
         print("Завершение программы...")
         self.root.destroy()  # Закрывает GUI
+
+    def delete_all_wav_files(self):
+        # Получаем список всех .wav файлов в корневой директории
+        wav_files = glob.glob("*.wav")
+
+        # Проходим по каждому файлу и удаляем его
+        for wav_file in wav_files:
+            try:
+                os.remove(wav_file)
+                print(f"Удален файл: {wav_file}")
+            except Exception as e:
+                print(f"Ошибка при удалении файла {wav_file}: {e}")
