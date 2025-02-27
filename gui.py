@@ -171,6 +171,10 @@ class ChatGUI:
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
 
+    def clear_user_input(self):
+        self.user_input = ""
+        self.user_entry.delete(1.0, 'end')
+
     def start_server(self):
         """Запускает сервер в отдельном потоке."""
         if not self.running:

@@ -76,11 +76,17 @@ class ChatServer:
             if not character:
                 character = "Mita"
 
+            transmitted_to_game = False
+            if self.gui.user_input:
+                transmitted_to_game = True
+
             message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}|||{self.gui.user_input}"
+
             self.gui.patch_to_sound_file = ""
 
-            self.gui.user_input = ""
-            self.gui.user_entry.delete(1.0, 'end')
+            if transmitted_to_game:
+                self.gui.clear_user_input()
+
             # Отправляем сообщение через сокет
             #print("Отправляю обратно в игру")
             self.client_socket.send(message.encode('utf-8'))
@@ -98,13 +104,11 @@ class ChatServer:
     def generate_response(self, input_text, system_input_text):
         """Генерирует текст с помощью модели."""
         try:
-            response = self.chat_model.generate_response(input_text, system_input_text)
-            #while self.chat_model.repeatResponse and counter<3:
-            #   response += self.chat_model.generate_response("", "")
-            # counter+=1
 
+            response = self.chat_model.generate_response(input_text, system_input_text)
             if input_text != "":
                 self.gui.insertDialog(input_text, response)
+
         except Exception as e:
             print(f"Ошибка генерации ответа: {e}")
             response = "Произошла ошибка при обработке вашего сообщения."
