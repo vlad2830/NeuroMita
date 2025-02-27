@@ -1,3 +1,4 @@
+from SettingsManager import SettingsManager
 from chat_model import ChatModel
 from server import ChatServer
 
@@ -48,6 +49,9 @@ class ChatGUI:
         self.api_hash = None
         self.api_id = None
         self.phone = None
+
+        self.settings_manager = SettingsManager("Settings/settings.json")
+
         try:
             target_folder = "Settings"
             os.makedirs(target_folder, exist_ok=True)
@@ -255,6 +259,7 @@ class ChatGUI:
         self.setup_debug_controls(right_frame)
         self.setup_api_controls(right_frame)
         #self.setup_advanced_controls(right_frame)
+        self.setup_advanced_controls(right_frame)
 
         self.load_chat_history()
 
@@ -513,30 +518,16 @@ class ChatGUI:
         self.api_model_entry.insert(0, self.api_model)
 
     def setup_advanced_controls(self, parent):
-        advanced_frame = tk.Frame(parent, bg="#2c2c2c")
-        advanced_frame.pack(fill=tk.X, pady=3)
+        advanced_config = [
+            {
+                'label': 'Temperature',
+                'key': 'Temperature',
+                'type': 'entry'
+                #'validation': self.validate_api_key
+            }
+        ]
 
-        self.show_advanced_var = tk.BooleanVar(value=False)
-
-        # Фрейм для продвинутых настроек (изначально скрыт)
-        self.advanced_settings_frame = tk.Frame(parent, bg="#2c2c2c")
-
-        # Чекбокс для отображения/скрытия продвинутых настроек
-        api_toggle = tk.Checkbutton(
-            advanced_frame, text="Продвинутые настройки", variable=self.show_advanced_var,
-            command=lambda: self.pack_unpack(self.show_advanced_var, self.advanced_settings_frame),
-            bg="#2c2c2c", fg="#ffffff"
-        )
-        api_toggle.pack(side=tk.LEFT, padx=4)
-
-        # Элементы в одном столбце
-        tk.Label(
-            self.advanced_settings_frame, text="Температура:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=0, column=0, padx=4, pady=4, sticky=tk.W)
-
-        self.temperature_entry = tk.Entry(self.advanced_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                          insertbackground="white")
-        self.temperature_entry.grid(row=0, column=1, padx=4, pady=4, sticky=tk.W)
+        self.create_settings_section(parent, "Advanced Settings", advanced_config)
 
     def pack_unpack(self, var, frame):
         """
@@ -847,10 +838,67 @@ class ChatGUI:
 
     # endregion
 
+    #region SettingGUI
+    def create_settings_section(self, parent, title, settings_config):
+        section_frame = tk.LabelFrame(parent, text=title, bg="#2c2c2c", fg="#ffffff")
+        section_frame.pack(fill=tk.X, padx=5, pady=5, expand=True)
+
+        for config in settings_config:
+            self.create_setting_widget(
+                parent=section_frame,
+                label=config['label'],
+                setting_key=config['key'],
+                widget_type=config.get('type', 'entry'),
+                options=config.get('options', None),
+                default=config.get('default', ''),
+                validation=config.get('validation', None)
+            )
+
+    def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
+                              options=None, default='', validation=None):
+        frame = tk.Frame(parent, bg="#2c2c2c")
+        frame.pack(fill=tk.X, pady=2)
+
+        # Label
+        lbl = tk.Label(frame, text=label, bg="#2c2c2c", fg="#ffffff", width=20, anchor='w')
+        lbl.pack(side=tk.LEFT, padx=5)
+
+        # Widgets
+        if widget_type == 'entry':
+            entry = tk.Entry(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white")
+            entry.insert(0, self.settings_manager.get(setting_key, default))
+            entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+            entry.bind("<FocusOut>", lambda e, k=setting_key: self._save_setting(k, entry.get()))
+
+            if validation:
+                entry.config(validate="key", validatecommand=(parent.register(validation), '%P'))
+
+        elif widget_type == 'combobox':
+            var = tk.StringVar(value=self.settings_manager.get(setting_key, default))
+            cb = ttk.Combobox(frame, textvariable=var, values=options, state="readonly")
+            cb.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+            cb.bind("<<ComboboxSelected>>", lambda e, k=setting_key: self._save_setting(k, var.get()))
+
+        elif widget_type == 'checkbutton':
+            var = tk.BooleanVar(value=self.settings_manager.get(setting_key, False))
+            cb = tk.Checkbutton(frame, variable=var, bg="#2c2c2c",
+                                command=lambda k=setting_key: self._save_setting(k, var.get()))
+            cb.pack(side=tk.LEFT, padx=5)
+
+    def _save_setting(self, key, value):
+        self.settings_manager.set(key, value)
+        self.settings_manager.save_settings()
+        # При необходимости можно добавить хук для обработки изменений
+        #if key == "NM_API_KEY":
+        #    self.model.update_api_key(value)
+
+    #endregion
+
     def run(self):
         self.root.mainloop()
 
     def on_closing(self):
+        self.delete_all_wav_files()
         self.stop_server()
         print("Закрываемся")
         self.root.destroy()
