@@ -282,8 +282,6 @@ class ChatModel:
             messageActual = {"role": "system", "content": self.actualInfo}
             combined_messages.append(messageActual)
 
-
-
         # Добавляем messages, если они не пустые
         if messages:
             combined_messages.extend(messages)

@@ -451,7 +451,7 @@ class CrazyMita(Character):
             "Состояние секрета": self.secretExposed,
         }
         return f"характеристики {self.name}:\n" + "\n".join(
-            f"- {key}: {value}" for key, value in characteristics.items()
+            f"- {key}: {value} " for key, value in characteristics.items()
         )
 
 
