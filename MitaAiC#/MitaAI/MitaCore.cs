@@ -11,6 +11,8 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MitaAI.MitaAppereance;
 using MitaAI.Mita;
 using MitaAI.PlayerControls;
+using UnityEngine.UI;
+using UnityEngine.Events;
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -229,7 +231,7 @@ namespace MitaAI
 
         const int simbolsPerSecond = 13;
 
-        public Menu MainMenu;
+        static public Menu MainMenu;
         private GameObject CustomDialog;
         private GameObject CustomDialogPlayer;
         public static GameObject playerCamera;
@@ -263,7 +265,7 @@ namespace MitaAI
         //static public Il2CppAssetBundle bundle2;
 
         string requiredSceneName = "Scene 4 - StartSecret";
-        string requiredSave = "SaveGame startsecret";
+        public string requiredSave = "SaveGame startsecret";
         string CurrentSceneName;
 
 
@@ -288,9 +290,8 @@ namespace MitaAI
             MitaClothesModded.init(harmony);
             NetworkController.Initialize();
             
-      
-
         }
+
         public override void OnLateInitializeMelon()
         {
             base.OnLateInitializeMelon();
@@ -360,7 +361,7 @@ namespace MitaAI
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
 
         {
-            ;
+            
 
             LoggerInstance.Msg("Scene loaded " + sceneName);
             if (!TotalInitialization.additiveLoadedScenes.Contains(sceneName))
@@ -377,15 +378,65 @@ namespace MitaAI
             if (CurrentSceneName == "SceneMenu")
             {
 
-                GameObject NeuroMitaButton = GameObject.Instantiate(GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu/Button Continue").gameObject);
+                #region ButtonLoading
+               
+                MelonLogger.Msg("Start SceneMenu");
+                // Кнопки мода
+                GameObject Menu = GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu").gameObject;
+                Menu.transform.localPosition = new Vector3(250f,355f,0);
+                Menu.transform.Find("Text").localPosition = new Vector3(-250, 15, 0);
+                MelonLogger.Msg(2);
+                GameObject NeuroMitaButton = GameObject.Instantiate(Menu.transform.Find("Button Continue").gameObject);
+                Menu.GetComponent<MenuLocation>().objects.Add(NeuroMitaButton.GetComponent<RectTransform>());
+                NeuroMitaButton.name = "NeuroMitaStartButton";
 
+                MelonLogger.Msg(3);
+                NeuroMitaButton.transform.SetParent(GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu").transform);
+                NeuroMitaButton.transform.localPosition = new Vector3(-250, -45, 0);
+                NeuroMitaButton.transform.localScale = new Vector3(1, 1, 1);
+                NeuroMitaButton.transform.rotation = new Quaternion(0, 0, 0, 0);
+                MelonLogger.Msg(4);
+
+                GameObject NeuroMitaButtonText = NeuroMitaButton.transform.Find("Text").gameObject;
+                //NeuroMitaButtonText.GetComponent<Localization_UIText>().deactiveTextTranslate = true;
+                //NeuroMitaButtonText.GetComponent<Localization_UIText>().enabled = false;
+                //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = "ИГРАТЬ С NEUROMITA";
+                //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = "ИГРАТЬ С NEUROMITA";
+
+                MelonCoroutines.Start(changeName(NeuroMitaButtonText));
+
+                //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font  = Menu.transform.Find("Button NewGame/Text").GetComponent<Text>().font;
+
+
+                UI_Colors uI_Colors = NeuroMitaButton.GetComponent<UI_Colors>();
+                MelonLogger.Msg(5);
+                // Цвет фона
+                uI_Colors.SetColorImage(0, new Color(0.5f,1f,0.5f,0.5f));
 
                 sendSystemInfo("Игрок в меню");
                 MainMenu = GameObject.Find("MenuGame").GetComponent<Menu>();
+                MelonLogger.Msg(6);
+                try
+                {
+                    ButtonMouseClick buttonMouseClick = NeuroMitaButton.GetComponent<ButtonMouseClick>();
+                    EventsProxy eventsProxy = NeuroMitaButton.AddComponent<EventsProxy>();
+                    UnityEvent e = new UnityEvent();
+                    eventsProxy.SetupEvent(e, "ButtonLoad");
+                    buttonMouseClick.eventClick = e;
+                }
+                catch (Exception e)
+                {
+
+                    MelonLogger.Error(e);
+                }
+                MelonLogger.Msg(7);
+
+                #endregion
+
+                //MainMenu.ButtonLoadScene(requiredSave);
+
                 //MainMenu.Alternative();
-                MainMenu.ButtonLoadScene(requiredSave);
-                //MainMenu.ButtonLoadScene("Scene 4 - StartSecret");
-                //MainMenu.ButtonLoadScene("Scene 3 - WeTogether");
+
 
             }
 
@@ -418,6 +469,17 @@ namespace MitaAI
                 InitializeGameObjects();
             }
         }
+        public IEnumerator changeName(GameObject NeuroMitaButtonText)
+        {
+            Font original_font = NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font;
+
+            while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font) {
+                yield return null;
+            }
+            NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = "ИГРАТЬ С NEUROMITA";
+            NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = "ИГРАТЬ С NEUROMITA";
+        }
+
 
         public int roomIDPlayer = -1;
         public int roomIDMita = -1;

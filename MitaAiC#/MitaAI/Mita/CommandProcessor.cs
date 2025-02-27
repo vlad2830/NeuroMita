@@ -107,7 +107,7 @@ namespace MitaAI.Mita
                     break;
 
                 case "выключить игрока":
-                    mitaCore.MainMenu.ButtonLoadScene("SceneMenu");
+                    MitaCore.MainMenu.ButtonLoadScene("SceneMenu");
                     break;
 
                 // Блок Манекенов

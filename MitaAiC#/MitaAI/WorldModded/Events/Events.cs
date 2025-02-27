@@ -59,6 +59,10 @@ namespace MitaAI
                 case "SofaSit":
 
                     break;
+
+                case "ButtonLoad":
+                    MitaCore.MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
+                    break;
                 default:
                     break;
             }

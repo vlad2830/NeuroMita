@@ -99,9 +99,10 @@ class ChatModel:
         """
         self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
         self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
-        self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley")
+        self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley",True)
         self.kind_mita_character = KindMita("Kind", "/speaker kind")
         self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair")
+        self.cart_divan = DivanCartridge("Cart_divan","/speaker engineer",True)
 
         # Словарь для сопоставления имен персонажей с их объектами
         self.characters = {
@@ -109,10 +110,11 @@ class ChatModel:
             self.kind_mita_character.name: self.kind_mita_character,
             self.cappy_mita_character.name: self.cappy_mita_character,
             self.cart_space.name: self.cart_space,
+            self.cart_divan.name: self.cart_divan,
             self.shorthair_mita_character.name: self.shorthair_mita_character,
         }
 
-        self.current_character = self.crazy_mita_character
+        self.current_character = self.cart_divan
 
     def update_openai_client(self, reserve_key=False):
         print("Попытка обновить клиент")
@@ -184,6 +186,7 @@ class ChatModel:
             print(f"До фразы {response}")
             self.gui.textToTalk = self.process_text_to_voice(response)
             self.gui.textSpeaker = self.current_character.silero_command
+            self.gui.silero_turn_off_video = self.current_character.silero_turn_off_video
             print("self.gui.textToTalk: " + self.gui.textToTalk)
             print("self.gui.textSpeaker: " + self.gui.textSpeaker)
 

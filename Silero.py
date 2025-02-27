@@ -151,6 +151,11 @@ class TelegramBotHandler:
             await self.client.send_message(self.silero_bot, speaker_command)
             self.last_speaker_command = speaker_command
             await asyncio.sleep(0.25)
+            
+            if self.gui.silero_turn_off_video:
+                await self.client.send_message(self.silero_bot, "/videonotes")
+                await asyncio.sleep(0.25)
+
         self.last_speaker_command = speaker_command
 
         self.reset_message_count()

@@ -67,6 +67,7 @@ class ChatGUI:
         self.start_server()
         self.textToTalk = ""
         self.textSpeaker = "/Speaker Mita"
+        self.silero_turn_off_video = False
         self.patch_to_sound_file = ""
 
         self.root = tk.Tk()

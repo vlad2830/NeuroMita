@@ -322,6 +322,8 @@
 
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
+		<Compile Include="Characters.cs" />
+		<Compile Include="Settings.cs" />
 		<Compile Include="PlayerControls\InputControl.cs" />
 		<Compile Include="Utils.cs" />
 		<Compile Include="WorldModded\Events\EventsProxy.cs" />

@@ -10,18 +10,17 @@ import re
 
 
 class Character:
-    def __init__(self, name: str, silero_command: str):
+    def __init__(self, name: str, silero_command: str, silero_turn_off_video=False):
 
         self.name = name
         self.silero_command = silero_command
+        self.silero_turn_off_video = silero_turn_off_video
 
         self.fixed_prompts: List[PromptPart] = []
         self.float_prompts: List[PromptPart] = []
         self.temp_prompts: List[PromptPart] = []
         self.events: List[PromptPart] = []
         self.variables = {}
-
-        """Базовые"""
         self.attitude = 60
         self.boredom = 10
         self.stress = 5
@@ -39,6 +38,12 @@ class Character:
         self.MitaLongMemory = ""
 
         self.init()
+
+    def init_variables(self):
+        """Базовые"""
+        self.attitude = 60
+        self.boredom = 10
+        self.stress = 5
 
     def add_prompt_part(self, part: PromptPart):
         if part.is_fixed:
@@ -235,7 +240,7 @@ class Character:
 
         return response
 
-    def load_history(self, default=False):
+    def load_history(self):
         data = self.history_manager.load_history()
 
         variables = data.get("variables")
@@ -261,6 +266,7 @@ class Character:
         self.history_manager.save_history(history_data)
 
     def clear_history(self):
+        self.init_variables()
         self.memory_system.clear_memories()
         self.history_manager.clear_history()
         self.load_history()
@@ -380,9 +386,9 @@ class CrazyMita(Character):
 
         variables = data.get("variables")
 
-        self.PlayingFirst = variables.get("playing_first", self.stress)
-        self.secretExposed = variables.get("secret", self.secretExposed)
-        self.secretExposedFirst = variables.get("secret_first", self.secretExposedFirst)
+        self.PlayingFirst = variables.get("playing_first", False)
+        self.secretExposed = variables.get("secret", False)
+        self.secretExposedFirst = variables.get("secret_first", False)
         return data
 
     def process_logic(self, messages: dict):
@@ -565,6 +571,21 @@ class SpaceCartridge(Cartridge):
         Prompts = []
 
         response_structure = load_text_from_file("Prompts/Cartridges/space cartridge.txt")
+        Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
+
+
+class DivanCartridge(Cartridge):
+
+    def init(self):
+        self.init_prompts()
+
+    def init_prompts(self):
+        Prompts = []
+
+        response_structure = load_text_from_file("Prompts/Cartridges/divan_cart.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
 
         for prompt in Prompts:
