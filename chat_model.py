@@ -114,7 +114,7 @@ class ChatModel:
             self.shorthair_mita_character.name: self.shorthair_mita_character,
         }
 
-        self.current_character = self.cart_divan
+        self.current_character = self.crazy_mita_character
 
     def update_openai_client(self, reserve_key=False):
         print("Попытка обновить клиент")
