@@ -276,6 +276,8 @@ class Character:
         self.stress = clamp(self.stress + amount, 0, 100)
         print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
+    def load_prompt_text(self,path):
+        return load_text_from_file(f"Prompts/{self.name}/{path}")
 
 class CrazyMita(Character):
 
