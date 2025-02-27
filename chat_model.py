@@ -193,8 +193,10 @@ class ChatModel:
         except Exception as e:
             logger.error(f"Ошибка на фазе генерации: {e}", exc_info=True)
             return f"Ошибка на фазе генерации: {e}"
+
     def save_chat_history(self):
         self.current_character.safe_history()
+
     def check_change_current_character(self):
         """
         Проверяет и изменяет текущего персонажа на основе значения `current_character_to_change`.
@@ -214,7 +216,7 @@ class ChatModel:
         """
         Перед сообщением пользователя будет контекст, он не запишется в историю.
         :param messages:
-        :return: сообщение с добавленным временным сообщением до
+        :return: Сообщение с добавленным временным сообщением до
         """
 
         self.LongMemoryRememberCount += 1
@@ -299,7 +301,7 @@ class ChatModel:
         response = None
 
         self._log_generation_start()
-        #self._save_and_calculate_cost(combined_messages)
+        save_combined_messages(combined_messages)
 
         if self.makeRequest:
             formatted_messages = self._format_messages_for_gemini(combined_messages)
@@ -338,16 +340,6 @@ class ChatModel:
         logger.info(f"API URL: {self.api_url}")
         logger.info(f"API Model: {self.api_model}")
         logger.info(f"Make Request: {self.makeRequest}")
-
-    def _save_and_calculate_cost(self, combined_messages):
-        save_combined_messages(combined_messages)
-        try:
-            self.gui.last_price = calculate_cost_for_combined_messages(self, combined_messages,
-                                                                       self.cost_input_per_1000)
-            logger.info(f"Calculated cost: {self.gui.last_price}")
-        except Exception as e:
-            ...
-            #logger.info("Не получилось сделать с токенайзером", str(e))
 
     def _format_messages_for_gemini(self, combined_messages):
         formatted_messages = []
