@@ -258,8 +258,8 @@ class ChatGUI:
         self.setup_history_controls(right_frame)
         self.setup_debug_controls(right_frame)
         self.setup_api_controls(right_frame)
+
         #self.setup_advanced_controls(right_frame)
-        self.setup_advanced_controls(right_frame)
 
         self.load_chat_history()
 

@@ -44,13 +44,19 @@ class Character:
         if part.is_fixed:
             self.fixed_prompts.append(part)
         elif part.is_floating:
+            part.active = False
             self.float_prompts.append(part)
         elif part.is_temporary:
             self.temp_prompts.append(part)
-        elif part.is_event:
-            self.events.append(part)
         else:
             print("Добавляется неизвестный промпарт")
+
+    def find_prompt(self, list_to_find, name):
+        return next((p for p in list_to_find if p.name == name), None)
+
+    def find_float(self, name):
+        print("Попытка найти ивент")
+        return self.find_prompt(self.float_prompts, name)
 
     def replace_prompt(self, name_current: str, name_next: str):
         """
@@ -62,14 +68,14 @@ class Character:
         print("Замена промпарта")
 
         # Находим текущий активный промпт
-        current_prompt = next((p for p in self.fixed_prompts if p.name == name_current), None)
+        current_prompt = self.find_prompt(self.fixed_prompts, name_current)
         if current_prompt:
             current_prompt.active = False
         else:
             print(f"Промпт '{name_current}' не существует")
 
         # Находим следующий промпт
-        next_prompt = next((p for p in self.fixed_prompts if p.name == name_next), None)
+        next_prompt = self.find_prompt(self.fixed_prompts, name_next)
         if next_prompt:
             next_prompt.active = True
         else:
@@ -93,6 +99,24 @@ class Character:
 
         return messages
 
+    def prepare_float_messages(self, messages):
+        """
+        Добавляет плавающие промпты (очищает их из ивентов)
+
+        :param messages сообщения фиксированные заготовленные
+        :return: сообщения
+        """
+        print(f"Добавление плавающих")
+        for part in self.float_prompts:
+            print(f"Есть промт {part}")
+            if part.active:
+                m = {"role": "system", "content": str(part)}
+                messages.append(m)
+                part.active = False
+                print(f"Добавил ивент {part}")
+
+        return messages
+
     def add_context(self, messages):
         """
         Перед сообщением пользователя будет контекст, он не запишется в историю.
@@ -107,7 +131,7 @@ class Character:
         date_now = datetime.datetime.now().replace(microsecond=0)
 
         # Форматируем дату: год, месяц словами, день месяца, день недели в скобках
-        formatted_date = date_now.strftime("%Y %B %d (%A)")
+        formatted_date = date_now.strftime("%Y %B %d (%A) %H:%M")
 
         repeated_system_message = f"Time: {formatted_date}."
 
@@ -211,7 +235,7 @@ class Character:
 
         return response
 
-    def load_history(self):
+    def load_history(self, default=False):
         data = self.history_manager.load_history()
 
         variables = data.get("variables")
@@ -237,7 +261,9 @@ class Character:
         self.history_manager.save_history(history_data)
 
     def clear_history(self):
+        self.memory_system.clear_memories()
         self.history_manager.clear_history()
+        self.load_history()
 
     def current_variables(self):
         return {
@@ -276,8 +302,9 @@ class Character:
         self.stress = clamp(self.stress + amount, 0, 100)
         print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
-    def load_prompt_text(self,path):
+    def load_prompt_text(self, path):
         return load_text_from_file(f"Prompts/{self.name}/{path}")
+
 
 class CrazyMita(Character):
 
@@ -388,6 +415,7 @@ class CrazyMita(Character):
         self.replace_prompt("mainPlaying", "mainCrazy")
         self.replace_prompt("examplesLong", "examplesLongCrazy")
 
+        self.find_float("SecretExposedText").active = True
 
     def _detect_secret_exposure(self, response):
         """

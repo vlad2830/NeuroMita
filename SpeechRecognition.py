@@ -57,7 +57,8 @@ class SpeechRecognition:
                     if TIMEOUT_MESSAGE:
                         print("Таймаут ожидания речи...")
                 except sr.UnknownValueError:
-                    print("Речь не распознана")
+                    ...
+                    # print("Речь не распознана")
                 except Exception as e:
                     logging.error(f"Ошибка при распознавании: {e}")
                     break

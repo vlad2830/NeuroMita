@@ -157,7 +157,8 @@ class ChatModel:
         # Обновление текущего настроения
         timed_system_message = self.current_character.current_variables()
 
-        combined_messages = self._combine_messages_character(self.current_character, messages, timed_system_message)
+        combined_messages, messages = self._combine_messages_character(self.current_character, messages,
+                                                                       timed_system_message)
 
         # Генерация ответа с использованием клиента
         try:
@@ -281,14 +282,17 @@ class ChatModel:
             messageActual = {"role": "system", "content": self.actualInfo}
             combined_messages.append(messageActual)
 
-        combined_messages = character.add_context(combined_messages)
+
 
         # Добавляем messages, если они не пустые
         if messages:
             combined_messages.extend(messages)
             print("messages успешно добавлены. Количество:", len(messages))
+        messages = character.prepare_float_messages(messages)
 
-        return combined_messages
+        combined_messages = character.add_context(combined_messages)
+
+        return combined_messages, messages
 
     def _generate_chat_response(self, combined_messages, times=1):
         """Вообще, не мб тут избыточно с рекурсией, но пока вроде работает)"""

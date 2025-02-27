@@ -21,7 +21,6 @@ class ChatServer:
         self.server_socket.listen(5)
         print(f"Сервер запущен на {self.host}:{self.port}")
 
-        self.gui.ConnectedToGame = True
 
     def handle_connection(self):
         """Обрабатывает одно подключение."""
