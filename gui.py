@@ -403,19 +403,11 @@ class ChatGUI:
 
     def load_chat_history(self):
 
-        if self.model.OldSystem:
-            self.model.load_history()
-            """Загрузить историю из модели и отобразить в интерфейсе."""
-            for entry in self.model.chat_history:
-                role = entry["role"]
-                content = entry["content"]
-                self.insert_message(role, content)
-        else:
-            chat_history = self.model.current_character.load_history()
-            for entry in chat_history["messages"]:
-                role = entry["role"]
-                content = entry["content"]
-                self.insert_message(role, content)
+        chat_history = self.model.current_character.load_history()
+        for entry in chat_history["messages"]:
+            role = entry["role"]
+            content = entry["content"]
+            self.insert_message(role, content)
 
         self.update_debug_info()
 
@@ -701,31 +693,12 @@ class ChatGUI:
         else:
             self.api_settings_frame.pack_forget()
 
-    def update_controls(self):
-        """
-        Обновляет значения всех элементов управления на основе текущих данных в self.model.
-        """
-        # Обновляем метки для настроения, скуки и стресса
-        self.attitude_label.config(text=f"Настроение: {self.model.attitude}")
-        self.boredom_label.config(text=f"Скука: {self.model.boredom}")
-        self.stress_label.config(text=f"Стресс: {self.model.stress}")
-
-        # Обновляем чекбокс "Секрет раскрыт"
-        self.secret_var.set(self.model.secretExposed)
-
     def update_debug_info(self):
         """Обновить окно отладки с отображением актуальных данных."""
         self.debug_window.delete(1.0, tk.END)  # Очистить старые данные
 
-        if self.model.OldSystem:
-            debug_info = (
-                f"Отношение к игроку: {self.model.attitude}\n"
-                f"Скука: {self.model.boredom}\n"
-                f"Стресс: {self.model.stress}\n"
-                f"Секрет: {self.model.secretExposed}\n"
-            )
-        else:
-            debug_info = (self.model.current_character.current_variables_string())
+        debug_info = (self.model.current_character.current_variables_string())
+
         self.debug_window.insert(tk.END, debug_info)
 
     def update_token_count(self, event=None):
@@ -772,10 +745,7 @@ class ChatGUI:
                 print(f"Ошибка при отправке сообщения на сервер: {e}")
 
     def clear_history(self):
-        if self.model.OldSystem:
-            self.model.clear_history()
-        else:
-            self.model.current_character.clear_history()
+        self.model.current_character.clear_history()
         self.chat_window.delete(1.0, tk.END)
         self.update_debug_info()
 
