@@ -38,7 +38,7 @@ class ChatGUI:
         self.selected_microphone = ""
         self.device_id = 0
         self.user_entry = None
-        self.user_input = None
+        self.user_input = ""
 
         self.api_key = ""
         self.api_key_res = ""

@@ -918,7 +918,7 @@ namespace MitaAI
                 response = responseTask.Result.Item1;
                 NetworkController.connectedToSilero = responseTask.Result.Item2 == "1";
                 patch = responseTask.Result.Item3;
-                InputControl.UpdateInput(responseTask.Result.Item4);
+                if (responseTask.Result.Item4 != null) InputControl.UpdateInput(responseTask.Result.Item4);
             }
             else
             {
