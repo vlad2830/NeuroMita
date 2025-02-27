@@ -246,10 +246,10 @@ class ChatGUI:
         self.controls_frame.pack(fill=tk.X, pady=3)
 
         # Настройка элементов управления
-        self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
-        self.setup_control("Скука", "boredom", self.model.boredom)
-        self.setup_control("Стресс", "stress", self.model.stress)
-        self.setup_secret_control()
+        #self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
+        #self.setup_control("Скука", "boredom", self.model.boredom)
+        #self.setup_control("Стресс", "stress", self.model.stress)
+        #self.setup_secret_control()
 
         self.setup_history_controls(right_frame)
         self.setup_debug_controls(right_frame)
@@ -727,7 +727,6 @@ class ChatGUI:
         else:
             debug_info = (self.model.current_character.current_variables_string())
         self.debug_window.insert(tk.END, debug_info)
-        self.update_controls()
 
     def update_token_count(self, event=None):
         if False and self.model.hasTokenizer:

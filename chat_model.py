@@ -65,29 +65,12 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         """"""
 
-        self.history_file = "chat_history.json"
-        self.chat_history = self.load_history().get('messages', [])
         self.memory_limit = 40  # Ограничение сообщения
 
         """New System"""
         self.current_character = None
         self.current_character_to_change = ""
         self.characters = None
-
-        """Old System"""
-
-        self.attitude = 60
-        self.boredom = 10
-        self.stress = 5
-
-        self.SecretExposedText = ""
-        self.secretExposed = False
-        self.secretExposedFirst = False
-        self.PlayingFirst = False
-
-        self.MitaMainBehaviour = []
-        self.MitaExamples = []
-        self.systemMessages = []
 
         """То, что нужно будет убрать в одну переменную"""
 
@@ -107,13 +90,6 @@ class ChatModel:
         # Загрузка данных из файлов
 
         self.init_characters()
-
-        self.load_prompts()
-
-        self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
-
-        if self.OldSystem:
-            self.MemorySystem = MemorySystem("mita_memories_common")
 
         self.HideAiData = True
 
@@ -138,44 +114,6 @@ class ChatModel:
 
         self.current_character = self.crazy_mita_character
 
-    def load_prompts(self):
-        """старая функция, надо будет сделать через персонажей"""
-
-        self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
-        self.main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
-        self.player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
-        self.mainPlaying = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainPlaing.txt")
-        self.mainCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainCrazy.txt")
-
-        self.examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
-        self.examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
-
-        self.world = load_text_from_file("Prompts/Archive/NotUsedNow/world.txt")
-        self.mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
-
-        self.variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
-        self.response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
-
-        self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
-
-    def adjust_attitude(self, amount):
-        amount = clamp(amount, -5, 5)
-        """Корректируем отношение."""
-        self.attitude = clamp(self.attitude + amount, 0, 100)
-        print(f"Отношение изменилось на {amount}, новое значение: {self.attitude}")
-
-    def adjust_boredom(self, amount):
-        amount = clamp(amount, -5, 5)
-        """Корректируем уровень скуки."""
-        self.boredom = clamp(self.boredom + amount, 0, 100)
-        print(f"Скука изменилась на {amount}, новое значение: {self.boredom}")
-
-    def adjust_stress(self, amount):
-        amount = clamp(amount, -5, 5)
-        """Корректируем уровень стресса."""
-        self.stress = clamp(self.stress + amount, 0, 100)
-        print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
-
     def update_openai_client(self, reserve_key=False):
         print("Попытка обновить клиент")
         if reserve_key and self.api_key_res != "":
@@ -198,50 +136,18 @@ class ChatModel:
 
     def generate_response(self, user_input, system_input=""):
         # Загрузка истории из файла
+        self.check_change_current_character()
 
-        if self.OldSystem:
-            history_data = self.load_history()
-
-            messages = history_data.get('messages', [])
-            if len(self.infos) > 0:
-                print("Попытался расширить messages")
-                messages.extend(self.infos)
-                self.infos.clear()
-
-            current_info = history_data.get('currentInfo', {})
-
-            print(
-                f"mood: {self.attitude}, secretExposed: {self.secretExposed}, secretExposedFirst: {self.secretExposedFirst}")
-
-            # Логика для первой фазы (вводная информация)
-            if len(messages) == 0:
-                self._initialize_conversation()
-
-            # Логика для поведения при игре с игроком
-            elif self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
-                self._start_playing_with_player()
-
-            # Логика для раскрытия секрета
-            elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
-                self._reveal_secret(messages)
-
-        else:
-
-            self.check_change_current_character()
-
-            data = self.current_character.load_history()
-            messages = data.get("messages", [])
-            if len(self.infos) > 0:
-                print("Попытался расширить messages")
-                messages.extend(self.infos)
-                self.infos.clear()
-            self.current_character.process_logic(messages)
+        data = self.current_character.load_history()
+        messages = data.get("messages", [])
+        if len(self.infos) > 0:
+            print("Попытался расширить messages")
+            messages.extend(self.infos)
+            self.infos.clear()
+        self.current_character.process_logic(messages)
 
         # Добавление информации о времени и пользовательского ввода
-        if self.OldSystem:
-            messages = self._add_context(messages)
-        else:
-            messages = self.current_character.add_context(messages)
+        messages = self.current_character.add_context(messages)
 
         messages = self._add_input(user_input, system_input, messages)
 
@@ -249,25 +155,10 @@ class ChatModel:
         messages = messages[-self.memory_limit:]
 
         # Обновление текущего настроения
-        if self.OldSystem:
-            timed_system_message = self._generate_timed_system_message()
-        else:
-            timed_system_message = self.current_character.current_variables()
+        timed_system_message = self.current_character.current_variables()
 
-        if self.OldSystem:
-            # Обновление текущей информации
-            current_info.update({
-                'MitaMainBehaviour': self.MitaMainBehaviour,
-                'MitaExamples': self.MitaExamples,
-                'timed_system_message': timed_system_message,
-                'MitaLongMemory': self.MitaLongMemory
-            })
-            current_info['MitaSystemMessages'] = self.systemMessages
+        combined_messages = self._combine_messages_character(self.current_character, messages, timed_system_message)
 
-        if self.OldSystem:
-            combined_messages = self._combine_messages(messages, timed_system_message)
-        else:
-            combined_messages = self._combine_messages_character(self.current_character, messages, timed_system_message)
         # Генерация ответа с использованием клиента
         try:
 
@@ -287,16 +178,7 @@ class ChatModel:
             messages.append(response_message)
 
             # Процессинг ответа: изменяем показатели и сохраняем историю
-
-            if self.OldSystem:
-                response = self.process_response(response)
-            else:
-                response = self.current_character.process_response(response)
-
-            if self.OldSystem:
-                current_info.update({
-                    'MitaLongMemory': self.MitaLongMemory
-                })
+            response = self.current_character.process_response(response)
 
             print(f"До фразы {response}")
             self.gui.textToTalk = self.process_text_to_voice(response)
@@ -304,26 +186,15 @@ class ChatModel:
             print("self.gui.textToTalk: " + self.gui.textToTalk)
             print("self.gui.textSpeaker: " + self.gui.textSpeaker)
 
-            if self.OldSystem:
-                self.save_history({
-                    'messages': messages,
-                    'currentInfo': current_info,
-                    # Сохраняем переменные в историю
-                    'attitude': self.attitude,
-                    'boredom': self.boredom,
-                    'stress': self.stress,
-                    'secretExposed': self.secretExposed,
-                    'secretExposedFirst': self.secretExposedFirst
-                })
-            else:
-                self.current_character.safe_history(messages, timed_system_message)
+            self.current_character.safe_history(messages, timed_system_message)
 
             self.gui.update_debug_info()
             return response
         except Exception as e:
             logger.error(f"Ошибка на фазе генерации: {e}", exc_info=True)
             return f"Ошибка на фазе генерации: {e}"
-
+    def save_chat_history(self):
+        self.current_character.safe_history()
     def check_change_current_character(self):
         """
         Проверяет и изменяет текущего персонажа на основе значения `current_character_to_change`.
@@ -338,57 +209,6 @@ class ChatModel:
         if self.current_character_to_change in self.characters:
             self.current_character = self.characters[self.current_character_to_change]
             self.current_character_to_change = ""  # Сбрасываем значение
-
-    #region CrazyOldStatesChange
-    def _initialize_conversation(self):
-        """Инициализация начальной беседы"""
-        self.systemMessages.insert(0, {"role": "system", "content": f"{self.player}\n"})
-        self.MitaExamples = {"role": "system", "content": f"{self.examplesLong}\n"}
-        self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}\n"}
-        self.systemMessages.insert(0, {"role": "system", "content": f"{self.response_structure}"})
-
-    def _start_playing_with_player(self):
-        """Игровая логика, когда персонаж начинает играть с игроком"""
-        print("Играет с игроком в якобы невиновную")
-        self.PlayingFirst = True
-        self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}\n"}
-        #self.current_character.replace_prompt("main", "mainPlaying")
-
-    def _reveal_secret(self, messages):
-        """Логика раскрытия секрета"""
-        print("Перестала играть вообще")
-        self.secretExposedFirst = True
-        self.secretExposed = True
-        self.MitaMainBehaviour = {
-            "role": "system",
-            "content": f"{self.mainCrazy}\n{self.response_structure}"
-        }
-        self.MitaExamples = {"role": "system", "content": f"{self.examplesLongCrazy}\n"}
-        self.add_temporary_system_message(messages, f"{self.SecretExposedText}")
-        system_message = {"role": "system", "content": f"{self.mita_history}\n"}
-        self.systemMessages.append(system_message)
-
-        #self.current_character.replace_prompt("main", "mainCrazy")
-        #self.current_character.replace_prompt("mainPlaying", "mainCrazy")
-
-    #endregion
-
-    def _generate_timed_system_message(self, characher: Character = None):
-        """Генерация сообщения с текущим состоянием персонажа"""
-
-        if not self.OldSystem:
-            return None
-
-        return {
-            "role": "system",
-            "content": (f"Твои характеристики. {self.variableEffects}"
-                        f"Конкретно сейчас они следующие: "
-                        f"Отношение: {self.attitude}/100."
-                        f"Стресс: {self.stress}/100."
-                        f"Скука: {self.boredom}/100."
-                        f"Состояние секрета: {self.secretExposed}"
-                        f"{self.common}")
-        }
 
     def _add_context(self, messages):
         """
@@ -460,57 +280,6 @@ class ChatModel:
             combined_messages.append(messageActual)
 
         combined_messages = character.add_context(combined_messages)
-
-        # Добавляем messages, если они не пустые
-        if messages:
-            combined_messages.extend(messages)
-            print("messages успешно добавлены. Количество:", len(messages))
-
-        return combined_messages
-
-    def _combine_messages(self, messages, timed_system_message):
-        """Комбинирование всех сообщений перед отправкой"""
-        combined_messages = []
-        # Чем выше здесь, тем дальше от начала будет
-
-        # Добавляем systemMessages, если они не пустые Здесь Как она отвечает и коммон скрипТ!
-        if self.systemMessages:
-            combined_messages.extend(self.systemMessages)
-            print("systemMessages успешно добавлены. Количество:", len(self.systemMessages))
-
-        # Добавляем MitaMainBehaviour, если это словарь
-        if isinstance(self.MitaMainBehaviour, dict):
-            combined_messages.append(self.MitaMainBehaviour)
-            print("MitaMainBehaviour успешно добавлен.")
-
-        # Добавляем MitaExamples, если это словарь
-        if isinstance(self.MitaExamples, dict):
-            combined_messages.append(self.MitaExamples)
-            print("MitaExamples успешно добавлен.")
-
-        # Добавляем MitaLongMemory, если это словарь и ключ "Role" существует и его значение не пустое
-        if isinstance(self.MitaLongMemory, dict):
-            if self.MitaLongMemory == {}:
-                self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
-            combined_messages.append(self.MitaLongMemory)
-            print(self.MitaLongMemory)
-            print("MitaLongMemory успешно добавлен.")
-        else:
-            print("MitaLongMemory не добавлен. Условие не выполнено.")
-
-        # Добавляем timed_system_message, если это словарь
-        if isinstance(timed_system_message, dict):
-            combined_messages.append(timed_system_message)
-            print("timed_system_message успешно добавлено.")
-
-        if self.nearObjects != "" and self.nearObjects != "-":
-            text = f"В радиусе от тебя следующие объекты (object tree) {self.nearObjects}"
-            messageNear = {"role": "system", "content": text}
-            combined_messages.append(messageNear)
-
-        if self.actualInfo != "" and self.actualInfo != "-":
-            messageActual = {"role": "system", "content": self.actualInfo}
-            combined_messages.append(messageActual)
 
         # Добавляем messages, если они не пустые
         if messages:
@@ -826,252 +595,11 @@ class ChatModel:
 
         return clean_text
 
-    def extract_and_process_memory_data(self, response):
-        """
-        Извлекает данные из ответа с тегами памяти и выполняет операции.
-        Форматы тегов:
-        - Добавление: <+memory>priority|content</memory>
-        - Обновление: <#memory>number|priority|content</memory>
-        - Удаление: <-memory>number</memory>
-        """
-        # Регулярное выражение для захвата тегов памяти
-        memory_pattern = r"<([+#-])memory>(.*?)</memory>"
-        matches = re.findall(memory_pattern, response, re.DOTALL)
-
-        if matches:
-            print("Обнаружены команды изменения памяти!")
-            for operation, content in matches:
-                content = content.strip()
-                try:
-                    # Обработка добавления
-                    if operation == "+":
-                        parts = [p.strip() for p in content.split('|', 1)]
-                        if len(parts) != 2:
-                            raise ValueError("Неверный формат данных для добавления")
-
-                        priority, mem_content = parts
-                        self.MemorySystem.add_memory(
-                            priority=priority,
-                            content=mem_content
-                        )
-                        print(f"Добавлено воспоминание #{mem_content}")
-
-                    # Обработка обновления
-                    elif operation == "#":
-                        parts = [p.strip() for p in content.split('|', 2)]
-                        if len(parts) != 3:
-                            raise ValueError("Неверный формат данных для обновления")
-
-                        number, priority, mem_content = parts
-                        self.MemorySystem.update_memory(
-                            number=int(number),
-                            priority=priority,
-                            content=mem_content
-                        )
-                        print(f"Обновлено воспоминание #{number}")
-
-                    # Обработка удаления
-                    elif operation == "-":
-                        number = content.strip()
-                        self.MemorySystem.delete_memory(number=int(number))
-                        print(f"Удалено воспоминание #{number}")
-
-                    self.MitaLongMemory = {"role": "system", "content": self.MemorySystem.get_memories_formatted()}
-                except Exception as e:
-                    print(f"Ошибка обработки памяти: {str(e)}")
-
-            # Удаление тегов из ответа
-            if self.HideAiData:
-                response = re.sub(memory_pattern, "", response, flags=re.DOTALL)
-
-        return response
-
-    def process_behavior_changes(self, response):
-        """
-        Обрабатывает изменения переменных на основе строки формата <p>x,x,x<p>.
-        """
-        start_tag = "<p>"
-        end_tag = "</p>"
-
-        if start_tag in response and end_tag in response:
-            # Извлекаем изменения переменных
-            start_index = response.index(start_tag) + len(start_tag)
-            end_index = response.index(end_tag, start_index)
-            changes_str = response[start_index:end_index]
-
-            # Разделяем строку на отдельные значения
-            changes = [float(x.strip()) for x in changes_str.split(",")]
-
-            if len(changes) == 3:
-                # Применяем изменения к переменным
-                self.adjust_attitude(changes[0])
-                self.adjust_boredom(changes[1])
-                self.adjust_stress(changes[2])
-
-            # Убираем строку с <p>...<p> из ответа
-            if self.HideAiData:
-                response = response[:response.index(start_tag)] + response[end_index + len(end_tag):]
-
-        return response
-
-    def detect_secret_exposure(self, response):
-        """
-        Проверяем, содержит ли ответ маркер <Secret!>, и удаляем его.
-        """
-        if "<Secret!>" in response:
-
-            if not self.secretExposedFirst:
-                self.secretExposed = True
-                print(f"Секрет раскрыт")
-                self.attitude = 15
-                self.boredom = 20
-
-            response = response.replace("<Secret!>", "")
-
-        return response
-
     def reload_promts(self):
         print("Перезагрузка промптов")
 
-        if self.OldSystem:
-
-            self.common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
-            self.main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
-
-            self.player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
-            self.mainPlaying = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainPlaing.txt")
-            self.mainCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainCrazy.txt")
-
-            self.examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
-            self.examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
-
-            self.world = load_text_from_file("Prompts/Archive/NotUsedNow/world.txt")
-            self.mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
-            self.variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
-            self.response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
-            self.SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
-
-            self.systemMessages.clear()
-
-            self.systemMessages.append({"role": "system", "content": f"{self.response_structure}\n"})
-            self.systemMessages.append({"role": "system", "content": f"{self.common}\n"})
-            self.systemMessages.append({"role": "system", "content": f"{self.player}\n"})
-
-            if self.secretExposed:
-                self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainCrazy}"}
-                self.MitaExamples = {"role": "system", "content": f"{self.examplesLongCrazy}\n"}
-
-                system_message = {"role": "system", "content": f"{self.mita_history}\n"}
-                self.systemMessages.append(system_message)
-            elif self.attitude < 50:
-                self.MitaMainBehaviour = {"role": "system", "content": f"{self.mainPlaying}"}
-            else:
-                self.MitaMainBehaviour = {"role": "system", "content": f"{self.main}"}
-
-        else:
-
-            self.current_character.init()
-            self.current_character.process_logic()
-
-    def load_history(self):
-        """Загружаем историю из файла, создаем пустую структуру, если файл пуст или не существует."""
-        try:
-            with open(self.history_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                print("Загрузка истории")
-                # Проверяем наличие ключей и их типов
-                if (isinstance(data.get('messages'), list) and
-                        isinstance(data.get('currentInfo'), dict) and
-                        isinstance(data.get('MitaSystemMessages'), list)):
-
-                    print("Историю получится заполнить")
-                    # Загружаем переменные, если они есть в истории
-                    self.attitude = data.get('attitude', 60)
-                    self.boredom = data.get('boredom', 0)
-                    self.stress = data.get('stress', 0)
-                    self.secretExposed = data.get('secretExposed', False)
-                    self.secretExposedFirst = data.get('secretExposedFirst', False)
-
-                    currentInfo = data.get('currentInfo')
-                    self.MitaMainBehaviour = currentInfo.get('MitaMainBehaviour', [])
-                    self.MitaExamples = currentInfo.get('MitaExamples', [])
-                    self.systemMessages = currentInfo.get('MitaSystemMessages', [])
-                    self.MitaLongMemory = currentInfo.get('MitaLongMemory', {})
-
-                    return data
-                else:
-                    print("Ошибка загрузки истории")
-                    return self._default_history()
-        except (json.JSONDecodeError, FileNotFoundError):
-            # Если файл пуст или не существует, возвращаем структуру по умолчанию
-            print("Ошибка загрузки истории")
-            return self._default_history()
-
-    def save_history(self, data):
-        """Сохраняем историю в файл с явной кодировкой utf-8."""
-        # Убедимся, что структура данных включает 'messages', 'currentInfo' и 'MitaSystemMessages'
-        history_data = {
-            'messages': data.get('messages', []),
-            'currentInfo': data.get('currentInfo', {}),
-            'MitaSystemMessages': data.get('MitaSystemMessages', []),
-            # Сохраняем переменные в историю
-            'attitude': self.attitude,
-            'boredom': self.boredom,
-            'stress': self.stress,
-            'secretExposed': self.secretExposed,
-            'secretExposedFirst': self.secretExposedFirst
-        }
-
-        with open(self.history_file, 'w', encoding='utf-8') as f:
-            json.dump(history_data, f, ensure_ascii=False, indent=4)
-
-    def save_chat_history(self):
-        print("save_chat_history")
-        # Имя исходного файла
-        source_file = "chat_history.json"
-        # Папка для сохранения историй
-        target_folder = "SavedHistories"
-        # Проверяем, существует ли папка SavedHistories, и создаём её, если нет
-        os.makedirs(target_folder, exist_ok=True)
-
-        # Формируем имя файла с таймингом
-        timestamp = datetime.datetime.now().strftime("%d.%m.%Y_%H.%M")
-        target_file = f"chat_history_{timestamp}.json"
-
-        # Полный путь к новому файлу
-        target_path = os.path.join(target_folder, target_file)
-
-        # Копируем файл
-        shutil.copy(source_file, target_path)
-        print(f"Файл сохранён как {target_path}")
-
-    def clear_history(self):
-        print("ОЧИСТКА ИСТОРИИ!!!")
-        """Очищаем историю чатов и восстанавливаем начальные значения переменных."""
-        # Сбрасываем переменные к их значениям по умолчанию
-        self.attitude = 60
-        self.boredom = 0
-        self.stress = 0
-        self.secretExposed = False
-        self.secretExposedFirst = False
-        # Сохраняем пустую историю
-        self.save_history(self._default_history())
-        self.MitaLongMemory = {"role": "system", "content": f" LongMemory<  >EndLongMemory "}
-        self.MemorySystem.clear_memories()
-
-    def _default_history(self):
-        print("ИСТОРИЧЕСКИЙ ДЕФОЛТ!!!")
-        """Создаем структуру истории по умолчанию."""
-        return {
-            'messages': [],
-            'currentInfo': {},
-            'MitaSystemMessages': [],
-            'attitude': 60,
-            'boredom': 0,
-            'stress': 0,
-            'secretExposed': False,
-            'secretExposedFirst': False,
-        }
+        self.current_character.init()
+        self.current_character.process_logic()
 
     def add_temporary_system_message(self, messages, content):
         """
