@@ -355,8 +355,37 @@ namespace MitaAI
             yield return new WaitForSeconds(0.25f);
             if (Utils.Random(1, 7)) MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом", MitaToStart);
             else MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень.", MitaToStart);
-        }
 
+
+            TestingGround();
+        }
+        
+        private static void TestingGround()
+        {
+            try
+            {
+
+                GameObject MitaPrefab = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "MitaPrefab"));
+                MitaPrefab.name = "Mita Prefab 2003";
+
+                GameObject cat = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "CatPrefab"));
+                MitaPrefab.name = "Cat";
+
+                // Звук
+                //GameObject testSound = new GameObject("TestSound");
+                //AudioSource audioSource = testSound.AddComponent<AudioSource>();
+                //AudioClip audioClip = AssetBundleLoader.LoadAssetByName<AudioClip>(AssetBundleLoader.bundle, "MusicBoss");
+                //audioSource.clip = audioClip;
+                //audioSource.Play();
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+
+        }
+        
         private static void InitializeGameObjectsWhenReady()
         {
 

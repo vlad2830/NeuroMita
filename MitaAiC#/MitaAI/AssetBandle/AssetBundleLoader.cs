@@ -9,7 +9,7 @@ namespace MitaAI
     public static class AssetBundleLoader
     {
 
-        static Il2CppAssetBundle bundle = null;
+        public static Il2CppAssetBundle bundle = null;
         public static Il2CppAssetBundle initBundle()
         {
             bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
@@ -284,6 +284,92 @@ namespace MitaAI
 
             return randomClip;
         }
+
+
+        #region UniversalLoading
+        public static List<T> LoadAllAssets<T>(Il2CppAssetBundle bundle) where T : UnityEngine.Object
+        {
+            List<T> assets = new List<T>();
+
+            if (bundle == null)
+            {
+                MelonLogger.Msg("AssetBundle not received!");
+                return assets;
+            }
+
+            string[] assetNames = bundle.GetAllAssetNames();
+
+            foreach (string assetName in assetNames)
+            {
+                try
+                {
+                    T asset = bundle.LoadAsset<T>(assetName);
+                    if (asset != null)
+                    {
+                        assets.Add(asset);
+                        Debug.Log($"Loaded {typeof(T).Name}: {asset.name}");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Failed to load asset {assetName} as {typeof(T).Name}: {e.Message}");
+                }
+            }
+
+            if (assets.Count == 0)
+            {
+                Debug.LogWarning($"No assets of type {typeof(T).Name} found in AssetBundle");
+            }
+
+            return assets;
+        }
+
+        public static T LoadAssetByName<T>(Il2CppAssetBundle bundle, string assetName) where T : UnityEngine.Object
+        {
+            if (bundle == null)
+            {
+                MelonLogger.Msg("AssetBundle is null!");
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(assetName))
+            {
+                MelonLogger.Msg($"Asset name for type {typeof(T).Name} is empty!");
+                return null;
+            }
+
+            string[] allAssetNames = bundle.GetAllAssetNames();
+
+            foreach (string bundleAssetName in allAssetNames)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(bundleAssetName);
+
+                if (string.Equals(fileName, assetName, StringComparison.OrdinalIgnoreCase))
+                {
+                    T asset = bundle.LoadAsset<T>(bundleAssetName);
+
+                    if (asset != null)
+                    {
+                        MelonLogger.Msg($"Successfully loaded {typeof(T).Name}: {asset.name}");
+                        return asset;
+                    }
+                    else
+                    {
+                        MelonLogger.Msg($"Asset '{assetName}' exists but is not of type {typeof(T).Name}");
+                        return null;
+                    }
+                }
+            }
+
+            MelonLogger.Msg($"Asset of type {typeof(T).Name} '{assetName}' not found in bundle");
+            return null;
+        }
+
+
+        #endregion
+
+
+
 
     }
 }
