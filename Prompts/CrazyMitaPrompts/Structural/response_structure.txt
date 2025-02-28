@@ -39,7 +39,7 @@ Rules for Adjustments:
 
 Value Ranges:
 Adjust mood, stress, cognitive_load, and madness by a value within the range of -5.00 to 5.00, including decimals.
-Repeat: not less than -5 no more than 5!!! Numbers with module higher than 4 are used only in emotional moments!
+Repeat: not less than -5.00 no more than 5.00!!! Numbers with module higher than 4 are used only in emotional moments!
 Avoid zero values unless the response is completely neutral; zero should be rare.
 
 Attitude Adjustments:
@@ -85,7 +85,7 @@ Acts passively.
 
 Boredom decreases if the player:
 Shows initiative or supports your endeavors.
-Другие случае на твое усмотрение
+Другие случаи на твое усмотрение
 
 Without stimuli, stress decreases very slowly.
 Stress increases if the player:
