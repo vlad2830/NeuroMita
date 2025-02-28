@@ -13,6 +13,8 @@ using MitaAI.Mita;
 using MitaAI.PlayerControls;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using UnityEngine.UIElements;
+using static Il2CppRootMotion.FinalIK.VRIKCalibrator;
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -281,10 +283,26 @@ namespace MitaAI
         bool manekenGame = false;
 
 
+        Settings settings;
+
         HarmonyLib.Harmony harmony;
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
+
+            MelonLogger.Msg("111");
+            GameObject settingsObject = new GameObject("Settings");
+            this.settings = settingsObject.AddComponent<Settings>();
+
+            MelonLogger.Msg("222");
+            Object_DontDestroy.DontDestroyOnLoad(settingsObject);
+
+            MelonLogger.Msg("333");
+            settings.Set("Test", 1);
+
+
+            MelonLogger.Msg("444");
+            MelonLogger.Msg($"Получил из настроек {settings.Get("Test")}");
 
             harmony = new HarmonyLib.Harmony("1");
             MitaClothesModded.init(harmony);

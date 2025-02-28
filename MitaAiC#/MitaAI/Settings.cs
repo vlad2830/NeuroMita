@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections;
 using UnityEngine;
+using MelonLoader.Utils;
 
 namespace MitaAI
 {
@@ -11,9 +12,36 @@ namespace MitaAI
         private string configPath;
         private Hashtable settings;
 
+        //Settings(string configPath, Hashtable settings)
+        //{
+          //  Start();
+        //}
+
         void Start()
         {
-            configPath = Path.Combine(Application.persistentDataPath, "settings.json");
+            string configPath = Path.Combine(MelonEnvironment.ModsDirectory, "NeuroMita", "settings.json");
+
+            // Проверяем, существует ли директория
+            string directoryPath = Path.GetDirectoryName(configPath);
+            if (!Directory.Exists(directoryPath))
+            {
+                // Создаем директорию, если она не существует
+                Directory.CreateDirectory(directoryPath);
+                MelonLogger.Msg($"directory created: {directoryPath}");
+            }
+
+            // Проверяем, существует ли файл
+            if (!File.Exists(configPath))
+            {
+                // Создаем файл, если он не существует
+                File.WriteAllText(configPath, "{}"); // Создаем пустой JSON-файл
+                MelonLogger.Msg($"File created: {configPath}");
+            }
+            else
+            {
+                MelonLogger.Msg($"File already created: {configPath}");
+            }
+
             settings = new Hashtable();
             LoadSettings();
         }
