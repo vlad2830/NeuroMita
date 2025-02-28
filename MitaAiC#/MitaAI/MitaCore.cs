@@ -215,7 +215,8 @@ namespace MitaAI
             Cappy = 1,
             Kind = 2,
             Cart_portal = 3,
-            ShortHair = 4
+            ShortHair = 4,
+            Cart_divan
         }
 
         public character currentCharacter = character.Mita;

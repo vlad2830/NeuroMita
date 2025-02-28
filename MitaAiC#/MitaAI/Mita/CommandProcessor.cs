@@ -138,6 +138,10 @@ namespace MitaAI.Mita
                     mitaCore.endHunt();
                     break;
 
+                case "resethaircolor":
+                    MitaClothesModded.resetMitaHairColor();
+                    break;
+
                 case "continue":
                     ContinueCounter = ContinueCounter + 1;
                     MelonLogger.Msg($"Cont times {ContinueCounter}");

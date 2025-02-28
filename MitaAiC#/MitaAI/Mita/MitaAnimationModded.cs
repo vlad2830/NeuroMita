@@ -270,6 +270,15 @@ namespace MitaAI.Mita
                         EnqueueAnimation("Mita HandsDance");
                         setIdleAnimation("Mita HandsDance");
                         break;
+
+                    case "Круто протанцевать":
+                        EnqueueAnimation("DanceTest");
+                        break;
+                    case "Начать круто танцевать":
+                        EnqueueAnimation("DanceTest");
+                        setIdleAnimation("DanceTest");
+                        break;
+
                     case "Похвастаться предметом":
                         EnqueueAnimation("Mita Take Recorder");
                         break;

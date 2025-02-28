@@ -128,9 +128,12 @@ namespace MitaAI
         }
 
         #region HairColor
+
+        private static Shader originalShader;
         private static void init_hair()
         {
             hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hair").GetComponent<Renderer>().material;
+            originalShader = hair_material.shader;
             hair_material.shader = Shader.Find("Legacy Shaders/Diffuse");
         }
 
@@ -141,6 +144,7 @@ namespace MitaAI
                 if (hair_material == null) init_hair();
 
                 hair_material.color = color;
+               
             }
 
             catch (Exception e)
@@ -156,7 +160,7 @@ namespace MitaAI
             try
             {
                 if (hair_material == null) init_hair();
-
+                hair_material.shader = originalShader;
                 hair_material.color = new Color(1,1,1,1);
             }
 

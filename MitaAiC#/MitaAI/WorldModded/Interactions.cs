@@ -138,7 +138,7 @@ namespace MitaAI
             switch (gameObject.name)
             {
                 case "Console":
-                    //InteractionCases.caseConsoleStart(gameObject);
+                    InteractionCases.caseConsoleStart(gameObject);
                     break;
                 case "SofaChair":
                     InteractionCases.sofaStart(gameObject);

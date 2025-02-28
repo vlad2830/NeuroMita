@@ -417,7 +417,7 @@ namespace MitaAI
 
                 try
                 {
-                    // TotalInitialization.initConsole(MitaCore.worldBasement);
+                    TotalInitialization.initConsole(MitaCore.worldBasement);
                 }
                 catch (Exception ex)
                 {
