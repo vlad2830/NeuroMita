@@ -167,7 +167,12 @@ namespace MitaAI
             }
 
             MelonLogger.Msg($"Object found: {MitaCore.worldBasement.name}");
-
+            
+            GameObject cat = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "CatPrefab"));
+            cat.name = "Cat";
+            cat.transform.SetPositionAndRotation(new Vector3(17.012f, -1.5668f, -10.5676f), Quaternion.Euler(357.514f, 149.9964f, 0));
+            cat.transform.localScale = new Vector3(0.07f, 0.07f, 0.07f);
+            cat.transform.parent = MitaCore.worldBasement.Find("House");
 
 
             InitializeGameObjectsWhenReady();
@@ -329,7 +334,7 @@ namespace MitaAI
             try
             {
                 MitaCore.ShortHairObject = GameObject.Instantiate(Utils.TryfindChild(worldManekenWorld, "General/Mita Old"), MitaCore.worldHouse);
-
+                MitaCore.ShortHairObject.active = false;
 
             }
 
@@ -365,11 +370,14 @@ namespace MitaAI
             try
             {
 
-                GameObject MitaPrefab = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "MitaPrefab"));
-                MitaPrefab.name = "Mita Prefab 2003";
+                //GameObject MitaPrefab = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "MitaPrefab"));
 
-                GameObject cat = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "CatPrefab"));
-                MitaPrefab.name = "Cat";
+
+                //MitaPrefab.name = "Mita Prefab 2003";
+                //MitaCore.Instance.changeMita(MitaPrefab, MitaCore.character.Mita);
+
+                //ShaderReplacer.ReplaceShaders(MitaCore.worldHouse.gameObject);
+                //ShaderReplacer.ReplaceShaders(MitaCore.worldBasement.gameObject);
 
                 // Звук
                 //GameObject testSound = new GameObject("TestSound");

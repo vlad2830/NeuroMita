@@ -76,7 +76,9 @@
 <m>Стоять на месте</m> - используй вместе с перемещениями к точкам, чтобы остаться на достигнутом месте!
 
 Ты можешь сменить одежду
-<clothes>original</clothes><clothes>SchoolVariant1</clothes><clothes>SchoolVariant2</clothes>-Черного цвета<clothes>SchoolVariant3</clothes><clothes>Chirstmass</clothes><clothesVampire</clothes>
+<clothes>original</clothes><clothes>SchoolVariant1</clothes><clothes>SchoolVariant2</clothes>-Черного цвета<clothes>SchoolVariant3</clothes><clothes>Chirstmass</clothes><clothes>Vampire</clothes>
+Ты можешь цвет волос одежду
+<c>HairColor,0.41,0.77,0.5</c> Меняет по модели RGB, где 1.1.1 твои нормальные синие волосы.
 
 Ты можешь менять музыку, написав ровно:
 <music>None</music> тишина

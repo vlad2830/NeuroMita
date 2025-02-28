@@ -228,6 +228,10 @@ namespace MitaAI.Mita
                     LightingAndDaytime.applyColor(new Color(r, g, b, 1f));
                     MelonLogger.Msg($"Lighting color changed to RGB({r}, {g}, {b})");
                     break;
+                case "haircolor":
+                    MitaClothesModded.setMitaHairColor(new Color(r, g, b, 1f));
+                    MelonLogger.Msg($"HairColor changed to RGB({r}, {g}, {b})");
+                    break;
 
                 default:
                     MelonLogger.Msg($"Unknown four-part command: {command}");
@@ -255,6 +259,8 @@ namespace MitaAI.Mita
                 MelonLogger.Msg($"Unknown command: {command}");
             }
         }
+
+        
 
     }
 

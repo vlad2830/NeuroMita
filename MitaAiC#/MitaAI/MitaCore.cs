@@ -8,7 +8,6 @@ using System.Globalization;
 using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine.AI;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using MitaAI.MitaAppereance;
 using MitaAI.Mita;
 using MitaAI.PlayerControls;
 using UnityEngine.UI;
@@ -589,7 +588,7 @@ namespace MitaAI
             MitaObject = GameObject.Find("Mita").gameObject;
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
-            CrazyObject = MitaPersonObject;
+            CrazyObject = MitaObject;
             currentCharacter = character.Mita;
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
@@ -645,6 +644,9 @@ namespace MitaAI
 
             PlayerAnimationModded.Init(playerObject, worldHouse, playerObject.GetComponent<PlayerMove>());
             LightingAndDaytime.Init(location21_World, worldHouse);
+            ShaderReplacer.init();
+
+
             MelonCoroutines.Start(StartDayTime());
             //MelonCoroutines.Start(UpdateLighitng());
 
@@ -2094,7 +2096,7 @@ namespace MitaAI
                 if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
                 info += $"Current music: {AudioControl.getCurrrentMusic()}\n";
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
-
+                info += MitaClothesModded.getCurrentHairColor();
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
                 else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>";
 

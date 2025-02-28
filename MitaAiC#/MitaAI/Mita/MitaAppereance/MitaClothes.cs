@@ -5,11 +5,13 @@ using System.Text.RegularExpressions;
 using MelonLoader;
 
 
-namespace MitaAI.MitaAppereance
+namespace MitaAI
 {
-    public class MitaClothesModded
+    public static class MitaClothesModded
     {
         //MitaPerson MitaPerson;
+        static Material hair_material;
+
         public enum Clothes
 
         {
@@ -124,7 +126,57 @@ namespace MitaAI.MitaAppereance
             currentClothes = cloth;
             ReCloth();
         }
+
+        #region HairColor
+        public static void setMitaHairColor(Color color)
+        {
+            try
+            {
+                if (hair_material == null)
+                {
+                    hair_material = MitaCore.Instance.MitaObject.transform.Find("Hair").GetComponent<Material>();
+                }
+            
+                hair_material.color = color;
+            }
+
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
     
+
+        }
+        public static void resetMitaHairColor()
+        {
+            try
+            {
+                if (hair_material == null)
+                {
+                    hair_material = MitaCore.Instance.MitaObject.transform.Find("Hair").GetComponent<SkinnedMeshRenderer>().material;
+                }
+
+                hair_material.color = new Color(1,1,1,1);
+            }
+
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+
+
+        }
+        public static string getCurrentHairColor()
+        {
+            if (hair_material == null) return null;
+            if (hair_material.color == Color.white) return "hair_color normal";
+            return $"hair_color custom: r:{hair_material.color.r} g:{hair_material.color.g} b:{hair_material.color.b}";
+        }
+
+        #endregion
+
         private static void ReCloth()
         {
             try
