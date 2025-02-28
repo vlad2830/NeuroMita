@@ -121,42 +121,25 @@ namespace MitaAI
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldManekenWorld(sceneToLoad));
 
-            try
-            {
-                sceneToLoad = "Scene 6 - BasementFirst";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBasement(sceneToLoad));
-            }
-            catch (Exception)
-            {
+            sceneToLoad = "Scene 6 - BasementFirst";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBasement(sceneToLoad));
+     
+
+      
+            sceneToLoad = "Scene 11 - Backrooms";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms2(sceneToLoad));
+        
+    
+            sceneToLoad = "Scene 3 - WeTogether";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldTogether(sceneToLoad));
 
 
-            }
-
-            try
-            {
-                sceneToLoad = "Scene 11 - Backrooms";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms2(sceneToLoad));
-            }
-            catch (Exception)
-            {
+            yield return MelonCoroutines.Start(AfterAllLoadded());
 
 
-            }
-
-            try
-            {
-                sceneToLoad = "Scene 3 - WeTogether";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldTogether(sceneToLoad));
-            }
-            catch (Exception)
-            {
-
-
-            }
-            
         }
         private static IEnumerator WaitForSceneAndInstantiateWorldBasement(string sceneToLoad)
         {
@@ -358,6 +341,20 @@ namespace MitaAI
             //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
 
+        }
+
+        private static IEnumerator AfterAllLoadded()
+        {
+            MelonLogger.Msg("After all loaded");
+            MitaCore.character MitaToStart = Settings.MitaType.Value;
+            MelonLogger.Msg($"Mita from settings {MitaToStart}");
+            if (MitaCore.Instance.currentCharacter != MitaToStart)
+            {
+                MitaCore.Instance.changeMita(null,character : MitaToStart);
+            }
+            yield return new WaitForSeconds(0.25f);
+            if (Utils.Random(1, 7)) MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом", MitaToStart);
+            else MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень.", MitaToStart);
         }
 
         private static void InitializeGameObjectsWhenReady()

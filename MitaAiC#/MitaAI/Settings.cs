@@ -1,99 +1,70 @@
 ﻿using MelonLoader;
-using System.IO;
-using System.Collections;
-using UnityEngine;
-using MelonLoader.Utils;
 
 namespace MitaAI
 {
-    [RegisterTypeInIl2Cpp]
-    public class Settings : MonoBehaviour
+    public static class Settings
     {
-        private string configPath;
-        private Hashtable settings;
+        private static MelonPreferences_Category category;
 
-        //Settings(string configPath, Hashtable settings)
-        //{
-          //  Start();
-        //}
+        /* // Примеры настроек
+        public static MelonPreferences_Entry<bool> AutoResponseEnabled;
+        public static MelonPreferences_Entry<float> ResponseDelay;
+        public static MelonPreferences_Entry<string> AiModelVersion;
+        */
 
-        void Start()
+        public static MelonPreferences_Entry<MitaCore.character> MitaType;
+
+        public static void Initialize()
         {
-            string configPath = Path.Combine(MelonEnvironment.ModsDirectory, "NeuroMita", "settings.json");
+            MelonLogger.Msg($"Init settings");
+            // Создаем категорию настроек
+            category = MelonPreferences.CreateCategory("NeuroMita", "NeuroMita Settings");
 
-            // Проверяем, существует ли директория
-            string directoryPath = Path.GetDirectoryName(configPath);
-            if (!Directory.Exists(directoryPath))
-            {
-                // Создаем директорию, если она не существует
-                Directory.CreateDirectory(directoryPath);
-                MelonLogger.Msg($"directory created: {directoryPath}");
-            }
+            MitaType = category.CreateEntry("MitaType", MitaCore.character.Mita);
 
-            // Проверяем, существует ли файл
-            if (!File.Exists(configPath))
-            {
-                // Создаем файл, если он не существует
-                File.WriteAllText(configPath, "{}"); // Создаем пустой JSON-файл
-                MelonLogger.Msg($"File created: {configPath}");
-            }
-            else
-            {
-                MelonLogger.Msg($"File already created: {configPath}");
-            }
+           /* // Инициализируем настройки со значениями по умолчанию
+            AutoResponseEnabled = category.CreateEntry(
+                "AutoResponseEnabled",
+                true,
+                "Enable Automatic Responses",
+                "Whether the AI should respond automatically");
 
-            settings = new Hashtable();
-            LoadSettings();
+            ResponseDelay = category.CreateEntry(
+                "ResponseDelay",
+                0.5f,
+                "Response Delay (seconds)",
+                "Delay before sending AI response");
+
+            AiModelVersion = category.CreateEntry(
+                "AiModelVersion",
+                "v2.1.5",
+                "AI Model Version",
+                "Version of the AI model to use");*/
         }
 
-        void LoadSettings()
+        // Метод для быстрого получения значения
+        public static T Get<T>(string entryName) where T : struct
         {
-            if (File.Exists(configPath))
-            {
-                try
-                {
-                    string json = File.ReadAllText(configPath);
-                    settings = JsonUtility.FromJson<Hashtable>(json);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"Error loading settings: {e}");
-                    settings = new Hashtable();
-                }
-            }
+            var entry = category.GetEntry<T>(entryName);
+            return entry != null ? entry.Value : default(T);
         }
 
-        void SaveSettings()
+        // Метод для быстрой установки значения
+        public static void Set<T>(string entryName, T value) where T : struct
         {
-            try
+            var entry = category.GetEntry<T>(entryName);
+            if (entry != null)
             {
-                //Il2CppSystem.Object ob  = settings;
-                Il2CppSystem.Collections.Generic.Dictionary<string, Il2CppSystem.Object> dict =
-                new Il2CppSystem.Collections.Generic.Dictionary<string, Il2CppSystem.Object>();
-
-                foreach (DictionaryEntry entry in settings)
-                {
-                    dict.Add(entry.Key.ToString(), (Il2CppSystem.Object)entry.Value);
-                }
-
-                string json = JsonUtility.ToJson(dict);
-                File.WriteAllText(configPath, json);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Error saving settings: {e}");
+                entry.Value = value;
+                Save();
             }
         }
 
-        public object Get(string key, object defaultValue = null)
+        // Сохранение настроек
+        public static void Save()
         {
-            return settings.ContainsKey(key) ? settings[key] : defaultValue;
-        }
-
-        public void Set(string key, object value)
-        {
-            settings[key] = value;
-            SaveSettings();
+            MelonLogger.Msg($"Saving settings");
+            MelonPreferences.Save();
         }
     }
 }

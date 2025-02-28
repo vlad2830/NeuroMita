@@ -15,6 +15,8 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
 using static Il2CppRootMotion.FinalIK.VRIKCalibrator;
+using UnityEngine.TextCore.Text;
+using static Il2CppRootMotion.FinalIK.InteractionObject;
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -25,9 +27,11 @@ namespace MitaAI
     {
         // Ссылка на экземпляр MitaCore, если он нужен
         public static MitaCore Instance;
+
         public MitaCore()
         {
             Instance = this;
+            Settings.Initialize();
         }
         // Метод, который будет вызываться после выполнения PrivateMethod
         
@@ -43,9 +47,33 @@ namespace MitaAI
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;
 
-
-        public void changeMita(GameObject NewMitaObject,character character = character.Mita)
+        private GameObject getMitaByEnum(character character)
         {
+            switch (character)
+            {
+                case character.Mita:
+                    return CrazyObject;
+                case character.Kind:
+                    return KindObject;
+                case character.ShortHair:
+                    return ShortHairObject;
+                case character.Cappy:
+                    return CappyObject;
+                default:
+                    return CrazyObject;
+
+            }
+
+
+        }
+        public void changeMita(GameObject NewMitaObject = null,character character = character.Mita)
+        {
+            if (NewMitaObject == null)
+            {
+                NewMitaObject = getMitaByEnum(character);
+
+            }
+
             MelonLogger.Msg("Change Mita Begin");
 
             try
@@ -165,7 +193,8 @@ namespace MitaAI
                 MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
                 MelonLogger.Msg("777");
 
-
+                Settings.MitaType.Value = character;
+                Settings.Save();
                 
 
 
@@ -182,6 +211,7 @@ namespace MitaAI
 
         public enum character
         {
+            None = -1,
             Mita = 0,
             Cappy = 1,
             Kind = 2,
@@ -283,26 +313,35 @@ namespace MitaAI
         bool manekenGame = false;
 
 
-        Settings settings;
+
 
         HarmonyLib.Harmony harmony;
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
 
+
+
+            
+/*
+ *          Пока не удалось
+  
             MelonLogger.Msg("111");
             GameObject settingsObject = new GameObject("Settings");
             this.settings = settingsObject.AddComponent<Settings>();
-
+            
             MelonLogger.Msg("222");
             Object_DontDestroy.DontDestroyOnLoad(settingsObject);
 
             MelonLogger.Msg("333");
-            settings.Set("Test", 1);
+
+            settings.Set("Test", "This is test ASDFASDFASDASDASD");
 
 
             MelonLogger.Msg("444");
             MelonLogger.Msg($"Получил из настроек {settings.Get("Test")}");
+*/
+
 
             harmony = new HarmonyLib.Harmony("1");
             MitaClothesModded.init(harmony);
@@ -331,13 +370,16 @@ namespace MitaAI
         }
 
 
-        public void sendSystemMessage(string m,character character = character.Mita)
-        {   
-            systemMessages.Enqueue( (m, currentCharacter) );
-        }
-        public void sendSystemInfo(string m, character character = character.Mita)
+        public void sendSystemMessage(string m,character character = character.None)
         {
-            systemInfos.Enqueue( (m, currentCharacter) );
+            if (character == character.None) character = currentCharacter;
+            systemMessages.Enqueue( (m, character) );
+        }
+        public void sendSystemInfo(string m, character character = character.None)
+        {
+
+            if (character == character.None) character = currentCharacter;
+            systemInfos.Enqueue((m, character));
         }
 
         public void playerKilled()
@@ -548,6 +590,7 @@ namespace MitaAI
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             CrazyObject = MitaPersonObject;
+            currentCharacter = character.Mita;
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
@@ -689,8 +732,7 @@ namespace MitaAI
             //Interactions.Test(GameObject.Find("Table"));
             MelonCoroutines.Start(RealTimer());
 
-            if (Utils.Random(1, 7)) sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом");
-            else sendSystemMessage("Игрок только что загрузился в твой уровень.");
+
 
 
             
@@ -842,6 +884,8 @@ namespace MitaAI
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
             string info = "-";
+            character characterToWas = character.None;
+            character characterToSend = currentCharacter;
 
             float currentTime = Time.time;
             if (currentTime - lastActionTime > actionCooldown)
@@ -859,11 +903,23 @@ namespace MitaAI
                 {
                     LoggerInstance.Msg("HAS SYSTEM MESSAGES");
                     MitaBoringtimer = 0f;
+                  
 
                     //Отправляю залпом.
                     while (systemMessages.Count() > 0)
                     {
-                        dataToSentSystem += systemMessages.Dequeue().Item1 + "\n";
+                        var message = systemMessages.Dequeue();
+                        dataToSentSystem += message.Item1 + "\n";
+                        characterToSend = message.Item2;
+                        if (characterToWas == character.None || characterToWas == characterToSend)
+                        {
+                            characterToWas = message.Item2;
+                        }
+                        else
+                        {
+                            sendSystemMessage(message.Item1, characterToSend);
+                            break;
+                        }
                     }
                     lastActionTime = Time.time;
 
@@ -882,11 +938,22 @@ namespace MitaAI
 
             if (systemInfos.Count > 0)
             {
-                LoggerInstance.Msg("HAS SYSTEM INFOS");
+                //LoggerInstance.Msg("HAS SYSTEM INFOS");
                 //Отправляю залпом.
                 while (systemInfos.Count() > 0)
                 {
-                    info += systemInfos.Dequeue().Item1 + "\n";
+                    var message = systemInfos.Dequeue();
+                    character ch = message.Item2;
+
+                    if (ch == characterToSend)
+                    {
+                        info += message.Item1 + "\n";
+                    }
+                    else
+                    {
+                        sendSystemInfo(message.Item1, ch);
+                        break;
+                    }
                 }
 
             }
@@ -1211,7 +1278,7 @@ namespace MitaAI
                 LoggerInstance.Msg("foreach foreach " + part);
 
                 string partCleaned = Utils.CleanFromTags(part); // Очищаем от всех тегов
-                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.6f,8f); 
+                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.3f,8f); 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay, itIsWaitingDialogue));
 
