@@ -17,23 +17,26 @@ namespace MitaAI.PlayerControls
         static GameObject InputFieldComponent;
         static InputField inputField; // Ссылка на компонент InputField
 
+        private static bool wasInputActive = false; // Флаг для отслеживания предыдущего состояния ввода
+        private static float savedPlayerSpeed = 1f; // Сохранённая скорость персонажа
+
         public static void UpdateInput(string userInput)
         {
-            if (inputField == null || string.IsNullOrEmpty(userInput)) return;
+            if (InputFieldComponent == null || inputField == null || string.IsNullOrEmpty(userInput)) return;
 
             // Сохраняем текущие позиции
             int caretPos = inputField.caretPosition;
-            int selectionAnchor = inputField.selectionAnchorPosition;
-            int selectionFocus = inputField.selectionFocusPosition;
+            //int selectionAnchor = inputField.selectionAnchorPosition;
+            //int selectionFocus = inputField.selectionFocusPosition;
 
             // Вставляем текст в позицию курсора
-            inputField.text = inputField.text.Insert(caretPos, $" {userInput}");
+            inputField.text = inputField.text.Insert(caretPos, userInput);
 
             // Обновляем позиции курсора и выделения
-            int newCaretPos = caretPos + userInput.Length;
-            inputField.caretPosition = newCaretPos;
-            inputField.selectionAnchorPosition = newCaretPos;
-            inputField.selectionFocusPosition = newCaretPos;
+            //int newCaretPos = caretPos + userInput.Length;
+            //inputField.caretPosition = newCaretPos;
+            //inputField.selectionAnchorPosition = newCaretPos;
+            //inputField.selectionFocusPosition = newCaretPos;           
         }
 
         // Метод для блокировки/разблокировки поля ввода
@@ -49,29 +52,33 @@ namespace MitaAI.PlayerControls
         public static void processInpute()
         {
             // Обработка блокировки движения при активном вводе
-            if (isInputActive)
+            if (isInputActive != wasInputActive) // Проверяем, изменилось ли состояние ввода
             {
                 if (PlayerAnimationModded.playerMove != null)
                 {
-                    PlayerAnimationModded.playerMove.speedPlayer = 0f;
-                    PlayerAnimationModded.UpdateSpeedAnimation(0f);
-                    PlayerAnimationModded.StopPlayerAnimation();
-                    PlayerAnimationModded.playerMove.dontMove = true;
-                    Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
-                    if (playerAnimator != null) playerAnimator.SetFloat("Speed", 0f);
+                    if (isInputActive)
+                    {
+                        // Сохраняем текущую скорость перед установкой в 0
+                        savedPlayerSpeed = PlayerAnimationModded.playerMove.speedPlayer;
+                        PlayerAnimationModded.playerMove.speedPlayer = 0f;
+                        PlayerAnimationModded.UpdateSpeedAnimation(0f);
+                        PlayerAnimationModded.StopPlayerAnimation();
+                        PlayerAnimationModded.playerMove.dontMove = true;
+                        Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
+                        if (playerAnimator != null) playerAnimator.SetFloat("Speed", 0f);
+                    }
+                    else
+                    {
+                        // Восстанавливаем сохранённую скорость
+                        PlayerAnimationModded.playerMove.speedPlayer = savedPlayerSpeed;
+                        PlayerAnimationModded.UpdateSpeedAnimation(savedPlayerSpeed);
+                        PlayerAnimationModded.playerMove.dontMove = false;
+                        Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
+                        if (playerAnimator != null) playerAnimator.SetFloat("Speed", savedPlayerSpeed);
+                        PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+                    }
                 }
-            }
-            else
-            {
-                if (PlayerAnimationModded.playerMove != null)
-                {
-                    PlayerAnimationModded.playerMove.speedPlayer = 1f;
-                    PlayerAnimationModded.UpdateSpeedAnimation(1f);
-                    PlayerAnimationModded.playerMove.dontMove = false;
-                    Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
-                    if (playerAnimator != null) playerAnimator.SetFloat("Speed", 1f);
-                    PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
-                }
+                wasInputActive = isInputActive; // Обновляем флаг предыдущего состояния
             }
 
             // Обработка нажатия Enter для открытия/закрытия чата и отправки текста

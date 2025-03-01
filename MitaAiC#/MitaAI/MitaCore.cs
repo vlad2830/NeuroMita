@@ -435,9 +435,10 @@ namespace MitaAI
 
             if (CurrentSceneName == "SceneMenu")
             {
+                
 
                 #region ButtonLoading
-               
+
                 MelonLogger.Msg("Start SceneMenu");
                 // Кнопки мода
                 GameObject Menu = GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu").gameObject;
@@ -482,17 +483,16 @@ namespace MitaAI
                     eventsProxy.SetupEvent(e, "ButtonLoad");
                     buttonMouseClick.eventClick = e;
                 }
-                catch (Exception e)
-                {
-
+                catch (Exception e) {
+                
                     MelonLogger.Error(e);
                 }
                 MelonLogger.Msg(7);
 
                 #endregion
 
-                //MainMenu.ButtonLoadScene(requiredSave);
 
+                //MainMenu.ButtonLoadScene(requiredSave);
                 //MainMenu.Alternative();
 
 
@@ -1276,10 +1276,9 @@ namespace MitaAI
 
             foreach (string part in dialogueParts)
             {
-                LoggerInstance.Msg("foreach foreach " + part);
 
                 string partCleaned = Utils.CleanFromTags(part); // Очищаем от всех тегов
-                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.3f,8f); 
+                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.75f,8f); 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay, itIsWaitingDialogue));
 
@@ -1345,7 +1344,7 @@ namespace MitaAI
             currentDialog.SetActive(true);  
             if ( !NetworkController.connectedToSilero && !itIsWaitingDialogue ) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
-            yield return new WaitForSeconds(delay+2f);
+            yield return new WaitForSeconds(delay+0.15f);
             MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
             GameObject.Destroy(currentDialog);
 
@@ -1374,7 +1373,7 @@ namespace MitaAI
 
                 currentDialog.SetActive(true);
 
-                yield return new WaitForSeconds(delay+2f);
+                yield return new WaitForSeconds(delay+ 0.15f);
                 MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
                 GameObject.Destroy(currentDialog);
                 
@@ -1419,7 +1418,7 @@ namespace MitaAI
                     LoggerInstance.Msg($"PlayerTalk: {ex.Message}");
                 }
                 
-                yield return new WaitForSeconds(delay+2f);
+                yield return new WaitForSeconds(delay+0.15f);
 
                 if (currentDialog != null)
                 {
