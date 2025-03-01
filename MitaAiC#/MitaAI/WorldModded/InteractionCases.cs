@@ -26,11 +26,7 @@ namespace MitaAI.WorldModded
             {
                 PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.sit;
                 PlayerAnimationModded.playAnimObject(gameObject);
-            }
-           
-
-
-           
+            }         
            
         }
 

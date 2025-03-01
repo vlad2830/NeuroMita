@@ -18,9 +18,10 @@ namespace MitaAI
             switch (evt.stringParameter)
             {
                 case "TakePlayer":
-
                     MelonCoroutines.Start(playerTaken());
-
+                    break;
+                case "Mita Kick":
+                    MelonCoroutines.Start(MitaKickEnd());
                     break;
             }
             MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
@@ -46,6 +47,14 @@ namespace MitaAI
             MelonLogger.Msg("Player throwned!");
             MitaAnimationModded.resetToIdleAnimation();
         }
+        static IEnumerator MitaKickEnd()
+        {
+            while (MitaAnimationModded.animator.GetCurrentStateName(0)=="Mita Kick")
+            {
+                yield return null;
+            }
+            MitaAnimationModded.bat.active = false;
+        }
 
         public static void HandleCustomEvent(string eventName)
         {
@@ -57,7 +66,6 @@ namespace MitaAI
                     PlayerAnimationModded.stopAnim();
                     break;
                 case "SofaSit":
-
                     break;
 
                 case "ButtonLoad":

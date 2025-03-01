@@ -163,6 +163,40 @@ namespace MitaAI.PlayerControls
                     MelonLogger.Msg(e);
                 }
             }
+            // unstack 
+            else if (Input.GetKeyDown(KeyCode.O) && Input.GetKeyDown(KeyCode.P))
+                {
+                    try
+                    {
+                        MelonLogger.Msg("Teleport mita to player");
+                        MitaCore.Instance.Mita.MitaTeleport(MitaCore.Instance.playerObject.transform);
+                        MitaCore.Instance.Mita.AiShraplyStop();
+                    }
+                    catch (Exception e)
+                    {
+
+                        MelonLogger.Msg(e);
+                    }
+
+                    changeMitaButtons();
+                }
+            // unstack player anim
+            else if (Input.GetKeyDown(KeyCode.O) && (Input.GetKeyDown(KeyCode.L)))
+            {
+                try
+                {
+                    MelonLogger.Msg("Teleport player to 0 0 0");
+                    PlayerAnimationModded.stopAnim();
+                    MitaCore.Instance.playerObject.transform.position = Vector3.zero;
+
+                }
+                catch (Exception e)
+                {
+
+                    MelonLogger.Msg(e);
+                }
+
+            }
             else if (Input.GetKeyDown(KeyCode.J) )
             {
                 MelonCoroutines.Start(changeMitaButtons());
@@ -302,6 +336,7 @@ namespace MitaAI.PlayerControls
             MelonLogger.Msg("Input received: " + inputText);
             MelonCoroutines.Start(MitaCore.Instance.PlayerTalk(inputText));
             MitaCore.Instance.playerMessage += $"{inputText}\n";
+            MitaCore.Instance.playerMessageCharacter = Characters.ChooseCharacterToAsnwer();
         }
 
         public static Sprite CreateBlackSprite(int width, int height)

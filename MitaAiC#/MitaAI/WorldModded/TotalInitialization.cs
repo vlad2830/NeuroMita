@@ -1,6 +1,7 @@
 ﻿using Il2Cpp;
 using Il2CppEPOOutline;
 using MelonLoader;
+using MitaAI.Mita;
 using System;
 using System.Collections;
 using System.Linq;
@@ -83,6 +84,9 @@ namespace MitaAI
         public static void initConsole(Transform worldBasement)
         {
             GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
+            MitaCore.Instance.cartridgeReader = console;
+            AudioControl.cartAudioSource = console.AddComponent<AudioSource>();
+
             ObjectInteractive objectInteractive = console.GetComponent<ObjectInteractive>();
             console.GetComponent<Animator>().enabled = true;
             console.GetComponent<Outlinable>().enabled = true;
@@ -116,6 +120,10 @@ namespace MitaAI
             sceneToLoad = "Scene 7 - Backrooms";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
+            
+            sceneToLoad = "Scene 14 - MobilePlayer";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateMobilePlayer(sceneToLoad));
 
             sceneToLoad = "Scene 10 - ManekenWorld";
             additiveLoadedScenes.Add(sceneToLoad);
@@ -137,6 +145,8 @@ namespace MitaAI
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldTogether(sceneToLoad));
 
 
+
+            
             yield return MelonCoroutines.Start(AfterAllLoadded());
 
 
@@ -347,7 +357,53 @@ namespace MitaAI
             SceneManager.UnloadScene(sceneToLoad);
 
         }
+        private static IEnumerator WaitForSceneAndInstantiateMobilePlayer(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
 
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            Transform world = FindObjectInScene(scene.name, "World");
+            if (world == null)
+            {
+                MelonLogger.Msg("World object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            world.gameObject.SetActive(false);
+
+            MelonLogger.Msg($"Object found: {world.name}");
+            try
+            {
+                MitaAnimationModded.bat= GameObject.Instantiate(Utils.TryfindChild(world, "Quest/Quest 1/Mita KitchenAttack/MitaPerson Mita/Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item/Bat"), MitaCore.worldHouse);
+                MitaAnimationModded.bat.transform.SetParent(MitaCore.Instance.MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item"));
+                MitaAnimationModded.bat.transform.localPosition = Vector3.zero;
+                MitaAnimationModded.bat.transform.localRotation = Quaternion.identity;
+                MitaAnimationModded.bat.active = false;
+
+                MitaCore.CreepyObject = GameObject.Instantiate(Utils.TryfindChild(world, "World/Quest/Quest 1/CreepyMita"), MitaCore.worldHouse);
+                MitaCore.CreepyObject.active = false;
+            }
+
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Founding error: {ex}");
+            }
+            //yield return new WaitForSeconds(1f);
+            SceneManager.UnloadScene(sceneToLoad);
+        }
         private static IEnumerator AfterAllLoadded()
         {
             MelonLogger.Msg("After all loaded");

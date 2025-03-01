@@ -18,7 +18,7 @@ namespace MitaAI.Mita
         public static AudioClip chibiMitaAudio;
         static AudioSource mitaAudioSourse;
         public static GameObject MitaDualogueSpeak;
-
+        public static AudioSource cartAudioSource;
         public static string getCurrrentMusic()
         {
             if (currentAudioObject == null) return "None";

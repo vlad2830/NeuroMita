@@ -97,11 +97,11 @@ class ChatModel:
         """
         Инициализирует возможных персонажей
         """
-        self.crazy_mita_character = CrazyMita("Mita", "/speaker mita")
-        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap")
+        self.crazy_mita_character = CrazyMita("Mita", "/speaker mita",True)
+        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap",True)
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley",True)
-        self.kind_mita_character = KindMita("Kind", "/speaker kind")
-        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair")
+        self.kind_mita_character = KindMita("Kind", "/speaker kind",True)
+        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair",True)
         self.cart_divan = DivanCartridge("Cart_divan","/speaker engineer",True)
 
         # Словарь для сопоставления имен персонажей с их объектами

@@ -314,13 +314,13 @@ class Character:
 
 class CrazyMita(Character):
 
-    def __init__(self, name: str = "Mita", silero_command: str = "/speaker Mita"):
+    def __init__(self, name: str = "Mita", silero_command: str = "/speaker Mita",silero_turn_off_video = False):
 
         self.secretExposed = False
         self.secretExposedFirst = False
         self.PlayingFirst = False
 
-        super().__init__(name, silero_command)
+        super().__init__(name, silero_command,silero_turn_off_video)
 
     def init(self):
         self.crazy_mita_prompts()
