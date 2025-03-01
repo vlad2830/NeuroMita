@@ -243,6 +243,7 @@ class ChatGUI:
 
         self.setup_silero_controls(right_frame)
         self.setup_mita_controls(right_frame)
+        self.setup_model_controls(right_frame)
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
 
@@ -522,8 +523,8 @@ class ChatGUI:
     def setup_silero_controls(self, parent):
         # Основные настройки
         telegram_config = [
-            {'label': 'Использовать силеро', 'key': 'SILERO_USE', 'type': 'checkbutton'},
-            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry',
+            {'label': 'Использовать силеро', 'key': 'SILERO_USE', 'type': 'checkbutton','default':True},
+            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry','default':7,
              'validation': self.validate_number}
         ]
 
@@ -532,10 +533,18 @@ class ChatGUI:
     def setup_mita_controls(self, parent):
         # Основные настройки
         mita_config = [
-            {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas()}
+            {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(), 'default':"Mita"}
         ]
 
         self.create_settings_section(parent, "Выбор персонажа", mita_config)
+
+    def setup_model_controls(self, parent):
+        # Основные настройки
+        mita_config = [
+            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry','default' : 40}
+        ]
+
+        self.create_settings_section(parent, "Настройки модели", mita_config)
 
     def validate_number(self, new_value):
         return 0 < len(new_value) <= 30  # Пример простой валидации
@@ -858,6 +867,9 @@ class ChatGUI:
 
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
+
+        elif key == "MODEL_MESSAGE_LIMIT":
+            self.model.memory_limit = value
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)

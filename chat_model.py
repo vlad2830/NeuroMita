@@ -65,7 +65,7 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         """"""
 
-        self.memory_limit = 40  # Ограничение сообщения
+        self.memory_limit = int(self.gui.settings.get("MODEL_MESSAGE_LIMIT", 40)) # Ограничение  насообщения
 
         """New System"""
         self.current_character = None
