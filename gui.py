@@ -1,4 +1,4 @@
-from SettingsManager import SettingsManager
+from SettingsManager import SettingsManager, CollapsibleSection
 from chat_model import ChatModel
 from server import ChatServer
 
@@ -240,6 +240,8 @@ class ChatGUI:
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         self.setup_microphone_controls(right_frame)
+
+        self.setup_some_controls(right_frame)
 
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
@@ -517,17 +519,18 @@ class ChatGUI:
         self.api_url_entry.insert(0, self.api_url)
         self.api_model_entry.insert(0, self.api_model)
 
-    def setup_advanced_controls(self, parent):
-        advanced_config = [
-            {
-                'label': 'Temperature',
-                'key': 'Temperature',
-                'type': 'entry'
-                #'validation': self.validate_api_key
-            }
+    def setup_some_controls(self,parent):
+        # Основные настройки
+        telegram_config = [
+            {'label': 'Использовать силеро', 'key': 'SILERO_USE', 'type': 'checkbutton'},
+            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'validation': self.validate_number  }
         ]
 
-        self.create_settings_section(parent, "Advanced Settings", advanced_config)
+        self.create_settings_section(parent, "Telegram Settings", telegram_config)
+
+    def validate_number(self,new_value):
+        return 0 < len(new_value) <= 30  # Пример простой валидации
+
 
     def pack_unpack(self, var, frame):
         """
@@ -840,12 +843,12 @@ class ChatGUI:
 
     #region SettingGUI
     def create_settings_section(self, parent, title, settings_config):
-        section_frame = tk.LabelFrame(parent, text=title, bg="#2c2c2c", fg="#ffffff")
-        section_frame.pack(fill=tk.X, padx=5, pady=5, expand=True)
+        section = CollapsibleSection(parent, title)
+        section.pack(fill=tk.X, padx=5, pady=5, expand=True)
 
         for config in settings_config:
-            self.create_setting_widget(
-                parent=section_frame,
+            widget = self.create_setting_widget(
+                parent=section.content_frame,
                 label=config['label'],
                 setting_key=config['key'],
                 widget_type=config.get('type', 'entry'),
@@ -853,9 +856,29 @@ class ChatGUI:
                 default=config.get('default', ''),
                 validation=config.get('validation', None)
             )
+            section.add_widget(widget)
+
+        return section
 
     def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
-                              options=None, default='', validation=None):
+                              options=None, default='', validation=None, tooltip=None,
+                              width=None, height=None, command=None):
+        """
+        Создает виджет настройки с различными параметрами.
+
+        Параметры:
+            parent: Родительский контейнер
+            label: Текст метки
+            setting_key: Ключ настройки
+            widget_type: Тип виджета ('entry', 'combobox', 'checkbutton', 'button', 'scale', 'text')
+            options: Опции для combobox
+            default: Значение по умолчанию
+            validation: Функция валидации
+            tooltip: Текст подсказки
+            width: Ширина виджета
+            height: Высота виджета (для текстовых полей)
+            command: Функция, вызываемая при изменении значения
+        """
         frame = tk.Frame(parent, bg="#2c2c2c")
         frame.pack(fill=tk.X, pady=2)
 
@@ -866,9 +889,18 @@ class ChatGUI:
         # Widgets
         if widget_type == 'entry':
             entry = tk.Entry(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white")
+            if width:
+                entry.config(width=width)
             entry.insert(0, self.settings_manager.get(setting_key, default))
             entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-            entry.bind("<FocusOut>", lambda e, k=setting_key: self._save_setting(k, entry.get()))
+
+            def save_entry():
+                self._save_setting(setting_key, entry.get())
+                if command:
+                    command(entry.get())
+
+            entry.bind("<FocusOut>", lambda e: save_entry())
+            entry.bind("<Return>", lambda e: save_entry())
 
             if validation:
                 entry.config(validate="key", validatecommand=(parent.register(validation), '%P'))
@@ -876,14 +908,86 @@ class ChatGUI:
         elif widget_type == 'combobox':
             var = tk.StringVar(value=self.settings_manager.get(setting_key, default))
             cb = ttk.Combobox(frame, textvariable=var, values=options, state="readonly")
+            if width:
+                cb.config(width=width)
             cb.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-            cb.bind("<<ComboboxSelected>>", lambda e, k=setting_key: self._save_setting(k, var.get()))
+
+            def save_combobox():
+                self._save_setting(setting_key, var.get())
+                if command:
+                    command(var.get())
+
+            cb.bind("<<ComboboxSelected>>", lambda e: save_combobox())
 
         elif widget_type == 'checkbutton':
             var = tk.BooleanVar(value=self.settings_manager.get(setting_key, False))
             cb = tk.Checkbutton(frame, variable=var, bg="#2c2c2c",
-                                command=lambda k=setting_key: self._save_setting(k, var.get()))
+                                command=lambda: [self._save_setting(setting_key, var.get()),
+                                                 command(var.get()) if command else None])
             cb.pack(side=tk.LEFT, padx=5)
+
+        elif widget_type == 'button':
+            btn = tk.Button(frame, text=label, bg="#8a2be2", fg="#ffffff",
+                            command=lambda: [self._save_setting(setting_key, True),
+                                             command() if command else None])
+            if width:
+                btn.config(width=width)
+            btn.pack(side=tk.LEFT, padx=5)
+
+        elif widget_type == 'scale':
+            var = tk.DoubleVar(value=self.settings_manager.get(setting_key, default))
+            scale = tk.Scale(frame, from_=options[0], to=options[1], orient=tk.HORIZONTAL,
+                             variable=var, bg="#2c2c2c", fg="#ffffff", highlightbackground="#2c2c2c",
+                             length=200 if not width else width)
+            scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+            def save_scale(value):
+                self._save_setting(setting_key, float(value))
+                if command:
+                    command(float(value))
+
+            scale.config(command=save_scale)
+
+        elif widget_type == 'text':
+            text = tk.Text(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
+                           height=height if height else 5, width=width if width else 50)
+            text.insert('1.0', self.settings_manager.get(setting_key, default))
+            text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+            def save_text():
+                self._save_setting(setting_key, text.get('1.0', 'end-1c'))
+                if command:
+                    command(text.get('1.0', 'end-1c'))
+
+            text.bind("<FocusOut>", lambda e: save_text())
+
+        # Добавляем tooltip если указан
+        if tooltip:
+            self.create_tooltip(frame, tooltip)
+
+        return frame
+
+    def create_tooltip(self, widget, text):
+        """Создает всплывающую подсказку для виджета"""
+        tooltip = tk.Toplevel(widget)
+        tooltip.wm_overrideredirect(True)
+        tooltip.wm_geometry("+0+0")
+        tooltip.withdraw()
+
+        label = tk.Label(tooltip, text=text, bg="#ffffe0", relief='solid', borderwidth=1)
+        label.pack()
+
+        def enter(event):
+            x = widget.winfo_rootx() + widget.winfo_width() + 5
+            y = widget.winfo_rooty()
+            tooltip.wm_geometry(f"+{x}+{y}")
+            tooltip.deiconify()
+
+        def leave(event):
+            tooltip.withdraw()
+
+        widget.bind("<Enter>", enter)
+        widget.bind("<Leave>", leave)
 
     def _save_setting(self, key, value):
         self.settings_manager.set(key, value)

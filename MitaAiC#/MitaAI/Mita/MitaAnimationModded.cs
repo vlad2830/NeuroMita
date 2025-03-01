@@ -67,12 +67,15 @@ namespace MitaAI.Mita
                 {
                     setCustomAnimatiomEvents(item);
                 }
+                mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
+
+                MelonLogger.Msg("b!");
                 setIdleWalk("Mita Walk_1");
-                MelonLogger.Msg("b!"); 
+                
                 animator.Rebind();
                 animator.Update(0);
 
-                mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
+                
             }
             catch (Exception ex)
             {

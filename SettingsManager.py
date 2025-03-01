@@ -2,6 +2,8 @@ import base64
 import json
 import os
 
+import tkinter as tk
+from tkinter import ttk
 
 class SettingsManager:
     def __init__(self, config_path):
@@ -34,3 +36,51 @@ class SettingsManager:
 
     def set(self, key, value):
         self.settings[key] = value
+
+
+class CollapsibleSection(ttk.LabelFrame):
+    def __init__(self, parent, title, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.parent = parent
+        self.title = title
+        self.is_collapsed = False
+        self.content_frame = None
+        self.init_ui()
+
+    def init_ui(self):
+        # Header with arrow indicator
+        self.header = ttk.Frame(self)
+        self.header.pack(fill=tk.X, pady=2)
+
+        self.arrow_label = ttk.Label(self.header, text="▼", font=("Arial", 10))
+        self.arrow_label.pack(side=tk.LEFT, padx=5)
+
+        self.title_label = ttk.Label(self.header, text=self.title, font=("Arial", 10, "bold"))
+        self.title_label.pack(side=tk.LEFT)
+
+        # Content frame
+        self.content_frame = ttk.Frame(self)
+        self.content_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        # Bind click events
+        self.header.bind("<Button-1>", self.toggle)
+        self.arrow_label.bind("<Button-1>", self.toggle)
+        self.title_label.bind("<Button-1>", self.toggle)
+
+    def toggle(self, event=None):
+        self.is_collapsed = not self.is_collapsed
+        if self.is_collapsed:
+            self.collapse()
+        else:
+            self.expand()
+
+    def collapse(self):
+        self.arrow_label.config(text="▶")
+        self.content_frame.pack_forget()
+
+    def expand(self):
+        self.arrow_label.config(text="▼")
+        self.content_frame.pack(fill=tk.X, padx=5, pady=5)
+
+    def add_widget(self, widget):
+        widget.pack(in_=self.content_frame, fill=tk.X, pady=2)

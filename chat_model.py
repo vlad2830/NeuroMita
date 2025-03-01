@@ -497,29 +497,6 @@ class ChatModel:
             logger.error(f"Ошибка: {response.status_code}, {response.text}")
             return None
 
-    def process_response(self, response):
-
-        try:
-
-            # Обрабатываем изменения в памяти
-            response = self.extract_and_process_memory_data(response)
-
-            # Обрабатываем изменение состояния Секрета
-            response = self.detect_secret_exposure(response)
-
-            # Обрабатывает ответ, изменяет показатели на основе скрытой строки формата <p>x,x,x,x<p>.
-            response = self.process_behavior_changes(response)
-
-            #Выполняет команды - вынесено в логику юнити мода
-            #response = self.process_commands(response, messages)
-
-            # Возвращаем обработанный ответ для дальнейшей работы
-            return response.strip()
-
-        except Exception as e:
-            print(f"Ошибка в обработке ответа: {e}")
-            return response  # Возвращаем оригинальный ответ в случае ошибки
-
     def process_commands(self, response, messages):
         """
         Обрабатывает команды типа <c>...</c> в ответе.

@@ -10,12 +10,8 @@ using UnityEngine.AI;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MitaAI.Mita;
 using MitaAI.PlayerControls;
-using UnityEngine.UI;
 using UnityEngine.Events;
-using UnityEngine.UIElements;
-using static Il2CppRootMotion.FinalIK.VRIKCalibrator;
-using UnityEngine.TextCore.Text;
-using static Il2CppRootMotion.FinalIK.InteractionObject;
+
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
 [assembly: MelonGame("AIHASTO", "MiSideFull")]
@@ -189,12 +185,14 @@ namespace MitaAI
                 MitaAnimationModded.location34_Communication.mitaCanWalk = true;
                 Location34_Communication.play = true;
 
+                Settings.MitaType.Value = character;
+                Settings.Save();
+
+
                 MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
                 MelonLogger.Msg("777");
 
-                Settings.MitaType.Value = character;
-                Settings.Save();
-                
+
 
 
 
