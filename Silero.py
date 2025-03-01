@@ -157,7 +157,18 @@ class TelegramBotHandler:
 
             if self.gui.silero_turn_off_video:
                 await self.client.send_message(self.silero_bot, "/videonotes")
-                await asyncio.sleep(0.25)
+
+                await asyncio.sleep(0.55)
+
+                # Получаем последнее сообщение от бота
+                messages = await self.client.get_messages(self.silero_bot, limit=1)
+                last_message = messages[0] if messages else None
+
+                # Проверяем содержимое последнего сообщения
+                if last_message and last_message.text == "Кружки включены!":
+                    # Если условие выполнено, отправляем команду еще раз
+                    await self.client.send_message(self.silero_bot, "/videonotes")
+
 
         self.last_speaker_command = speaker_command
 

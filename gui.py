@@ -276,7 +276,7 @@ class ChatGUI:
             self.chat_window.insert(tk.END, f"{content}\n")
         elif role == "assistant":
             # Вставляем имя Миты с синим цветом, а текст — обычным
-            self.chat_window.insert(tk.END, "Мита: ", "gpt_name")
+            self.chat_window.insert(tk.END, f"{self.model.current_character.name}: ", "gpt_name")
             self.chat_window.insert(tk.END, f"{content}\n\n")
 
     def setup_status_indicators(self, parent):

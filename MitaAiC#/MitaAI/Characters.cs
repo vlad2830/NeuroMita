@@ -13,6 +13,12 @@ namespace MitaAI
         // Сюда перенести все сharacter и changeMita
         static MitaCore.character cart = MitaCore.character.None;
 
+        public static MitaCore.character get_cart()
+        {
+            if (cart == MitaCore.character.None) init_cart();
+            return cart;
+        }
+
         private static void init_cart()
         {
             if (Utils.Random(1, 2)) cart = MitaCore.character.Cart_portal;
@@ -23,10 +29,8 @@ namespace MitaAI
         {
             if ( Utils.getDistanceBetweenObjects(MitaCore.Instance.playerObject, MitaCore.Instance.cartridgeReader)<3f && MitaCore.Instance.getDistanceToPlayer()>6f){
 
-                MelonLogger.Msg("Sent to cart");
-                if (cart == MitaCore.character.None) init_cart();
-        
-                return cart;
+                MelonLogger.Msg("Sent to cart");        
+                return get_cart();
             }
 
             return MitaCore.Instance.currentCharacter;

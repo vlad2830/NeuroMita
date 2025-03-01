@@ -66,6 +66,7 @@ namespace MitaAI
                     PlayerAnimationModded.stopAnim();
                     break;
                 case "SofaSit":
+
                     break;
 
                 case "ButtonLoad":
