@@ -50,7 +50,7 @@ class ChatGUI:
         self.api_id = None
         self.phone = None
 
-        self.settings_manager = SettingsManager("Settings/settings.json")
+        self.settings = SettingsManager("Settings/settings.json")
 
         try:
             target_folder = "Settings"
@@ -155,7 +155,7 @@ class ChatGUI:
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
 
-        if self.textToTalk != "":  #and not self.ConnectedToGame:
+        if self.textToTalk != "" and bool(self.settings.get("SILERO_USE")):  #and not self.ConnectedToGame:
             print(f"Есть текст для отправки: {self.textToTalk}")
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
@@ -241,8 +241,8 @@ class ChatGUI:
 
         self.setup_microphone_controls(right_frame)
 
-        self.setup_some_controls(right_frame)
-
+        self.setup_silero_controls(right_frame)
+        self.setup_mita_controls(right_frame)
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
 
@@ -519,18 +519,26 @@ class ChatGUI:
         self.api_url_entry.insert(0, self.api_url)
         self.api_model_entry.insert(0, self.api_model)
 
-    def setup_some_controls(self,parent):
+    def setup_silero_controls(self, parent):
         # Основные настройки
         telegram_config = [
             {'label': 'Использовать силеро', 'key': 'SILERO_USE', 'type': 'checkbutton'},
-            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'validation': self.validate_number  }
+            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry',
+             'validation': self.validate_number}
         ]
 
-        self.create_settings_section(parent, "Telegram Settings", telegram_config)
+        self.create_settings_section(parent, "Настройка силеро", telegram_config)
 
-    def validate_number(self,new_value):
+    def setup_mita_controls(self, parent):
+        # Основные настройки
+        mita_config = [
+            {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas()}
+        ]
+
+        self.create_settings_section(parent, "Выбор персонажа", mita_config)
+
+    def validate_number(self, new_value):
         return 0 < len(new_value) <= 30  # Пример простой валидации
-
 
     def pack_unpack(self, var, frame):
         """
@@ -842,6 +850,15 @@ class ChatGUI:
     # endregion
 
     #region SettingGUI
+
+    def all_settings_actions(self, key, value):
+        ...
+        if key == "SILERO_TIME":
+            self.bot_handler.silero_time_limit = int(value)
+
+        elif key == "CHARACTER":
+            self.model.current_character_to_change = value
+
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
         section.pack(fill=tk.X, padx=5, pady=5, expand=True)
@@ -891,7 +908,7 @@ class ChatGUI:
             entry = tk.Entry(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white")
             if width:
                 entry.config(width=width)
-            entry.insert(0, self.settings_manager.get(setting_key, default))
+            entry.insert(0, self.settings.get(setting_key, default))
             entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
             def save_entry():
@@ -906,7 +923,7 @@ class ChatGUI:
                 entry.config(validate="key", validatecommand=(parent.register(validation), '%P'))
 
         elif widget_type == 'combobox':
-            var = tk.StringVar(value=self.settings_manager.get(setting_key, default))
+            var = tk.StringVar(value=self.settings.get(setting_key, default))
             cb = ttk.Combobox(frame, textvariable=var, values=options, state="readonly")
             if width:
                 cb.config(width=width)
@@ -920,7 +937,7 @@ class ChatGUI:
             cb.bind("<<ComboboxSelected>>", lambda e: save_combobox())
 
         elif widget_type == 'checkbutton':
-            var = tk.BooleanVar(value=self.settings_manager.get(setting_key, False))
+            var = tk.BooleanVar(value=self.settings.get(setting_key, False))
             cb = tk.Checkbutton(frame, variable=var, bg="#2c2c2c",
                                 command=lambda: [self._save_setting(setting_key, var.get()),
                                                  command(var.get()) if command else None])
@@ -935,7 +952,7 @@ class ChatGUI:
             btn.pack(side=tk.LEFT, padx=5)
 
         elif widget_type == 'scale':
-            var = tk.DoubleVar(value=self.settings_manager.get(setting_key, default))
+            var = tk.DoubleVar(value=self.settings.get(setting_key, default))
             scale = tk.Scale(frame, from_=options[0], to=options[1], orient=tk.HORIZONTAL,
                              variable=var, bg="#2c2c2c", fg="#ffffff", highlightbackground="#2c2c2c",
                              length=200 if not width else width)
@@ -951,7 +968,7 @@ class ChatGUI:
         elif widget_type == 'text':
             text = tk.Text(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
                            height=height if height else 5, width=width if width else 50)
-            text.insert('1.0', self.settings_manager.get(setting_key, default))
+            text.insert('1.0', self.settings.get(setting_key, default))
             text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
             def save_text():
@@ -990,11 +1007,10 @@ class ChatGUI:
         widget.bind("<Leave>", leave)
 
     def _save_setting(self, key, value):
-        self.settings_manager.set(key, value)
-        self.settings_manager.save_settings()
-        # При необходимости можно добавить хук для обработки изменений
-        #if key == "NM_API_KEY":
-        #    self.model.update_api_key(value)
+        self.settings.set(key, value)
+        self.settings.save_settings()
+
+        self.all_settings_actions(key, value)
 
     #endregion
 

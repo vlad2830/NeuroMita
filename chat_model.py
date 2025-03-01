@@ -69,7 +69,7 @@ class ChatModel:
 
         """New System"""
         self.current_character = None
-        self.current_character_to_change = ""
+        self.current_character_to_change = str(self.gui.settings.get("CHARACTER"))
         self.characters = None
 
         """То, что нужно будет убрать в одну переменную"""
@@ -115,6 +115,10 @@ class ChatModel:
         }
 
         self.current_character = self.crazy_mita_character
+
+    def get_all_mitas(self):
+        print(f"ASDASDASDASDASD {self.characters.keys()}")
+        return list(self.characters.keys())
 
     def update_openai_client(self, reserve_key=False):
         print("Попытка обновить клиент")

@@ -3,8 +3,8 @@ import logging
 
 import asyncio
 
-SAMPLE_RATE = 16000
-CHUNK_SIZE = 1024
+SAMPLE_RATE = 32000
+CHUNK_SIZE = 256
 TIMEOUT_MESSAGE = False
 
 
@@ -34,7 +34,8 @@ class SpeechRecognition:
         recognizer = sr.Recognizer()
 
         # Используем выбранный микрофон
-        with sr.Microphone(device_index=SpeechRecognition.microphone_index) as source:
+        with sr.Microphone(device_index=SpeechRecognition.microphone_index, sample_rate=SAMPLE_RATE,
+                           chunk_size=CHUNK_SIZE) as source:
             print(f"Используется микрофон: {sr.Microphone.list_microphone_names()[SpeechRecognition.microphone_index]}")
             recognizer.adjust_for_ambient_noise(source)
             print("Скажите что-нибудь...")

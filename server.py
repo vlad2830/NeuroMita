@@ -67,7 +67,7 @@ class ChatServer:
                 print("Отправлено Мите на озвучку: " + response)
 
             # Ждать ли на той стороне файла озвучки
-            if self.gui.silero_connected.get():
+            if self.gui.silero_connected and self.gui.settings.get("SILERO_USE"):
                 silero = "1"
             else:
                 silero = "0"

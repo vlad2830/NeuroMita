@@ -48,25 +48,45 @@ class CollapsibleSection(ttk.LabelFrame):
         self.init_ui()
 
     def init_ui(self):
+        # Настройка стилей для ttk виджетов
+        style = ttk.Style()
+        style.configure("Black.TFrame", background="#2c2c2c")
+        style.configure("Black.TLabel", background="#2c2c2c", foreground="#ffffff")
+        style.configure("Black.TLabelframe", background="#2c2c2c", foreground="#ffffff")
+
         # Header with arrow indicator
-        self.header = ttk.Frame(self)
+        self.header = ttk.Frame(self, style="Black.TFrame")
         self.header.pack(fill=tk.X, pady=2)
 
-        self.arrow_label = ttk.Label(self.header, text="▼", font=("Arial", 10))
+        # Стрелка для индикации состояния
+        self.arrow_label = ttk.Label(
+            self.header,
+            text="▼",
+            font=("Arial", 10),
+            style="Black.TLabel"
+        )
         self.arrow_label.pack(side=tk.LEFT, padx=5)
 
-        self.title_label = ttk.Label(self.header, text=self.title, font=("Arial", 10, "bold"))
+        # Заголовок секции
+        self.title_label = ttk.Label(
+            self.header,
+            text=self.title,
+            font=("Arial", 10, "bold"),
+            style="Black.TLabel"
+        )
         self.title_label.pack(side=tk.LEFT)
 
-        # Content frame
-        self.content_frame = ttk.Frame(self)
+        # Контентная область
+        self.content_frame = ttk.Frame(self, style="Black.TFrame")
         self.content_frame.pack(fill=tk.X, padx=5, pady=5)
 
-        # Bind click events
+        # Привязка событий клика
         self.header.bind("<Button-1>", self.toggle)
         self.arrow_label.bind("<Button-1>", self.toggle)
         self.title_label.bind("<Button-1>", self.toggle)
 
+        # Устанавливаем черный фон для самого LabelFrame
+        self.configure(style="Black.TLabelframe")
     def toggle(self, event=None):
         self.is_collapsed = not self.is_collapsed
         if self.is_collapsed:

@@ -15,9 +15,9 @@ from utils import SH
 
 # Пример использования:
 class TelegramBotHandler:
+
     def __init__(self, gui, api_id, api_hash, phone, message_limit_per_minute=20):
         # Получение параметров из окружения
-
         self.api_id = api_id
         self.api_hash = api_hash
         self.phone = phone
@@ -25,6 +25,9 @@ class TelegramBotHandler:
         self.gui = gui
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
+
+        self.silero_time_limit = 8
+
         if getattr(sys, 'frozen', False):
             # Если программа собрана в exe, получаем путь к исполняемому файлу
             base_dir = os.path.dirname(sys.executable)
@@ -173,7 +176,8 @@ class TelegramBotHandler:
         print("Ожидание ответа от бота...")
         response = None
         attempts = 0
-        attempts_max = 24
+        attempts_per_second = 4
+        attempts_max = self.silero_time_limit * attempts_per_second
         await asyncio.sleep(0.7)
         while attempts <= attempts_max:  # Попытки получения ответа
 
@@ -187,10 +191,10 @@ class TelegramBotHandler:
                 break
             print(f"Попытка {attempts + 1}/{attempts_max}. Ответ от бота не найден.")
             attempts += 1
-            await asyncio.sleep(0.25)  # Немного подождем
+            await asyncio.sleep(1 / attempts_per_second)  # Немного подождем
 
         if not response:
-            print("Ответ от бота не получен после 3 попыток.")
+            print(f"Ответ от бота не получен после {attempts_max} попыток.")
             return
 
         # Обработка полученного сообщения
