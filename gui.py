@@ -155,20 +155,23 @@ class ChatGUI:
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
 
-        if self.textToTalk != "" and bool(self.settings.get("SILERO_USE")):  #and not self.ConnectedToGame:
+        if self.textToTalk != "":  #and not self.ConnectedToGame:
             print(f"Есть текст для отправки: {self.textToTalk}")
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
-                print("Цикл событий готов. Отправка текста.")
-                asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk, self.textSpeaker),
-                                                 self.loop)
+
+                if bool(self.settings.get("SILERO_USE")):
+                    print("Цикл событий готов. Отправка текста.")
+                    asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                                                     self.loop)
                 self.textToTalk = ""  # Очищаем текст после отправки
                 print("Выполнено")
             else:
                 print("Ошибка: Цикл событий не готов.")
 
+
         text_from_recognition = SpeechRecognition.receive_text()
-        if text_from_recognition and self.user_entry:
+        if bool(self.settings.get("MIC_ACTIVE")) and text_from_recognition and self.user_entry:
             self.user_entry.insert(tk.END, text_from_recognition)
             self.user_input = self.user_entry.get("1.0", "end-1c").strip()
 
@@ -523,8 +526,8 @@ class ChatGUI:
     def setup_silero_controls(self, parent):
         # Основные настройки
         telegram_config = [
-            {'label': 'Использовать силеро', 'key': 'SILERO_USE', 'type': 'checkbutton','default':True},
-            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry','default':7,
+            {'label': 'Использовать силеро', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
+            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
              'validation': self.validate_number}
         ]
 
@@ -533,7 +536,8 @@ class ChatGUI:
     def setup_mita_controls(self, parent):
         # Основные настройки
         mita_config = [
-            {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(), 'default':"Mita"}
+            {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(),
+             'default': "Mita"}
         ]
 
         self.create_settings_section(parent, "Выбор персонажа", mita_config)
@@ -541,7 +545,7 @@ class ChatGUI:
     def setup_model_controls(self, parent):
         # Основные настройки
         mita_config = [
-            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry','default' : 40}
+            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40}
         ]
 
         self.create_settings_section(parent, "Настройки модели", mita_config)
@@ -794,6 +798,8 @@ class ChatGUI:
         )
         refresh_btn.pack(side=tk.LEFT, padx=5)
 
+        self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton', default_checkbutton=True)
+
     def get_microphone_list(self):
         try:
             devices = sd.query_devices()
@@ -890,7 +896,7 @@ class ChatGUI:
         return section
 
     def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
-                              options=None, default='', validation=None, tooltip=None,
+                              options=None, default='', default_checkbutton=False, validation=None, tooltip=None,
                               width=None, height=None, command=None):
         """
         Создает виджет настройки с различными параметрами.
@@ -949,7 +955,7 @@ class ChatGUI:
             cb.bind("<<ComboboxSelected>>", lambda e: save_combobox())
 
         elif widget_type == 'checkbutton':
-            var = tk.BooleanVar(value=self.settings.get(setting_key, False))
+            var = tk.BooleanVar(value=self.settings.get(setting_key, default_checkbutton))
             cb = tk.Checkbutton(frame, variable=var, bg="#2c2c2c",
                                 command=lambda: [self._save_setting(setting_key, var.get()),
                                                  command(var.get()) if command else None])
