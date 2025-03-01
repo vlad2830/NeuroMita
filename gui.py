@@ -71,7 +71,7 @@ class ChatGUI:
         self.patch_to_sound_file = ""
 
         self.root = tk.Tk()
-        self.root.title("Чат с MitaAI")
+        self.root.title("Чат с NeuroMita")
 
         self.last_price = ""
 
@@ -79,8 +79,7 @@ class ChatGUI:
         self.setup_ui()
 
         try:
-            ...
-            #self.load_mic_settings()
+            self.load_mic_settings()
         except Exception as e:
             print("Не удалось удачно получить настройки микрофона", e)
 

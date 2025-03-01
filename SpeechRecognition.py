@@ -10,6 +10,7 @@ TIMEOUT_MESSAGE = False
 
 class SpeechRecognition:
     user_input = ""
+    microphone_index = 0
 
     @staticmethod
     def receive_text():
@@ -28,13 +29,13 @@ class SpeechRecognition:
         SpeechRecognition.user_input += f" {recognized_text}"
 
     @staticmethod
-    async def live_recognition(microphone_index: int) -> None:
+    async def live_recognition() -> None:
         """Потоковое распознавание с выбранного микрофона"""
         recognizer = sr.Recognizer()
 
         # Используем выбранный микрофон
-        with sr.Microphone(device_index=microphone_index) as source:
-            print(f"Используется микрофон: {sr.Microphone.list_microphone_names()[microphone_index]}")
+        with sr.Microphone(device_index=SpeechRecognition.microphone_index) as source:
+            print(f"Используется микрофон: {sr.Microphone.list_microphone_names()[SpeechRecognition.microphone_index]}")
             recognizer.adjust_for_ambient_noise(source)
             print("Скажите что-нибудь...")
 
@@ -64,11 +65,12 @@ class SpeechRecognition:
                     break
 
     @staticmethod
-    async def speach_recognition_start_async(device_id: int):
+    async def speach_recognition_start_async():
         """Асинхронный запуск распознавания с указанным микрофоном"""
-        await SpeechRecognition.live_recognition(device_id)
+        await SpeechRecognition.live_recognition()
 
     @staticmethod
     def speach_recognition_start(device_id: int, loop):
+        SpeechRecognition.microphone_index = device_id
         """Синхронный запуск распознавания с указанным микрофоном"""
-        asyncio.run_coroutine_threadsafe(SpeechRecognition.speach_recognition_start_async(device_id), loop)
+        asyncio.run_coroutine_threadsafe(SpeechRecognition.speach_recognition_start_async(), loop)
