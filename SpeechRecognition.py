@@ -51,6 +51,11 @@ class SpeechRecognition:
                         None,
                         lambda: recognizer.recognize_google(audio, language="ru-RU")
                     )
+                    if not text:
+                        text = await asyncio.get_event_loop().run_in_executor(
+                            None,
+                            lambda: recognizer.recognize_google(audio, language="en-EN")
+                        )
 
                     if text:
                         await SpeechRecognition.handle_voice_message(text)
