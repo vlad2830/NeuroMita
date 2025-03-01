@@ -241,6 +241,7 @@ namespace MitaAI
         public GameObject knife;
 
         PlayerPerson playerPerson;
+        public GameObject playerPersonObject;
         public GameObject playerObject;
         PlayerCameraEffects playerEffects;
         GameObject playerEffectsObject;
@@ -608,6 +609,7 @@ namespace MitaAI
             //Mita.gameObject.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = true;
 
             playerPerson = GameObject.Find("Person")?.GetComponent<PlayerPerson>();
+            playerPersonObject = playerPerson.gameObject;
             playerObject = playerPerson.transform.parent.gameObject;
             playerControllerObject = playerObject.transform.parent.gameObject;
             playerController = playerControllerObject.GetComponent<GameController>();
@@ -1914,7 +1916,7 @@ namespace MitaAI
             while (movementStyle == MovementStyles.noclip && getDistanceToPlayer() > distance)
             {
 
-                yield return MelonCoroutines.Start(MoveToPositionNoClip(5));
+                yield return MelonCoroutines.Start(MoveToPositionNoClip(25));
 
                 yield return new WaitForSeconds(1f);
             }
@@ -1927,12 +1929,12 @@ namespace MitaAI
             {
                 Vector3 targetPosition = playerPerson.gameObject.transform.position;
                 // Двигаем персонажа напрямую к цели (без учета препятствий)
-                Mita.transform.position = Vector3.MoveTowards(Mita.transform.position, targetPosition, speed * Time.deltaTime);
+                MitaPersonObject.transform.position = Vector3.MoveTowards(MitaPersonObject.transform.position, targetPosition, speed * Time.deltaTime);
 
                 // Можно добавить поворот персонажа в направлении движения (опционально)
-                Vector3 direction = (targetPosition - Mita.transform.position).normalized;
+                Vector3 direction = (targetPosition - MitaPersonObject.transform.position).normalized;
                 if (direction != Vector3.zero)
-                    Mita.transform.rotation = Quaternion.LookRotation(direction);
+                    MitaPersonObject.transform.rotation = Quaternion.LookRotation(direction);
 
                 yield return null; // Ждем следующий кадр
             }

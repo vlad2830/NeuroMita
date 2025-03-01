@@ -10,21 +10,22 @@ namespace MitaAI.WorldModded
 {
     public static class InteractionCases
     {
+        static bool ConsoleStarted = false;
         public static void caseConsoleStart(GameObject console)
         {
-            if (console.GetComponent<ObjectInteractive>().active)
-            {
-                console.GetComponent<ObjectInteractive>().active = false;
-                MelonCoroutines.Start(caseConsoleAct(console));
-            }
+            if (ConsoleStarted) return;
+            
+            console.GetComponent<ObjectInteractive>().enabled = false;
+            MelonCoroutines.Start(caseConsoleAct(console));
+            ConsoleStarted = true;
 
         }
 
         public static void sofaStart(GameObject gameObject)
         {
-            if (Utils.getDistanceBetweenObjects(gameObject, MitaCore.Instance.playerObject) > 1.5f) return;
+            
             MelonLogger.Msg($"SofaSit");
-            gameObject.GetComponent<ObjectInteractive>().active = false;
+            gameObject.GetComponent<ObjectInteractive>().enabled = false;
 
             if (PlayerAnimationModded.currentPlayerMovement != PlayerAnimationModded.PlayerMovement.sit)
             {
@@ -37,6 +38,8 @@ namespace MitaAI.WorldModded
 
         public static IEnumerator caseConsoleAct(GameObject console)
         {
+
+            MelonLogger.Msg("caseConsoleAct");
             try
             {
                 MitaCore.Instance.playerObject.transform.Find("LeftItem FixPosition/Console/ConsoleCup/ScreenWork").gameObject.active = false;
@@ -50,25 +53,36 @@ namespace MitaAI.WorldModded
             
             yield return new WaitForSeconds(1.5f);
 
-            MitaCore.Instance.sendSystemMessage("Твою консоль только что открыли.", Characters.get_cart() );
+            try
+            {
+                MitaCore.Instance.sendSystemMessage("Твою консоль только что открыли.", Characters.get_cart());
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+           
 
             var Button1 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey FindButton");
-            var Button2 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey Holding");
 
-            var Button1_res = GameObject.Instantiate(Button1);
-            var Button2_res = GameObject.Instantiate(Button2);
+            Button1.active = true;
 
-            Button1_res.active = false; Button2_res.active = false;
+            //var Button1_res = GameObject.Instantiate(Button1);
+            //var Button2_res = GameObject.Instantiate(Button2);
+
+            //Button1_res.active = false; Button2_res.active = false;
 
 
-            Button1?.SetActive(true);
+
 
             while (Button1!=null)
             {
                 yield return new WaitForSeconds(0.25f);
             }
-            MitaCore.Instance.sendSystemMessage("Игрок ищет кнопку выключения консоли", Characters.get_cart());
+            MitaCore.Instance.sendSystemMessage("Игрок ищет кнопку выключения консоли, если он выключит тебя, то сможет поговорить с тобой только при перезапуске.", Characters.get_cart());
             
+            var Button2 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey Holding");
             while (Button2 != null)
             {
                 yield return new WaitForSeconds(0.25f);
@@ -79,7 +93,7 @@ namespace MitaAI.WorldModded
             MitaCore.Instance.sendSystemInfo("Игрок выключил тебя", Characters.get_cart());
 
             yield return new WaitForSeconds(1f);
-            console.GetComponent<ObjectInteractive>().active = true;
+            /*console.GetComponent<ObjectInteractive>().active = true;
 
             Button1.transform.SetParent(MitaCore.worldBasement.Find("Quests/Quest1 Start"));
             Button2_res.transform.SetParent(MitaCore.worldBasement.Find("Quests/Quest1 Start"));
@@ -91,7 +105,7 @@ namespace MitaAI.WorldModded
             GameObject console_res = consoleParent.Find(console.name + "_res").gameObject;
             GameObject.Destroy(console);
             console_res.active = true;
-
+*/
 
         }
 

@@ -91,6 +91,10 @@ namespace MitaAI
             console.GetComponent<Animator>().enabled = true;
             console.GetComponent<Outlinable>().enabled = true;
 
+            //GameObject console_res = GameObject.Instantiate(console, console.transform.parent);
+            //console_res.name = console.name+"_res";
+            //console_res.active = false;
+
             Utils.TryTurnChild(MitaCore.worldBasement, "Quests/Quest1 Start/Dialogues Привет - Передай ключ",false);
             Utils.TryTurnChild(MitaCore.worldBasement, "Quests/Quest1 Start/Dialogues Console", false);
             objectInteractive.active = true;
