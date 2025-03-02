@@ -12,7 +12,7 @@ class SpeechRecognition:
     user_input = ""
     microphone_index = 0
     active = True
-
+    
     @staticmethod
     def receive_text():
         user_input_to_send = SpeechRecognition.user_input

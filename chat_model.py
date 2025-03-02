@@ -1,5 +1,6 @@
 import tiktoken
 from openai import OpenAI
+from g4f.client import Client as g4fClient
 
 import datetime
 import re
@@ -47,6 +48,7 @@ class ChatModel:
             self.makeRequest = api_make_request
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
+            self.g4fClient = g4fClient()
             print("Со старта удалось запустить OpenAi client")
         except:
             print("Со старта не получилось запустить OpenAi client")
@@ -312,6 +314,8 @@ class ChatModel:
         self._log_generation_start()
         save_combined_messages(combined_messages)
 
+
+
         if self.makeRequest:
             formatted_messages = self._format_messages_for_gemini(combined_messages)
             response = self._generate_gemini_response(formatted_messages)
@@ -383,13 +387,30 @@ class ChatModel:
                 combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]
 
             print(f"Перед запросом  {len(combined_messages)}", )
-            completion = self.client.chat.completions.create(
-                model=self.api_model,
-                messages=combined_messages,
-                max_tokens=self.max_response_tokens,
-                #presence_penalty=1.5,
-                temperature=0.5
-            )
+
+            if bool(self.gui.settings.get("gpt4free")):
+                print("gpt4free case")
+
+                model = self.api_model
+                if not model:
+                    print("Не указана модель, подставил gemini-1.5-flash")
+                    model = "gemini-1.5-flash"
+
+                completion = self.g4fClient.chat.completions.create(
+                    model=model,
+                    messages=combined_messages,
+                    max_tokens=self.max_response_tokens,
+                    temperature=0.5,
+                    web_search=False
+                )
+            else:
+                completion = self.client.chat.completions.create(
+                    model=self.api_model,
+                    messages=combined_messages,
+                    max_tokens=self.max_response_tokens,
+                    #presence_penalty=1.5,
+                    temperature=0.5
+                )
             print(f"after completion{completion}")
 
             if completion:

@@ -545,6 +545,7 @@ class ChatGUI:
     def setup_model_controls(self, parent):
         # Основные настройки
         mita_config = [
+            {'label': 'Использовать gpt4free', 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
             {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40}
         ]
 
