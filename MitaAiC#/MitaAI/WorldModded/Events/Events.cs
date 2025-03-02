@@ -60,6 +60,11 @@ namespace MitaAI
         {
             MelonLogger.Msg($"HandleCustomEvent called with event: {eventName}");
 
+            if (eventName.StartsWith("MENU|")){
+                UINeuroMita.MenuEventsCases(eventName);
+            }
+
+
             switch (eventName)
             {
                 case "ConsoleEnd":
@@ -69,9 +74,6 @@ namespace MitaAI
 
                     break;
 
-                case "ButtonLoad":
-                    MitaCore.MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
-                    break;
                 default:
                     break;
             }

@@ -388,23 +388,38 @@ namespace MitaAI
 
         public void playerKilled()
         {
+          
             sendSystemMessage("Игрок был укушен манекеном. Манекен выключился (его можно перезапустить)");
-            playerPerson.transform.parent.position = GetRandomLoc().position;
-            Component effectComponent = playerEffectsObject.GetComponentByName("Glitch");
-            if (effectComponent is Il2CppObjectBase il2cppComponent)
+            //playerPerson.transform.parent.position = GetRandomLoc().position;
+
+            try
             {
-                // Если это Il2CppObjectBase
-                LoggerInstance.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
+                Component effectComponent = playerEffectsObject.GetComponentByName("Glitch");
+                if (effectComponent is Il2CppObjectBase il2cppComponent)
+                {
+                    // Если это Il2CppObjectBase
+                    LoggerInstance.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
 
-                // Проверяем, имеет ли компонент свойство enabled
-                var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
-                var behaviour = il2cppComponent.TryCast<Behaviour>();
-                behaviour.enabled = true;
+                    // Проверяем, имеет ли компонент свойство enabled
+                    var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
+                    var behaviour = il2cppComponent.TryCast<Behaviour>();
+                    behaviour.enabled = true;
 
-                // Запускаем корутину, передавая Il2Cpp-компонент
-                MelonCoroutines.Start(Utils.HandleIl2CppComponent(il2cppComponent, 5f));
+                    // Запускаем корутину, передавая Il2Cpp-компонент
+                    MelonCoroutines.Start(Utils.HandleIl2CppComponent(il2cppComponent, 5f));
+
+                }
+
 
             }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error(ex);
+            }
+
+
+
         }
         public void playerClickSafe()
         {
@@ -441,61 +456,9 @@ namespace MitaAI
 
             if (CurrentSceneName == "SceneMenu")
             {
-                
-
-                #region ButtonLoading
-
-                MelonLogger.Msg("Start SceneMenu");
-                // Кнопки мода
-                GameObject Menu = GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu").gameObject;
-                Menu.transform.localPosition = new Vector3(250f,355f,0);
-                Menu.transform.Find("Text").localPosition = new Vector3(-250, 15, 0);
-                MelonLogger.Msg(2);
-                GameObject NeuroMitaButton = GameObject.Instantiate(Menu.transform.Find("Button Continue").gameObject);
-                Menu.GetComponent<MenuLocation>().objects.Add(NeuroMitaButton.GetComponent<RectTransform>());
-                NeuroMitaButton.name = "NeuroMitaStartButton";
-
-                MelonLogger.Msg(3);
-                NeuroMitaButton.transform.SetParent(GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu").transform);
-                NeuroMitaButton.transform.localPosition = new Vector3(-250, -45, 0);
-                NeuroMitaButton.transform.localScale = new Vector3(1, 1, 1);
-                NeuroMitaButton.transform.rotation = new Quaternion(0, 0, 0, 0);
-                MelonLogger.Msg(4);
-
-                GameObject NeuroMitaButtonText = NeuroMitaButton.transform.Find("Text").gameObject;
-                //NeuroMitaButtonText.GetComponent<Localization_UIText>().deactiveTextTranslate = true;
-                //NeuroMitaButtonText.GetComponent<Localization_UIText>().enabled = false;
-                //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = "ИГРАТЬ С NEUROMITA";
-                //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = "ИГРАТЬ С NEUROMITA";
-
-                MelonCoroutines.Start(changeName(NeuroMitaButtonText));
-
-                //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font  = Menu.transform.Find("Button NewGame/Text").GetComponent<Text>().font;
 
 
-                UI_Colors uI_Colors = NeuroMitaButton.GetComponent<UI_Colors>();
-                MelonLogger.Msg(5);
-                // Цвет фона
-                uI_Colors.SetColorImage(0, new Color(0.5f,1f,0.5f,0.5f));
-
-                sendSystemInfo("Игрок в меню");
-                MainMenu = GameObject.Find("MenuGame").GetComponent<Menu>();
-                MelonLogger.Msg(6);
-                try
-                {
-                    ButtonMouseClick buttonMouseClick = NeuroMitaButton.GetComponent<ButtonMouseClick>();
-                    EventsProxy eventsProxy = NeuroMitaButton.AddComponent<EventsProxy>();
-                    UnityEvent e = new UnityEvent();
-                    eventsProxy.SetupEvent(e, "ButtonLoad");
-                    buttonMouseClick.eventClick = e;
-                }
-                catch (Exception e) {
-                
-                    MelonLogger.Error(e);
-                }
-                MelonLogger.Msg(7);
-
-                #endregion
+                UINeuroMita.init();
 
 
                 //MainMenu.ButtonLoadScene(requiredSave);
@@ -533,16 +496,7 @@ namespace MitaAI
                 InitializeGameObjects();
             }
         }
-        public IEnumerator changeName(GameObject NeuroMitaButtonText)
-        {
-            Font original_font = NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font;
 
-            while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font) {
-                yield return null;
-            }
-            NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = "ИГРАТЬ С NEUROMITA";
-            NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = "ИГРАТЬ С NEUROMITA";
-        }
 
 
         public int roomIDPlayer = -1;
@@ -1250,7 +1204,7 @@ namespace MitaAI
         {
             LoggerInstance.Msg("DisplayResponseAndEmotion");
 
-            InputControl.TurnBlockInputField(true);
+            
             try
             {
 
@@ -1291,7 +1245,7 @@ namespace MitaAI
 
         private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
         {
-
+            InputControl.BlockInputField(true);
             foreach (string part in dialogueParts)
             {
 
@@ -1303,6 +1257,7 @@ namespace MitaAI
                 
             }
             if (!itIsWaitingDialogue && CommandProcessor.ContinueCounter > 0) CommandProcessor.ContinueCounter = CommandProcessor.ContinueCounter - 1;
+            InputControl.BlockInputField(false);
         }
 
 
@@ -1366,8 +1321,6 @@ namespace MitaAI
             //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
             GameObject.Destroy(currentDialog);
 
-
-            InputControl.TurnBlockInputField(false);
         }
 
         private IEnumerator PlayMitaSound(float delay, AudioClip audioClip, int len)
@@ -1576,7 +1529,7 @@ namespace MitaAI
         // Корутин для активации и деактивации объекта
         public IEnumerator ActivateAndDisableKiller(float delay)
         {
-            
+            MelonLogger.Msg("Player killed");
 
             if (AnimationKiller.transform.Find("PositionsKill").childCount > 0)
             {
@@ -1608,8 +1561,32 @@ namespace MitaAI
             AnimationKiller.SetActive(false); // Включаем объект
             // Возвращаем Миту в исходное положение
             Utils.TryTurnChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);
-            Mita.transform.SetPositionAndRotation(originalPosition, originalRotation);
-            Mita.AiShraplyStop();
+
+            try
+            {
+                MitaPersonObject.transform.SetPositionAndRotation(originalPosition, originalRotation);
+                Mita.AiShraplyStop();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+            PlayerAnimationModded.TurnHandAnim();
+
+            if (AudioControl.getCurrrentMusic() != "Music 4 Tension")
+            {
+                MelonLogger.Msg("Need to turn of Tension");
+                AudioControl.TurnAudio("Music 4 Tension", false);
+                
+                yield return new WaitForSecondsRealtime(2f);
+
+                AudioControl.TurnAudio("Music 4 Tension", false);
+            }
+
+            
+
         }
 
 

@@ -877,6 +877,10 @@ class ChatGUI:
         elif key == "MODEL_MESSAGE_LIMIT":
             self.model.memory_limit = value
 
+        elif key == "MIC_ACTIVE":
+            SpeechRecognition.active = value
+
+
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
         section.pack(fill=tk.X, padx=5, pady=5, expand=True)

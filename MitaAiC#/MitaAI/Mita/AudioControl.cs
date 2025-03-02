@@ -65,6 +65,7 @@ namespace MitaAI.Mita
                 MelonLogger.Error($"Failed to find or add 'Music 3 Tamagochi': {e.Message}");
             }
 
+
             MelonLogger.Msg($"_audioObjects count {_audioObjects.Count()}");
 
 
@@ -90,6 +91,21 @@ namespace MitaAI.Mita
             //  audioObject.SetActive(false);
             //}
         }
+        public static void addMusicObject(GameObject gameObject)
+        {
+            try
+            {
+                _audioObjects[gameObject.name] = gameObject;
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Failed to add music {gameObject.name} to dict {ex}");
+            }
+            
+        }
+
+
         public static string ProcessMusic(string response)
         {
             MelonLogger.Msg($"Inside ProcessMusic");
@@ -100,7 +116,7 @@ namespace MitaAI.Mita
             {
                 if (match.Success)
                 {
-                    PlayAudio(match.Groups[1].Value);
+                    TurnAudio(match.Groups[1].Value);
                     break;
                 }
             }
@@ -113,7 +129,7 @@ namespace MitaAI.Mita
 
         }
         // Функция для включения объекта по имени и выключения остальных
-        public static void PlayAudio(string audioName)
+        public static void TurnAudio(string audioName, bool on = true)
         {
             // Проверяем, существует ли объект с таким именем в словаре
             if (_audioObjects.ContainsKey(audioName))

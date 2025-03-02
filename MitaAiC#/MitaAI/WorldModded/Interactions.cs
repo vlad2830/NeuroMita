@@ -121,16 +121,16 @@ namespace MitaAI
         }
         public static void OnGameObjectClicked(GameObject gameObject)
         {
-            MelonLogger.Msg($"OnGameObjectClicked {gameObject.name} enter");
+            //MelonLogger.Msg($"OnGameObjectClicked {gameObject.name} enter");
 
             //MitaCore.Instance.sendSystemInfo($"Игрок стукнул по {gameObject.name}.");
             //MelonLogger.Msg($"The GameObject {gameObject.name} was clicked!");
 
             if (gameObject.GetComponent<ObjectInteractive>())
             {
-                MelonLogger.Msg("OnGameObjectClicked 1");
+                //MelonLogger.Msg("OnGameObjectClicked 1");
                 //if (!gameObject.GetComponent<ObjectInteractive>().enabled) return;
-                MelonLogger.Msg("OnGameObjectClicked 2");
+                //MelonLogger.Msg("OnGameObjectClicked 2");
                 if (Utils.getDistanceBetweenObjects(gameObject, MitaCore.Instance.playerPersonObject) >= 3f) return;
 
                 MelonLogger.Msg("OnGameObjectClicked all");

@@ -515,7 +515,11 @@ namespace MitaAI
                 MitaCore.Instance.knife.SetActive(false);
 
                 //AnimationKiller.GetComponent<Location6_MitaKiller>().mita = Mita.transform;
-                Utils.TryfindChild(MitaCore.worldBasement, "Sounds/Ambient 1").transform.parent = MitaCore.worldHouse.FindChild("Audio");
+                var musicTension = Utils.TryfindChild(MitaCore.worldBasement, "Sounds/Ambient 1");
+                musicTension.transform.parent = MitaCore.worldHouse.FindChild("Audio");
+                musicTension.name = "Music 4 Tension";
+                AudioControl.addMusicObject(musicTension);
+
                 MitaCore.Instance.AnimationKiller.SetActive(false);
                 //DeleteChildren(AnimationKiller.transform.Find("PositionsKill").gameObject);
 

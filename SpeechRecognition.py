@@ -11,6 +11,7 @@ TIMEOUT_MESSAGE = False
 class SpeechRecognition:
     user_input = ""
     microphone_index = 0
+    active = True
 
     @staticmethod
     def receive_text():
@@ -42,6 +43,9 @@ class SpeechRecognition:
 
             while True:
                 try:
+                    if not SpeechRecognition.active:
+                        return
+
                     audio = await asyncio.get_event_loop().run_in_executor(
                         None,
                         lambda: recognizer.listen(source)

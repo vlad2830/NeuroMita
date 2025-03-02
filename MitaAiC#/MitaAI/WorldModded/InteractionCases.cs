@@ -25,6 +25,7 @@ namespace MitaAI.WorldModded
         {
             
             MelonLogger.Msg($"SofaSit");
+
             gameObject.GetComponent<ObjectInteractive>().enabled = false;
 
             if (PlayerAnimationModded.currentPlayerMovement != PlayerAnimationModded.PlayerMovement.sit)

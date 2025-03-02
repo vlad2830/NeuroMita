@@ -40,10 +40,10 @@ namespace MitaAI.PlayerControls
         }
 
         // Метод для блокировки/разблокировки поля ввода
-        public static void TurnBlockInputField(bool blocked)
+        public static void BlockInputField(bool blocked)
         {
             isInputBlocked = blocked; // Устанавливаем блокировку
-            if (InputFieldComponent != null)
+            if (InputFieldComponent != null && wasInputActive)
             {
                 InputFieldComponent.SetActive(!blocked); // Отключаем поле ввода, если оно активно
             }
@@ -82,20 +82,38 @@ namespace MitaAI.PlayerControls
             }
 
             // Обработка нажатия Enter для открытия/закрытия чата и отправки текста
-            if (Input.GetKeyDown(KeyCode.Return))
+            if (Input.GetKeyDown(KeyCode.Tab))
             {
-                if (InputFieldComponent == null)
+                if (!InputFieldExists()) return;
+
+
+                // Переключаем видимость InputField
+                bool isActive = InputFieldComponent != null && InputFieldComponent.activeSelf;
+                if (InputFieldComponent != null)
                 {
-                    try
+                    InputFieldComponent.SetActive(!isActive);
+
+                    // Если объект стал активным, активируем InputField
+                    if (InputFieldComponent.activeSelf)
                     {
-                        CreateInputComponent();
+                        inputField.Select();
+                        inputField.ActivateInputField();
+                        isInputActive = true;  // Ввод активен
+                        isInputLocked = true;  // Блокируем закрытие поля ввода
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MelonLogger.Msg("CreateInputComponent ex:" + ex);
-                        return; // Прекращаем выполнение, если создание компонента не удалось
+                        isInputActive = false;  // Ввод не активен
+                        isInputLocked = false; // Разблокируем поле ввода
                     }
                 }
+            }
+
+
+            else if (Input.GetKeyDown(KeyCode.Return))
+            {
+                if (!InputFieldExists()) return;
+        
 
                 if (isInputBlocked) return; // Если поле ввода заблокировано, ничего не делаем
 
@@ -108,29 +126,7 @@ namespace MitaAI.PlayerControls
                     isInputActive = false;  // Ввод завершен, восстанавливаем движение
                     isInputLocked = false; // Разблокируем поле ввода
                 }
-                else
-                {
-                    // Переключаем видимость InputField
-                    bool isActive = InputFieldComponent != null && InputFieldComponent.activeSelf;
-                    if (InputFieldComponent != null)
-                    {
-                        InputFieldComponent.SetActive(!isActive);
 
-                        // Если объект стал активным, активируем InputField
-                        if (InputFieldComponent.activeSelf)
-                        {
-                            inputField.Select();
-                            inputField.ActivateInputField();
-                            isInputActive = true;  // Ввод активен
-                            isInputLocked = true;  // Блокируем закрытие поля ввода
-                        }
-                        else
-                        {
-                            isInputActive = false;  // Ввод не активен
-                            isInputLocked = false; // Разблокируем поле ввода
-                        }
-                    }
-                }
             }
 
             // Дополнительная обработка нажатия клавиш
@@ -215,6 +211,26 @@ namespace MitaAI.PlayerControls
                 }
             }
         }
+        
+        static bool InputFieldExists()
+        {
+            if (InputFieldComponent == null)
+            {
+                try
+                {
+                    CreateInputComponent();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Msg("CreateInputComponent ex:" + ex);
+                    return false; // Прекращаем выполнение, если создание компонента не удалось
+                }
+            }
+            return true;
+        }
+        
+        
         private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
         private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(4); // Задержка в 5 секунд
 

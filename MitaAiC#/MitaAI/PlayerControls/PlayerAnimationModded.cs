@@ -23,6 +23,7 @@ namespace MitaAI
         static private Queue<AnimationClip> animationQueue = new Queue<AnimationClip>();
         static private bool isPlaying = false;
         static public PlayerMove playerMove;
+        static public PlayerPersonIK playerPersonIK;
         public static Dictionary<string, AnimationClip> PlayerAnimations { get; private set; } = new Dictionary<string, AnimationClip>();
 
         public static AnimationClip getPlayerAnimationClip(string name)
@@ -73,6 +74,8 @@ namespace MitaAI
         public static void Init(GameObject player, Transform worldHouse, PlayerMove _playerMove)
         {
             objectAnimationPlayer = player.AddComponent<ObjectAnimationPlayer>();
+            playerPersonIK = MitaCore.Instance.playerPersonObject.GetComponent<PlayerPersonIK>();
+
             playerMove = _playerMove;
             FindPlayerAnimationsRecursive(worldHouse);
             //FindPlayerAnimationsRecursive(MitaCore.worldTogether);
@@ -261,6 +264,14 @@ namespace MitaAI
 
         }
 
+
+        public static void TurnHandAnim()
+        {
+            // Пока так
+            playerPersonIK.RemoveItem();
+            //playerPersonIK.AnimationHandsFace(true);
+            //playerPersonIK.IkZero();
+        }
 
         public static IEnumerator endWhenAnotherState(ObjectAnimationPlayer objectAnimationPlayer)
         {
