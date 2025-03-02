@@ -1,6 +1,7 @@
 import tiktoken
 from openai import OpenAI
 from g4f.client import Client as g4fClient
+#from huggingface_hub import HfApi
 
 import datetime
 import re
@@ -49,6 +50,7 @@ class ChatModel:
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
             self.g4fClient = g4fClient()
+            #self.hugging_face_client = HfApi()
             print("Со старта удалось запустить OpenAi client")
         except:
             print("Со старта не получилось запустить OpenAi client")
