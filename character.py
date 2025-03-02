@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from EventState import EventState
+#from EventState import EventState
 from MemorySystem import MemorySystem
 from promptPart import PromptPart, PromptType
 from HistoryManager import HistoryManager
@@ -29,7 +29,7 @@ class Character:
         self.load_history()
 
         self.memory_system = MemorySystem(self.name)
-        self.state = EventState()
+#        self.state = EventState()
 
         """
         Спорные временные переменные
