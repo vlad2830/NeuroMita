@@ -467,8 +467,16 @@ namespace MitaAI
                 {
                     var wardrobeGameObject = wardrobeTransform.gameObject;
                     wardrobeGameObject.GetComponent<BoxCollider>().enabled = false;
+                    //wardrobeGameObject.GetComponent<BoxCollider>().isTrigger = true;
+                    //wardrobeGameObject.AddComponent<WardrobeFix>();
+
+
                     Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorL", false);
                     Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorR", false);
+
+                    
+     
+
                 }
                 catch (Exception)
                 {

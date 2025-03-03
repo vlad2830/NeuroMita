@@ -170,9 +170,24 @@ namespace MitaAI
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
+            try
+            {
+                MelonLogger.Msg("Cappy");
+                GameObject MitaCappyButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                MitaCappyButton.active = false;
+                MitaCappyButton = GameObject.Instantiate(NeuroMitaButton, MitaCappyButton.transform.position, MitaCappyButton.transform.rotation, MitaCappyButton.transform.parent);
+                MitaCappyButton.name = "MitaCappyButton";
+                MitaCappyButton.active = true;
 
-            GameObject MitaShortButton = StartMenuObject.transform.Find("Button Volume").gameObject;
-            MitaShortButton.active = false;
+                MelonCoroutines.Start(changeName(MitaCappyButton.transform.Find("Text").gameObject, "Кепочка"));
+                MitaCappyButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MitaCappyButton, MitaCappyButton.name);
+
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+
+            //GameObject MitaShortButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+            //MitaShortButton.active = false;
             MelonLogger.Msg(5);
             //GameObject MitaShortButton = StartMenuObject.transform.Find("Back").gameObject;
             //MitaShortButton.active = false;
@@ -210,6 +225,11 @@ namespace MitaAI
                     Settings.Save();
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
+                case "MitaCappyButton":
+                    Settings.MitaType.Value = MitaCore.character.Cappy;
+                    Settings.Save();
+                    MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
+                    break;
                 case "ButtonReturn":
                     StartMenu.Active(false);
                     MainMenuLocation.Active(true);
@@ -229,12 +249,12 @@ namespace MitaAI
             float time = 0f;
             while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font)
             {
-                if (time >= 10f)
+                if (time >= 30f)
                 {
                     break;
                 }
 
-                time += Time.deltaTime;
+                time += Time.unscaledDeltaTime;
                 yield return null;
             }
             NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = text;
