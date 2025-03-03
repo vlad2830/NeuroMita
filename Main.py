@@ -1,10 +1,5 @@
 ### main.py
 
-import os
-import ssl
-import certifi
-
-
 from gui import ChatGUI
 
 
@@ -21,16 +16,6 @@ from gui import ChatGUI
 # Устанавливаем глобальные настройки SSL в самом начале приложения
 
 def main():
-    # Настройка SSL сертификатов для aiohttp
-    os.environ['SSL_CERT_FILE'] = certifi.where()
-    os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
-    os.environ['CURL_CA_BUNDLE'] = certifi.where()
-    
-    # Отключение проверки SSL для aiohttp
-    ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
-    
     gui = ChatGUI()
     gui.run()
 

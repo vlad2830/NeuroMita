@@ -1,17 +1,12 @@
 import tiktoken
 from openai import OpenAI
 from g4f.client import Client as g4fClient
-from g4f.Provider.GizAI import GizAI
 #from huggingface_hub import HfApi
 
-import time
 import re
-import shutil
 
 from character import *
 from utils import *
-from MemorySystem import MemorySystem
-from requests.exceptions import Timeout
 # Настройка логирования
 import logging
 import colorlog
@@ -431,7 +426,7 @@ class ChatModel:
                     self.try_print_error(completion)
                     return None
             else:
-                print("completion пусто")
+                logger.warning("completion пусто")
                 return None
 
         except Exception as e:

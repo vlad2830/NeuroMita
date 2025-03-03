@@ -220,21 +220,21 @@ class TelegramBotHandler:
         print("Запуск коннектора ТГ!")
         try:
             pass
-            # await self.client.start(phone=self.phone)
+            await self.client.start(phone=self.phone) # тут на macOS проблема: какая-то фигня с ткинтером
 
-            # self.gui.silero_connected.set(True)
-            # print("Успешно авторизован!")
-            # await self.client.send_message(self.silero_bot, "/start")
-            # await asyncio.sleep(0.35)
-            # await self.client.send_message(self.silero_bot, "/speaker mita")
-            # self.last_speaker_command = "/speaker mita"
-            # await asyncio.sleep(0.35)
-            # await self.client.send_message(self.silero_bot, "/mp3")
-            # await asyncio.sleep(0.35)
-            # await self.client.send_message(self.silero_bot, "/hd")
-            # await asyncio.sleep(0.35)
-            # await self.client.send_message(self.silero_bot, "/videonotes")
-            # print("Включено все в ТГ для сообщений миты")
+            self.gui.silero_connected.set(True)
+            print("Успешно авторизован!")
+            await self.client.send_message(self.silero_bot, "/start")
+            await asyncio.sleep(0.35)
+            await self.client.send_message(self.silero_bot, "/speaker mita")
+            self.last_speaker_command = "/speaker mita"
+            await asyncio.sleep(0.35)
+            await self.client.send_message(self.silero_bot, "/mp3")
+            await asyncio.sleep(0.35)
+            await self.client.send_message(self.silero_bot, "/hd")
+            await asyncio.sleep(0.35)
+            await self.client.send_message(self.silero_bot, "/videonotes")
+            print("Включено все в ТГ для сообщений миты")
         except Exception as e:
             self.gui.silero_connected.set(False)
             print(f"Ошибка авторизации: {e}")
