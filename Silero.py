@@ -10,6 +10,7 @@ from telethon.tl.types import MessageMediaDocument
 import ffmpeg
 import platform
 
+from AudioConverter import AudioConverter
 from utils import SH
 
 
@@ -74,38 +75,6 @@ class TelegramBotHandler:
             print("Проблема в ините тг")
             print(SH(self.api_id))
             print(SH(self.api_hash))
-
-    import ffmpeg
-    import os
-
-    async def convert_mp3_to_wav(self, input_path, output_path):
-        """Конвертирует MP3 в WAV с использованием ffmpeg."""
-        try:
-            if not os.path.exists(input_path):
-                print(f"Файл {input_path} не найден при попытке конвертации.")
-                return
-
-            # Указываем путь к ffmpeg
-
-            print(f"Начинаю конвертацию {input_path} в {output_path} с помощью {self.ffmpeg_path}")
-
-            # Выполняем команду конвертации с нужными параметрами
-            (
-                ffmpeg
-                .input(input_path)
-                .output(
-                    output_path,
-                    format="wav",  # Указываем формат WAV
-                    acodec="pcm_s16le",  # 16-битный PCM
-                    ar="44100",  # Частота дискретизации 44100 Hz
-                    ac=2  # Количество каналов (2 = стерео, 1 = моно)
-                )
-                .run(cmd=self.ffmpeg_path)
-            )
-
-            print(f"Конвертация завершена: {output_path}")
-        except Exception as e:
-            print(f"Ошибка при конвертации: {e}")
 
     def reset_message_count(self):
         """Сбрасывает счетчик сообщений каждую минуту."""
@@ -224,7 +193,7 @@ class TelegramBotHandler:
 
                     absolute_wav_path = os.path.abspath(wav_path)
                     # Конвертируем MP3 в WAV
-                    await self.convert_mp3_to_wav(absolute_mp3_path, absolute_wav_path)
+                    await AudioConverter.convert_to_wav(absolute_mp3_path, absolute_wav_path)
 
                     try:
                         print(f"Удаляю файл: {absolute_mp3_path}")
@@ -250,22 +219,22 @@ class TelegramBotHandler:
 
         print("Запуск коннектора ТГ!")
         try:
+            pass
+            # await self.client.start(phone=self.phone)
 
-            await self.client.start(phone=self.phone)
-
-            self.gui.silero_connected.set(True)
-            print("Успешно авторизован!")
-            await self.client.send_message(self.silero_bot, "/start")
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/speaker mita")
-            self.last_speaker_command = "/speaker mita"
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/mp3")
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/hd")
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/videonotes")
-            print("Включено все в ТГ для сообщений миты")
+            # self.gui.silero_connected.set(True)
+            # print("Успешно авторизован!")
+            # await self.client.send_message(self.silero_bot, "/start")
+            # await asyncio.sleep(0.35)
+            # await self.client.send_message(self.silero_bot, "/speaker mita")
+            # self.last_speaker_command = "/speaker mita"
+            # await asyncio.sleep(0.35)
+            # await self.client.send_message(self.silero_bot, "/mp3")
+            # await asyncio.sleep(0.35)
+            # await self.client.send_message(self.silero_bot, "/hd")
+            # await asyncio.sleep(0.35)
+            # await self.client.send_message(self.silero_bot, "/videonotes")
+            # print("Включено все в ТГ для сообщений миты")
         except Exception as e:
             self.gui.silero_connected.set(False)
             print(f"Ошибка авторизации: {e}")

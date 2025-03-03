@@ -1,6 +1,7 @@
 import tiktoken
 from openai import OpenAI
 from g4f.client import Client as g4fClient
+from g4f.Provider.GizAI import GizAI
 #from huggingface_hub import HfApi
 
 import time
@@ -48,8 +49,12 @@ class ChatModel:
             self.api_model = api_model
             self.makeRequest = api_make_request
 
+            # g4fProvider = GizAI для gemini-1.5-flash
+            self.g4fClient = g4fClient(verify_ssl=False)
+            logger.info(f"g4fClient успешно инициализирован")
+
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
-            self.g4fClient = g4fClient()
+            
             #self.hugging_face_client = HfApi()
             print("Со старта удалось запустить OpenAi client")
         except:
@@ -428,20 +433,11 @@ class ChatModel:
                     self.try_print_error(completion)
                     return None
             else:
+                print("completion пусто")
+                return None
 
         except Exception as e:
             logger.error("Что-то не так при генерации OpenAI", str(e))
-            return None
-
-            #print("out completion ", completion)
-
-        except Timeout:
-            logger.error("Тайм-аут при запросе к OpenAI")
-            return None
-
-        except Exception as e:
-            print("111")
-            logger.error(f"Что-то не так при генерации OpenAI {e}")
             return None
 
     def _log_generation_start(self):
