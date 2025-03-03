@@ -22,7 +22,8 @@ class TelegramBotHandler:
         self.api_id = api_id
         self.api_hash = api_hash
         self.phone = phone
-        self.silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
+        # self.silero_bot = '@silero_voice_bot'  # Юзернейм Silero бота
+        self.current_audio_bot = ''
         self.gui = gui
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
@@ -119,25 +120,36 @@ class TelegramBotHandler:
         if not input_message or not speaker_command:
             return
 
-        if self.last_speaker_command != speaker_command:
-            await self.client.send_message(self.silero_bot, speaker_command)
-            self.last_speaker_command = speaker_command
-            await asyncio.sleep(0.25)
+        current_audio_bot = self.current_audio_bot
+
+        # Немного настроек для разных ботов
+        if current_audio_bot == "@CrazyMitaAIbot":
+            first_time_to_wait = 0.7
+            audio_format = "audio/ogg"
+            message_to_send = f"/voice {input_message}"
+        elif current_audio_bot == "@silero_voice_bot":
+            first_time_to_wait = 0.7
+            audio_format = "audio/mpeg"
+            message_to_send = input_message
+
+            if self.last_speaker_command != speaker_command:
+                await self.client.send_message(current_audio_bot, speaker_command)
+                self.last_speaker_command = speaker_command
+                await asyncio.sleep(0.25)
 
             if self.gui.silero_turn_off_video:
-                await self.client.send_message(self.silero_bot, "/videonotes")
+                await self.client.send_message(current_audio_bot, "/videonotes")
 
                 await asyncio.sleep(0.55)
 
                 # Получаем последнее сообщение от бота
-                messages = await self.client.get_messages(self.silero_bot, limit=1)
+                messages = await self.client.get_messages(current_audio_bot, limit=1)
                 last_message = messages[0] if messages else None
 
                 # Проверяем содержимое последнего сообщения
                 if last_message and last_message.text == "Кружки включены!":
                     # Если условие выполнено, отправляем команду еще раз
-                    await self.client.send_message(self.silero_bot, "/videonotes")
-
+                        await self.client.send_message(current_audio_bot, "/videonotes")
 
         self.last_speaker_command = speaker_command
 
@@ -149,7 +161,7 @@ class TelegramBotHandler:
             return
 
         # Отправка сообщения боту
-        await self.client.send_message(self.silero_bot, input_message)
+        await self.client.send_message(current_audio_bot, message_to_send)
         self.message_count += 1
 
         # Ожидание ответа от бота
@@ -158,13 +170,14 @@ class TelegramBotHandler:
         attempts = 0
         attempts_per_second = 4
         attempts_max = self.silero_time_limit * attempts_per_second
-        await asyncio.sleep(0.7)
+
+        await asyncio.sleep(first_time_to_wait)
         while attempts <= attempts_max:  # Попытки получения ответа
 
-            async for message in self.client.iter_messages(self.silero_bot, limit=1):
+            async for message in self.client.iter_messages(current_audio_bot, limit=1):
                 if message.media and isinstance(message.media, MessageMediaDocument):
                     # Проверяем тип файла и его атрибуты
-                    if 'audio/mpeg' in message.media.document.mime_type:
+                    if audio_format in message.media.document.mime_type:
                         response = message
                         break
             if response:  # Если ответ найден, выходим из цикла
@@ -179,7 +192,7 @@ class TelegramBotHandler:
 
         # Обработка полученного сообщения
         if response.media and isinstance(response.media, MessageMediaDocument):
-            if 'audio/mpeg' in response.media.document.mime_type:  # Проверка MP3 файла
+            if audio_format in response.media.document.mime_type:  # Проверка MP3 файла
                 file_path = await self.client.download_media(response.media)
 
                 print(f"Файл загружен: {file_path}")
@@ -206,9 +219,6 @@ class TelegramBotHandler:
 
                     self.gui.patch_to_sound_file = absolute_wav_path
                     print(f"Файл wav загружен: {absolute_wav_path}")
-
-
-
                 else:
                     print(f"Отправлен воспроизводится: {absolute_mp3_path}")
                     await self.handle_voice_file(file_path)
@@ -216,24 +226,27 @@ class TelegramBotHandler:
             print(f"Ответ от бота: {response.text}")
 
     async def start(self):
+        current_audio_bot = self.current_audio_bot
 
         print("Запуск коннектора ТГ!")
         try:
-            pass
             await self.client.start(phone=self.phone) # тут на macOS проблема: какая-то фигня с ткинтером
 
             self.gui.silero_connected.set(True)
             print("Успешно авторизован!")
-            await self.client.send_message(self.silero_bot, "/start")
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/speaker mita")
-            self.last_speaker_command = "/speaker mita"
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/mp3")
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/hd")
-            await asyncio.sleep(0.35)
-            await self.client.send_message(self.silero_bot, "/videonotes")
+
+            if current_audio_bot == "@silero_voice_bot":
+                await self.client.send_message(current_audio_bot, "/start")
+                await asyncio.sleep(0.35)
+                await self.client.send_message(current_audio_bot, "/speaker mita")
+                self.last_speaker_command = "/speaker mita"
+                await asyncio.sleep(0.35)
+                await self.client.send_message(current_audio_bot, "/mp3")
+                await asyncio.sleep(0.35)
+                await self.client.send_message(current_audio_bot, "/hd")
+                await asyncio.sleep(0.35)
+                await self.client.send_message(current_audio_bot, "/videonotes")
+
             print("Включено все в ТГ для сообщений миты")
         except Exception as e:
             self.gui.silero_connected.set(False)
