@@ -34,7 +34,7 @@ logger.addHandler(handler)
 
 
 class ChatModel:
-    def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
+    def __init__(self, gui, api_key, api_key_res, api_url, api_model, gpt4free_model, api_make_request):
 
         # Временное решение, чтобы возвращать работоспособность старого формата
 
@@ -47,11 +47,11 @@ class ChatModel:
             self.api_key_res = api_key_res
             self.api_url = api_url
             self.api_model = api_model
+            self.gpt4free_model = gpt4free_model
             self.makeRequest = api_make_request
 
-            # g4fProvider = GizAI для gemini-1.5-flash
-            self.g4fClient = g4fClient(verify_ssl=False)
-            logger.info(f"g4fClient успешно инициализирован")
+            self.g4fClient = g4fClient()
+            logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
             
@@ -400,10 +400,8 @@ class ChatModel:
             if bool(self.gui.settings.get("gpt4free")):
                 print("gpt4free case")
 
-                model = self.api_model
-                if not model:
-                    print("Не указана модель, подставил gemini-1.5-flash")
-                    model = "gemini-1.5-flash"
+                model = self.gpt4free_model
+                # По дефолту ставится gpt-4o-mini, можно поменять в gui.py/setup_model_controls()
 
                 completion = self.g4fClient.chat.completions.create(
                     model=model,

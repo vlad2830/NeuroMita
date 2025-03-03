@@ -46,9 +46,9 @@ class ChatGUI:
         self.api_model = ""
 
         self.makeRequest = False
-        self.api_hash = None
-        self.api_id = None
-        self.phone = None
+        self.api_hash = ""
+        self.api_id = ""
+        self.phone = ""
 
         self.settings = SettingsManager("Settings/settings.json")
 
@@ -60,7 +60,7 @@ class ChatGUI:
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
 
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.makeRequest)
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.gpt4free_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -519,9 +519,14 @@ class ChatGUI:
         )
         save_button.grid(row=7, column=1, padx=5, sticky=tk.E)
 
-        # Обновляем поля ввода (если нужно)
+        # Обновляем поля ввода
+        self.api_key_entry.insert(0, self.api_key)
+        self.api_key_res_entry.insert(0, self.api_key_res)
         self.api_url_entry.insert(0, self.api_url)
         self.api_model_entry.insert(0, self.api_model)
+        self.api_id_entry.insert(0, self.api_id)
+        self.api_hash_entry.insert(0, self.api_hash)
+        self.phone_entry.insert(0, self.phone)
 
     def setup_silero_controls(self, parent):
         # Основные настройки
@@ -546,7 +551,8 @@ class ChatGUI:
         # Основные настройки
         mita_config = [
             {'label': 'Использовать gpt4free', 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
-            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40}
+            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40},
+            {'label': 'Использовать модель', 'key': 'gpt4free_model', 'type': 'entry', 'default': "gpt-4o-mini"}
         ]
 
         self.create_settings_section(parent, "Настройки модели", mita_config)
@@ -655,16 +661,17 @@ class ChatGUI:
             settings = json.loads(decoded.decode("utf-8"))
 
             # Устанавливаем значения
-            self.api_key = settings.get("NM_API_KEY")
-            self.api_key_res = settings.get("NM_API_KEY_RES")
-            self.api_url = settings.get("NM_API_URL")
-            self.api_model = settings.get("NM_API_MODEL")
+            self.api_key = settings.get("NM_API_KEY", "")
+            self.api_key_res = settings.get("NM_API_KEY_RES", "")
+            self.api_url = settings.get("NM_API_URL", "")
+            self.api_model = settings.get("NM_API_MODEL", "")
             self.makeRequest = settings.get("NM_API_REQ", False)
+            self.gpt4free_model = settings.get("NM_GPT4FREE_MODEL", "")
 
             # ТГ
-            self.api_id = settings.get("NM_TELEGRAM_API_ID")
-            self.api_hash = settings.get("NM_TELEGRAM_API_HASH")
-            self.phone = settings.get("NM_TELEGRAM_PHONE")
+            self.api_id = settings.get("NM_TELEGRAM_API_ID", "")
+            self.api_hash = settings.get("NM_TELEGRAM_API_HASH", "")
+            self.phone = settings.get("NM_TELEGRAM_PHONE", "")
 
             print(
                 f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
@@ -877,6 +884,9 @@ class ChatGUI:
 
         elif key == "MODEL_MESSAGE_LIMIT":
             self.model.memory_limit = value
+        
+        elif key == "gpt4free_model":
+            self.model.gpt4free_model = value
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = value
