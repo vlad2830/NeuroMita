@@ -121,13 +121,19 @@ namespace MitaAI
         }
         public static void OnGameObjectClicked(GameObject gameObject)
         {
+            //MelonLogger.Msg($"OnGameObjectClicked {gameObject.name} enter");
 
             //MitaCore.Instance.sendSystemInfo($"Игрок стукнул по {gameObject.name}.");
             //MelonLogger.Msg($"The GameObject {gameObject.name} was clicked!");
 
             if (gameObject.GetComponent<ObjectInteractive>())
             {
-              
+                //MelonLogger.Msg("OnGameObjectClicked 1");
+                //if (!gameObject.GetComponent<ObjectInteractive>().enabled) return;
+                //MelonLogger.Msg("OnGameObjectClicked 2");
+                if (Utils.getDistanceBetweenObjects(gameObject, MitaCore.Instance.playerPersonObject) >= 3f) return;
+
+                MelonLogger.Msg("OnGameObjectClicked all");
                 UseSpecialCase(gameObject);
 
             }
@@ -135,10 +141,11 @@ namespace MitaAI
 
         private static void UseSpecialCase(GameObject gameObject)
         {
+            MelonLogger.Msg("UseSpecialCase");
             switch (gameObject.name)
             {
                 case "Console":
-                    //InteractionCases.caseConsoleStart(gameObject);
+                    InteractionCases.caseConsoleStart(gameObject);
                     break;
                 case "SofaChair":
                     InteractionCases.sofaStart(gameObject);

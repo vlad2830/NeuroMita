@@ -5,11 +5,13 @@ using System.Text.RegularExpressions;
 using MelonLoader;
 
 
-namespace MitaAI.MitaAppereance
+namespace MitaAI
 {
-    public class MitaClothesModded
+    public static class MitaClothesModded
     {
         //MitaPerson MitaPerson;
+        static Material hair_material;
+
         public enum Clothes
 
         {
@@ -122,7 +124,94 @@ namespace MitaAI.MitaAppereance
             }
 
             currentClothes = cloth;
-            UnityEngine.Object.FindObjectOfType<MitaClothes>().ReCloth();
+            ReCloth();
         }
+
+        #region HairColor
+
+        private static Shader originalShader;
+        private static void init_hair()
+        {
+            hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hair").GetComponent<Renderer>().material;
+            originalShader = hair_material.shader;
+            hair_material.shader = Shader.Find("Legacy Shaders/Diffuse");
+        }
+
+        public static void setMitaHairColor(Color color)
+        {
+            try
+            {
+                if (hair_material == null) init_hair();
+
+                hair_material.color = color;
+               
+            }
+
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+    
+
+        }
+        public static void resetMitaHairColor()
+        {
+            try
+            {
+                if (hair_material == null) init_hair();
+                hair_material.shader = originalShader;
+                hair_material.color = new Color(1,1,1,1);
+            }
+
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+
+
+        }
+        public static string getCurrentHairColor()
+        {
+            if (hair_material == null) return null;
+            if (hair_material.color == Color.white) return "hair_color normal";
+            return $"hair_color custom: r:{hair_material.color.r} g:{hair_material.color.g} b:{hair_material.color.b}";
+        }
+
+        #endregion
+
+        private static void ReCloth()
+        {
+            try
+            {
+                MitaClothes[] clothesList = UnityEngine.Object.FindObjectsOfType<MitaClothes>();
+
+                if (clothesList.Length == 0)
+                {
+                    Debug.LogWarning("Объекты MitaClothes не найдены в сцене");
+                    return;
+                }
+
+                foreach (var cloth in clothesList)
+                {
+                    try
+                    {
+                        cloth.ReCloth();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"Ошибка в {cloth.name}: {ex.Message}");
+                    }
+                }
+            }
+            catch (System.Exception globalEx)
+            {
+                Debug.LogError($"Ошибка поиска объектов: {globalEx.Message}");
+            }
+        }
+    
     }
+
+    
 }

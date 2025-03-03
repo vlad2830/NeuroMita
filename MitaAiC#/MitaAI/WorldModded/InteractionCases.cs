@@ -10,42 +10,79 @@ namespace MitaAI.WorldModded
 {
     public static class InteractionCases
     {
+        static bool ConsoleStarted = false;
         public static void caseConsoleStart(GameObject console)
         {
-            console.GetComponent<ObjectInteractive>().active = false;
+            if (ConsoleStarted) return;
+            
+            console.GetComponent<ObjectInteractive>().enabled = false;
             MelonCoroutines.Start(caseConsoleAct(console));
+            ConsoleStarted = true;
+
         }
 
         public static void sofaStart(GameObject gameObject)
         {
-            if (Utils.getDistanceBetweenObjects(gameObject, MitaCore.Instance.playerObject) > 1.5f) return;
+            
             MelonLogger.Msg($"SofaSit");
-            gameObject.GetComponent<ObjectInteractive>().active = false;
+
+            gameObject.GetComponent<ObjectInteractive>().enabled = false;
 
             if (PlayerAnimationModded.currentPlayerMovement != PlayerAnimationModded.PlayerMovement.sit)
             {
                 PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.sit;
                 PlayerAnimationModded.playAnimObject(gameObject);
-            }
-           
-
-
-           
+            }         
            
         }
 
 
         public static IEnumerator caseConsoleAct(GameObject console)
         {
-            yield return new WaitForSeconds(1.75f);
+
+            MelonLogger.Msg("caseConsoleAct");
+            try
+            {
+                MitaCore.Instance.playerObject.transform.Find("LeftItem FixPosition/Console/ConsoleCup/ScreenWork").gameObject.active = false;
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+            
+            
+            yield return new WaitForSeconds(1.5f);
+
+            try
+            {
+                MitaCore.Instance.sendSystemMessage("Твою консоль только что открыли.", Characters.get_cart());
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+           
 
             var Button1 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey FindButton");
-            Button1?.SetActive(true);
+
+            Button1.active = true;
+
+            //var Button1_res = GameObject.Instantiate(Button1);
+            //var Button2_res = GameObject.Instantiate(Button2);
+
+            //Button1_res.active = false; Button2_res.active = false;
+
+
+
 
             while (Button1!=null)
             {
                 yield return new WaitForSeconds(0.25f);
             }
+            MitaCore.Instance.sendSystemMessage("Игрок ищет кнопку выключения консоли, если он выключит тебя, то сможет поговорить с тобой только при перезапуске.", Characters.get_cart());
+            
             var Button2 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey Holding");
             while (Button2 != null)
             {
@@ -54,6 +91,23 @@ namespace MitaAI.WorldModded
             
             if (MitaCore.Instance.getDistanceToPlayer()<6f) MitaCore.Instance.sendSystemMessage("Игрок при тебе просмотрел твой картридж другого игрока в подвале. У него могут быть вопросы, надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
             else MitaCore.Instance.sendSystemInfo("Игрок просмотрел твой картридж другого игрока в подвале пока ты была не рядом. У него могут быть вопросы, если он спросит надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
+            MitaCore.Instance.sendSystemInfo("Игрок выключил тебя", Characters.get_cart());
+
+            yield return new WaitForSeconds(1f);
+            /*console.GetComponent<ObjectInteractive>().active = true;
+
+            Button1.transform.SetParent(MitaCore.worldBasement.Find("Quests/Quest1 Start"));
+            Button2_res.transform.SetParent(MitaCore.worldBasement.Find("Quests/Quest1 Start"));
+            Button1_res.name = "3D HintKey FindButton";
+            Button2_res.name = "3D HintKey Holding";
+
+            Transform consoleParent = console.transform.parent;
+
+            GameObject console_res = consoleParent.Find(console.name + "_res").gameObject;
+            GameObject.Destroy(console);
+            console_res.active = true;
+*/
+
         }
 
     }

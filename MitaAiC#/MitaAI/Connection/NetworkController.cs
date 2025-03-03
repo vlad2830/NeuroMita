@@ -18,7 +18,7 @@ namespace MitaAI
             mitaCore = MitaCore.Instance;
         }
 
-        static public async Task<(string,string,string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Mita)
+        static public async Task<(string,string,string, string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Mita)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 
@@ -27,9 +27,9 @@ namespace MitaAI
                 bool connected = await TryConnectAsync(clientSocket, ServerAddress, Port);
                 if (!connected)
                 {
-                    return (string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
+                    return (string.Empty, string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
                 }
-
+                //MelonLogger.Msg("In GetResponseFromPythonSocketAsync");
                 bool waitResponse = (input != "waiting" || dataToSentSystem != "-");
                 // Дополнительная логика для подготовки данных
 
@@ -56,19 +56,26 @@ namespace MitaAI
                     // Логируем ответ
                     string new_character = parts[0];
                     string response = parts[1];
+                    
                     string patch = "";
+                    if (!string.IsNullOrEmpty(parts[3])) patch = parts[3];
+
                     string sileroConnected = parts[2];
+                                        
+                    string user_input = "";
+                    if (!string.IsNullOrEmpty(parts[4])) user_input = parts[4];
                     //MelonLogger.Msg("Reveiced data" + parts[0] + "" + parts[2]);
                     //waitForSounds = parts[1];
 
-                    if (!string.IsNullOrEmpty(parts[3])) patch = parts[3];
+
+                    
                     //patch_to_sound_file = parts[1];
-                    return (response,sileroConnected,patch);
+                    return (response,sileroConnected,patch,user_input);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    //LoggerInstance.Msg($"Error receiving data: {ex.Message}");
-                    return (string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
+                    MelonLogger.Msg($"Error receiving data: {ex.Message}");
+                    return (string.Empty, string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
                 }
             }
 

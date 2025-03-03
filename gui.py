@@ -1,6 +1,4 @@
-from asyncio.log import logger
-import warnings
-import gui
+from SettingsManager import SettingsManager, CollapsibleSection
 from chat_model import ChatModel
 from server import ChatServer
 
@@ -21,31 +19,39 @@ from tkinter import ttk
 from utils import SH
 
 import sounddevice as sd
+from SpeechRecognition import SpeechRecognition
 
 
 class ChatGUI:
     def __init__(self):
 
-        self.test_microphone = None
+        self.silero_connected = False
         self.game_connected = False
+        self.ConnectedToGame = False
 
         self.chat_window = None
         self.token_count_label = None
 
         self.bot_handler = None
         self.bot_handler_ready = False
-        self.bot_connected = False
 
         self.selected_microphone = ""
+        self.device_id = 0
+        self.user_entry = None
+        self.user_input = ""
 
         self.api_key = ""
         self.api_key_res = ""
         self.api_url = ""
         self.api_model = ""
+
         self.makeRequest = False
         self.api_hash = None
         self.api_id = None
         self.phone = None
+
+        self.settings = SettingsManager("Settings/settings.json")
+
         try:
             target_folder = "Settings"
             os.makedirs(target_folder, exist_ok=True)
@@ -57,15 +63,15 @@ class ChatGUI:
         self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
-        self.patch_to_sound_file = ""
         self.running = False
-
-        self.ConnectedToGame = False
-
         self.start_server()
         self.textToTalk = ""
+        self.textSpeaker = "/Speaker Mita"
+        self.silero_turn_off_video = False
+        self.patch_to_sound_file = ""
+
         self.root = tk.Tk()
-        self.root.title("Чат с MitaAI")
+        self.root.title("Чат с NeuroMita")
 
         self.last_price = ""
 
@@ -73,8 +79,7 @@ class ChatGUI:
         self.setup_ui()
 
         try:
-            ...
-            #self.load_mic_settings()
+            self.load_mic_settings()
         except Exception as e:
             print("Не удалось удачно получить настройки микрофона", e)
 
@@ -85,23 +90,12 @@ class ChatGUI:
         self.asyncio_thread = threading.Thread(target=self.start_asyncio_loop, daemon=True)
         self.asyncio_thread.start()
 
-        if all([self.phone, self.api_id, self.api_hash]):
-            self.start_audio_bot_async()
+        self.start_silero_async()
+
+        SpeechRecognition.speach_recognition_start(self.device_id, self.loop)
 
         # Запуск проверки переменной textToTalk через after
-        self.root.after(100, self.check_text_to_talk)
-
-    def delete_all_wav_files(self):
-        # Получаем список всех .wav файлов в корневой директории
-        wav_files = glob.glob("*.wav")
-
-        # Проходим по каждому файлу и удаляем его
-        for wav_file in wav_files:
-            try:
-                os.remove(wav_file)
-                print(f"Удален файл: {wav_file}")
-            except Exception as e:
-                print(f"Ошибка при удалении файла {wav_file}: {e}")
+        self.root.after(150, self.check_text_to_talk_or_send)
 
     def start_asyncio_loop(self):
         """Запускает цикл событий asyncio в отдельном потоке."""
@@ -114,35 +108,32 @@ class ChatGUI:
         except Exception as e:
             print(f"Ошибка при запуске цикла событий asyncio: {e}")
 
-    def start_audio_bot_async(self):
-        """Отправляет задачу для запуска Бота для озвучки в цикл событий."""
+    def start_silero_async(self):
+        """Отправляет задачу для запуска Silero в цикл событий."""
         print("Ожидание готовности цикла событий...")
         self.loop_ready_event.wait()  # Ждем, пока цикл событий будет готов
         if self.loop and self.loop.is_running():
-            print("Запускаем Озвучкера через цикл событий.")
-            asyncio.run_coroutine_threadsafe(self.startBot(), self.loop)
+            print("Запускаем Silero через цикл событий.")
+            asyncio.run_coroutine_threadsafe(self.startSilero(), self.loop)
         else:
             print("Ошибка: Цикл событий asyncio не запущен.")
 
-    async def startBot(self):
+    async def startSilero(self):
         """Асинхронный запуск обработчика Telegram Bot."""
-        print("Попытка запустить Telegram Bot...")
+        print("Telegram Bot запускается!")
         try:
-            if not self.api_id or not self.api_hash or not self.phone:
-                raise AttributeError("Переданы неверные параметры либо пустые")
-            
-            print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)}")
+            print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
             await self.bot_handler.start()
             self.bot_handler_ready = True
-            if self.bot_connected:
+            if self.silero_connected:
                 print("ТГ успешно подключен")
             else:
                 print("ТГ не подключен")
 
         except Exception as e:
             print(f"Ошибка при запуске Telegram Bot: {e}")
-            self.bot_connected.set(False)
+            self.silero_connected = False
 
     def run_in_thread(self, response):
         """Запуск асинхронной задачи в отдельном потоке."""
@@ -151,33 +142,45 @@ class ChatGUI:
         if self.loop and self.loop.is_running():
             print("Запускаем асинхронную задачу в цикле событий...")
             # Здесь мы вызываем асинхронную задачу через главный цикл
-            self.loop.create_task(self.run_send_and_receive(self.textToTalk))
+            self.loop.create_task(self.run_send_and_receive(self.textToTalk, self.textSpeaker))
         else:
             print("Ошибка: Цикл событий asyncio не готов.")
 
-    async def run_send_and_receive(self, response):
+    async def run_send_and_receive(self, response, speaker_command):
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
-        await self.bot_handler.send_and_receive(response)
+        await self.bot_handler.send_and_receive(response, speaker_command)
         print("Завершение получения фразы")
 
-    def check_text_to_talk(self):
+    def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
 
         if self.textToTalk != "":  #and not self.ConnectedToGame:
             print(f"Есть текст для отправки: {self.textToTalk}")
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
-                print("Цикл событий готов. Отправка текста.")
-                asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk),
-                                                 self.loop)
+
+                if bool(self.settings.get("SILERO_USE")):
+                    print("Цикл событий готов. Отправка текста.")
+                    asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                                                     self.loop)
                 self.textToTalk = ""  # Очищаем текст после отправки
                 print("Выполнено")
             else:
                 print("Ошибка: Цикл событий не готов.")
 
+
+        text_from_recognition = SpeechRecognition.receive_text()
+        if bool(self.settings.get("MIC_ACTIVE")) and text_from_recognition and self.user_entry:
+            self.user_entry.insert(tk.END, text_from_recognition)
+            self.user_input = self.user_entry.get("1.0", "end-1c").strip()
+
         # Перезапуск проверки через 100 миллисекунд
-        self.root.after(100, self.check_text_to_talk)  # Это обеспечит постоянную проверку
+        self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
+
+    def clear_user_input(self):
+        self.user_input = ""
+        self.user_entry.delete(1.0, 'end')
 
     def start_server(self):
         """Запускает сервер в отдельном потоке."""
@@ -239,8 +242,11 @@ class ChatGUI:
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        #self.setup_microphone_controls(right_frame)
+        self.setup_microphone_controls(right_frame)
 
+        self.setup_silero_controls(right_frame)
+        self.setup_mita_controls(right_frame)
+        self.setup_model_controls(right_frame)
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
 
@@ -249,16 +255,16 @@ class ChatGUI:
         self.controls_frame = tk.Frame(right_frame, bg="#2c2c2c")
         self.controls_frame.pack(fill=tk.X, pady=3)
 
-
         # Настройка элементов управления
-        self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
-        self.setup_control("Скука", "boredom", self.model.boredom)
-        self.setup_control("Стресс", "stress", self.model.stress)
-        self.setup_secret_control()
+        #self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
+        #self.setup_control("Скука", "boredom", self.model.boredom)
+        #self.setup_control("Стресс", "stress", self.model.stress)
+        #self.setup_secret_control()
 
         self.setup_history_controls(right_frame)
         self.setup_debug_controls(right_frame)
         self.setup_api_controls(right_frame)
+
         #self.setup_advanced_controls(right_frame)
 
         self.load_chat_history()
@@ -270,7 +276,7 @@ class ChatGUI:
             self.chat_window.insert(tk.END, f"{content}\n")
         elif role == "assistant":
             # Вставляем имя Миты с синим цветом, а текст — обычным
-            self.chat_window.insert(tk.END, "Мита: ", "gpt_name")
+            self.chat_window.insert(tk.END, f"{self.model.current_character.name}: ", "gpt_name")
             self.chat_window.insert(tk.END, f"{content}\n\n")
 
     def setup_status_indicators(self, parent):
@@ -280,7 +286,7 @@ class ChatGUI:
 
         # Переменные статуса
         self.game_connected = tk.BooleanVar(value=False)  # Статус подключения к игре
-        self.bot_connected = tk.BooleanVar(value=False)  # Статус подключения к Аудио Озвучкеру
+        self.silero_connected = tk.BooleanVar(value=False)  # Статус подключения к Silero
 
         # Галки для подключения
         self.game_status_checkbox = tk.Checkbutton(
@@ -294,30 +300,30 @@ class ChatGUI:
         )
         self.game_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
 
-        self.speaker_bot_status_checkbox = tk.Checkbutton(
+        self.silero_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение к озвучкеру",
-            variable=self.bot_connected,
+            text="Подключение к Silero",
+            variable=self.silero_connected,
             state="disabled",
             bg="#2c2c2c",
             fg="#ffffff",
             selectcolor="#2c2c2c"
         )
-        self.speaker_bot_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
+        self.silero_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
 
     def updateAll(self):
         self.update_status_colors()
         self.update_debug_info()
 
     def update_status_colors(self):
-        self.game_connected.set(self.ConnectedToGame)  # Статус подключения к игре
+        self.game_connected = tk.BooleanVar(value=self.ConnectedToGame)  # Статус подключения к игре
         # Обновление цвета для подключения к игре
-        game_color = "#00ff00" if self.game_connected.get() else "#ffffff"
+        game_color = "#00ff00" if self.ConnectedToGame else "#ffffff"
         self.game_status_checkbox.config(fg=game_color)
 
         # Обновление цвета для подключения к Silero
-        silero_color = "#00ff00" if self.bot_connected.get() else "#ffffff"
-        self.speaker_bot_status_checkbox.config(fg=silero_color)
+        silero_color = "#00ff00" if self.silero_connected else "#ffffff"
+        self.silero_status_checkbox.config(fg=silero_color)
 
     def setup_control(self, label_text, attribute_name, initial_value):
         """
@@ -408,19 +414,11 @@ class ChatGUI:
 
     def load_chat_history(self):
 
-        if self.model.OldSystem:
-            self.model.load_history()
-            """Загрузить историю из модели и отобразить в интерфейсе."""
-            for entry in self.model.chat_history:
-                role = entry["role"]
-                content = entry["content"]
-                self.insert_message(role, content)
-        else:
-            chat_history = self.model.current_character.load_history()
-            for entry in chat_history["messages"]:
-                role = entry["role"]
-                content = entry["content"]
-                self.insert_message(role, content)
+        chat_history = self.model.current_character.load_history()
+        for entry in chat_history["messages"]:
+            role = entry["role"]
+            content = entry["content"]
+            self.insert_message(role, content)
 
         self.update_debug_info()
 
@@ -525,31 +523,36 @@ class ChatGUI:
         self.api_url_entry.insert(0, self.api_url)
         self.api_model_entry.insert(0, self.api_model)
 
-    def setup_advanced_controls(self, parent):
-        advanced_frame = tk.Frame(parent, bg="#2c2c2c")
-        advanced_frame.pack(fill=tk.X, pady=3)
+    def setup_silero_controls(self, parent):
+        # Основные настройки
+        telegram_config = [
+            {'label': 'Использовать силеро', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
+            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
+             'validation': self.validate_number}
+        ]
 
-        self.show_advanced_var = tk.BooleanVar(value=False)
+        self.create_settings_section(parent, "Настройка силеро", telegram_config)
 
-        # Фрейм для продвинутых настроек (изначально скрыт)
-        self.advanced_settings_frame = tk.Frame(parent, bg="#2c2c2c")
+    def setup_mita_controls(self, parent):
+        # Основные настройки
+        mita_config = [
+            {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(),
+             'default': "Mita"}
+        ]
 
-        # Чекбокс для отображения/скрытия продвинутых настроек
-        api_toggle = tk.Checkbutton(
-            advanced_frame, text="Продвинутые настройки", variable=self.show_advanced_var,
-            command=lambda: self.pack_unpack(self.show_advanced_var, self.advanced_settings_frame),
-            bg="#2c2c2c", fg="#ffffff"
-        )
-        api_toggle.pack(side=tk.LEFT, padx=4)
+        self.create_settings_section(parent, "Выбор персонажа", mita_config)
 
-        # Элементы в одном столбце
-        tk.Label(
-            self.advanced_settings_frame, text="Температура:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=0, column=0, padx=4, pady=4, sticky=tk.W)
+    def setup_model_controls(self, parent):
+        # Основные настройки
+        mita_config = [
+            {'label': 'Использовать gpt4free', 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
+            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40}
+        ]
 
-        self.temperature_entry = tk.Entry(self.advanced_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                          insertbackground="white")
-        self.temperature_entry.grid(row=0, column=1, padx=4, pady=4, sticky=tk.W)
+        self.create_settings_section(parent, "Настройки модели", mita_config)
+
+    def validate_number(self, new_value):
+        return 0 < len(new_value) <= 30  # Пример простой валидации
 
     def pack_unpack(self, var, frame):
         """
@@ -629,10 +632,9 @@ class ChatGUI:
         # Сразу же их загружаем
         self.load_api_settings(update_model=True)
 
-        if not self.bot_connected.get() and all([self.phone, self.api_id, self.api_hash]):
-            print("Попытка запустить аудио бота заново")
-            self.start_audio_bot_async()
-
+        if not self.silero_connected:
+            print("Попытка запустить силеро заново")
+            self.start_silero_async()
 
     def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
@@ -664,15 +666,9 @@ class ChatGUI:
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH")
             self.phone = settings.get("NM_TELEGRAM_PHONE")
 
-            print(f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest}")
-            print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)}")
-
-            if not self.api_key or not self.api_url or not self.api_model:
-                raise AttributeError("Настройки API: Переданы пустые параметры")
-
-            if not self.api_id or not self.api_hash or not self.phone:
-                logger.warning("Настройки ТГ: Переданы пустые параметры")
-
+            print(
+                f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
+            print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто если тг)")
             if update_model:
                 if self.api_key:
                     self.model.api_key = self.api_key
@@ -683,35 +679,6 @@ class ChatGUI:
 
                 self.model.makeRequest = self.makeRequest
                 self.model.update_openai_client()
-
-            # Заполняем поля в GUI
-            if hasattr(self, 'api_key_entry'):
-                self.api_key_entry.delete(0, tk.END)
-                self.api_key_entry.insert(0, self.api_key or '')
-                
-            if hasattr(self, 'api_key_res_entry'):
-                self.api_key_res_entry.delete(0, tk.END)
-                self.api_key_res_entry.insert(0, self.api_key_res or '')
-                
-            if hasattr(self, 'api_url_entry'):
-                self.api_url_entry.delete(0, tk.END)
-                self.api_url_entry.insert(0, self.api_url or '')
-                
-            if hasattr(self, 'api_model_entry'):
-                self.api_model_entry.delete(0, tk.END)
-                self.api_model_entry.insert(0, self.api_model or '')
-                
-            if hasattr(self, 'api_id_entry'):
-                self.api_id_entry.delete(0, tk.END)
-                self.api_id_entry.insert(0, self.api_id or '')
-                
-            if hasattr(self, 'api_hash_entry'):
-                self.api_hash_entry.delete(0, tk.END)
-                self.api_hash_entry.insert(0, self.api_hash or '')
-                
-            if hasattr(self, 'phone_entry'):
-                self.phone_entry.delete(0, tk.END)
-                self.phone_entry.insert(0, self.phone or '')
 
             print("Настройки загружены из файла")
         except Exception as e:
@@ -742,33 +709,13 @@ class ChatGUI:
         else:
             self.api_settings_frame.pack_forget()
 
-    def update_controls(self):
-        """
-        Обновляет значения всех элементов управления на основе текущих данных в self.model.
-        """
-        # Обновляем метки для настроения, скуки и стресса
-        self.attitude_label.config(text=f"Настроение: {self.model.attitude}")
-        self.boredom_label.config(text=f"Скука: {self.model.boredom}")
-        self.stress_label.config(text=f"Стресс: {self.model.stress}")
-
-        # Обновляем чекбокс "Секрет раскрыт"
-        self.secret_var.set(self.model.secretExposed)
-
     def update_debug_info(self):
         """Обновить окно отладки с отображением актуальных данных."""
         self.debug_window.delete(1.0, tk.END)  # Очистить старые данные
 
-        if self.model.OldSystem:
-            debug_info = (
-                f"Отношение к игроку: {self.model.attitude}\n"
-                f"Скука: {self.model.boredom}\n"
-                f"Стресс: {self.model.stress}\n"
-                f"Секрет: {self.model.secretExposed}\n"
-            )
-        else:
-            debug_info = ( self.model.current_character.current_variables_string() )
+        debug_info = (self.model.current_character.current_variables_string())
+
         self.debug_window.insert(tk.END, debug_info)
-        self.update_controls()
 
     def update_token_count(self, event=None):
         if False and self.model.hasTokenizer:
@@ -814,10 +761,7 @@ class ChatGUI:
                 print(f"Ошибка при отправке сообщения на сервер: {e}")
 
     def clear_history(self):
-        if self.model.OldSystem:
-            self.model.clear_history()
-        else:
-            self.model.current_character.clear_history()
+        self.model.current_character.clear_history()
         self.chat_window.delete(1.0, tk.END)
         self.update_debug_info()
 
@@ -855,14 +799,7 @@ class ChatGUI:
         )
         refresh_btn.pack(side=tk.LEFT, padx=5)
 
-        test_btn = tk.Button(
-            mic_frame,
-            text="Тест",
-            command=self.test_microphone,
-            bg="#8a2be2",
-            fg="#ffffff"
-        )
-        test_btn.pack(side=tk.RIGHT, padx=5)
+        self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton', default_checkbutton=True)
 
     def get_microphone_list(self):
         try:
@@ -885,6 +822,7 @@ class ChatGUI:
         if selection:
             self.selected_microphone = selection.split(" (")[0]
             device_id = int(selection.split(" (")[-1].replace(")", ""))
+            self.device_id = device_id
             print(f"Выбран микрофон: {self.selected_microphone} (ID: {device_id})")
             self.save_mic_settings(device_id)
 
@@ -918,6 +856,7 @@ class ChatGUI:
             devices = sd.query_devices()
             if device_id < len(devices):
                 self.selected_microphone = device_name
+                self.device_id = device_id
                 self.mic_combobox.set(f"{device_name} ({device_id})")
                 print(f"Загружен микрофон: {device_name} (ID: {device_id})")
 
@@ -926,10 +865,183 @@ class ChatGUI:
 
     # endregion
 
+    #region SettingGUI
+
+    def all_settings_actions(self, key, value):
+        ...
+        if key == "SILERO_TIME":
+            self.bot_handler.silero_time_limit = int(value)
+
+        elif key == "CHARACTER":
+            self.model.current_character_to_change = value
+
+        elif key == "MODEL_MESSAGE_LIMIT":
+            self.model.memory_limit = value
+
+        elif key == "MIC_ACTIVE":
+            SpeechRecognition.active = value
+
+
+    def create_settings_section(self, parent, title, settings_config):
+        section = CollapsibleSection(parent, title)
+        section.pack(fill=tk.X, padx=5, pady=5, expand=True)
+
+        for config in settings_config:
+            widget = self.create_setting_widget(
+                parent=section.content_frame,
+                label=config['label'],
+                setting_key=config['key'],
+                widget_type=config.get('type', 'entry'),
+                options=config.get('options', None),
+                default=config.get('default', ''),
+                validation=config.get('validation', None)
+            )
+            section.add_widget(widget)
+
+        return section
+
+    def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
+                              options=None, default='', default_checkbutton=False, validation=None, tooltip=None,
+                              width=None, height=None, command=None):
+        """
+        Создает виджет настройки с различными параметрами.
+
+        Параметры:
+            parent: Родительский контейнер
+            label: Текст метки
+            setting_key: Ключ настройки
+            widget_type: Тип виджета ('entry', 'combobox', 'checkbutton', 'button', 'scale', 'text')
+            options: Опции для combobox
+            default: Значение по умолчанию
+            validation: Функция валидации
+            tooltip: Текст подсказки
+            width: Ширина виджета
+            height: Высота виджета (для текстовых полей)
+            command: Функция, вызываемая при изменении значения
+        """
+        frame = tk.Frame(parent, bg="#2c2c2c")
+        frame.pack(fill=tk.X, pady=2)
+
+        # Label
+        lbl = tk.Label(frame, text=label, bg="#2c2c2c", fg="#ffffff", width=20, anchor='w')
+        lbl.pack(side=tk.LEFT, padx=5)
+
+        # Widgets
+        if widget_type == 'entry':
+            entry = tk.Entry(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white")
+            if width:
+                entry.config(width=width)
+            entry.insert(0, self.settings.get(setting_key, default))
+            entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+            def save_entry():
+                self._save_setting(setting_key, entry.get())
+                if command:
+                    command(entry.get())
+
+            entry.bind("<FocusOut>", lambda e: save_entry())
+            entry.bind("<Return>", lambda e: save_entry())
+
+            if validation:
+                entry.config(validate="key", validatecommand=(parent.register(validation), '%P'))
+
+        elif widget_type == 'combobox':
+            var = tk.StringVar(value=self.settings.get(setting_key, default))
+            cb = ttk.Combobox(frame, textvariable=var, values=options, state="readonly")
+            if width:
+                cb.config(width=width)
+            cb.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+            def save_combobox():
+                self._save_setting(setting_key, var.get())
+                if command:
+                    command(var.get())
+
+            cb.bind("<<ComboboxSelected>>", lambda e: save_combobox())
+
+        elif widget_type == 'checkbutton':
+            var = tk.BooleanVar(value=self.settings.get(setting_key, default_checkbutton))
+            cb = tk.Checkbutton(frame, variable=var, bg="#2c2c2c",
+                                command=lambda: [self._save_setting(setting_key, var.get()),
+                                                 command(var.get()) if command else None])
+            cb.pack(side=tk.LEFT, padx=5)
+
+        elif widget_type == 'button':
+            btn = tk.Button(frame, text=label, bg="#8a2be2", fg="#ffffff",
+                            command=lambda: [self._save_setting(setting_key, True),
+                                             command() if command else None])
+            if width:
+                btn.config(width=width)
+            btn.pack(side=tk.LEFT, padx=5)
+
+        elif widget_type == 'scale':
+            var = tk.DoubleVar(value=self.settings.get(setting_key, default))
+            scale = tk.Scale(frame, from_=options[0], to=options[1], orient=tk.HORIZONTAL,
+                             variable=var, bg="#2c2c2c", fg="#ffffff", highlightbackground="#2c2c2c",
+                             length=200 if not width else width)
+            scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+            def save_scale(value):
+                self._save_setting(setting_key, float(value))
+                if command:
+                    command(float(value))
+
+            scale.config(command=save_scale)
+
+        elif widget_type == 'text':
+            text = tk.Text(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
+                           height=height if height else 5, width=width if width else 50)
+            text.insert('1.0', self.settings.get(setting_key, default))
+            text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+            def save_text():
+                self._save_setting(setting_key, text.get('1.0', 'end-1c'))
+                if command:
+                    command(text.get('1.0', 'end-1c'))
+
+            text.bind("<FocusOut>", lambda e: save_text())
+
+        # Добавляем tooltip если указан
+        if tooltip:
+            self.create_tooltip(frame, tooltip)
+
+        return frame
+
+    def create_tooltip(self, widget, text):
+        """Создает всплывающую подсказку для виджета"""
+        tooltip = tk.Toplevel(widget)
+        tooltip.wm_overrideredirect(True)
+        tooltip.wm_geometry("+0+0")
+        tooltip.withdraw()
+
+        label = tk.Label(tooltip, text=text, bg="#ffffe0", relief='solid', borderwidth=1)
+        label.pack()
+
+        def enter(event):
+            x = widget.winfo_rootx() + widget.winfo_width() + 5
+            y = widget.winfo_rooty()
+            tooltip.wm_geometry(f"+{x}+{y}")
+            tooltip.deiconify()
+
+        def leave(event):
+            tooltip.withdraw()
+
+        widget.bind("<Enter>", enter)
+        widget.bind("<Leave>", leave)
+
+    def _save_setting(self, key, value):
+        self.settings.set(key, value)
+        self.settings.save_settings()
+
+        self.all_settings_actions(key, value)
+
+    #endregion
+
     def run(self):
         self.root.mainloop()
 
     def on_closing(self):
+        self.delete_all_wav_files()
         self.stop_server()
         print("Закрываемся")
         self.root.destroy()
@@ -938,3 +1050,15 @@ class ChatGUI:
         """Закрытие приложения корректным образом."""
         print("Завершение программы...")
         self.root.destroy()  # Закрывает GUI
+
+    def delete_all_wav_files(self):
+        # Получаем список всех .wav файлов в корневой директории
+        wav_files = glob.glob("*.wav")
+
+        # Проходим по каждому файлу и удаляем его
+        for wav_file in wav_files:
+            try:
+                os.remove(wav_file)
+                print(f"Удален файл: {wav_file}")
+            except Exception as e:
+                print(f"Ошибка при удалении файла {wav_file}: {e}")

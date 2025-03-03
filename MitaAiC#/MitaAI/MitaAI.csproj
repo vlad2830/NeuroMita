@@ -322,8 +322,12 @@
 
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
+		<Compile Include="Characters.cs" />
+		<Compile Include="UINeuroMita.cs" />
+		<Compile Include="Settings.cs" />
 		<Compile Include="PlayerControls\InputControl.cs" />
 		<Compile Include="Utils.cs" />
+		<Compile Include="WorldModded\Other\ShaderReplacer.cs" />
 		<Compile Include="WorldModded\Events\EventsProxy.cs" />
 		<Compile Include="Mita\AudioControl.cs" />
 		<Compile Include="PlayerControls\PlayerAnimationModded.cs" />

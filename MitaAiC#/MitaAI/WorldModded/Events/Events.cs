@@ -18,9 +18,10 @@ namespace MitaAI
             switch (evt.stringParameter)
             {
                 case "TakePlayer":
-
                     MelonCoroutines.Start(playerTaken());
-
+                    break;
+                case "Mita Kick":
+                    MelonCoroutines.Start(MitaKickEnd());
                     break;
             }
             MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
@@ -46,10 +47,23 @@ namespace MitaAI
             MelonLogger.Msg("Player throwned!");
             MitaAnimationModded.resetToIdleAnimation();
         }
+        static IEnumerator MitaKickEnd()
+        {
+            while (MitaAnimationModded.animator.GetCurrentStateName(0)=="Mita Kick")
+            {
+                yield return null;
+            }
+            MitaAnimationModded.bat.active = false;
+        }
 
         public static void HandleCustomEvent(string eventName)
         {
             MelonLogger.Msg($"HandleCustomEvent called with event: {eventName}");
+
+            if (eventName.StartsWith("MENU|")){
+                UINeuroMita.MenuEventsCases(eventName);
+            }
+
 
             switch (eventName)
             {
@@ -59,6 +73,7 @@ namespace MitaAI
                 case "SofaSit":
 
                     break;
+
                 default:
                     break;
             }
@@ -111,7 +126,7 @@ namespace MitaAI
         private static void Postfix2()
         { 
             
-        MitaCore.Instance?.sendSystemMessage("Игрок открыл сейф"); 
+            MitaCore.Instance?.sendSystemMessage("Игрок открыл сейф"); 
    
         }
     }

@@ -1,6 +1,5 @@
 import socket
 import datetime
-import time
 
 
 class ChatServer:
@@ -22,18 +21,20 @@ class ChatServer:
         self.server_socket.listen(5)
         print(f"Сервер запущен на {self.host}:{self.port}")
 
+
     def handle_connection(self):
         """Обрабатывает одно подключение."""
         if not self.server_socket:
             raise RuntimeError("Сервер не запущен. Вызовите start() перед handle_connection().")
         try:
+            #print("Жду получения от клиента игры")
             # Ожидание подключения
             self.client_socket, addr = self.server_socket.accept()
             #print(f"Подключен {addr}")
 
             # Получение сообщения от клиента
             received_text = self.client_socket.recv(4086).decode('utf-8')
-
+            #print("Получил")
             # Разделяем текст и ссылку по "|||"
             character, message, system_message, system_info, self.chat_model.distance, self.chat_model.roomPlayer, self.chat_model.roomMita, self.chat_model.nearObjects, self.chat_model.actualInfo = received_text.split(
                 "|||")
@@ -57,6 +58,7 @@ class ChatServer:
                 response = self.generate_response("",
                                                   f"Время {date_now}, Игрок долго молчит( Ты можешь что-то сказать или предпринять")
                 self.gui.insertDialog("", response)
+                print("Отправлено Мите на озвучку: " + response)
             else:
                 print("Получено message")
                 # Если игрок отправил внутри игры, message его
@@ -65,24 +67,29 @@ class ChatServer:
                 print("Отправлено Мите на озвучку: " + response)
 
             # Ждать ли на той стороне файла озвучки
-            if self.gui.bot_connected.get():
-                audio_bot = "1"
+            if self.gui.silero_connected and self.gui.settings.get("SILERO_USE"):
+                silero = "1"
             else:
-                audio_bot = "0"
+                silero = "0"
 
             if not character:
                 character = "Mita"
 
-            message = f"{character}|||{response}|||{audio_bot}|||{self.gui.patch_to_sound_file}"
+            transmitted_to_game = False
+            if self.gui.user_input:
+                transmitted_to_game = True
+
+            message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}|||{self.gui.user_input}"
+
             self.gui.patch_to_sound_file = ""
 
-            # Отправляем сообщение через сокет
-            if response != "" and self.gui.bot_connected.get():
-                print("Жду 9 секунд")
-                time.sleep(9)
-                # тут не понял, как по другому избавиться от спама *** в игре
+            if transmitted_to_game:
+                self.gui.clear_user_input()
 
+            # Отправляем сообщение через сокет
+            #print("Отправляю обратно в игру")
             self.client_socket.send(message.encode('utf-8'))
+            #print("Получил")
             self.gui.ConnectedToGame = True
             return True
         except Exception as e:
@@ -96,13 +103,11 @@ class ChatServer:
     def generate_response(self, input_text, system_input_text):
         """Генерирует текст с помощью модели."""
         try:
-            response = self.chat_model.generate_response(input_text, system_input_text)
-            #while self.chat_model.repeatResponse and counter<3:
-            #   response += self.chat_model.generate_response("", "")
-            # counter+=1
 
+            response = self.chat_model.generate_response(input_text, system_input_text)
             if input_text != "":
                 self.gui.insertDialog(input_text, response)
+
         except Exception as e:
             print(f"Ошибка генерации ответа: {e}")
             response = "Произошла ошибка при обработке вашего сообщения."

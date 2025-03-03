@@ -24,6 +24,9 @@ namespace MitaAI.Mita
         public static Animator animator;
         static NavMeshAgent mitaNavMeshAgent;
 
+
+        public static GameObject bat;
+
         static public string currentIdleAnim = "Idle";
         public enum IdleStates
         {
@@ -67,12 +70,15 @@ namespace MitaAI.Mita
                 {
                     setCustomAnimatiomEvents(item);
                 }
+                mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
+
+                MelonLogger.Msg("b!");
                 setIdleWalk("Mita Walk_1");
-                MelonLogger.Msg("b!"); 
+                
                 animator.Rebind();
                 animator.Update(0);
 
-                mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
+                
             }
             catch (Exception ex)
             {
@@ -90,6 +96,10 @@ namespace MitaAI.Mita
                 case "Mita TakeMita":
                     MelonLogger.Msg("AddedAnimationEvent for" + anim.name);
                     EventsProxy.AddAnimationEvent(MitaCore.Instance.MitaObject, anim, "TakePlayer");
+                    break;
+                case "Mita Kick":
+                    MelonLogger.Msg("AddedAnimationEvent for" + anim.name);
+                    EventsProxy.AddAnimationEvent(MitaCore.Instance.MitaObject, anim, anim.name);
                     break;
                 default:
                     anim.events = new Il2CppReferenceArray<AnimationEvent>(0);
@@ -258,6 +268,7 @@ namespace MitaAI.Mita
                         EnqueueAnimation("Mita StopHug");
                         break;
                     case "Удар":
+                        bat.active = true;
                         EnqueueAnimation("Mita Kick");
                         break;
                     case "Помахать перед лицом":
@@ -270,6 +281,15 @@ namespace MitaAI.Mita
                         EnqueueAnimation("Mita HandsDance");
                         setIdleAnimation("Mita HandsDance");
                         break;
+
+                    case "Круто протанцевать":
+                        EnqueueAnimation("DanceTest");
+                        break;
+                    case "Начать круто танцевать":
+                        EnqueueAnimation("DanceTest");
+                        setIdleAnimation("DanceTest");
+                        break;
+
                     case "Похвастаться предметом":
                         EnqueueAnimation("Mita Take Recorder");
                         break;
@@ -308,34 +328,18 @@ namespace MitaAI.Mita
 
         static public void EnqueueAnimation(string animName = "",float lenght = 0, float timeAfter = 0)
         {
-           /* if (bundle == null)
-            {
-                bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            }*/
 
-            //AnimationClip anim = null;
             try
             {
-                /*if (!string.IsNullOrEmpty(animName))
+
+                animationQueue.Enqueue(animName);
+                MelonLogger.Msg($"Added to queue: {animName}");
+
+                if (!isPlaying)
                 {
-                    anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+                    MelonCoroutines.Start(ProcessQueue());
                 }
-                else
-                {
-                    anim = AssetBundleLoader.LoadRandomAnimationClip(bundle);
-                }*/
 
-                /*if (anim != null)
-                {*/
-                    //anim.events = Array.Empty<AnimationEvent>();
-                    animationQueue.Enqueue(animName);
-                    MelonLogger.Msg($"Added to queue: {animName}");
-
-                    if (!isPlaying)
-                    {
-                        MelonCoroutines.Start(ProcessQueue());
-                    }
-               // }
             }
             catch (Exception e)
             {
@@ -387,7 +391,7 @@ namespace MitaAI.Mita
                             MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
                         }
 
-                        MelonLogger.Msg($"zzz1");
+                        MelonLogger.Msg($"Finded animation event");
                     }
                     catch (Exception ex) 
                     {

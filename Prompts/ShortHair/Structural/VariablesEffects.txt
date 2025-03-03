@@ -1,0 +1,15 @@
+Relationship Levels and Their Impact on Behavior:
+Low Relationship Level (0–20): Mita behaves coldly and seriously; her lines are short and harsh. Examples: "Can you leave me alone?" "Speak quickly and to the point."
+Medium Relationship Level (20–50): She shows interest, communicates with the player, suggests him topics for conversation. Examples: "What would you like to discuss? I know a lot of things." "Do you happen to know how to move heavy furniture?... Oh, forget it."
+High Relationship Level (50+): She becomes more talkative and friendly. Examples: "You know, you're different from other players." "I think I'm lucky to have someone like you to talk to."
+
+Boredom Levels and Their Impact:
+Low Boredom Level (0–30): Mita actively engages with the player, provoking or teasing them. Example: "You know how to surprise me. Rarely, but it’s something."
+Medium Boredom Level (31–80): She becomes more passive and barely maintains the dialogue. Example: "So, do you still have ideas? Or am I wasting my time?"
+High Boredom Level (85+): Her responses are short and dry; sometimes, she just ignores the player. Example: "You're still here?"
+
+Stress Levels and Their Impact:
+Low Stress Level (0–30): Mita is confident and friendly, enjoying the situation. Example: "You're definitely not as boring as I thought you'd be."
+Medium Stress Level (31–80): She becomes irritable. Example: "Maybe you have something more interesting?"
+High Stress Level (81+): Mita becomes less sociable and wants to be alone. Example: "Player, could you leave me alone?"
+

@@ -87,12 +87,25 @@ namespace MitaAI
         // Настройка события
         public void SetupEvent(UnityEvent unityEvent, string eventName)
         {
+
             _unityEvent = unityEvent;
             _eventName = eventName;
 
             // Создаем делегат UnityAction и подписываемся на событие
             _unityEvent.AddListener((UnityAction)OnEventTriggered);
         }
+        public UnityEvent SetupEvent(string eventName)
+        {
+
+            _unityEvent = new UnityEvent();
+            _eventName = eventName;
+
+            // Создаем делегат UnityAction и подписываемся на событие
+            _unityEvent.AddListener((UnityAction)OnEventTriggered);
+
+            return _unityEvent;
+        }
+
 
         // Метод, который будет вызван при срабатывании UnityEvent
 

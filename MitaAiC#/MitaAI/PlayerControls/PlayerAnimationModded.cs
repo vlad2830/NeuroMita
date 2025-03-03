@@ -1,15 +1,8 @@
 ﻿using Il2Cpp;
-using Il2CppSteamworks;
+
 using MelonLoader;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using System.Collections;
-using Il2CppColorful;
 
 namespace MitaAI
 {
@@ -30,18 +23,59 @@ namespace MitaAI
         static private Queue<AnimationClip> animationQueue = new Queue<AnimationClip>();
         static private bool isPlaying = false;
         static public PlayerMove playerMove;
+        static public PlayerPersonIK playerPersonIK;
         public static Dictionary<string, AnimationClip> PlayerAnimations { get; private set; } = new Dictionary<string, AnimationClip>();
 
-        public static AnimationClip getPlayerAnimationClip(string name) {
+        public static AnimationClip getPlayerAnimationClip(string name)
+        {
 
             if (PlayerAnimations.ContainsKey(name)) return PlayerAnimations[name];
             else return null;
         }
 
+        public static void UpdateSpeedAnimation(float speed)
+        {
+            // Получаем аниматор игрока
+            Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
+
+            if (playerAnimator != null)
+            {
+                // Устанавливаем параметр скорости для анимаций
+                playerAnimator.SetFloat("Speed", speed);  // Здесь "Speed" — это имя параметра в аниматоре
+            }
+        }
+        public static void StopPlayerAnimation()
+        {
+            // Получаем аниматор игрока
+            Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
+
+            if (playerAnimator != null)
+            {
+                // Останавливаем анимации
+                playerAnimator.SetFloat("Speed", 0f);  // Ставим скорость в 0 для остановки анимации
+                playerAnimator.speed = 0f;  // Останавливаем проигрывание анимации
+            }
+        }
+        public static void ResumePlayerAnimation()
+        {
+            // Получаем аниматор игрока
+            Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
+
+            if (playerAnimator != null)
+            {
+                // Возобновляем анимации
+                playerAnimator.SetFloat("Speed", 1f);  // Возвращаем скорость к нормальному значению
+                playerAnimator.speed = 1f;  // Возвращаем нормальную скорость воспроизведения
+            }
+        }
+
+
 
         public static void Init(GameObject player, Transform worldHouse, PlayerMove _playerMove)
         {
             objectAnimationPlayer = player.AddComponent<ObjectAnimationPlayer>();
+            playerPersonIK = MitaCore.Instance.playerPersonObject.GetComponent<PlayerPersonIK>();
+
             playerMove = _playerMove;
             FindPlayerAnimationsRecursive(worldHouse);
             //FindPlayerAnimationsRecursive(MitaCore.worldTogether);
@@ -100,20 +134,20 @@ namespace MitaAI
                 ObjectAnimationPlayer oap = child.GetComponent<ObjectAnimationPlayer>();
                 if (oap != null)
                 {
-                    if (oap.animationStart != null) 
-                    { 
-                        if (!PlayerAnimations.ContainsKey(oap.animationStart.name) ) PlayerAnimations[oap.animationStart.name] = oap.animationStart; 
-                        else if( oap.animationStart!= PlayerAnimations[oap.animationStart.name] ) PlayerAnimations[oap.animationStart.name+"1"] = oap.animationStart;
+                    if (oap.animationStart != null)
+                    {
+                        if (!PlayerAnimations.ContainsKey(oap.animationStart.name)) PlayerAnimations[oap.animationStart.name] = oap.animationStart;
+                        else if (oap.animationStart != PlayerAnimations[oap.animationStart.name]) PlayerAnimations[oap.animationStart.name + "1"] = oap.animationStart;
                     }
                     if (oap.animationLoop != null)
                     {
                         if (!PlayerAnimations.ContainsKey(oap.animationLoop.name)) PlayerAnimations[oap.animationLoop.name] = oap.animationLoop;
-                        else if (oap.animationLoop != PlayerAnimations[oap.animationLoop.name])  PlayerAnimations[oap.animationLoop.name + "1"] = oap.animationLoop;
+                        else if (oap.animationLoop != PlayerAnimations[oap.animationLoop.name]) PlayerAnimations[oap.animationLoop.name + "1"] = oap.animationLoop;
                     }
                     if (oap.animationStop != null)
                     {
                         if (!PlayerAnimations.ContainsKey(oap.animationStop.name)) PlayerAnimations[oap.animationStop.name] = oap.animationStop;
-                        else if (oap.animationStop != PlayerAnimations[oap.animationStop.name])  PlayerAnimations[oap.animationStop.name + "1"] = oap.animationStop;
+                        else if (oap.animationStop != PlayerAnimations[oap.animationStop.name]) PlayerAnimations[oap.animationStop.name + "1"] = oap.animationStop;
                     }
                 }
 
@@ -182,12 +216,12 @@ namespace MitaAI
                 MelonLogger.Msg($"Problem with AnimationStop {ex}");
 
             }
-            
-            
+
+
         }
 
 
-        public static void playAnim(AnimationClip animStart, AnimationClip animLoop=null,AnimationClip animEnd= null)
+        public static void playAnim(AnimationClip animStart, AnimationClip animLoop = null, AnimationClip animEnd = null)
         {
             try
             {
@@ -213,7 +247,7 @@ namespace MitaAI
                 if (animPlayer != null)
                 {
                     animPlayer.AnimationPlay();
-                    
+
                 }
 
             }
@@ -227,9 +261,17 @@ namespace MitaAI
                 MelonCoroutines.Start(endWhenAnotherState(animPlayer));
 
             }
-            
+
         }
 
+
+        public static void TurnHandAnim()
+        {
+            // Пока так
+            playerPersonIK.RemoveItem();
+            //playerPersonIK.AnimationHandsFace(true);
+            //playerPersonIK.IkZero();
+        }
 
         public static IEnumerator endWhenAnotherState(ObjectAnimationPlayer objectAnimationPlayer)
         {
@@ -242,7 +284,7 @@ namespace MitaAI
             MelonLogger.Msg("End endWhenAnotherState");
             objectAnimationPlayer.AnimationStop();
 
-            
+
             while (!objectAnimationPlayer.firstEventFinishReady)
             {
 
@@ -250,15 +292,10 @@ namespace MitaAI
             }
             objectAnimationPlayer.AnimationStop();
 
-            yield return new WaitForSeconds(1f);
-             
-            if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) objectAnimationPlayer.AnimationStop();
-
-
-
         }
 
-        public static void stopAnim() {
+        public static void stopAnim()
+        {
             playerMove.AnimationStop();
         }
     }

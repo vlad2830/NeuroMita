@@ -1,6 +1,7 @@
 ﻿using Il2Cpp;
 using Il2CppEPOOutline;
 using MelonLoader;
+using MitaAI.Mita;
 using System;
 using System.Collections;
 using System.Linq;
@@ -83,9 +84,16 @@ namespace MitaAI
         public static void initConsole(Transform worldBasement)
         {
             GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
+            MitaCore.Instance.cartridgeReader = console;
+            AudioControl.cartAudioSource = console.AddComponent<AudioSource>();
+
             ObjectInteractive objectInteractive = console.GetComponent<ObjectInteractive>();
             console.GetComponent<Animator>().enabled = true;
             console.GetComponent<Outlinable>().enabled = true;
+
+            //GameObject console_res = GameObject.Instantiate(console, console.transform.parent);
+            //console_res.name = console.name+"_res";
+            //console_res.active = false;
 
             Utils.TryTurnChild(MitaCore.worldBasement, "Quests/Quest1 Start/Dialogues Привет - Передай ключ",false);
             Utils.TryTurnChild(MitaCore.worldBasement, "Quests/Quest1 Start/Dialogues Console", false);
@@ -116,47 +124,36 @@ namespace MitaAI
             sceneToLoad = "Scene 7 - Backrooms";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
+            
+            sceneToLoad = "Scene 14 - MobilePlayer";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateMobilePlayer(sceneToLoad));
 
             sceneToLoad = "Scene 10 - ManekenWorld";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldManekenWorld(sceneToLoad));
 
-            try
-            {
-                sceneToLoad = "Scene 6 - BasementFirst";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBasement(sceneToLoad));
-            }
-            catch (Exception)
-            {
+            sceneToLoad = "Scene 6 - BasementFirst";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBasement(sceneToLoad));
+     
+
+      
+            sceneToLoad = "Scene 11 - Backrooms";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms2(sceneToLoad));
+        
+    
+            sceneToLoad = "Scene 3 - WeTogether";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldTogether(sceneToLoad));
 
 
-            }
 
-            try
-            {
-                sceneToLoad = "Scene 11 - Backrooms";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms2(sceneToLoad));
-            }
-            catch (Exception)
-            {
-
-
-            }
-
-            try
-            {
-                sceneToLoad = "Scene 3 - WeTogether";
-                additiveLoadedScenes.Add(sceneToLoad);
-                MelonCoroutines.Start(WaitForSceneAndInstantiateWorldTogether(sceneToLoad));
-            }
-            catch (Exception)
-            {
-
-
-            }
             
+            yield return MelonCoroutines.Start(AfterAllLoadded());
+
+
         }
         private static IEnumerator WaitForSceneAndInstantiateWorldBasement(string sceneToLoad)
         {
@@ -184,7 +181,12 @@ namespace MitaAI
             }
 
             MelonLogger.Msg($"Object found: {MitaCore.worldBasement.name}");
-
+            
+            GameObject cat = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "CatPrefab"));
+            cat.name = "Cat";
+            cat.transform.SetPositionAndRotation(new Vector3(17.012f, -1.5668f, -10.5676f), Quaternion.Euler(357.514f, 149.9964f, 0));
+            cat.transform.localScale = new Vector3(0.07f, 0.07f, 0.07f);
+            cat.transform.parent = MitaCore.worldBasement.Find("House");
 
 
             InitializeGameObjectsWhenReady();
@@ -346,7 +348,7 @@ namespace MitaAI
             try
             {
                 MitaCore.ShortHairObject = GameObject.Instantiate(Utils.TryfindChild(worldManekenWorld, "General/Mita Old"), MitaCore.worldHouse);
-
+                MitaCore.ShortHairObject.active = false;
 
             }
 
@@ -359,7 +361,99 @@ namespace MitaAI
             SceneManager.UnloadScene(sceneToLoad);
 
         }
+        private static IEnumerator WaitForSceneAndInstantiateMobilePlayer(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
 
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            Transform world = FindObjectInScene(scene.name, "World");
+            if (world == null)
+            {
+                MelonLogger.Msg("World object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            world.gameObject.SetActive(false);
+
+            MelonLogger.Msg($"Object found: {world.name}");
+            try
+            {
+                MitaAnimationModded.bat= GameObject.Instantiate(Utils.TryfindChild(world, "Quest/Quest 1/Mita KitchenAttack/MitaPerson Mita/Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item/Bat"), MitaCore.worldHouse);
+                MitaAnimationModded.bat.transform.SetParent(MitaCore.Instance.MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item"));
+                MitaAnimationModded.bat.transform.localPosition = Vector3.zero;
+                MitaAnimationModded.bat.transform.localRotation = Quaternion.identity;
+                MitaAnimationModded.bat.active = false;
+
+                MitaCore.CreepyObject = GameObject.Instantiate(Utils.TryfindChild(world, "World/Quest/Quest 1/CreepyMita"), MitaCore.worldHouse);
+                MitaCore.CreepyObject.active = false;
+            }
+
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Founding error: {ex}");
+            }
+            //yield return new WaitForSeconds(1f);
+            SceneManager.UnloadScene(sceneToLoad);
+        }
+        private static IEnumerator AfterAllLoadded()
+        {
+            MelonLogger.Msg("After all loaded");
+            MitaCore.character MitaToStart = Settings.MitaType.Value;
+            MelonLogger.Msg($"Mita from settings {MitaToStart}");
+            if (MitaCore.Instance.currentCharacter != MitaToStart)
+            {
+                MitaCore.Instance.changeMita(null,character : MitaToStart);
+            }
+            yield return new WaitForSeconds(0.25f);
+            if (Utils.Random(1, 7)) MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом", MitaToStart);
+            else MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень.", MitaToStart);
+
+
+            TestingGround();
+        }
+        
+        private static void TestingGround()
+        {
+            try
+            {
+
+                //GameObject MitaPrefab = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "MitaPrefab"));
+
+
+                //MitaPrefab.name = "Mita Prefab 2003";
+                //MitaCore.Instance.changeMita(MitaPrefab, MitaCore.character.Mita);
+
+                //ShaderReplacer.ReplaceShaders(MitaCore.worldHouse.gameObject);
+                //ShaderReplacer.ReplaceShaders(MitaCore.worldBasement.gameObject);
+
+                // Звук
+                //GameObject testSound = new GameObject("TestSound");
+                //AudioSource audioSource = testSound.AddComponent<AudioSource>();
+                //AudioClip audioClip = AssetBundleLoader.LoadAssetByName<AudioClip>(AssetBundleLoader.bundle, "MusicBoss");
+                //audioSource.clip = audioClip;
+                //audioSource.Play();
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Error(e);
+            }
+
+        }
+        
         private static void InitializeGameObjectsWhenReady()
         {
 
@@ -383,7 +477,7 @@ namespace MitaAI
 
                 try
                 {
-                    // TotalInitialization.initConsole(MitaCore.worldBasement);
+                    TotalInitialization.initConsole(MitaCore.worldBasement);
                 }
                 catch (Exception ex)
                 {
@@ -421,7 +515,11 @@ namespace MitaAI
                 MitaCore.Instance.knife.SetActive(false);
 
                 //AnimationKiller.GetComponent<Location6_MitaKiller>().mita = Mita.transform;
-                Utils.TryfindChild(MitaCore.worldBasement, "Sounds/Ambient 1").transform.parent = MitaCore.worldHouse.FindChild("Audio");
+                var musicTension = Utils.TryfindChild(MitaCore.worldBasement, "Sounds/Ambient 1");
+                musicTension.transform.parent = MitaCore.worldHouse.FindChild("Audio");
+                musicTension.name = "Music 4 Tension";
+                AudioControl.addMusicObject(musicTension);
+
                 MitaCore.Instance.AnimationKiller.SetActive(false);
                 //DeleteChildren(AnimationKiller.transform.Find("PositionsKill").gameObject);
 
