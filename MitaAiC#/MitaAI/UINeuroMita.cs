@@ -23,6 +23,7 @@ namespace MitaAI
         static MenuLocation MainMenuLocation;
         static GameObject FrameMenuObject;
 
+        static GameObject NeuroMitaButton;
 
         public static void init()
         {
@@ -56,7 +57,7 @@ namespace MitaAI
             Menu.transform.localPosition = new Vector3(250f, 355f, 0);
             Menu.transform.Find("Text").localPosition = new Vector3(-250, 15, 0);
 
-            GameObject NeuroMitaButton = GameObject.Instantiate(Menu.transform.Find("Button Continue").gameObject);
+            NeuroMitaButton = GameObject.Instantiate(Menu.transform.Find("Button Continue").gameObject);
             MainMenuLocation.objects.Add(NeuroMitaButton.GetComponent<RectTransform>());
             NeuroMitaButton.name = "NeuroMitaStartButton";
 
@@ -113,7 +114,7 @@ namespace MitaAI
             MelonLogger.Msg(1);
 
             StartMenuObject = GameObject.Instantiate(FrameMenuObject.transform.Find("Location MainOptions").gameObject, FrameMenuObject.transform);
-            StartMenuObject.active = true;
+            StartMenuObject.active = false;
             StartMenu = StartMenuObject.GetComponent<MenuLocation>();
             MelonLogger.Msg(2);
             try
@@ -130,6 +131,8 @@ namespace MitaAI
             try
             {
                 GameObject MitaCrazyButton = StartMenuObject.transform.Find("Button Full Clear").gameObject;
+                MitaCrazyButton.active = false;
+                MitaCrazyButton = GameObject.Instantiate(NeuroMitaButton, MitaCrazyButton.transform.position, MitaCrazyButton.transform.rotation, MitaCrazyButton.transform.parent);
                 MitaCrazyButton.name = "MitaCrazyButton";
                 MitaCrazyButton.active = true;
 
@@ -142,6 +145,8 @@ namespace MitaAI
             try
             {
                 GameObject MitaKindButton = StartMenuObject.transform.Find("Button Option Graphics").gameObject;
+                MitaKindButton.active = false;
+                MitaKindButton = GameObject.Instantiate(NeuroMitaButton, MitaKindButton.transform.position, MitaKindButton.transform.rotation, MitaKindButton.transform.parent);
                 MitaKindButton.name = "MitaKindButton";
                 MitaKindButton.active = true;
 
@@ -154,6 +159,8 @@ namespace MitaAI
             try
             {
                 GameObject MitaShorthairButton = StartMenuObject.transform.Find("Button Option Game").gameObject;
+                MitaShorthairButton.active = false;
+                MitaShorthairButton = GameObject.Instantiate(NeuroMitaButton, MitaShorthairButton.transform.position, MitaShorthairButton.transform.rotation, MitaShorthairButton.transform.parent);
                 MitaShorthairButton.name = "MitaShortButton";
                 MitaShorthairButton.active = true;
 
