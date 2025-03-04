@@ -110,6 +110,8 @@ namespace MitaAI.PlayerControls
             }
 
 
+
+
             else if (Input.GetKeyDown(KeyCode.Return))
             {
                 if (!InputFieldExists()) return;
@@ -118,14 +120,27 @@ namespace MitaAI.PlayerControls
                 if (isInputBlocked) return; // Если поле ввода заблокировано, ничего не делаем
 
                 // Если поле ввода активно и текст не пустой, отправляем текст и скрываем поле
-                if (isInputActive && inputField != null && !string.IsNullOrEmpty(inputField.text))
+                if (isInputActive)
                 {
-                    ProcessInput(inputField.text); // Обрабатываем введенный текст
-                    inputField.text = "";
-                    InputFieldComponent.SetActive(false);
-                    isInputActive = false;  // Ввод завершен, восстанавливаем движение
-                    isInputLocked = false; // Разблокируем поле ввода
+
+                    if (inputField != null && !string.IsNullOrEmpty(inputField.text)){
+
+                        ProcessInput(inputField.text); // Обрабатываем введенный текст
+                        inputField.text = "";
+                        InputFieldComponent.SetActive(false);
+                        isInputActive = false;  // Ввод завершен, восстанавливаем движение
+                        isInputLocked = false; // Разблокируем поле ввода
+                    }
+
+
                 }
+                else // Активирую ентером
+                {
+                    inputField.Select();
+                    inputField.ActivateInputField();
+
+                }
+               
 
             }
 

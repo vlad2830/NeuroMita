@@ -169,6 +169,7 @@ namespace MitaAI.Mita
                     case "Притвориться отключенной и упасть":
                         EnqueueAnimation("Mita Fall Start");
                         setIdleAnimation("Mita Fall Idle");
+
                         break;
                     case "Взять предмет":
                         EnqueueAnimation("Mita TakeBat");

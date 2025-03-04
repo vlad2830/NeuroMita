@@ -49,10 +49,9 @@ namespace MitaAI
         }
         static IEnumerator MitaKickEnd()
         {
-            while (MitaAnimationModded.animator.GetCurrentStateName(0)=="Mita Kick")
-            {
-                yield return null;
-            }
+            MelonCoroutines.Start( MitaCore.Instance.AddRemoveBloodEffect(5));
+            yield return new WaitForSeconds(1.5667f);
+            
             MitaAnimationModded.bat.active = false;
         }
 

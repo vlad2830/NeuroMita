@@ -49,6 +49,7 @@ class MemorySystem:
 
     def delete_memory(self, number):
         self.memories = [memory for memory in self.memories if memory["N"] != number]
+        self.last_memory_number = len(self.memories)
         self.save_memories()
 
     def clear_memories(self):
@@ -62,7 +63,16 @@ class MemorySystem:
             formatted_memories.append(
                 f"N:{memory['N']}, Date {memory['date']}, Priority: {memory['priority']}: {memory['content']}"
             )
-        return "LongMemory< " + "\n".join(formatted_memories) + " >EndLongMemory"
+
+        example = "example <-memory>2</memory> — deleting memory with ID 2"
+        if self.last_memory_number > 50:
+            ClearMemories = f"You have {self.last_memory_number-1} memories, you MUST delete old ones with low or normal priority!!! {example}"
+        elif self.last_memory_number > 20:
+            ClearMemories = f"You have {self.last_memory_number-1} memories, you should delete old ones with low priority {example}"
+        else:
+            ClearMemories = ""
+
+        return "LongMemory< " + "\n".join(formatted_memories) + f" >EndLongMemory. {ClearMemories}"
 
 # Пример использования
 #memory_system = MemorySystem()

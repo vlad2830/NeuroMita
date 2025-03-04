@@ -419,6 +419,7 @@ namespace MitaAI
             }
             yield return new WaitForSeconds(0.25f);
             if (Utils.Random(1, 7)) MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом", MitaToStart);
+            else if (Utils.Random(1, 8)) MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым цветом волос", MitaToStart);
             else MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень.", MitaToStart);
 
 
