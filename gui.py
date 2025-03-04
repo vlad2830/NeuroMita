@@ -60,7 +60,7 @@ class ChatGUI:
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
 
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.gpt4free_model,
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.settings.get("gpt4free_model"),
                                self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
@@ -923,6 +923,7 @@ class ChatGUI:
                 widget_type=config.get('type', 'entry'),
                 options=config.get('options', None),
                 default=config.get('default', ''),
+                default_checkbutton=config.get('default_checkbutton', False),
                 validation=config.get('validation', None)
             )
             section.add_widget(widget)
