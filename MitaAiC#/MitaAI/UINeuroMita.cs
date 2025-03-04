@@ -249,7 +249,7 @@ namespace MitaAI
             float time = 0f;
             while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font)
             {
-                if (time >= 30f)
+                if (time >= 60f)
                 {
                     break;
                 }

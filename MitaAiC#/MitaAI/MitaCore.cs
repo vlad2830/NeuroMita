@@ -1065,6 +1065,15 @@ namespace MitaAI
                         newPoint.name = "Point Basement 2";
                         globalChildObjects.Add(newPoint);
 
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.2978f, 0, -7.3997f), Quaternion.identity, childTransform.parent);
+                        newPoint.name = "Point Enter_Basement";
+                        globalChildObjects.Add(newPoint);
+
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.1936f, 0, -8.9503f), Quaternion.identity, childTransform.parent);
+                        newPoint.name = "Point Leave_Basement";
+                        globalChildObjects.Add(newPoint);
+
+
                         remakeArrayl34(Location34_Communication, newPoint,"b");
                     }
 

@@ -8,8 +8,32 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class WardrobeFix : MonoBehaviour
     {
-        private float moveDuration = 3f; // Время перемещения
-        private float moveDistance = 4f; // Дистанция перемещения
+        private float moveDuration = 1f; // Время перемещения
+        private float moveDistance = 1.7f; // Дистанция перемещения
+
+        private bool active = false;
+
+        void Update()
+        {
+
+            //MelonLogger.Msg("Update");
+            GameObject Mita = MitaCore.Instance.MitaPersonObject;
+            if (Mita == null) return;
+
+            if (Utils.getDistanceBetweenObjects(Mita,this.gameObject)<0.78f && !active)
+            {
+
+                MelonLogger.Msg("Mita wardrobe fix");
+                
+                // Если у миты Z больше, она в комнате
+                float zDirection = (Mita.transform.position.z > this.transform.position.z) ? -1 : 1;
+
+                // Запускаем последовательность перемещений
+                MelonCoroutines.Start(MovementSequence(zDirection, Mita));
+                active = true;
+            }
+        }
+
 
         private void OnTriggerEnter(Collider other)
         {
@@ -36,13 +60,20 @@ namespace MitaAI
         private IEnumerator MovementSequence(float direction, GameObject targetObject)
         {
             // Первый этап: движение к центру
-            yield return MelonCoroutines.Start(MoveObject(targetObject.transform,direction * moveDistance,-direction,moveDuration));
+            yield return MelonCoroutines.Start(MoveObject(targetObject.transform,direction * moveDistance,moveDuration));
 
             // Второй этап: движение за край
-            yield return MelonCoroutines.Start(MoveObject(targetObject.transform,-direction * moveDistance,direction,moveDuration));
+            //yield return MelonCoroutines.Start(MoveObject(targetObject.transform,-direction * moveDistance,direction,moveDuration));
+
+            MitaCore.Instance.Mita.AiShraplyStop();
+
+            yield return new WaitForSeconds(1f);
+            active = false;
+
+            
         }
 
-        private IEnumerator MoveObject(Transform obj, float distance, float direction, float duration)
+        private IEnumerator MoveObject(Transform obj, float distance, float duration)
         {
             Vector3 startPos = obj.position;
             Vector3 endPos = startPos + new Vector3(0, 0, distance);
