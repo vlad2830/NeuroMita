@@ -303,7 +303,7 @@ class ChatGUI:
 
         self.silero_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение к Silero",
+            text="Подключение Telegram",
             variable=self.silero_connected,
             state="disabled",
             bg="#2c2c2c",

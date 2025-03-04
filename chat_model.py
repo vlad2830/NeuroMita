@@ -447,7 +447,9 @@ class ChatModel:
                                                                        self.cost_input_per_1000)
             logger.info(f"Calculated cost: {self.gui.last_price}")
         except Exception as e:
-            logger.info("Не получилось сделать с токенайзером", str(e))
+            ...
+            logger.info("Не получилось сделать с токенайзером, это скорее всего особенность билда")
+            #logger.info("Не получилось сделать с токенайзером", str(e))
 
     def _format_messages_for_gemini(self, combined_messages):
         formatted_messages = []

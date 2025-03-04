@@ -29,7 +29,7 @@ class Character:
         self.load_history()
 
         self.memory_system = MemorySystem(self.name)
-#        self.state = EventState()
+        #        self.state = EventState()
 
         """
         Спорные временные переменные
@@ -314,13 +314,13 @@ class Character:
 
 class CrazyMita(Character):
 
-    def __init__(self, name: str = "Mita", silero_command: str = "/speaker Mita",silero_turn_off_video = False):
+    def __init__(self, name: str = "Mita", silero_command: str = "/speaker Mita", silero_turn_off_video=False):
 
         self.secretExposed = False
         self.secretExposedFirst = False
         self.PlayingFirst = False
 
-        super().__init__(name, silero_command,silero_turn_off_video)
+        super().__init__(name, silero_command, silero_turn_off_video)
 
     def init(self):
         self.crazy_mita_prompts()
@@ -557,12 +557,11 @@ class CappyMita(Character):
         examplesLong = load_text_from_file("Prompts/Cappy/Context/examplesLong.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
 
-        mita_history = load_text_from_file("Prompts/Cappy/Context/mita_history.txt")
+        mita_history = load_text_from_file("Prompts/Cappy/Context/Mita_history.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
 
         variableEffects = load_text_from_file("Prompts/Cappy/Structural/VariablesEffects.txt")
         Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
-
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
