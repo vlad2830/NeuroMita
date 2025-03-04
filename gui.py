@@ -50,7 +50,6 @@ class ChatGUI:
         self.api_id = ""
         self.phone = ""
 
-        self.gpt4free_model = ""
 
         self.settings = SettingsManager("Settings/settings.json")
 
@@ -62,6 +61,7 @@ class ChatGUI:
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
 
+        self.gpt4free_model = self.settings.get("GPT4FREE_MODEL", "gemini-1.5-flash")
         self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.gpt4free_model,
                                self.makeRequest)
         self.server = ChatServer(self, self.model)
@@ -126,7 +126,7 @@ class ChatGUI:
         print("Telegram Bot запускается!")
         try:
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
-            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone,self.settings.get("TG_BOT"))
+            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone, self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
             await self.bot_handler.start()
             self.bot_handler_ready = True
             if self.silero_connected.get():
@@ -898,9 +898,11 @@ class ChatGUI:
         ...
         if key == "SILERO_TIME":
             self.bot_handler.silero_time_limit = int(value)
-        if key == "TG_BOT":
+        if key == "AUDIO_BOT":
             self.bot_handler.tg_bot = value
-
+            print(f"ТГ-бот для озвучки изменен на {value}")
+        if key == "TG_BOT":
+            self.bot_handler.tg_bot_channel = value  
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
 
