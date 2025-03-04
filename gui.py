@@ -60,7 +60,8 @@ class ChatGUI:
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
 
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.gpt4free_model, self.makeRequest)
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.gpt4free_model,
+                               self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -168,7 +169,6 @@ class ChatGUI:
                 print("Выполнено")
             else:
                 print("Ошибка: Цикл событий не готов.")
-
 
         text_from_recognition = SpeechRecognition.receive_text()
         if bool(self.settings.get("MIC_ACTIVE")) and text_from_recognition and self.user_entry:
@@ -551,8 +551,9 @@ class ChatGUI:
         # Основные настройки
         mita_config = [
             {'label': 'Использовать gpt4free', 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
-            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40},
-            {'label': 'Использовать модель', 'key': 'gpt4free_model', 'type': 'entry', 'default': "gpt-4o-mini"}
+            {'label': 'Модель gpt4free', 'key': 'gpt4free_model', 'type': 'entry', 'default': "gemini-1.5-flash"}, # gpt-4o-mini тоже подходит
+            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40}
+
         ]
 
         self.create_settings_section(parent, "Настройки модели", mita_config)
@@ -806,7 +807,8 @@ class ChatGUI:
         )
         refresh_btn.pack(side=tk.LEFT, padx=5)
 
-        self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton', default_checkbutton=False)
+        self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton',
+                                   default_checkbutton=False)
 
     def get_microphone_list(self):
         try:
@@ -884,13 +886,12 @@ class ChatGUI:
 
         elif key == "MODEL_MESSAGE_LIMIT":
             self.model.memory_limit = value
-        
+
         elif key == "gpt4free_model":
             self.model.gpt4free_model = value
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = value
-
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
