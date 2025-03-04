@@ -6,6 +6,7 @@ import random
 import pygame
 import asyncio
 from telethon.tl.types import MessageMediaDocument, DocumentAttributeAudio
+from telethon.tl.types import MessageMediaDocument, DocumentAttributeAudio
 
 import ffmpeg
 import platform
@@ -17,12 +18,12 @@ from utils import SH
 # Пример использования:
 class TelegramBotHandler:
 
-    def __init__(self, gui, api_id, api_hash, phone, message_limit_per_minute=20):
+    def __init__(self, gui, api_id, api_hash, phone, tg_bot, message_limit_per_minute=20):
         # Получение параметров из окружения
         self.api_id = api_id
         self.api_hash = api_hash
         self.phone = phone
-        self.tg_bot = ''  # Юзернейм Silero бота
+        self.tg_bot = tg_bot  # Юзернейм Silero бота
         self.gui = gui
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
@@ -126,7 +127,7 @@ class TelegramBotHandler:
             if self.gui.silero_turn_off_video:
                 await self.client.send_message(self.tg_bot, "/videonotes")
 
-                await asyncio.sleep(0.55)
+                await asyncio.sleep(0.65)
 
                 # Получаем последнее сообщение от бота
                 messages = await self.client.get_messages(self.tg_bot, limit=1)
@@ -196,6 +197,8 @@ class TelegramBotHandler:
                 print(f"Файл загружен: {file_path}")
                 sound_absolute_path = os.path.abspath(file_path)
                 if self.gui.ConnectedToGame:
+                    print("Подключен к игре, нужна конвертация")
+
                     # Генерируем путь для WAV-файла на основе имени исходного MP3
                     base_name = os.path.splitext(os.path.basename(file_path))[0]  # Получаем имя файла без расширения
                     wav_path = os.path.join(os.path.dirname(file_path), f"{base_name}.wav")  # Создаем новый путь
@@ -204,7 +207,8 @@ class TelegramBotHandler:
 
                     absolute_wav_path = os.path.abspath(wav_path)
                     # Конвертируем MP3 в WAV
-                    await AudioConverter.convert_to_wav(sound_absolute_path, absolute_wav_path)
+                    await  AudioConverter.convert_mp3_to_wav(sound_absolute_path, absolute_wav_path)
+                    #await AudioConverter.convert_to_wav(sound_absolute_path, absolute_wav_path)
 
                     try:
                         print(f"Удаляю файл: {sound_absolute_path}")
@@ -232,7 +236,6 @@ class TelegramBotHandler:
 
             self.gui.silero_connected.set(True)
             print("Успешно авторизован!")
-
 
             await self.client.send_message(self.tg_bot, "/start")
             await asyncio.sleep(0.35)
