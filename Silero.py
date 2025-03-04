@@ -205,8 +205,8 @@ class TelegramBotHandler:
 
                     absolute_wav_path = os.path.abspath(wav_path)
                     # Конвертируем MP3 в WAV
-                    await  AudioConverter.convert_mp3_to_wav(sound_absolute_path, absolute_wav_path)
-                    #await AudioConverter.convert_to_wav(sound_absolute_path, absolute_wav_path)
+                    #await  AudioConverter.convert_mp3_to_wav(sound_absolute_path, absolute_wav_path)
+                    await AudioConverter.convert_to_wav(sound_absolute_path, absolute_wav_path)
 
                     try:
                         print(f"Удаляю файл: {sound_absolute_path}")
