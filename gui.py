@@ -62,8 +62,8 @@ class ChatGUI:
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
 
-
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.gpt4free_model, self.makeRequest)
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.gpt4free_model,
+                               self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -126,7 +126,7 @@ class ChatGUI:
         print("Telegram Bot запускается!")
         try:
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
-            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone)
+            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone,self.settings.get("TG_BOT"))
             await self.bot_handler.start()
             self.bot_handler_ready = True
             if self.silero_connected.get():
@@ -171,7 +171,6 @@ class ChatGUI:
                 print("Выполнено")
             else:
                 print("Ошибка: Цикл событий не готов.")
-
 
         text_from_recognition = SpeechRecognition.receive_text()
         if bool(self.settings.get("MIC_ACTIVE")) and text_from_recognition and self.user_entry:
@@ -250,6 +249,7 @@ class ChatGUI:
         self.setup_silero_controls(right_frame)
         self.setup_mita_controls(right_frame)
         self.setup_model_controls(right_frame)
+        self.setup_common_controls(right_frame)
         # Передаем right_frame как родителя
         self.setup_status_indicators(right_frame)
 
@@ -305,7 +305,7 @@ class ChatGUI:
 
         self.silero_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение к Silero",
+            text="Подключение Telegram",
             variable=self.silero_connected,
             state="disabled",
             bg="#2c2c2c",
@@ -523,24 +523,29 @@ class ChatGUI:
         save_button.grid(row=7, column=1, padx=5, sticky=tk.E)
 
         # Обновляем поля ввода
-        self.api_key_entry.insert(0, self.api_key)
-        self.api_key_res_entry.insert(0, self.api_key_res)
         self.api_url_entry.insert(0, self.api_url)
         self.api_model_entry.insert(0, self.api_model)
-        self.api_id_entry.insert(0, self.api_id)
-        self.api_hash_entry.insert(0, self.api_hash)
-        self.phone_entry.insert(0, self.phone)
+
+        if not bool(self.settings.get(
+                "HIDE_PRIVATE")):  # Для безопасности стримеров т.п. это надо будет сделать переключаемым по настройке
+            self.api_key_entry.insert(0, self.api_key)
+            self.api_key_res_entry.insert(0, self.api_key_res)
+            self.api_id_entry.insert(0, self.api_id)
+            self.api_hash_entry.insert(0, self.api_hash)
+            self.phone_entry.insert(0, self.phone)
 
     def setup_silero_controls(self, parent):
         # Основные настройки
         telegram_config = [
-            {'label': 'Использовать бота-озвучкера', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
+            {'label': 'Использовать тг-бота', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
+            {'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
+             'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
              'validation': self.validate_number},
             {'label': 'ТГ-бот для озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox', 'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"}
         ]
 
-        self.create_settings_section(parent, "Настройка бота-озвучкера", telegram_config)
+        self.create_settings_section(parent, "Настройка Telegram", telegram_config)
 
     def setup_mita_controls(self, parent):
         # Основные настройки
@@ -555,11 +560,22 @@ class ChatGUI:
         # Основные настройки
         mita_config = [
             {'label': 'Использовать gpt4free', 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
-            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40},
-            {'label': 'Использовать модель', 'key': 'gpt4free_model', 'type': 'entry', 'default': "gpt-4o-mini"}
+            {'label': 'Модель gpt4free', 'key': 'gpt4free_model', 'type': 'entry', 'default': "gemini-1.5-flash"},
+            # gpt-4o-mini тоже подходит
+            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40}
+
         ]
 
         self.create_settings_section(parent, "Настройки модели", mita_config)
+
+    def setup_common_controls(self, parent):
+        # Основные настройки
+        common_config = [
+            {'label': 'Скрывать данные', 'key': 'HIDE_PRIVATE', 'type': 'checkbutton',
+             'default_checkbutton': True},
+
+        ]
+        self.create_settings_section(parent, "Общие настройки", common_config)
 
     def validate_number(self, new_value):
         return 0 < len(new_value) <= 30  # Пример простой валидации
@@ -809,7 +825,8 @@ class ChatGUI:
         )
         refresh_btn.pack(side=tk.LEFT, padx=5)
 
-        self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton', default_checkbutton=True)
+        self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton',
+                                   default_checkbutton=False)
 
     def get_microphone_list(self):
         try:
@@ -881,26 +898,20 @@ class ChatGUI:
         ...
         if key == "SILERO_TIME":
             self.bot_handler.silero_time_limit = int(value)
-        
-        if key == "SILERO_USE":
-            print(f"Использование бота для озвучки: {value}")
-
-        if key == "AUDIO_BOT":
-            self.bot_handler.current_audio_bot = value
-            print(f"Выбран бот для озвучки: {value}")
+        if key == "TG_BOT":
+            self.bot_handler.tg_bot = value
 
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
 
         elif key == "MODEL_MESSAGE_LIMIT":
             self.model.memory_limit = value
-        
+
         elif key == "gpt4free_model":
             self.model.gpt4free_model = value
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = value
-
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)

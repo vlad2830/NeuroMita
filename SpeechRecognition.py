@@ -4,7 +4,7 @@ from io import BytesIO
 import soundfile as sf
 import numpy as np
 import speech_recognition as sr
-import logging
+
 
 import asyncio
 
@@ -76,6 +76,9 @@ class SpeechRecognition:
                         lambda: recognizer.listen(source)
                     )
 
+                    # await SpeechRecognition.async_audio_callback(audio)
+
+
                     text = await asyncio.get_event_loop().run_in_executor(
                         None,
                         lambda: recognizer.recognize_google(audio, language="ru-RU")
@@ -110,13 +113,15 @@ class SpeechRecognition:
 
             current_volume = np.max(np.abs(indata))
             #print(f"Громкость: {current_volume}")  # Логирование громкости
-
+            current_volume = 1
+            #print(f"Текущая настройка {current_volume}  Уровень тишины {SpeechRecognition.SILENCE_THRESHOLD}")
             if current_volume > SpeechRecognition.SILENCE_THRESHOLD:
                 SpeechRecognition.audio_state.audio_buffer.append(indata.copy())
                 SpeechRecognition.audio_state.last_sound_time = time.time()
                 SpeechRecognition.audio_state.is_recording = True
                 print("Данные добавлены в буфер.")
             elif SpeechRecognition.audio_state.is_recording:
+                print("222")
                 silence_time = time.time() - SpeechRecognition.audio_state.last_sound_time
                 if silence_time > SpeechRecognition.SILENCE_DURATION:
                     SpeechRecognition.audio_state.is_recording = False
@@ -176,9 +181,9 @@ class SpeechRecognition:
                 if not SpeechRecognition.active:
                     return
 
-                await SpeechRecognition.async_audio_callback(4)
+                await SpeechRecognition.async_audio_callback(0)
 
-                #await asyncio.sleep(0.25)
+                await asyncio.sleep(0.25)
             except:
                 ...
 
