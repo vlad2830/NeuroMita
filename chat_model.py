@@ -49,7 +49,7 @@ class ChatModel:
             logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
-            
+
             #self.hugging_face_client = HfApi()
             print("Со старта удалось запустить OpenAi client")
         except:
@@ -69,7 +69,7 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         """"""
 
-        self.memory_limit = int(self.gui.settings.get("MODEL_MESSAGE_LIMIT", 40)) # Ограничение  насообщения
+        self.memory_limit = int(self.gui.settings.get("MODEL_MESSAGE_LIMIT", 40))  # Ограничение  насообщения
 
         """New System"""
         self.current_character = None
@@ -96,7 +96,7 @@ class ChatModel:
         self.init_characters()
 
         self.HideAiData = True
-        
+
         # Настройки реквестов
         self.max_request_attempts = 5
         self.request_delay = 0.2
@@ -105,12 +105,12 @@ class ChatModel:
         """
         Инициализирует возможных персонажей
         """
-        self.crazy_mita_character = CrazyMita("Mita", "/speaker mita",True)
-        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap",True)
-        self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley",True)
-        self.kind_mita_character = KindMita("Kind", "/speaker kind",True)
-        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair",True)
-        self.cart_divan = DivanCartridge("Cart_divan","/speaker engineer",True)
+        self.crazy_mita_character = CrazyMita("Mita", "/speaker mita", True)
+        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap", True)
+        self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley", True)
+        self.kind_mita_character = KindMita("Kind", "/speaker kind", True)
+        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", True)
+        self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
 
         # Словарь для сопоставления имен персонажей с их объектами
         self.characters = {
@@ -320,9 +320,8 @@ class ChatModel:
         self._log_generation_start()
         save_combined_messages(combined_messages)
 
-
-
-        if self.makeRequest:
+        # TODO ПЕРЕДЕЛАТЬ НАФИГ
+        if self.makeRequest and not bool(self.gui.settings.get("gpt4free")):
             formatted_messages = self._format_messages_for_gemini(combined_messages)
             response = self._generate_gemini_response(formatted_messages)
         else:
