@@ -2,6 +2,7 @@ import tiktoken
 from openai import OpenAI
 from g4f.client import Client as g4fClient
 #from huggingface_hub import HfApi
+from mistralai import Mistral as MistralClient
 
 import re
 
@@ -46,6 +47,7 @@ class ChatModel:
             self.makeRequest = api_make_request
 
             self.g4fClient = g4fClient()
+            self.mistral_client = MistralClient()
             logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
