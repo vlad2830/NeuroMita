@@ -264,7 +264,29 @@ namespace MitaAI.Mita
             }
         }
 
-        
+        public static string ProcesHint(string response)
+        {
+
+
+            string pattern = @"<hint>(.*?)</hint>";
+            MatchCollection matches = Regex.Matches(response, pattern);
+
+            foreach (Match match in matches)
+            {
+                if (match.Success)
+                {
+                    MitaCore.Instance.playerController.ShowHint(match.Groups[1].Value,new Vector2(25,-25));
+                    break;
+                }
+            }
+
+
+            string result = Regex.Replace(response, @"<hint>.*?</hint>", "");
+
+            // Удаляем теги эмоций из текста
+            return result;
+
+        }
 
     }
 

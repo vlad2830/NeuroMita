@@ -11,6 +11,7 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using MitaAI.Mita;
 using MitaAI.PlayerControls;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
@@ -224,7 +225,8 @@ namespace MitaAI
             walkNear = 0,
             follow = 1,
             stay = 2,
-            noclip = 3
+            noclip = 3,
+            layingOnTheFloor = 4
 
         }
         MovementStyles movementStyle = MovementStyles.walkNear;
@@ -247,6 +249,9 @@ namespace MitaAI
         GameObject playerEffectsObject;
         public GameObject playerControllerObject;
         public GameController playerController;
+
+        public GameController gameController;
+        public static Text HintText;
 
         public GameObject cartridgeReader;
 
@@ -574,6 +579,9 @@ namespace MitaAI
 
             playerEffects = playerPerson.transform.parent.Find("HeadPlayer/MainCamera").gameObject.GetComponent<PlayerCameraEffects>();
             playerEffectsObject = playerPerson.transform.parent.Find("HeadPlayer/MainCamera/CameraPersons").gameObject;
+
+            Text HintText =  GameObject.Find("GameController/Interface/HintScreen/Text").GetComponent<Text>();
+
             blackScreen = GameObject.Find("Game/Interface/BlackScreen").GetComponent<BlackScreen>();
             try
             {
@@ -1058,23 +1066,36 @@ namespace MitaAI
                         GameObject newPoint = GameObject.Instantiate(childTransform.gameObject,new Vector3(12.8382f,-2.9941f,-16.8005f),Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement 1";
                         globalChildObjects.Add(newPoint);
-
                         remakeArrayl34(Location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(17.0068f, -2.9941f, -13.2256f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement 2";
                         globalChildObjects.Add(newPoint);
+                        remakeArrayl34(Location34_Communication, newPoint, "b");
+
+
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(10.9679f, -2.9941f, -19.5763f), Quaternion.identity, childTransform.parent);
+                        newPoint.name = "Point Basement Camera";
+                        globalChildObjects.Add(newPoint);
+                        remakeArrayl34(Location34_Communication, newPoint, "b");
+
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(19.6421f, -2.9941f, -14.9584f), Quaternion.identity, childTransform.parent);
+                        newPoint.name = "Point Basement Safe";
+                        globalChildObjects.Add(newPoint);
+                        remakeArrayl34(Location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.2978f, 0, -7.3997f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Enter_Basement";
                         globalChildObjects.Add(newPoint);
-
+                        remakeArrayl34(Location34_Communication, newPoint, "b");
+                        
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.1936f, 0, -8.9503f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Leave_Basement";
                         globalChildObjects.Add(newPoint);
+                        remakeArrayl34(Location34_Communication, newPoint, "b");
 
 
-                        remakeArrayl34(Location34_Communication, newPoint,"b");
+
                     }
 
                 }
@@ -1291,6 +1312,7 @@ namespace MitaAI
                     modifiedPart = ProcessPlayerEffects(modifiedPart);
                     modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
                     modifiedPart = AudioControl.ProcessMusic(modifiedPart);
+                    modifiedPart = CommandProcessor.ProcesHint(modifiedPart);
                     (emotion, modifiedPart) = SetEmotionBasedOnResponse(modifiedPart);
                     LoggerInstance.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
 
@@ -1993,7 +2015,10 @@ namespace MitaAI
                                 effectComponent = playerEffectsObject.GetComponentByName("Negative");
                                 break;
                             case "кровь":
-                                effectComponent = playerEffectsObject.GetComponentByName("FastVignette");
+                                MelonCoroutines.Start(AddRemoveBloodEffect(time));
+                                break;
+                            case "blure":
+                                MelonCoroutines.Start(DisableEffectAfterDelay(playerEffects, "Blure", time)); // Запускаем корутину для выключения эффекта
                                 break;
                             default:
                                 LoggerInstance.Msg($"Unknown effect: {effect}");
@@ -2044,7 +2069,14 @@ namespace MitaAI
             return result;
         }
 
-        
+        public IEnumerator AddRemoveBloodEffect(float time)
+        {
+            playerEffects.FastVegnetteActive(true);
+            yield return new WaitForSecondsRealtime(5);
+            playerEffects.FastVegnetteActive(false);
+        }
+
+
 
         private IEnumerator DisableEffectAfterDelay(Il2CppObjectBase il2cppComponent, string effectMethodName, float delay)
         {
@@ -2084,6 +2116,9 @@ namespace MitaAI
             {
                 info += $"Current movement type: {movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
+                if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!";
+                if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!";
+
                 info += $"Current emotion anim: {currentEmotion}\n";
 
 
@@ -2114,6 +2149,7 @@ namespace MitaAI
                 else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>";
 
                 info += Interactions.getObservedObjects();
+                info += $"Current player's hint text {HintText.text}";
 
 
             }

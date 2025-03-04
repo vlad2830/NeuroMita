@@ -48,7 +48,7 @@ class ChatServer:
             response = ""
             if message == "waiting":
                 if system_message != "-":
-                    print("Получено system_message")
+                    print(f"Получено system_message {system_message}")
                     response = self.generate_response("", system_message)
                     self.gui.insertDialog("", response)
                 elif len(self.MessagesToSay) > 0:

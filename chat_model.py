@@ -362,10 +362,14 @@ class ChatModel:
         logger.info(f"Make Request: {self.makeRequest}")
 
     def _format_messages_for_gemini(self, combined_messages):
+        #TODO Надо кароче первые сообщения сделать системными
+
         formatted_messages = []
         for msg in combined_messages:
-            if msg["role"] == "system":
+            if  msg["role"] == "system":
                 formatted_messages.append({"role": "user", "content": f"[System Prompt]: {msg['content']}"})
+            #if msg["role"] == "assistant":
+                #msg["role"] = "model"
             else:
                 formatted_messages.append(msg)
         save_combined_messages(formatted_messages, "Gem")
@@ -453,15 +457,7 @@ class ChatModel:
             logger.info("Не получилось сделать с токенайзером, это скорее всего особенность билда")
             #logger.info("Не получилось сделать с токенайзером", str(e))
 
-    def _format_messages_for_gemini(self, combined_messages):
-        formatted_messages = []
-        for msg in combined_messages:
-            if msg["role"] == "system":
-                formatted_messages.append({"role": "user", "content": f"[System Prompt]: {msg['content']}"})
-            else:
-                formatted_messages.append(msg)
-        save_combined_messages(formatted_messages, "Gem")
-        return formatted_messages
+
 
     def try_print_error(self, completion):
         try:
@@ -518,12 +514,12 @@ class ChatModel:
     def generate_responseGemini(self, combined_messages):
         data = {
             "contents": [
-                {"role": "user", "parts": [{"text": msg["content"]}]} for msg in combined_messages
+                {"role": msg["role"], "parts": [{"text": msg["content"]}]} for msg in combined_messages
             ],
             "generationConfig": {
                 "maxOutputTokens": self.max_response_tokens,
-                "temperature": 0.7,
-                #"presencePenalty": 1.5
+                "temperature": 1,
+                "presencePenalty": 1.5
             }
         }
 

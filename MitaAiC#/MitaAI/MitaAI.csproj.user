@@ -5,8 +5,5 @@
     <Compile Update="Settings.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="WorldModded\Events\NewBehaviourScript1.cs">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
 </Project>
