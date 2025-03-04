@@ -3,14 +3,10 @@ from openai import OpenAI
 from g4f.client import Client as g4fClient
 #from huggingface_hub import HfApi
 
-import datetime
 import re
-import shutil
 
 from character import *
 from utils import *
-from MemorySystem import MemorySystem
-from requests.exceptions import Timeout
 # Настройка логирования
 import logging
 import colorlog
@@ -33,7 +29,7 @@ logger.addHandler(handler)
 
 
 class ChatModel:
-    def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
+    def __init__(self, gui, api_key, api_key_res, api_url, api_model, gpt4free_model, api_make_request):
 
         # Временное решение, чтобы возвращать работоспособность старого формата
 
@@ -46,10 +42,14 @@ class ChatModel:
             self.api_key_res = api_key_res
             self.api_url = api_url
             self.api_model = api_model
+            self.gpt4free_model = gpt4free_model
             self.makeRequest = api_make_request
 
-            self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
             self.g4fClient = g4fClient()
+            logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
+
+            self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
+            
             #self.hugging_face_client = HfApi()
             print("Со старта удалось запустить OpenAi client")
         except:
@@ -96,6 +96,10 @@ class ChatModel:
         self.init_characters()
 
         self.HideAiData = True
+        
+        # Настройки реквестов
+        self.max_request_attempts = 5
+        self.request_delay = 0.2
 
     def init_characters(self):
         """
@@ -381,8 +385,6 @@ class ChatModel:
             self.update_openai_client()
 
         try:
-
-            # Гемини нужно всегда последнее сообщение пользователя
             if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
                 print("gemini последнее системное сообщение на юзерское")
                 combined_messages[-1]["role"] = "user"
@@ -393,10 +395,8 @@ class ChatModel:
             if bool(self.gui.settings.get("gpt4free")):
                 print("gpt4free case")
 
-                model = self.api_model
-                if not model:
-                    print("Не указана модель, подставил gemini-1.5-flash")
-                    model = "gemini-1.5-flash"
+                model = self.gpt4free_model
+                # По дефолту ставится gpt-4o-mini, можно поменять в gui.py/setup_model_controls()
 
                 completion = self.g4fClient.chat.completions.create(
                     model=model,
@@ -426,20 +426,39 @@ class ChatModel:
                     self.try_print_error(completion)
                     return None
             else:
-
                 logger.warning("completion пусто")
                 return None
 
-            #print("out completion ", completion)
-
-        except Timeout:
-            logger.error("Тайм-аут при запросе к OpenAI")
-            return None
-
         except Exception as e:
-            print("111")
-            logger.error(f"Что-то не так при генерации OpenAI {e}")
+            logger.error("Что-то не так при генерации OpenAI", str(e))
             return None
+
+    def _log_generation_start(self):
+        logger.info("Перед отправкой на генерацию")
+        logger.info(f"API Key: {SH(self.api_key)}")
+        logger.info(f"API Key res: {SH(self.api_key_res)}")
+        logger.info(f"API URL: {self.api_url}")
+        logger.info(f"API Model: {self.api_model}")
+        logger.info(f"Make Request: {self.makeRequest}")
+
+    def _save_and_calculate_cost(self, combined_messages):
+        save_combined_messages(combined_messages)
+        try:
+            self.gui.last_price = calculate_cost_for_combined_messages(self, combined_messages,
+                                                                       self.cost_input_per_1000)
+            logger.info(f"Calculated cost: {self.gui.last_price}")
+        except Exception as e:
+            logger.info("Не получилось сделать с токенайзером", str(e))
+
+    def _format_messages_for_gemini(self, combined_messages):
+        formatted_messages = []
+        for msg in combined_messages:
+            if msg["role"] == "system":
+                formatted_messages.append({"role": "user", "content": f"[System Prompt]: {msg['content']}"})
+            else:
+                formatted_messages.append(msg)
+        save_combined_messages(formatted_messages, "Gem")
+        return formatted_messages
 
     def try_print_error(self, completion):
         try:

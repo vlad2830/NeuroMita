@@ -12,6 +12,9 @@ from gui import ChatGUI
 #pyinstaller --onefile --name NeuroMita --add-data "Prompts/*;Prompts" --add-data "Prompts/**/*;Prompts" Main.py
 
 # Не забудь рядом папку промптов и ffmpeg
+
+# Устанавливаем глобальные настройки SSL в самом начале приложения
+
 def main():
     gui = ChatGUI()
     gui.run()
