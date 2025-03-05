@@ -1183,7 +1183,7 @@ namespace MitaAI
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
 
             float elapsedTime = 0f; // Счетчик времени
-            float timeout = 6.5f;     // Лимит времени ожидания
+            float timeout = 15f;     // Лимит времени ожидания
             float lastCallTime = 0f; // Время последнего вызова
 
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
