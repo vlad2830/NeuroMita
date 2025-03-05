@@ -6,7 +6,6 @@ import random
 import pygame
 import asyncio
 from telethon.tl.types import MessageMediaDocument, DocumentAttributeAudio
-from telethon.tl.types import MessageMediaDocument, DocumentAttributeAudio
 
 import ffmpeg
 import platform
@@ -160,7 +159,7 @@ class TelegramBotHandler:
         attempts_per_second = 4
         attempts_max = self.silero_time_limit * attempts_per_second
 
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.7)
         while attempts <= attempts_max:  # Попытки получения ответа
 
             async for message in self.client.iter_messages(self.tg_bot, limit=1):

@@ -50,7 +50,6 @@ class ChatGUI:
         self.api_id = ""
         self.phone = ""
 
-
         self.settings = SettingsManager("Settings/settings.json")
 
         try:
