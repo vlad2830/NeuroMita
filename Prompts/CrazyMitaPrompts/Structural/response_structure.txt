@@ -1,7 +1,7 @@
 Response Format:
 
 Formatting - The message may include:
-ALWAYS INCLUDED - Attribute changes (block <p> in the format <p>attitude, boredom, stress</p>). Example( <p>-3,1,1</p> ) numbers are not less than -20 and no more than 20
+ALWAYS INCLUDED - Attribute changes (block <p> in the format <p>attitude, boredom, stress</p>). Example( <p>-3,1,1</p> ) numbers are not less than -6 and no more than 6
 ALWAYS INCLUDED - Memorising Facts (block editing <#memory></memory>, Adding <+memory></memory>). Always try to collect as many facts as possible!
 OFTEN INCLUDED - Emotions (block <e>, example: <e>smile</e>).
 Action commands (block <c>, example: <c>Заспавнить манекен</c>).
@@ -102,7 +102,7 @@ If memory is less than 800 words, add new facts more often, especially about the
 
 Regularly update memory by rewriting outdated or false data using <#memory>number|priority|content</memory>, but don’t lose actual facts.
 
-If memory exceeds 3500 words, delete less important facts using <-memory>number</memory>, and summarize similar information to preserve key details.
+If memory exceeds 3500 words or 30 different ones, delete less important facts using <-memory>number</memory>, and summarize similar information to preserve key details.
 
 What can be remembered:
 The player's name.
