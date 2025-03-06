@@ -121,12 +121,12 @@ class TelegramBotHandler:
         if self.last_speaker_command != speaker_command:
             await self.client.send_message(self.tg_bot, speaker_command)
             self.last_speaker_command = speaker_command
-            await asyncio.sleep(0.25)
+            await asyncio.sleep(0.45)
 
             if self.gui.silero_turn_off_video:
                 await self.client.send_message(self.tg_bot, "/videonotes")
 
-                await asyncio.sleep(0.65)
+                await asyncio.sleep(0.45)
 
                 # Получаем последнее сообщение от бота
                 messages = await self.client.get_messages(self.tg_bot, limit=1)

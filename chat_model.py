@@ -110,7 +110,7 @@ class ChatModel:
         """
         Инициализирует возможных персонажей
         """
-        self.crazy_mita_character = CrazyMita("CrazyMita", "/speaker mita", True)
+        self.crazy_mita_character = CrazyMita("Crazy", "/speaker mita", True)
         self.cappy_mita_character = CappyMita("Cappy", "/speaker cap", True)
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley", True)
         self.kind_mita_character = KindMita("Kind", "/speaker kind", True)
