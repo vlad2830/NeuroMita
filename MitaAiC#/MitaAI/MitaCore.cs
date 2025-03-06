@@ -943,7 +943,7 @@ namespace MitaAI
 
 
 
-            float timeout = 10f;     // Лимит времени ожидания
+            float timeout = 20f;     // Лимит времени ожидания
             float elapsedTime = 0f; // Счетчик времени
             float lastCallTime = 0f; // Время последнего вызова
 
@@ -973,7 +973,7 @@ namespace MitaAI
                     }
 
                 }
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSecondsRealtime(0.1f);
             }
 
             string patch = null;
