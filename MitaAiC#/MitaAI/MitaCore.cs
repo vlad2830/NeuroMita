@@ -1183,7 +1183,7 @@ namespace MitaAI
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
 
             float elapsedTime = 0f; // Счетчик времени
-            float timeout = 15f;     // Лимит времени ожидания
+            float timeout = 20f;     // Лимит времени ожидания
             float lastCallTime = 0f; // Время последнего вызова
 
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -1208,7 +1208,7 @@ namespace MitaAI
 
                 elapsedTime += 0.1f; // Увеличиваем счетчик времени
 
-                yield return new WaitForSeconds(0.1f);             // Пауза до следующего кадра
+                yield return new WaitForSecondsRealtime(0.1f);             // Пауза до следующего кадра
             }
 
             yield return null;

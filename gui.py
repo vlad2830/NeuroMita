@@ -407,14 +407,6 @@ class ChatGUI:
         )
         save_history_button.pack(side=tk.LEFT, padx=10)
 
-        """
-        reload_prompts_button = tk.Button(
-            history_frame, text="Перезагрузить промпты", command=self.model.reload_promts,
-            bg="#8a2be2", fg="#ffffff"
-        )
-        reload_prompts_button.pack(side=tk.LEFT, padx=15)
-        """
-
     def load_chat_history(self):
 
         chat_history = self.model.current_character.load_history()

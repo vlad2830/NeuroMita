@@ -130,7 +130,7 @@ class ChatModel:
         self.current_character = self.crazy_mita_character
 
     def get_all_mitas(self):
-        print(f"ASDASDASDASDASD {self.characters.keys()}")
+        print(f"Characters {self.characters.keys()}")
         return list(self.characters.keys())
 
     def update_openai_client(self, reserve_key=False):
@@ -331,7 +331,7 @@ class ChatModel:
 
             try:
                 # Выбираем провайдера
-                if use_gemini and attempt == 1:  # Gemini только на первой попытке
+                if use_gemini:  # Gemini только на первой попытке
                     formatted = self._format_messages_for_gemini(combined_messages)
                     response = self._generate_gemini_response(formatted)
                 else:
@@ -373,8 +373,6 @@ class ChatModel:
         for msg in combined_messages:
             if msg["role"] == "system":
                 formatted_messages.append({"role": "user", "content": f"[System Prompt]: {msg['content']}"})
-            #if msg["role"] == "assistant":
-            #msg["role"] = "model"
             else:
                 formatted_messages.append(msg)
         save_combined_messages(formatted_messages, "Gem")
