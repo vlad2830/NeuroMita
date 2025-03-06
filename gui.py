@@ -124,17 +124,17 @@ class ChatGUI:
         print("Telegram Bot запускается!")
         try:
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
-            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone,self.settings.get("TG_BOT"))
+            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone, self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
             await self.bot_handler.start()
             self.bot_handler_ready = True
-            if self.silero_connected:
+            if self.silero_connected.get():
                 print("ТГ успешно подключен")
             else:
                 print("ТГ не подключен")
 
         except Exception as e:
             print(f"Ошибка при запуске Telegram Bot: {e}")
-            self.silero_connected = False
+            self.silero_connected.set(False)
 
     def run_in_thread(self, response):
         """Запуск асинхронной задачи в отдельном потоке."""
@@ -323,7 +323,7 @@ class ChatGUI:
         self.game_status_checkbox.config(fg=game_color)
 
         # Обновление цвета для подключения к Silero
-        silero_color = "#00ff00" if self.silero_connected else "#ffffff"
+        silero_color = "#00ff00" if self.silero_connected.get() else "#ffffff"
         self.silero_status_checkbox.config(fg=silero_color)
 
     def setup_control(self, label_text, attribute_name, initial_value):
@@ -539,7 +539,8 @@ class ChatGUI:
             {'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
              'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
-             'validation': self.validate_number}
+             'validation': self.validate_number},
+            {'label': 'ТГ-бот для озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox', 'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"}
         ]
 
         self.create_settings_section(parent, "Настройка Telegram", telegram_config)
@@ -655,7 +656,7 @@ class ChatGUI:
         # Сразу же их загружаем
         self.load_api_settings(update_model=True)
 
-        if not self.silero_connected:
+        if not self.silero_connected.get():
             print("Попытка запустить силеро заново")
             self.start_silero_async()
 
@@ -683,7 +684,6 @@ class ChatGUI:
             self.api_url = settings.get("NM_API_URL", "")
             self.api_model = settings.get("NM_API_MODEL", "")
             self.makeRequest = settings.get("NM_API_REQ", False)
-            self.gpt4free_model = settings.get("NM_GPT4FREE_MODEL", "")
 
             # ТГ
             self.api_id = settings.get("NM_TELEGRAM_API_ID", "")
@@ -896,9 +896,11 @@ class ChatGUI:
         ...
         if key == "SILERO_TIME":
             self.bot_handler.silero_time_limit = int(value)
-        if key == "TG_BOT":
+        if key == "AUDIO_BOT":
             self.bot_handler.tg_bot = value
-
+            print(f"ТГ-бот для озвучки изменен на {value}")
+        if key == "TG_BOT":
+            self.bot_handler.tg_bot_channel = value  
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
 

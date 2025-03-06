@@ -158,6 +158,7 @@ class TelegramBotHandler:
         attempts = 0
         attempts_per_second = 4
         attempts_max = self.silero_time_limit * attempts_per_second
+
         await asyncio.sleep(0.7)
         while attempts <= attempts_max:  # Попытки получения ответа
 
@@ -205,7 +206,7 @@ class TelegramBotHandler:
 
                     absolute_wav_path = os.path.abspath(wav_path)
                     # Конвертируем MP3 в WAV
-                    #await  AudioConverter.convert_mp3_to_wav(sound_absolute_path, absolute_wav_path)
+                    # await  AudioConverter.convert_mp3_to_wav(sound_absolute_path, absolute_wav_path)
                     await AudioConverter.convert_to_wav(sound_absolute_path, absolute_wav_path)
 
                     try:
@@ -219,9 +220,6 @@ class TelegramBotHandler:
 
                     self.gui.patch_to_sound_file = absolute_wav_path
                     print(f"Файл wav загружен: {absolute_wav_path}")
-
-
-
                 else:
                     print(f"Отправлен воспроизводится: {sound_absolute_path}")
                     await self.handle_voice_file(file_path)
@@ -229,18 +227,16 @@ class TelegramBotHandler:
             print(f"Ответ от бота: {response.text}")
 
     async def start(self):
-
         print("Запуск коннектора ТГ!")
         try:
-            pass
             await self.client.start(phone=self.phone)  # тут на macOS проблема: какая-то фигня с ткинтером
+            await self.client.send_message(self.tg_bot, "/start")
 
             self.gui.silero_connected.set(True)
             print("Успешно авторизован!")
-
-            await self.client.send_message(self.tg_bot, "/start")
-            await asyncio.sleep(0.35)
+            
             if self.tg_bot == "@silero_voice_bot":
+                await asyncio.sleep(0.35)
                 await self.client.send_message(self.tg_bot, "/speaker mita")
                 self.last_speaker_command = "/speaker mita"
                 await asyncio.sleep(0.35)

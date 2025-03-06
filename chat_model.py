@@ -400,11 +400,8 @@ class ChatModel:
             if bool(self.gui.settings.get("gpt4free")):
                 print("gpt4free case")
 
-                model = self.gpt4free_model
-                # По дефолту ставится gpt-4o-mini, можно поменять в gui.py/setup_model_controls()
-
                 completion = self.g4fClient.chat.completions.create(
-                    model=model,
+                    model=self.gpt4free_model,
                     messages=combined_messages,
                     max_tokens=self.max_response_tokens,
                     temperature=0.5,
