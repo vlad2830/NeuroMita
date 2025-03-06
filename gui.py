@@ -76,7 +76,7 @@ class ChatGUI:
 
         self.last_price = ""
 
-        self.delete_all_wav_files()
+        self.delete_all_sound_files()
         self.setup_ui()
 
         try:
@@ -536,11 +536,13 @@ class ChatGUI:
         # Основные настройки
         telegram_config = [
             {'label': 'Использовать тг-бота', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
-            {'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
-             'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
+            {'label': 'ТГ-бот для озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox',
+             'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
+            #{'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
+             #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
-             'validation': self.validate_number},
-            {'label': 'ТГ-бот для озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox', 'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"}
+             'validation': self.validate_number}
+
         ]
 
         self.create_settings_section(parent, "Настройка Telegram", telegram_config)
@@ -899,8 +901,8 @@ class ChatGUI:
         if key == "AUDIO_BOT":
             self.bot_handler.tg_bot = value
             print(f"ТГ-бот для озвучки изменен на {value}")
-        if key == "TG_BOT":
-            self.bot_handler.tg_bot_channel = value  
+        #if key == "TG_BOT":
+         #   self.bot_handler.tg_bot_channel = value
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
 
@@ -1073,7 +1075,7 @@ class ChatGUI:
         self.root.mainloop()
 
     def on_closing(self):
-        self.delete_all_wav_files()
+        self.delete_all_sound_files()
         self.stop_server()
         print("Закрываемся")
         self.root.destroy()
@@ -1082,15 +1084,26 @@ class ChatGUI:
         """Закрытие приложения корректным образом."""
         print("Завершение программы...")
         self.root.destroy()  # Закрывает GUI
-
-    def delete_all_wav_files(self):
+    @staticmethod
+    def delete_all_sound_files():
         # Получаем список всех .wav файлов в корневой директории
-        wav_files = glob.glob("*.wav")
+        files = glob.glob("*.wav")
 
         # Проходим по каждому файлу и удаляем его
-        for wav_file in wav_files:
+        for file in files:
             try:
-                os.remove(wav_file)
-                print(f"Удален файл: {wav_file}")
+                os.remove(file)
+                print(f"Удален файл: {file}")
             except Exception as e:
-                print(f"Ошибка при удалении файла {wav_file}: {e}")
+                print(f"Ошибка при удалении файла {file}: {e}")
+
+        # Получаем список всех .wav файлов в корневой директории
+        files = glob.glob("*.mp3")
+
+        # Проходим по каждому файлу и удаляем его
+        for file in files:
+            try:
+                os.remove(file)
+                print(f"Удален файл: {file}")
+            except Exception as e:
+                print(f"Ошибка при удалении файла {file}: {e}")
