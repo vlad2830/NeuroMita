@@ -1262,7 +1262,7 @@ namespace MitaAI
                 else MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
-                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 50);
+                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 80);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
                 MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
