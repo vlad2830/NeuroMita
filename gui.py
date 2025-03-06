@@ -562,7 +562,9 @@ class ChatGUI:
             {'label': 'Использовать gpt4free', 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
             {'label': 'Модель gpt4free', 'key': 'gpt4free_model', 'type': 'entry', 'default': "gemini-1.5-flash"},
             # gpt-4o-mini тоже подходит
-            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40}
+            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40},
+            {'label': 'Кол-во попыток', 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 'type': 'entry', 'default': 3},
+            {'label': 'Время между попытками', 'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20}
 
         ]
 
@@ -908,6 +910,10 @@ class ChatGUI:
 
         elif key == "MODEL_MESSAGE_LIMIT":
             self.model.memory_limit = value
+        elif key == "MODEL_MESSAGE_ATTEMPTS_COUNT":
+            self.model.max_request_attempts = value
+        elif key == "MODEL_MESSAGE_ATTEMPTS_TIME":
+            self.model.request_delay = value
 
         elif key == "gpt4free_model":
             self.model.gpt4free_model = value

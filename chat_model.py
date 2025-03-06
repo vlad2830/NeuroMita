@@ -1,3 +1,5 @@
+import time
+
 import tiktoken
 from openai import OpenAI
 from g4f.client import Client as g4fClient
@@ -47,8 +49,9 @@ class ChatModel:
             self.makeRequest = api_make_request
 
             self.g4fClient = g4fClient()
-            self.mistral_client = MistralClient()
             logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
+
+            #self.mistral_client = MistralClient()
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
@@ -61,7 +64,7 @@ class ChatModel:
             self.tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
             self.hasTokenizer = True
         except:
-            print("Тиктокен не сработал(")
+            print("Тиктокен не сработал( Ну и пофиг, на билдах он никогда и не работал")
             self.hasTokenizer = False
 
         self.max_response_tokens = 3200
@@ -71,7 +74,7 @@ class ChatModel:
         self.cost_response_per_1000 = 0.1728
         """"""
 
-        self.memory_limit = int(self.gui.settings.get("MODEL_MESSAGE_LIMIT", 40))  # Ограничение  насообщения
+        self.memory_limit = int(self.gui.settings.get("MODEL_MESSAGE_LIMIT", 40))  # Ограничение на сообщения
 
         """New System"""
         self.current_character = None
@@ -100,8 +103,8 @@ class ChatModel:
         self.HideAiData = True
 
         # Настройки реквестов
-        self.max_request_attempts = 5
-        self.request_delay = 0.2
+        self.max_request_attempts = int(self.gui.settings.get("MODEL_MESSAGE_ATTEMPTS_COUNT", 3))
+        self.request_delay = float(self.gui.settings.get("MODEL_MESSAGE_ATTEMPTS_TIME", 0.20))
 
     def init_characters(self):
         """
@@ -309,49 +312,51 @@ class ChatModel:
 
         return combined_messages, messages
 
-    def _generate_chat_response(self, combined_messages, times=1):
-        """Вообще, не мб тут избыточно с рекурсией, но пока вроде работает)"""
-        print(f"Попытка сгенерировать ответ, {times} раз")
-        if times > 2:
-            success = False
-            return None, success
+    def _generate_chat_response(self, combined_messages):
+        """Генерирует ответ с использованием единого цикла"""
+        max_attempts = self.max_request_attempts  # Общее максимальное количество попыток
+        retry_delay = self.request_delay  # Задержка между попытками в секундах
+        used_reserve_key = False  # Флаг использования резервного ключа
 
-        success = True
-        response = None
+        # Определяем провайдера для первой попытки
+        use_gemini = self.makeRequest and not bool(self.gui.settings.get("gpt4free"))
 
-        self._log_generation_start()
-        save_combined_messages(combined_messages)
+        for attempt in range(1, max_attempts + 1):
+            print(f"Попытка генерации {attempt}/{max_attempts}")
+            response = None
 
-        # TODO ПЕРЕДЕЛАТЬ НАФИГ
-        if self.makeRequest and not bool(self.gui.settings.get("gpt4free")):
-            formatted_messages = self._format_messages_for_gemini(combined_messages)
-            response = self._generate_gemini_response(formatted_messages)
-        else:
-            response = self._generate_openai_response(combined_messages)
+            # Логируем начало генерации
+            self._log_generation_start()
+            save_combined_messages(combined_messages)
 
-        if response:
-            response = self._clean_response(response)
-            logger.info(f"Мита: \n {response}")
-        else:
-            print("Ответ пустой в первый раз, идем в цикле")
+            try:
+                # Выбираем провайдера
+                if use_gemini and attempt == 1:  # Gemini только на первой попытке
+                    formatted = self._format_messages_for_gemini(combined_messages)
+                    response = self._generate_gemini_response(formatted)
+                else:
+                    # Переключаем ключи начиная со второй попытки
+                    if attempt > 1:
+                        self.update_openai_client(reserve_key=not used_reserve_key)
+                        used_reserve_key = not used_reserve_key
 
-            # Да, это нафиг рекурсия
-            for time in range(0, 3):
-                print(f"Цикл {time * times + 1} раз")
-                try_reserve_key = time % 2 == 0
-                self.update_openai_client(try_reserve_key)
-                response, success = self._generate_chat_response(combined_messages, times + 1)
-                if response and success:
-                    break
+                    response = self._generate_openai_response(combined_messages)
 
-            if response:
-                response = self._clean_response(response)
-                logger.info("Мита: \n" + response)
-            else:
-                print("Ответ все еще пустой")
-                success = False
+                if response:
+                    response = self._clean_response(response)
+                    logger.info(f"Успешный ответ:\n{response}")
+                    return response, True
 
-        return response, success
+            except Exception as e:
+                logger.error(f"Ошибка генерации: {str(e)}")
+
+            # Если ответа нет - ждем перед следующей попыткой
+            if attempt < max_attempts and not used_reserve_key:
+                print(f"Ожидание {retry_delay} сек. перед повторной попыткой...")
+                time.sleep(retry_delay)
+
+        print("Все попытки исчерпаны")
+        return None, False
 
     def _log_generation_start(self):
         logger.info("Перед отправкой на генерацию")
@@ -366,10 +371,10 @@ class ChatModel:
 
         formatted_messages = []
         for msg in combined_messages:
-            if  msg["role"] == "system":
+            if msg["role"] == "system":
                 formatted_messages.append({"role": "user", "content": f"[System Prompt]: {msg['content']}"})
             #if msg["role"] == "assistant":
-                #msg["role"] = "model"
+            #msg["role"] = "model"
             else:
                 formatted_messages.append(msg)
         save_combined_messages(formatted_messages, "Gem")
@@ -453,8 +458,6 @@ class ChatModel:
             ...
             logger.info("Не получилось сделать с токенайзером, это скорее всего особенность билда")
             #logger.info("Не получилось сделать с токенайзером", str(e))
-
-
 
     def try_print_error(self, completion):
         try:
