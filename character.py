@@ -1,10 +1,9 @@
 from typing import Dict, List
 
-#from EventState import EventState
 from MemorySystem import MemorySystem
 from promptPart import PromptPart, PromptType
 from HistoryManager import HistoryManager
-from utils import load_text_from_file, clamp
+from utils import clamp
 import datetime
 import re
 
@@ -308,8 +307,8 @@ class Character:
         self.stress = clamp(self.stress + amount, 0, 100)
         print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
-    def load_prompt_text(self, path):
-        return load_text_from_file(f"Prompts/{self.name}/{path}")
+    def get_path(self, path):
+        return f"Prompts/{self.name}/{path}"
 
 
 class CrazyMita(Character):
@@ -328,43 +327,32 @@ class CrazyMita(Character):
     def crazy_mita_prompts(self):
         Prompts = []
 
-        response_structure = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/response_structure.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = load_text_from_file("Prompts/Common/Security.txt")
+        security = "Prompts/Common/Security.txt"
         Prompts.append(PromptPart(PromptType.FIXED_START, security))
 
-        common = load_text_from_file("Prompts/CrazyMitaPrompts/Main/common.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
 
-        main = load_text_from_file("Prompts/CrazyMitaPrompts/Main/main.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, main, "main"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/mainPlaying.txt"), "mainPlaying", False))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/mainCrazy.txt"), "mainCrazy", False))
 
-        mainPlaying = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainPlaing.txt")
-        mainCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Main/mainCrazy.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, mainPlaying, "mainPlaying", False))
-        Prompts.append(PromptPart(PromptType.FIXED_START, mainCrazy, "mainCrazy", False))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
 
-        player = load_text_from_file("Prompts/CrazyMitaPrompts/Main/player.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, player))
-        # Добавляем примеры длинных диалогов
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLongCrazy.txt"), "examplesLongCrazy",
+                       False))
 
-        examplesLong = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLong.txt")
-        examplesLongCrazy = load_text_from_file("Prompts/CrazyMitaPrompts/Context/examplesLongCrazy.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, examplesLongCrazy, "examplesLongCrazy", False))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
 
-        #world = load_text_from_file("CrazyMitaPrompts/NotUsedNow/world.txt")
-        #Prompts.append(PromptPart(PromptType.FIXED_START, world, "world"))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
 
-        mita_history = load_text_from_file("Prompts/CrazyMitaPrompts/Context/mita_history.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history", False))
-
-        variableEffects = load_text_from_file("Prompts/CrazyMitaPrompts/Structural/VariablesEffects.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
-
-        SecretExposedText = load_text_from_file("Prompts/CrazyMitaPrompts/Events/SecretExposed.txt")
-        Prompts.append(PromptPart(PromptType.FLOATING_SYSTEM, SecretExposedText, "SecretExposedText"))
+        Prompts.append(
+            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
@@ -468,33 +456,26 @@ class KindMita(Character):
     def kind_mita_prompts(self):
         Prompts = []
 
-        response_structure = load_text_from_file("Prompts/Kind/Structural/response_structure.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = load_text_from_file("Prompts/Common/Security.txt")
+        security = "Prompts/Common/Security.txt"
         Prompts.append(PromptPart(PromptType.FIXED_START, security))
 
-        common = load_text_from_file("Prompts/Kind/Main/common.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
 
-        main = load_text_from_file("Prompts/Kind/Main/main.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, main, "main"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
 
-        player = load_text_from_file("Prompts/Kind/Main/player.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, player))
-        # Добавляем примеры длинных диалогов
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
 
-        examplesLong = load_text_from_file("Prompts/Kind/Context/examplesLong.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history"))
 
-        mita_history = load_text_from_file("Prompts/Kind/Context/mita_history.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
 
-        world_history = load_text_from_file("Prompts/Kind/Context/world.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, world_history, "world_history"))
-
-        SecretExposedText = load_text_from_file("Prompts/Cappy/Events/SecretExposed.txt")
-        Prompts.append(PromptPart(PromptType.FLOATING_SYSTEM, SecretExposedText, "SecretExposedText"))
+        #Prompts.append(
+        #   PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
@@ -507,27 +488,26 @@ class ShortHairMita(Character):
     def mita_prompts(self):
         Prompts = []
 
-        response_structure = load_text_from_file("Prompts/ShortHair/Structural/response_structure.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        common = load_text_from_file("Prompts/ShortHair/Main/common.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
 
-        main = load_text_from_file("Prompts/ShortHair/Main/main.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, main, "main"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
 
-        player = load_text_from_file("Prompts/ShortHair/Main/player.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, player))
-        # Добавляем примеры длинных диалогов
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
 
-        examplesLong = load_text_from_file("Prompts/ShortHair/Context/examplesLong.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
 
-        mita_history = load_text_from_file("Prompts/ShortHair/Context/mita_history.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
 
-        variableEffects = load_text_from_file("Prompts/ShortHair/Structural/VariablesEffects.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
+
+        Prompts.append(
+            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
@@ -541,27 +521,27 @@ class CappyMita(Character):
     def cappy_mita_prompts(self):
         Prompts = []
 
-        response_structure = load_text_from_file("Prompts/Cappy/Structural/response_structure.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        common = load_text_from_file("Prompts/Cappy/Main/common.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, common, "common"))
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
 
-        main = load_text_from_file("Prompts/Cappy/Main/main.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, main, "main"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
 
-        player = load_text_from_file("Prompts/Cappy/Main/player.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, player))
-        # Добавляем примеры длинных диалогов
 
-        examplesLong = load_text_from_file("Prompts/Cappy/Context/examplesLong.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, examplesLong, "examplesLong"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
 
-        mita_history = load_text_from_file("Prompts/Cappy/Context/Mita_history.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, mita_history, "mita_history"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
 
-        variableEffects = load_text_from_file("Prompts/Cappy/Structural/VariablesEffects.txt")
-        Prompts.append(PromptPart(PromptType.FIXED_START, variableEffects, "variableEffects"))
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
+
+        Prompts.append(
+            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
@@ -580,7 +560,7 @@ class SpaceCartridge(Cartridge):
     def cart_space_prompts(self):
         Prompts = []
 
-        response_structure = load_text_from_file("Prompts/Cartridges/space cartridge.txt")
+        response_structure = "Prompts/Cartridges/space cartridge.txt"
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
 
         for prompt in Prompts:
@@ -595,7 +575,7 @@ class DivanCartridge(Cartridge):
     def init_prompts(self):
         Prompts = []
 
-        response_structure = load_text_from_file("Prompts/Cartridges/divan_cart.txt")
+        response_structure = "Prompts/Cartridges/divan_cart.txt"
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
 
         for prompt in Prompts:

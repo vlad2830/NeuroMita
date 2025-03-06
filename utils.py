@@ -13,7 +13,7 @@ def clamp(value, min_value, max_value):
 
 def load_text_from_file(filename):
     """
-    Загружает текст из файла, расположенного в папке 'CrazyMitaPrompts'.
+    Загружает текст из файла, расположенного в папке 'CrazyMita'.
 
     :param filename: Имя файла или относительный путь к файлу.
     :return: Содержимое файла в виде строки. Если файл не найден, возвращает пустую строку.
@@ -46,10 +46,10 @@ def load_text_from_file(filename):
 
 def get_resource_path(filename):
     """
-    Возвращает полный путь к файлу в папке 'CrazyMitaPrompts'.
+    Возвращает полный путь к файлу в папке 'CrazyMita'.
 
     :param filename: Имя файла или относительный путь к файлу.
-    :return: Полный путь к файлу или None, если папка 'CrazyMitaPrompts' не найдена.
+    :return: Полный путь к файлу или None, если папка 'CrazyMita' не найдена.
     """
     # Определяем базовый путь
     if getattr(sys, 'frozen', False):
@@ -62,7 +62,7 @@ def get_resource_path(filename):
     # Формируем путь к папке
     promts_path = os.path.join(base_path)
 
-    # Проверяем, существует ли папка 'CrazyMitaPrompts'
+    # Проверяем, существует ли папка 'CrazyMita'
     if not os.path.isdir(promts_path):
         print(f"Ошибка: Папка не найдена по пути: {promts_path}")
         return None

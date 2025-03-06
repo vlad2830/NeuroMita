@@ -1,6 +1,8 @@
 from typing import Dict, List, Optional
 import enum
 
+from utils import load_text_from_file
+
 
 class PromptType(enum.Enum):
     """Типы промптов."""
@@ -12,24 +14,26 @@ class PromptType(enum.Enum):
 class PromptPart:
     """Класс для представления части промпта."""
 
-    def __init__(self, part_type: PromptType, text: str, name=None, active=True, parameters: Optional[Dict] = None):
+    def __init__(self, part_type: PromptType, path: str, name=None, active=True, parameters: Optional[Dict] = None):
         """
         Инициализация части промпта.
 
         :param part_type: Тип промпта (из PromptType).
-        :param text: Содержимое промпта.
+        :param path: путь к тексту промпта.
         :param parameters: Параметры для форматирования (опционально).
         """
         self.name = name
         self.type = part_type
-        self.text = text
+        #self.text = text
+        self.path = path
         self.active = active
         self.parameters = parameters or {}
 
     def format(self, **kwargs) -> str:
         """Форматирует содержимое с параметрами как f-строка."""
         try:
-            return self.text.format(**{**self.parameters, **kwargs})
+            text = load_text_from_file(self.path)
+            return text.format(**{**self.parameters, **kwargs})
         except KeyError as e:
             raise ValueError(f"Отсутствует параметр {e} в шаблоне промпта")
 
@@ -50,5 +54,8 @@ class PromptPart:
 
 
     def __str__(self) -> str:
-        """Строковое представление объекта для удобного вывода."""
-        return self.text
+
+        return load_text_from_file(self.path)
+
+        #"""Строковое представление объекта для удобного вывода."""
+        #return self.text
