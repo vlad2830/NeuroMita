@@ -225,16 +225,17 @@ namespace MitaAI
         }
 
         public character currentCharacter = character.Mita;
-        enum MovementStyles
+        public enum MovementStyles
         {
             walkNear = 0,
             follow = 1,
             stay = 2,
             noclip = 3,
-            layingOnTheFloor = 4
+            layingOnTheFloorAsDead = 4,
+            sittingAndCrying
 
         }
-        MovementStyles movementStyle = MovementStyles.walkNear;
+        public static MovementStyles movementStyle = MovementStyles.walkNear;
         enum MitaState
         {
             normal = 0,
