@@ -6,6 +6,9 @@ from Events.PlayerEvents import PlayerEvents
 
 class BaseState(ABC):
     """Абстрактный класс для состояний"""
+    def __init__(self, prompts=None, sub_fsm=None):
+        self.prompts = prompts
+        self.sub_fsm = sub_fsm
 
     @abstractmethod
     async def on_enter(self) -> None:

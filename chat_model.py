@@ -438,13 +438,6 @@ class ChatModel:
             logger.error("Что-то не так при генерации OpenAI", str(e))
             return None
 
-    def _log_generation_start(self):
-        logger.info("Перед отправкой на генерацию")
-        logger.info(f"API Key: {SH(self.api_key)}")
-        logger.info(f"API Key res: {SH(self.api_key_res)}")
-        logger.info(f"API URL: {self.api_url}")
-        logger.info(f"API Model: {self.api_model}")
-        logger.info(f"Make Request: {self.makeRequest}")
 
     def _save_and_calculate_cost(self, combined_messages):
         save_combined_messages(combined_messages)

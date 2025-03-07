@@ -518,6 +518,8 @@ class CappyMita(Character):
     def init(self):
         self.cappy_mita_prompts()
 
+        #self.secretExposed
+
     def cappy_mita_prompts(self):
         Prompts = []
 
@@ -545,6 +547,21 @@ class CappyMita(Character):
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
+
+    #TODO Секрет Кепки
+
+    # def process_logic(self, messages: dict):
+        # Логика для раскрытия секрета
+       # if self.secretExposed and not self.secretExposedFirst:
+         #   self._reveal_secret(messages)
+
+    #def process_response(self, response: str):
+       # super().process_response(response)
+
+       # response = self._detect_secret_exposure(response)
+       # return response
+
+
 
 
 #region Cartridges
