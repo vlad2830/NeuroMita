@@ -2130,7 +2130,7 @@ namespace MitaAI
                     }
                 
                 if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
-                info += $"Current music: {AudioControl.getCurrrentMusic()}\n";
+                info += AudioControl.MusicInfo();
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
                 info += MitaClothesModded.getCurrentHairColor();
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
@@ -2138,7 +2138,6 @@ namespace MitaAI
 
                 info += Interactions.getObservedObjects();
                 info += $"Current player's hint text {HintText.text}";
-
 
 
 

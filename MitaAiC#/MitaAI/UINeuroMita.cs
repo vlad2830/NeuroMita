@@ -217,6 +217,11 @@ namespace MitaAI
                     Settings.Save();
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
+                case "MilaButton":
+                    Settings.MitaType.Value = MitaCore.character.Mila;
+                    Settings.Save();
+                    MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
+                    break;
                 case "ButtonReturn":
                     StartMenu.Active(false);
                     MainMenuLocation.Active(true);

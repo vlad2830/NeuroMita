@@ -28,6 +28,18 @@ namespace MitaAI.Mita
             if (currentAudioObject == null) return "None";
             else return currentAudioObject.name;
         }
+        public static string MusicInfo()
+        {
+            string musicInfo = $"\nCurrent music is {currentAudioObject.name},avaible music: ";
+
+            foreach (string item in _audioObjects.Keys)
+            {
+                musicInfo += $" <music>{item}</music>";
+            }
+
+            return musicInfo;
+        }
+
         // Метод для инициализации словаря
         public static void Init(Transform worldHouse)
         {
