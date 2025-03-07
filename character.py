@@ -114,11 +114,10 @@ class Character:
         for part in self.float_prompts:
 
             if part.active:
-                print(f"Добавляю плавающий промт {part}")
                 m = {"role": "system", "content": str(part)}
                 messages.append(m)
                 part.active = False
-                print(f"Добавил ивент {part}")
+                print(f"Добавляю плавающий промпт {part}")
 
         return messages
 
@@ -151,8 +150,8 @@ class Character:
         raise NotImplementedError("Метод init должен быть реализован в подклассе")
 
     def process_logic(self, messages: dict = None):
-        """То, как должно что-то менсять до получения ответа"""
-        print("Персонаж без изменяемой логики пропмтов")
+        """То, как должно что-то менять до получения ответа"""
+        print("Персонаж без изменяемой логики промптов")
 
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)
