@@ -274,7 +274,12 @@ namespace MitaAI
 
         static private UnityEvent setupMenuEvent(GameObject gameObject, string eventName)
         {
-            EventsProxy eventsProxy = gameObject.AddComponent<EventsProxy>();
+            EventsProxy eventsProxy = gameObject.GetComponent<EventsProxy>();
+            if (eventsProxy == null)
+            {
+                eventsProxy = gameObject.AddComponent<EventsProxy>();
+            }
+            
             return eventsProxy.SetupEvent($"{MenuPrefix}{eventName}");
         }
     }

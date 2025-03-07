@@ -181,7 +181,7 @@ namespace MitaAI
             // Запускаем корутину для ожидания загрузки сцены
             string sceneToLoad;
 
-            bool loadMusic = false;
+            bool loadMusic = true;
 
             if (loadMusic)
             {
@@ -724,10 +724,11 @@ namespace MitaAI
         private static IEnumerator AfterAllLoadded()
         {
             MelonLogger.Msg("After all loaded");
-            MitaCore.character MitaToStart = Settings.MitaType.Value;
+            MitaCore.character MitaToStart = Settings.Get<MitaCore.character>("MitaType");
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
             if (MitaCore.Instance.currentCharacter != MitaToStart)
             {
+                MelonLogger.Msg($"Run change Mita");
                 MitaCore.Instance.changeMita(null,character : MitaToStart);
             }
             yield return new WaitForSeconds(0.25f);

@@ -2146,7 +2146,7 @@ namespace MitaAI
             catch (Exception ex)
             {
 
-                LoggerInstance.Msg(ex);
+                LoggerInstance.Msg($"formCurrentInfo {ex}");
             }
             return info;
         }
