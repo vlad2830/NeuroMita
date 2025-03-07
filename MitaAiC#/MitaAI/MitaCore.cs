@@ -269,7 +269,7 @@ namespace MitaAI
         public static Transform worldTogether;
         public static Transform worldHouse;
         public static Transform worldBasement;
-        public static Transform worldBackrooms;
+        public static Transform world;
         public static Transform worldBackrooms2;
 
 

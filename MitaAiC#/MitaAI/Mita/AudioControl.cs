@@ -13,6 +13,7 @@ namespace MitaAI.Mita
         private static Dictionary<string, GameObject> _audioObjects = new Dictionary<string, GameObject>();
 
         public static GameObject currentAudioObject;
+        public static GameObject templateAudioObject;
         public static Transform sound_parent;
 
         public static DataValues_Sounds dataValues_Sounds;
@@ -51,6 +52,7 @@ namespace MitaAI.Mita
             {
                 _audioObjects["Music 1"] = worldHouse.Find("Audio/Music 1").gameObject;
                 currentAudioObject = _audioObjects["Music 1"];
+                templateAudioObject = currentAudioObject;
             }
             catch (Exception e)
             {
@@ -147,14 +149,20 @@ namespace MitaAI.Mita
             
         }
 
-        public static void addMusicObject(GameObject gameObject)
+        public static void addMusicObject(GameObject gameObject, string newName = "")
         {
             try
             {
                 _audioObjects[gameObject.name] = gameObject;
                 if (gameObject.transform.parent != sound_parent)
                 {
-                    gameObject.transform.parent = sound_parent;
+                    GameObject newMusic = GameObject.Instantiate(templateAudioObject);
+                    newMusic.GetComponent<AudioSource>().clip = gameObject.GetComponent<AudioSource>().clip;
+                    newMusic.active = false;
+
+                    if (newName!="") newMusic.name = newName;
+
+                    GameObject.Destroy(gameObject);
                 }
             }
             catch (Exception ex)
@@ -202,6 +210,7 @@ namespace MitaAI.Mita
                 {
                     currentAudioObject = _audioObjects[audioName];
                     currentAudioObject.SetActive(true);
+                    currentAudioObject.GetComponent<AudioSource>()?.Play();
                 }
 
             }
