@@ -28,7 +28,6 @@ namespace MitaAI.Mita
 
         public static (List<string>, string) ExtractCommands(string response)
         {
-
             List<string> commands = new List<string>();
             string pattern = @"<c>(.*?)</c>";
             MatchCollection matches = Regex.Matches(response, pattern);
@@ -37,7 +36,17 @@ namespace MitaAI.Mita
             {
                 if (match.Success)
                 {
-                    commands.Add(match.Groups[1].Value);
+                    string command = match.Groups[1].Value;
+                    if (command.ToLower() == "continue")
+                    {
+                        ContinueCounter++;
+                        if (ContinueCounter > 3)
+                        {
+                            MelonLogger.Msg($"Достигнут лимит продолжений (3), пропускаем команду Continue");
+                            continue;
+                        }
+                    }
+                    commands.Add(command);
                 }
             }
 
@@ -46,7 +55,6 @@ namespace MitaAI.Mita
             if (wasContinue) result += " ▶▶▶ ";
             // Удаляем теги эмоций из текста
             return (commands, result);
-
         }
         public static void ProcessCommands(List<string> commands)
         {
