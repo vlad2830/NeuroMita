@@ -1,4 +1,4 @@
-﻿using Il2Cpp;
+using Il2Cpp;
 using MelonLoader;
 using UnityEngine;
 using System.Text.RegularExpressions;
@@ -40,6 +40,7 @@ namespace MitaAI
         public static GameObject CappyObject;
         public static GameObject KindObject;
         public static GameObject ShortHairObject;
+        public static GameObject MilaObject; // Объект для нового персонажа
 
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;
@@ -56,6 +57,8 @@ namespace MitaAI
                     return ShortHairObject;
                 case character.Cappy:
                     return CappyObject;
+                case character.Mila:
+                    return MilaObject;
                 default:
                     return CrazyObject;
 
@@ -71,7 +74,7 @@ namespace MitaAI
 
             }
 
-            MelonLogger.Msg("Change Mita Begin");
+            MelonLogger.Msg($"Change {currentCharacter} to {character} Begin");
 
             try
             {
@@ -95,13 +98,14 @@ namespace MitaAI
                 {
                     Transform child = MitaObject.transform.GetChild(i);
                     // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
-                    if (child != null && child.name.Contains("MitaPerson"))
+                    if (child != null && child.name.Contains("Person"))
                     {
+                        MelonLogger.Msg("Change Mita finded  MitaPersonObject");
                         MitaPersonObject = child.gameObject;
                         break; // Прерываем цикл, как только нашли первый подходящий объект
                     }
                 }
-                MelonLogger.Msg("Change Mita finded  MitaPersonObject");
+                
 
                 if (MitaPersonObject == null)
                 {
@@ -216,7 +220,8 @@ namespace MitaAI
             Kind = 2,
             Cart_portal = 3,
             ShortHair = 4,
-            Cart_divan
+            Cart_divan,
+            Mila // Добавляем нового персонажа
         }
 
         public character currentCharacter = character.Mita;
@@ -446,7 +451,7 @@ namespace MitaAI
 
 
                 UINeuroMita.init();
-
+                TotalInitialization.GetObjectsFromMenu();
 
                 //MainMenu.ButtonLoadScene(requiredSave);
                 //MainMenu.Alternative();
@@ -1244,7 +1249,7 @@ namespace MitaAI
                 else MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
-                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 50);
+                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 80);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
                 MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
@@ -2132,6 +2137,9 @@ namespace MitaAI
 
                 info += Interactions.getObservedObjects();
                 info += $"Current player's hint text {HintText.text}";
+
+
+
 
 
             }

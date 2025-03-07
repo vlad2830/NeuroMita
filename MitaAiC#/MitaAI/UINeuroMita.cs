@@ -1,4 +1,4 @@
-﻿using Il2Cpp;
+using Il2Cpp;
 using MelonLoader;
 using System;
 using System.Collections;
@@ -32,14 +32,12 @@ namespace MitaAI
             FrameMenuObject = MenuObject.transform.Find("Canvas/FrameMenu").gameObject;
             //makeButtonTemplate();
 
+
+
             ButtonNeuroMita();
 
             MenuNeuroMita();
-
-            
-
         }
-
 
         static void makeButtonTemplate()
         {
@@ -61,7 +59,6 @@ namespace MitaAI
             MainMenuLocation.objects.Add(NeuroMitaButton.GetComponent<RectTransform>());
             NeuroMitaButton.name = "NeuroMitaStartButton";
 
-
             NeuroMitaButton.transform.SetParent(GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu").transform);
             NeuroMitaButton.transform.localPosition = new Vector3(-250, -45, 0);
             NeuroMitaButton.transform.localScale = new Vector3(1, 1, 1);
@@ -69,15 +66,7 @@ namespace MitaAI
 
 
             GameObject NeuroMitaButtonText = NeuroMitaButton.transform.Find("Text").gameObject;
-            //NeuroMitaButtonText.GetComponent<Localization_UIText>().deactiveTextTranslate = true;
-            //NeuroMitaButtonText.GetComponent<Localization_UIText>().enabled = false;
-            //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = "ИГРАТЬ С NEUROMITA";
-            //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = "ИГРАТЬ С NEUROMITA";
-
             MelonCoroutines.Start(changeName(NeuroMitaButtonText, "ИГРАТЬ С NEUROMITA"));
-
-            //NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font  = Menu.transform.Find("Button NewGame/Text").GetComponent<Text>().font;
-
 
             UI_Colors uI_Colors = NeuroMitaButton.GetComponent<UI_Colors>();
 
@@ -85,7 +74,6 @@ namespace MitaAI
             uI_Colors.SetColorImage(0, new Color(0.5f, 1f, 0.5f, 0.5f));
 
             MitaCore.Instance.sendSystemInfo("Игрок в меню");
-            
 
             try
             {
@@ -94,35 +82,32 @@ namespace MitaAI
             }
             catch (Exception e)
             {
-
                 MelonLogger.Error(e);
             }
 
-
-
             #endregion
         }
+
         private static GameObject makeButton()
         {
             return null;
         }
 
-
-
         public static void MenuNeuroMita()
         {
-
 
             StartMenuObject = GameObject.Instantiate(FrameMenuObject.transform.Find("Location MainOptions").gameObject, FrameMenuObject.transform);
             StartMenuObject.active = false;
             StartMenu = StartMenuObject.GetComponent<MenuLocation>();
-
+            MelonLogger.Msg(2);
             try
             {
                 MelonCoroutines.Start( changeName(StartMenuObject.transform.Find("Text").gameObject, "Настройки NeuroMita") );
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
+            // Button Option Graphics
+            // Button Option Game
 
             try
             {
@@ -178,17 +163,23 @@ namespace MitaAI
                 MelonCoroutines.Start(changeName(MitaCappyButton.transform.Find("Text").gameObject, "Кепочка"));
                 MitaCappyButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MitaCappyButton, MitaCappyButton.name);
 
+
+
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
 
-            //GameObject MitaShortButton = StartMenuObject.transform.Find("Button Volume").gameObject;
-            //MitaShortButton.active = false;
-
-            //GameObject MitaShortButton = StartMenuObject.transform.Find("Back").gameObject;
-            //MitaShortButton.active = false;
-
-
+            Il2CppSystem.Collections.Generic.List<RectTransform> list  = new Il2CppSystem.Collections.Generic.List<RectTransform>();
+            for (int i = 0; i < StartMenuObject.transform.childCount; i++)
+            {
+                try
+                {
+                    list.Add(StartMenuObject.transform.GetChild(i).GetComponent<RectTransform>());
+                }
+                catch { }
+                
+            }
+            StartMenu.objects = list;
 
             GameObject Back = StartMenuObject.transform.Find("Button Back").gameObject;
             Back.name = "ButtonReturn";
@@ -249,12 +240,10 @@ namespace MitaAI
             float time = 0f;
             while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font)
             {
-                if (MitaCore.isRequiredScene())
+                if (time >= 60f)
                 {
                     break;
                 }
-                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = text;
-                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = text;
 
                 time += Time.unscaledDeltaTime;
                 yield return null;

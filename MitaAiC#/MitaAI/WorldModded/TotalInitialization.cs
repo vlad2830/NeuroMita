@@ -1,4 +1,4 @@
-﻿using Il2Cpp;
+using Il2Cpp;
 using Il2CppEPOOutline;
 using MelonLoader;
 using MitaAI.Mita;
@@ -116,6 +116,65 @@ namespace MitaAI
 
 
         #region getObjectsFromOtherScenes
+
+        public static List<GameObject> objectsFromMenu = new List<GameObject>();
+        public static void GetObjectsFromMenu()
+        {
+            MelonLogger.Msg("Start GetObjectsFromMenu");
+
+            GameObject MusicToSave = new GameObject();
+            MusicToSave.transform.SetParent(GameObject.Find("Game").transform);
+            MusicToSave.name = "MusicToSave";
+
+            GameObject Menu = GameObject.Find("MenuGame");
+            GameObject Sounds = Menu.transform.Find("Sounds").gameObject;
+
+            GameObject music = null;
+            try { 
+
+                music = Sounds.transform.Find("Music").gameObject;
+                music = GameObject.Instantiate(music);
+                music.active = false;
+                music.name = "Music happy intensive";
+                music.transform.parent = MusicToSave.transform;
+                objectsFromMenu.Add(music);
+
+
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+            try
+            {
+                music = Sounds.transform.Find("MusicCloth").gameObject;
+                music = GameObject.Instantiate(music);
+                music.active = false;
+                music.name = "Music relax";
+                music.transform.parent = MusicToSave.transform;
+                objectsFromMenu.Add(music);
+
+
+
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+            try
+            {
+                music = Sounds.transform.Find("MusicDescription").gameObject;
+                music = GameObject.Instantiate(music);
+                music.active = false;
+                music.name = "Music puzzle style";
+                music.transform.parent = MusicToSave.transform;
+                objectsFromMenu.Add(music);
+
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+
+
+
+
+            MelonLogger.Msg("End GetObjectsFromMenu");
+        }
+
         public static IEnumerator AddOtherScenes()
         {
             // Запускаем корутину для ожидания загрузки сцены
@@ -136,9 +195,11 @@ namespace MitaAI
             sceneToLoad = "Scene 6 - BasementFirst";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBasement(sceneToLoad));
-     
 
-      
+            sceneToLoad = "Scene 19 - Glasses";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldGlasses(sceneToLoad));
+     
             sceneToLoad = "Scene 11 - Backrooms";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms2(sceneToLoad));
@@ -408,6 +469,48 @@ namespace MitaAI
             //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
         }
+        private static IEnumerator WaitForSceneAndInstantiateWorldGlasses(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
+
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            Transform worldGlasses = FindObjectInScene(scene.name, "World");
+            if (worldGlasses == null)
+            {
+                MelonLogger.Msg("World object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            worldGlasses.gameObject.SetActive(false);
+
+            MelonLogger.Msg($"Object found: {worldGlasses.name}");
+            try
+            {
+                MitaCore.MilaObject = GameObject.Instantiate(Utils.TryfindChild(worldGlasses, "Quests/General/Mila Glasses"), MitaCore.worldHouse);
+                MitaCore.MilaObject.active = false;
+
+            }
+
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Mila founding error: {ex}");
+            }
+            //yield return new WaitForSeconds(1f);
+            SceneManager.UnloadScene(sceneToLoad);
+        }
         private static IEnumerator AfterAllLoadded()
         {
             MelonLogger.Msg("After all loaded");
@@ -525,7 +628,7 @@ namespace MitaAI
 
                 //AnimationKiller.GetComponent<Location6_MitaKiller>().mita = Mita.transform;
                 var musicTension = Utils.TryfindChild(MitaCore.worldBasement, "Sounds/Ambient 1");
-                musicTension.transform.parent = MitaCore.worldHouse.FindChild("Audio");
+                
                 musicTension.name = "Music 4 Tension";
                 AudioControl.addMusicObject(musicTension);
 
