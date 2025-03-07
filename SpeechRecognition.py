@@ -1,14 +1,30 @@
 import time
 from io import BytesIO
 import asyncio
-import logging
 import soundfile as sf
 import numpy as np
 import speech_recognition as sr
 import sounddevice as sd
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Настройка логирования
+import logging
+import colorlog
+
+# Настройка цветного логирования
+handler = colorlog.StreamHandler()
+handler.setFormatter(colorlog.ColoredFormatter(
+    '%(log_color)s%(asctime)s - %(levelname)s - %(message)s',
+    log_colors={
+        'INFO': 'white',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'red,bg_white',
+    }
+))
+
+logger = colorlog.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 
 class AudioState:
