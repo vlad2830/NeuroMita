@@ -561,8 +561,38 @@ class CappyMita(Character):
        # response = self._detect_secret_exposure(response)
        # return response
 
+class MilaMita(Character):
 
+    def init(self):
+        self.cappy_mila_prompts()
 
+        #self.secretExposed
+
+    def cappy_mila_prompts(self):
+        Prompts = []
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
+
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
+
+        Prompts.append(
+            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
 
 #region Cartridges
 class Cartridge(Character):
