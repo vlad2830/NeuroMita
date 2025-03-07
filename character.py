@@ -112,8 +112,9 @@ class Character:
         """
         print(f"Добавление плавающих")
         for part in self.float_prompts:
-            print(f"Есть промт {part}")
+
             if part.active:
+                print(f"Добавляю плавающий промт {part}")
                 m = {"role": "system", "content": str(part)}
                 messages.append(m)
                 part.active = False
@@ -149,7 +150,7 @@ class Character:
     def init(self):
         raise NotImplementedError("Метод init должен быть реализован в подклассе")
 
-    def process_logic(self, messages: dict):
+    def process_logic(self, messages: dict = None):
         """То, как должно что-то менсять до получения ответа"""
         print("Персонаж без изменяемой логики пропмтов")
 
@@ -379,14 +380,14 @@ class CrazyMita(Character):
         self.secretExposedFirst = variables.get("secret_first", False)
         return data
 
-    def process_logic(self, messages: dict):
+    def process_logic(self,messages : dict= None):
         # Логика для поведения при игре с игроком
         if self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
             self._start_playing_with_player()
 
         # Логика для раскрытия секрета
         elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
-            self._reveal_secret(messages)
+            self._reveal_secret()
 
     def process_response(self, response: str):
         super().process_response(response)
@@ -400,7 +401,7 @@ class CrazyMita(Character):
         self.PlayingFirst = True
         self.replace_prompt("main", "mainPlaying")
 
-    def _reveal_secret(self, messages):
+    def _reveal_secret(self):
         """Логика раскрытия секрета"""
         print("Перестала играть вообще")
         self.secretExposedFirst = True

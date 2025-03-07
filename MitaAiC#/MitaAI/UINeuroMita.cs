@@ -111,22 +111,18 @@ namespace MitaAI
 
         public static void MenuNeuroMita()
         {
-            MelonLogger.Msg(1);
+
 
             StartMenuObject = GameObject.Instantiate(FrameMenuObject.transform.Find("Location MainOptions").gameObject, FrameMenuObject.transform);
             StartMenuObject.active = false;
             StartMenu = StartMenuObject.GetComponent<MenuLocation>();
-            MelonLogger.Msg(2);
+
             try
             {
                 MelonCoroutines.Start( changeName(StartMenuObject.transform.Find("Text").gameObject, "Настройки NeuroMita") );
             }
             catch (Exception e) { MelonLogger.Error(e); }
-            MelonLogger.Msg(3);
 
-            // Button Full Clear
-            // Button Option Graphics
-            // Button Option Game
 
             try
             {
@@ -141,7 +137,7 @@ namespace MitaAI
 
             }
             catch (Exception e) {MelonLogger.Error(e); }
-            MelonLogger.Msg(4);
+
             try
             {
                 GameObject MitaKindButton = StartMenuObject.transform.Find("Button Option Graphics").gameObject;
@@ -188,7 +184,7 @@ namespace MitaAI
 
             //GameObject MitaShortButton = StartMenuObject.transform.Find("Button Volume").gameObject;
             //MitaShortButton.active = false;
-            MelonLogger.Msg(5);
+
             //GameObject MitaShortButton = StartMenuObject.transform.Find("Back").gameObject;
             //MitaShortButton.active = false;
 
@@ -198,7 +194,7 @@ namespace MitaAI
             Back.name = "ButtonReturn";
             Back.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(Back, Back.name);
 
-            MelonLogger.Msg(6);
+
         }
         static public void MenuEventsCases(string eventName){
             MelonLogger.Msg($"MenuEventsCases: {eventName}");
@@ -242,6 +238,10 @@ namespace MitaAI
 
         static IEnumerator changeName(GameObject NeuroMitaButtonText,string text)
         {
+            /* Я хз когда там локализация подгружается, которая все ломает. Если отследим момент, то можно будет сделать лучше
+             
+            */
+
             Font original_font = NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font;
             NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = text;
             NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = text;
@@ -249,10 +249,12 @@ namespace MitaAI
             float time = 0f;
             while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font)
             {
-                if (time >= 60f)
+                if (MitaCore.isRequiredScene())
                 {
                     break;
                 }
+                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = text;
+                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = text;
 
                 time += Time.unscaledDeltaTime;
                 yield return null;

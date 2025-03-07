@@ -82,7 +82,7 @@ namespace MitaAI.PlayerControls
             }
 
             // Обработка нажатия Enter для открытия/закрытия чата и отправки текста
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (Input.GetKeyDown(KeyCode.Tab) && MitaCore.isRequiredScene() )
             {
                 if (!InputFieldExists()) return;
 
@@ -112,7 +112,7 @@ namespace MitaAI.PlayerControls
 
 
 
-            else if (Input.GetKeyDown(KeyCode.Return))
+            else if (Input.GetKeyDown(KeyCode.Return) && MitaCore.isRequiredScene())
             {
                 if (!InputFieldExists()) return;
         

@@ -60,7 +60,7 @@ namespace MitaAI
         }
         private static IEnumerator CheckManekenGame()
         {
-            while (true)
+            while (MitaCore.isRequiredScene())
             {
                 try
                 {

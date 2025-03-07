@@ -253,8 +253,8 @@ class ChatModel:
         # Проверяем правильность вызова get_room_name
         repeated_system_message += f"You are in {self.get_room_name(int(self.roomMita))}, player is in {self.get_room_name(int(self.roomPlayer))}. "
 
-        if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaked me</memory>"
+        if self.LongMemoryRememberCount % 4 == 0:
+            repeated_system_message += " Remember facts for messages using memory block, like <+memory>high|The player attaked me</memory>. This text is EXAMPLE!"
 
         messages.append({"role": "system", "content": repeated_system_message})
 

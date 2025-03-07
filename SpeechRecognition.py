@@ -110,7 +110,8 @@ class SpeechRecognition:
                     if SpeechRecognition.TIMEOUT_MESSAGE:
                         logger.info("Таймаут ожидания речи...")
                 except sr.UnknownValueError:
-                    logger.info("Речь не распознана")
+                    ...
+                    #logger.info("Речь не распознана")
                 except Exception as e:
                     logger.error(f"Ошибка при распознавании: {e}")
                     break

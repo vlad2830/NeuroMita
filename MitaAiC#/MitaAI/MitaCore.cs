@@ -305,9 +305,14 @@ namespace MitaAI
         static public Il2CppAssetBundle bundle;
         //static public Il2CppAssetBundle bundle2;
 
-        string requiredSceneName = "Scene 4 - StartSecret";
+        static string requiredSceneName = "Scene 4 - StartSecret";
         public string requiredSave = "SaveGame startsecret";
-        string CurrentSceneName;
+        static string CurrentSceneName;
+
+        public static bool isRequiredScene()
+        {
+            return CurrentSceneName == requiredSceneName;
+        }
 
 
         private bool AllLoaded = false;
@@ -328,29 +333,6 @@ namespace MitaAI
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
-
-
-
-            
-/*
- *          Пока не удалось
-  
-            MelonLogger.Msg("111");
-            GameObject settingsObject = new GameObject("Settings");
-            this.settings = settingsObject.AddComponent<Settings>();
-            
-            MelonLogger.Msg("222");
-            Object_DontDestroy.DontDestroyOnLoad(settingsObject);
-
-            MelonLogger.Msg("333");
-
-            settings.Set("Test", "This is test ASDFASDFASDASDASD");
-
-
-            MelonLogger.Msg("444");
-            MelonLogger.Msg($"Получил из настроек {settings.Get("Test")}");
-*/
-
 
             harmony = new HarmonyLib.Harmony("1");
             MitaClothesModded.init(harmony);
@@ -455,7 +437,7 @@ namespace MitaAI
             }
             else
             {
-                LoggerInstance.Msg("Scene loaded addictive!!! " + sceneName);
+                LoggerInstance.Msg("Scene loaded addictive " + sceneName);
                 return;
             }
 
