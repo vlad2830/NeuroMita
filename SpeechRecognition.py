@@ -1,31 +1,14 @@
 import time
 from io import BytesIO
 import asyncio
+import logging
 import soundfile as sf
 import numpy as np
 import speech_recognition as sr
 import sounddevice as sd
 
-# Настройка логирования
-import logging
-import colorlog
-
-# Настройка цветного логирования
-handler = colorlog.StreamHandler()
-handler.setFormatter(colorlog.ColoredFormatter(
-    '%(log_color)s%(asctime)s - %(levelname)s - %(message)s',
-    log_colors={
-        'INFO': 'white',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'red,bg_white',
-    }
-))
-
-logger = colorlog.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(handler)
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class AudioState:
     def __init__(self):
@@ -35,7 +18,7 @@ class AudioState:
         self.is_playing = False
         self.lock = asyncio.Lock()
         self.vc = None
-        self.max_buffer_size = 10000
+        self.max_buffer_size = 5000  # Увеличим размер буфера
 
     async def add_to_buffer(self, data):
         async with self.lock:
@@ -43,9 +26,7 @@ class AudioState:
                 self.audio_buffer.pop(0)
             self.audio_buffer.append(data.copy())
 
-
 audio_state = AudioState()
-
 
 class SpeechRecognition:
     user_input = ""
@@ -56,9 +37,9 @@ class SpeechRecognition:
     SAMPLE_RATE = 48000
     CHUNK_SIZE = 1024
     TIMEOUT_MESSAGE = False
-    SILENCE_THRESHOLD = 0.01
-    SILENCE_DURATION = 4
-    MIN_RECORDING_DURATION = 1
+    SILENCE_THRESHOLD = 0.01  # Порог тишины
+    SILENCE_DURATION = 2  # Длительность тишины для завершения записи
+    MIN_RECORDING_DURATION = 1  # Минимальная длительность записи
 
     @staticmethod
     def receive_text():
@@ -81,8 +62,7 @@ class SpeechRecognition:
 
         with sr.Microphone(device_index=SpeechRecognition.microphone_index, sample_rate=SpeechRecognition.SAMPLE_RATE,
                            chunk_size=SpeechRecognition.CHUNK_SIZE) as source:
-            logger.info(
-                f"Используется микрофон: {sr.Microphone.list_microphone_names()[SpeechRecognition.microphone_index]}")
+            logger.info(f"Используется микрофон: {sr.Microphone.list_microphone_names()[SpeechRecognition.microphone_index]}")
             recognizer.adjust_for_ambient_noise(source)
             logger.info("Скажите что-нибудь...")
 
@@ -90,7 +70,7 @@ class SpeechRecognition:
                 try:
                     audio = await asyncio.get_event_loop().run_in_executor(
                         None,
-                        lambda: recognizer.listen(source)
+                        lambda: recognizer.listen(source, timeout=5)  # Увеличим таймаут
                     )
 
                     text = await asyncio.get_event_loop().run_in_executor(
@@ -110,8 +90,7 @@ class SpeechRecognition:
                     if SpeechRecognition.TIMEOUT_MESSAGE:
                         logger.info("Таймаут ожидания речи...")
                 except sr.UnknownValueError:
-                    ...
-                    #logger.info("Речь не распознана")
+                    logger.info("Речь не распознана")
                 except Exception as e:
                     logger.error(f"Ошибка при распознавании: {e}")
                     break
@@ -153,6 +132,11 @@ class SpeechRecognition:
                 audio_data = np.concatenate(non_empty_chunks)
                 SpeechRecognition.audio_state.audio_buffer.clear()
 
+                # Проверка минимальной длительности записи
+                if len(audio_data) / SpeechRecognition.SAMPLE_RATE < SpeechRecognition.MIN_RECORDING_DURATION:
+                    logger.warning("Запись слишком короткая, пропускаем.")
+                    return
+
                 with BytesIO() as audio_buffer:
                     sf.write(audio_buffer, audio_data, SpeechRecognition.SAMPLE_RATE, format='WAV')
                     audio_buffer.seek(0)
@@ -186,7 +170,7 @@ class SpeechRecognition:
         while SpeechRecognition.active:
             try:
                 await SpeechRecognition.async_audio_callback(0)
-                await asyncio.sleep(0.25)
+                await asyncio.sleep(0.1)  # Уменьшим интервал
             except Exception as e:
                 logger.error(f"Ошибка в speach_recognition_start_async_other_system: {e}")
 
@@ -207,21 +191,19 @@ class SpeechRecognition:
     @staticmethod
     async def audio_monitoring():
         with sd.InputStream(
-                callback=SpeechRecognition.async_audio_callback,
-                channels=1,
-                samplerate=SpeechRecognition.SAMPLE_RATE,
-                dtype='float32',
-                device=SpeechRecognition.microphone_index
+            callback=SpeechRecognition.async_audio_callback,
+            channels=1,
+            samplerate=SpeechRecognition.SAMPLE_RATE,
+            dtype='float32',
+            device=SpeechRecognition.microphone_index
         ):
             logger.info("Начинаем мониторинг аудиопотока...")
             while SpeechRecognition.active:
                 await asyncio.sleep(0.1)
 
-
 async def main():
     speech_recognition = SpeechRecognition()
     await speech_recognition.audio_monitoring()
-
 
 if __name__ == "__main__":
     asyncio.run(main())

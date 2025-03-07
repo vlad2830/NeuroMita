@@ -1,6 +1,6 @@
-from BaseState import BaseState
-from Events.MitaEvents import MitaEvents
-from Events.PlayerEvents import PlayerEvents
+from FSM.BaseState import BaseState
+from FSM.Events.MitaEvents import MitaEvents
+from FSM.Events.PlayerEvents import PlayerEvents
 #region Logging
 # Настройка логирования
 import logging
@@ -22,6 +22,10 @@ logger = colorlog.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 #endregion
+
+
+class MitaHelloState(BaseState):
+    ...
 
 
 class MitaMurderState(BaseState):
