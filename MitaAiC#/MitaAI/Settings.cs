@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 
 namespace MitaAI
 {
@@ -21,6 +21,9 @@ namespace MitaAI
             category = MelonPreferences.CreateCategory("NeuroMita", "NeuroMita Settings");
 
             MitaType = category.CreateEntry("MitaType", MitaCore.character.Mita);
+
+            // Добавляем нового персонажа как опцию
+            category.CreateEntry("MilaType", MitaCore.character.Mila);
 
            /* // Инициализируем настройки со значениями по умолчанию
             AutoResponseEnabled = category.CreateEntry(
