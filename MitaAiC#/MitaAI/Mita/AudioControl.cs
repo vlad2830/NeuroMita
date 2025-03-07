@@ -31,11 +31,11 @@ namespace MitaAI.Mita
         }
         public static string MusicInfo()
         {
-            string musicInfo = $"\nCurrent music is {currentAudioObject.name},avaible music: ";
+            string musicInfo = $"\nCurrent music is {getCurrrentMusic()},available options to set using block <music>: ";
 
             foreach (string item in _audioObjects.Keys)
             {
-                musicInfo += $" <music>{item}</music>";
+                musicInfo += $"<music>{item}</music>";
             }
 
             return musicInfo;
@@ -153,17 +153,21 @@ namespace MitaAI.Mita
         {
             try
             {
-                _audioObjects[gameObject.name] = gameObject;
+                
                 if (gameObject.transform.parent != sound_parent)
                 {
                     GameObject newMusic = GameObject.Instantiate(templateAudioObject);
                     newMusic.GetComponent<AudioSource>().clip = gameObject.GetComponent<AudioSource>().clip;
                     newMusic.active = false;
-
-                    if (newName!="") newMusic.name = newName;
-
+                    newMusic.transform.SetParent(templateAudioObject.transform.parent);
+                    newMusic.GetComponent<Audio_Pitch>().pitch = 1;
+                    newMusic.GetComponent<AudioSource>().pitch = 1;
+                    if (newName != "") newMusic.name = newName;
+                    else newMusic.name = gameObject.name;
+                    _audioObjects[gameObject.name] = newMusic;
                     GameObject.Destroy(gameObject);
                 }
+                else _audioObjects[gameObject.name] = gameObject;
             }
             catch (Exception ex)
             {
@@ -184,7 +188,9 @@ namespace MitaAI.Mita
             {
                 if (match.Success)
                 {
-                    TurnAudio(match.Groups[1].Value);
+                    string music = match.Groups[1].Value;
+                    MelonLogger.Msg($"Found {music}");
+                    TurnAudio(music);
                     break;
                 }
             }
@@ -199,25 +205,36 @@ namespace MitaAI.Mita
         // Функция для включения объекта по имени и выключения остальных
         public static void TurnAudio(string audioName, bool on = true)
         {
-            // Проверяем, существует ли объект с таким именем в словаре
-            if (_audioObjects.ContainsKey(audioName))
+            try
             {
-
-                currentAudioObject?.SetActive(false);
-                currentAudioObject = null;
-                // Включаем нужный объект
-                if (audioName != "None")
+                // Проверяем, существует ли объект с таким именем в словаре
+                if (_audioObjects.ContainsKey(audioName))
                 {
-                    currentAudioObject = _audioObjects[audioName];
-                    currentAudioObject.SetActive(true);
-                    currentAudioObject.GetComponent<AudioSource>()?.Play();
-                }
 
+                    currentAudioObject?.SetActive(false);
+                    currentAudioObject = null;
+
+                    // Включаем нужный объект
+                    if (audioName != "None")
+                    {
+                        currentAudioObject = _audioObjects[audioName];
+                        currentAudioObject.SetActive(true);
+                        currentAudioObject.GetComponent<AudioSource>().Play();
+                    }
+
+                }
+                else
+                {
+                    MelonLogger.Msg($"Audio object with name '{audioName}' not found!");
+                }
             }
-            else
+            catch (Exception e)
             {
-                MelonLogger.Msg($"Audio object with name '{audioName}' not found!");
+
+                MelonLogger.Error($"Tried turn {audioName} error {e}");
             }
+
+
         }
 
         public static IEnumerator PlayTextAudio(string text)

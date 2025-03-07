@@ -53,7 +53,7 @@ namespace MitaAI
             var objectAnimationPlayer = sofaChil.AddComponent<ObjectAnimationPlayer>();
             var objectInteractive = sofa.AddComponent<ObjectInteractive>();
             objectAnimationPlayer.angleHeadRotate = 70;
-            Utils.CopyComponentValues(exampleComponent, objectInteractive);
+            //Utils.CopyComponentValues(exampleComponent, objectInteractive);
 
             objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
             objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player Sit");
@@ -181,6 +181,30 @@ namespace MitaAI
             // Запускаем корутину для ожидания загрузки сцены
             string sceneToLoad;
 
+            bool loadMusic = false;
+
+            if (loadMusic)
+            {
+                sceneToLoad = "Scene 12 - Freak";
+                additiveLoadedScenes.Add(sceneToLoad);
+                yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldFreak(sceneToLoad));
+
+                sceneToLoad = "Scene 17 - Dreamer";
+                additiveLoadedScenes.Add(sceneToLoad);
+                yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldDreamer(sceneToLoad));
+
+                sceneToLoad = "Scene 2 - InGame";
+                additiveLoadedScenes.Add(sceneToLoad);
+                yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldInGame(sceneToLoad));
+
+                sceneToLoad = "Scene 8 - ReRooms";
+                additiveLoadedScenes.Add(sceneToLoad);
+                yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldReRooms(sceneToLoad));
+            }
+
+
+
+
             sceneToLoad = "Scene 7 - Backrooms";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
@@ -205,28 +229,11 @@ namespace MitaAI
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms2(sceneToLoad));
 
-
             sceneToLoad = "Scene 3 - WeTogether";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldTogether(sceneToLoad));
 
-            sceneToLoad = "Scene 12 - Freak";
-            additiveLoadedScenes.Add(sceneToLoad);
-            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldFreak(sceneToLoad));
 
-            sceneToLoad = "Scene 17 - Dreamer";
-            additiveLoadedScenes.Add(sceneToLoad);
-            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldDreamer(sceneToLoad));
-
-            sceneToLoad = "Scene 2 - InGame";
-            additiveLoadedScenes.Add(sceneToLoad);
-            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldInGame(sceneToLoad));
-
-            sceneToLoad = "Scene 8 - ReRooms";
-            additiveLoadedScenes.Add(sceneToLoad);
-            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldReRooms(sceneToLoad));
-
-            
             yield return MelonCoroutines.Start(AfterAllLoadded());
 
 
@@ -366,7 +373,7 @@ namespace MitaAI
 
             // Находим объект в загруженной сцене
             Transform world = FindObjectInScene(scene.name, "World");
-            if (MitaCore.world == null)
+            if (world == null)
             {
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
@@ -376,8 +383,8 @@ namespace MitaAI
 
             try
             {
-                AudioControl.addMusicObject(GameObject.Find("World/Audio/Ambient Music"), "Morning music");
-                AudioControl.addMusicObject(GameObject.Find("World/Audio/Ambient Horror 1"));
+                AudioControl.addMusicObject(world.Find("Audio/Ambient Music").gameObject, "Morning music");
+                AudioControl.addMusicObject(world.Find("Audio/Ambient Horror 1").gameObject);
             }
 
             catch (Exception ex)
@@ -409,18 +416,23 @@ namespace MitaAI
 
             // Находим объект в загруженной сцене
             Transform world = FindObjectInScene(scene.name, "World");
-            if (MitaCore.world == null)
+            if (world == null)
             {
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
             }
-            world.gameObject.SetActive(false);
-
-            MelonLogger.Msg($"Object found: {MitaCore.world.name}");
+    
             try
             {
+                MelonLogger.Msg($"Object found: {world.name}");
+
                 MitaCore.CappyObject = GameObject.Instantiate(Utils.TryfindChild(world, "Acts/Mita Кепка"), MitaCore.worldHouse);
                 MitaCore.KindObject = GameObject.Instantiate(Utils.TryfindChild(world, "Acts/Mita Добрая"), MitaCore.worldHouse);
+
+                world.gameObject.SetActive(false);
+                
+
+               
 
 
                 AudioControl.addMusicObject(world.Find("Sounds/Music Cap").gameObject, "Music cappy playful");
@@ -431,7 +443,7 @@ namespace MitaAI
             catch (Exception ex)
             {
 
-                MelonLogger.Error($"Cappy founding error: {ex}");
+                MelonLogger.Error($"{scene.name} founding error: {ex}");
             }
             //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
@@ -456,20 +468,22 @@ namespace MitaAI
             MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
 
             // Находим объект в загруженной сцене
-            Transform world = FindObjectInScene(scene.name, "World");
-            if (MitaCore.world == null)
+            GameObject world = FindObjectInScene(scene.name, "World").gameObject;
+            if (world == null)
             {
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
             }
-            world.gameObject.SetActive(false);
+       
 
-            MelonLogger.Msg($"Object found: {MitaCore.world.name}");
+           
             try
             {
+                MelonLogger.Msg($"Object found: {world.name}");
+                world.gameObject.SetActive(false);
 
-                AudioControl.addMusicObject(world.Find("Sounds/Music").gameObject, "Music calm");
-                AudioControl.addMusicObject(world.Find("Sounds/Music Alternative").gameObject, "Music for concentration");
+                AudioControl.addMusicObject(world.transform.Find("Sounds/Music").gameObject, "Music calm");
+                AudioControl.addMusicObject(world.transform.Find("Sounds/Music Alternative").gameObject, "Music for concentration");
                 
             }
 
@@ -717,11 +731,17 @@ namespace MitaAI
                 MitaCore.Instance.changeMita(null,character : MitaToStart);
             }
             yield return new WaitForSeconds(0.25f);
-            if (Utils.Random(1, 7)) MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым костюмом", MitaToStart);
-            else if (Utils.Random(1, 8)) MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень, можешь удивить его новым цветом волос", MitaToStart);
-            else MitaCore.Instance.sendSystemMessage("Игрок только что загрузился в твой уровень.", MitaToStart);
+
+            string HelloMessage = "Игрок только что загрузился в твой уровень";
+
+            if (Utils.Random(1, 4)) HelloMessage += ", подбери музыку для его встречи";
+
+            if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым костюмом";
+            else if (Utils.Random(1, 8)) HelloMessage += ", можешь удивить его новым цветом волос";
 
 
+            MitaCore.Instance.sendSystemMessage(HelloMessage, MitaToStart);
+            
             TestingGround();
         }
         

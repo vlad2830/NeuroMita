@@ -74,7 +74,7 @@ namespace MitaAI
 
             }
 
-            MelonLogger.Msg($"Change {currentCharacter} to {character} Begin");
+            MelonLogger.Msg($"Change Mita {currentCharacter} to {character} Begin");
 
             try
             {
@@ -1250,7 +1250,7 @@ namespace MitaAI
                 else MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
-                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 80);
+                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
                 MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
