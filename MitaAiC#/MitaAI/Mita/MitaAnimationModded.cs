@@ -90,6 +90,13 @@ namespace MitaAI.Mita
 
         static private void setCustomAnimatiomEvents(AnimationClip anim)
         { 
+            if (anim.name.Contains("Click")){
+
+                MelonLogger.Msg("AddedAnimationEvent for" + anim.name);
+                EventsProxy.AddAnimationEvent(MitaCore.Instance.MitaObject, anim, "Mita Click");
+                return;
+            }
+
 
             switch (anim.name)
             {

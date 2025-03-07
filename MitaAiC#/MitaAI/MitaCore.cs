@@ -74,7 +74,7 @@ namespace MitaAI
 
             }
 
-            MelonLogger.Msg("Change Mita Begin");
+            MelonLogger.Msg($"Change {currentCharacter} to {character} Begin");
 
             try
             {
@@ -98,13 +98,14 @@ namespace MitaAI
                 {
                     Transform child = MitaObject.transform.GetChild(i);
                     // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
-                    if (child != null && child.name.Contains("MitaPerson"))
+                    if (child != null && child.name.Contains("Person"))
                     {
+                        MelonLogger.Msg("Change Mita finded  MitaPersonObject");
                         MitaPersonObject = child.gameObject;
                         break; // Прерываем цикл, как только нашли первый подходящий объект
                     }
                 }
-                MelonLogger.Msg("Change Mita finded  MitaPersonObject");
+                
 
                 if (MitaPersonObject == null)
                 {
@@ -468,7 +469,7 @@ namespace MitaAI
 
 
                 UINeuroMita.init();
-
+                TotalInitialization.GetObjectsFromMenu();
 
                 //MainMenu.ButtonLoadScene(requiredSave);
                 //MainMenu.Alternative();

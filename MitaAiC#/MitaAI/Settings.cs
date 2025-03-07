@@ -23,7 +23,7 @@ namespace MitaAI
             MitaType = category.CreateEntry("MitaType", MitaCore.character.Mita);
 
             // Добавляем нового персонажа как опцию
-            category.CreateEntry("MilaType", MitaCore.character.Mila);
+           // category.CreateEntry("MilaType", MitaCore.character.Mila);
 
            /* // Инициализируем настройки со значениями по умолчанию
             AutoResponseEnabled = category.CreateEntry(

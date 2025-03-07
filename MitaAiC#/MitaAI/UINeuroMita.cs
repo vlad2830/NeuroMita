@@ -32,6 +32,8 @@ namespace MitaAI
             FrameMenuObject = MenuObject.transform.Find("Canvas/FrameMenu").gameObject;
             //makeButtonTemplate();
 
+
+
             ButtonNeuroMita();
 
             MenuNeuroMita();
@@ -61,6 +63,19 @@ namespace MitaAI
             NeuroMitaButton.transform.localPosition = new Vector3(-250, -45, 0);
             NeuroMitaButton.transform.localScale = new Vector3(1, 1, 1);
             NeuroMitaButton.transform.rotation = new Quaternion(0, 0, 0, 0);
+
+            Il2CppSystem.Collections.Generic.List<RectTransform> list = new Il2CppSystem.Collections.Generic.List<RectTransform>();
+            for (int i = 0; i < MainMenuLocation.transform.childCount; i++)
+            {
+                try
+                {
+                    list.Add(MainMenuLocation.transform.GetChild(i).GetComponent<RectTransform>());
+                }
+                catch { }
+
+            }
+            MainMenuLocation.objects = list;
+
 
             GameObject NeuroMitaButtonText = NeuroMitaButton.transform.Find("Text").gameObject;
             MelonCoroutines.Start(changeName(NeuroMitaButtonText, "ИГРАТЬ С NEUROMITA"));
@@ -159,21 +174,40 @@ namespace MitaAI
                 MelonCoroutines.Start(changeName(MitaCappyButton.transform.Find("Text").gameObject, "Кепочка"));
                 MitaCappyButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MitaCappyButton, MitaCappyButton.name);
 
-                // Новая кнопка MitaMilaButton
-                GameObject MilaButton = StartMenuObject.transform.Find("Button Back").gameObject;
-                MilaButton.active = false;
-                MilaButton = GameObject.Instantiate(NeuroMitaButton, MilaButton.transform.position, MilaButton.transform.rotation, MilaButton.transform.parent);
-                MilaButton.name = "MilaButton";
-                MilaButton.active = true;
 
-                MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, "Мила"));
-                MilaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MilaButton, MilaButton.name);
 
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
+            try
+            {
+                // Новая кнопка MitaMilaButton
+                GameObject MilaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                MilaButton.active = false;
+                MilaButton = GameObject.Instantiate(NeuroMitaButton, MilaButton.transform.position, MilaButton.transform.rotation, MilaButton.transform.parent);
+                MilaButton.name = "MilaButton";
+                MilaButton.active = true;
+                MilaButton.transform.localPosition += new Vector3(0, -55);
+                MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, "Мила"));
+                MilaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MilaButton, MilaButton.name);
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+            Il2CppSystem.Collections.Generic.List<RectTransform> list  = new Il2CppSystem.Collections.Generic.List<RectTransform>();
+            for (int i = 0; i < StartMenuObject.transform.childCount; i++)
+            {
+                try
+                {
+                    list.Add(StartMenuObject.transform.GetChild(i).GetComponent<RectTransform>());
+                }
+                catch { }
+                
+            }
+            StartMenu.objects = list;
+
             GameObject Back = StartMenuObject.transform.Find("Button Back").gameObject;
             Back.name = "ButtonReturn";
+            Back.transform.localPosition += new Vector3(0, -55);
             Back.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(Back, Back.name);
 
             MelonLogger.Msg(6);

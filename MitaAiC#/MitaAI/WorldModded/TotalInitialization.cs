@@ -116,6 +116,65 @@ namespace MitaAI
 
 
         #region getObjectsFromOtherScenes
+
+        public static List<GameObject> objectsFromMenu = new List<GameObject>();
+        public static void GetObjectsFromMenu()
+        {
+            MelonLogger.Msg("Start GetObjectsFromMenu");
+
+            GameObject MusicToSave = new GameObject();
+            MusicToSave.transform.SetParent(GameObject.Find("Game").transform);
+            MusicToSave.name = "MusicToSave";
+
+            GameObject Menu = GameObject.Find("MenuGame");
+            GameObject Sounds = Menu.transform.Find("Sounds").gameObject;
+
+            GameObject music = null;
+            try { 
+
+                music = Sounds.transform.Find("Music").gameObject;
+                music = GameObject.Instantiate(music);
+                music.active = false;
+                music.name = "Music happy intensive";
+                music.transform.parent = MusicToSave.transform;
+                objectsFromMenu.Add(music);
+
+
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+            try
+            {
+                music = Sounds.transform.Find("MusicCloth").gameObject;
+                music = GameObject.Instantiate(music);
+                music.active = false;
+                music.name = "Music relax";
+                music.transform.parent = MusicToSave.transform;
+                objectsFromMenu.Add(music);
+
+
+
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+            try
+            {
+                music = Sounds.transform.Find("MusicDescription").gameObject;
+                music = GameObject.Instantiate(music);
+                music.active = false;
+                music.name = "Music puzzle style";
+                music.transform.parent = MusicToSave.transform;
+                objectsFromMenu.Add(music);
+
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+
+
+
+
+            MelonLogger.Msg("End GetObjectsFromMenu");
+        }
+
         public static IEnumerator AddOtherScenes()
         {
             // Запускаем корутину для ожидания загрузки сцены
@@ -569,7 +628,7 @@ namespace MitaAI
 
                 //AnimationKiller.GetComponent<Location6_MitaKiller>().mita = Mita.transform;
                 var musicTension = Utils.TryfindChild(MitaCore.worldBasement, "Sounds/Ambient 1");
-                musicTension.transform.parent = MitaCore.worldHouse.FindChild("Audio");
+                
                 musicTension.name = "Music 4 Tension";
                 AudioControl.addMusicObject(musicTension);
 

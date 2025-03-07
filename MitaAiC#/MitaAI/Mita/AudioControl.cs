@@ -13,12 +13,16 @@ namespace MitaAI.Mita
         private static Dictionary<string, GameObject> _audioObjects = new Dictionary<string, GameObject>();
 
         public static GameObject currentAudioObject;
+        public static Transform sound_parent;
 
         public static DataValues_Sounds dataValues_Sounds;
         public static AudioClip chibiMitaAudio;
         static AudioSource mitaAudioSourse;
         public static GameObject MitaDualogueSpeak;
         public static AudioSource cartAudioSource;
+
+        private static GameObject fingerClick;
+
         public static string getCurrrentMusic()
         {
             if (currentAudioObject == null) return "None";
@@ -27,6 +31,9 @@ namespace MitaAI.Mita
         // Метод для инициализации словаря
         public static void Init(Transform worldHouse)
         {
+
+            sound_parent =  MitaCore.worldHouse.FindChild("Audio");
+
             // Добавляем объекты в словарь с обработкой исключений
             try
             {
@@ -37,6 +44,9 @@ namespace MitaAI.Mita
             {
                 MelonLogger.Error($"Failed to find or add 'Music 1': {e.Message}");
             }
+
+            fingerClick = worldHouse.Find("Audio/Audio ClickFinger").gameObject;
+            fingerClick.GetComponent<Audio_DestroyTime>().enabled = false;
 
             try
             {
@@ -85,17 +95,55 @@ namespace MitaAI.Mita
                 MelonLogger.Error($"Failed to find or add 'Dialogues/DialogueMita Speak': {e.Message}");
             }
 
+            getObjectFromMenu();
+
             // По умолчанию все объекты выключены
             //   foreach (var audioObject in _audioObjects.Values)
             //{
             //  audioObject.SetActive(false);
             //}
         }
+
+
+        public static void playFingerClick() {
+
+            MelonCoroutines.Start(playFingerClickWait());
+            
+        }
+
+        public static IEnumerator playFingerClickWait()
+        {
+
+            fingerClick.active = true;
+            yield return new WaitForSeconds(2f);
+            fingerClick.active = false;
+        }
+
+        private static void getObjectFromMenu()
+        {
+
+            for (int i = 0; i < TotalInitialization.objectsFromMenu.Count; i++)
+            {
+                try
+                {
+                    addMusicObject(TotalInitialization.objectsFromMenu[i]);
+                }
+                catch (Exception e) { MelonLogger.Error(e); } 
+
+            }
+
+            
+        }
+
         public static void addMusicObject(GameObject gameObject)
         {
             try
             {
                 _audioObjects[gameObject.name] = gameObject;
+                if (gameObject.transform.parent != sound_parent)
+                {
+                    gameObject.transform.parent = sound_parent;
+                }
             }
             catch (Exception ex)
             {
