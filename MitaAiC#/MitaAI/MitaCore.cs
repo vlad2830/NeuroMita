@@ -1,4 +1,4 @@
-﻿using Il2Cpp;
+using Il2Cpp;
 using MelonLoader;
 using UnityEngine;
 using System.Text.RegularExpressions;
@@ -40,6 +40,7 @@ namespace MitaAI
         public static GameObject CappyObject;
         public static GameObject KindObject;
         public static GameObject ShortHairObject;
+        public static GameObject MilaObject; // Объект для нового персонажа
 
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;
@@ -56,6 +57,8 @@ namespace MitaAI
                     return ShortHairObject;
                 case character.Cappy:
                     return CappyObject;
+                case character.Mila:
+                    return MilaObject;
                 default:
                     return CrazyObject;
 
@@ -216,7 +219,8 @@ namespace MitaAI
             Kind = 2,
             Cart_portal = 3,
             ShortHair = 4,
-            Cart_divan
+            Cart_divan,
+            Mila // Добавляем нового персонажа
         }
 
         public character currentCharacter = character.Mita;
@@ -2150,6 +2154,9 @@ namespace MitaAI
 
                 info += Interactions.getObservedObjects();
                 info += $"Current player's hint text {HintText.text}";
+
+
+
 
 
             }
