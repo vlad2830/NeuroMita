@@ -39,7 +39,7 @@ namespace MitaAI
                 if (string.IsNullOrEmpty(mitaCore.currentInfo)) _currentInfo = "-";
                 if (string.IsNullOrEmpty(systemInfo)) systemInfo = "-";
 
-                string total_input = $"{character}|||{input}|||{dataToSentSystem}|||{systemInfo}|||{mitaCore.distance.ToString("F2")}|||{mitaCore.roomIDPlayer}|||{mitaCore.roomIDMita}|||{mitaCore.hierarchy}|||{_currentInfo}";
+                string total_input = $"{character}|||{input}|||{dataToSentSystem}|||{systemInfo}|||{mitaCore.distance.ToString("F2")}|||{(int)mitaCore.roomPlayer}|||{(int)mitaCore.roomMita}|||{mitaCore.hierarchy}|||{_currentInfo}";
 
                 byte[] messageBytes = Encoding.UTF8.GetBytes(total_input);
                 await clientSocket.SendAsync(messageBytes, SocketFlags.None);

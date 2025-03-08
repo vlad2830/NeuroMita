@@ -749,15 +749,9 @@ namespace MitaAI
             }
             yield return new WaitForSeconds(0.25f);
 
-            string HelloMessage = "Игрок только что загрузился в твой уровень";
-
-            if (Utils.Random(1, 4)) HelloMessage += ", подбери музыку для его встречи";
-            if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым костюмом";
-            if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым цветом волос";
+            EventsModded.sceneEnter();
 
 
-            MitaCore.Instance.sendSystemMessage(HelloMessage, MitaToStart);
-            
             TestingGround();
         }
         

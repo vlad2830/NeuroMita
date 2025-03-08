@@ -51,6 +51,8 @@ namespace MitaAI.PlayerControls
 
         public static void processInpute()
         {
+            if (!MitaCore.isRequiredScene()) return;
+
             // Обработка блокировки движения при активном вводе
             if (isInputActive != wasInputActive) // Проверяем, изменилось ли состояние ввода
             {
@@ -136,6 +138,12 @@ namespace MitaAI.PlayerControls
                 }
                 else // Активирую ентером
                 {
+
+                    if (InputFieldComponent != null)
+                    {
+                        if (!InputFieldComponent.active) InputFieldComponent.SetActive(true);
+                    }
+                        
                     inputField.Select();
                     inputField.ActivateInputField();
 

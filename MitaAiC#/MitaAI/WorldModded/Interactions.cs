@@ -66,9 +66,11 @@ namespace MitaAI
                     {
                         // MelonLogger.Msg($"Object already tracked: {objectName}");
                     }
-                    objectViewTime[objectName] += Time.deltaTime;
+                    objectViewTime[objectName] += Time.unscaledDeltaTime;
 
 
+                    if ( (objectName.Contains("Mita") || objectName.Contains("head)")) && objectViewTime[objectName] > 15f) EventsModded.LongWatching(objectName, objectViewTime[objectName]);
+                    else if (objectViewTime[objectName] > 30f) EventsModded.LongWatching(objectName, objectViewTime[objectName]);
 
                     if (Input.GetMouseButtonDown(0))
                     {

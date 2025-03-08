@@ -376,6 +376,12 @@ namespace MitaAI
         }
 
 
+        public void sendSystem(string m,bool info, character character = character.None)
+        {
+            if (info) sendSystemInfo(m,character);
+            else sendSystemMessage(m,character);
+
+        }
         public void sendSystemMessage(string m,character character = character.None)
         {
             if (character == character.None) character = currentCharacter;
@@ -501,45 +507,48 @@ namespace MitaAI
 
 
 
-        public int roomIDPlayer = -1;
-        public int roomIDMita = -1;
-        // Первая функция, которая принимает PlayerMove
-        public void CheckRoom(PlayerMove playerMove)
+        public enum Rooms
         {
-            if (playerMove == null)
-            {
-                return;
-            }
-
-            // Передаем трансформ игрока во вторую функцию
-            roomIDPlayer = GetRoomID(playerMove.transform);
+            Kitchen = 0,
+            Main = 1,
+            Bedroom = 2,
+            Toilet = 3,
+            Basement = 4,
+            Unknown = -1
         }
 
-        // Вторая функция, которая принимает Transform и возвращает roomID
-        public int GetRoomID(Transform playerTransform)
+        public Rooms roomPlayer = Rooms.Unknown;
+        public Rooms roomMita = Rooms.Unknown;
+
+        public void CheckRoom(PlayerMove playerMove)
+        {
+            if (playerMove == null) return;
+            roomPlayer = (Rooms)GetRoomID(playerMove.transform);
+        }
+
+        public Rooms GetRoomID(Transform playerTransform)
         {
             if (playerTransform == null)
-            {
-                return -1;
-            }
+                return Rooms.Unknown;
 
-            var posX = playerTransform.position.x;
-            var posZ = playerTransform.position.z;
-            var posY = playerTransform.position.y;
+            Vector3 position = playerTransform.position;
+            float posX = position.x;
+            float posZ = position.z;
+            float posY = position.y;
 
             if (posY <= -0.0002f)
-            {
-                return 4; // basement
-            }
-            else
-            {
-                // Логика определения комнаты
-                if (posX > 5.3000002f && posZ >= 0) return 0; // Kitchen
-                else if (posX > 5.3000002f && posZ < 0) return 2; // Bedroom
-                else if (posX > -4 && posX < 5) return 1; // Main
-                else if (posX > -11.0f && posX < -4.3000002f) return 3; // Toilet 
-            }
-            return -1; // Если не нашли подходящей комнаты
+                return Rooms.Basement;
+
+            if (posX > 5.3000002f)
+                return posZ >= 0 ? Rooms.Kitchen : Rooms.Bedroom;
+
+            if (posX > -4f && posX < 5f)
+                return Rooms.Main;
+
+            if (posX > -11.0f && posX < -4.3000002f)
+                return Rooms.Toilet;
+
+            return Rooms.Unknown;
         }
 
         EyeGlowModifier eyeModifier;
@@ -786,7 +795,7 @@ namespace MitaAI
 
                 // Обновляем таймеры
                 timer += Time.deltaTime;
-
+                MitaBoringtimer += Time.deltaTime;
 
                 // Проверяем, достиг ли timer значения Interval
                 if (timer >= Interval)
@@ -841,12 +850,11 @@ namespace MitaAI
         }
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
-        private const float actionCooldown = 9f;  // Интервал в секундах
+        private const float actionCooldown = 8f;  // Интервал в секундах
         private IEnumerator HandleDialogue()
         {
             //MelonLogger.Msg("HandleDialogue");
 
-            MitaBoringtimer += Time.deltaTime;
 
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
@@ -854,7 +862,7 @@ namespace MitaAI
             character characterToWas = character.None;
             character characterToSend = currentCharacter;
 
-            float currentTime = Time.time;
+            float currentTime = Time.unscaledTime;
             if (currentTime - lastActionTime > actionCooldown)
             {
                 //MelonLogger.Msg("Ready to send");
@@ -873,7 +881,7 @@ namespace MitaAI
                     
                     dataToSent = playerMessage;
                     playerMessage = "";
-                    lastActionTime = Time.time;
+                    lastActionTime = Time.unscaledTime;
                 }
                 else if (systemMessages.Count > 0)
                 {
@@ -897,14 +905,14 @@ namespace MitaAI
                             break;
                         }
                     }
-                    lastActionTime = Time.time;
+                    lastActionTime = Time.unscaledTime;
 
                 }
                 else if (MitaBoringtimer >= MitaBoringInterval && mitaState == MitaState.normal)
                 {
                     MitaBoringtimer = 0f;
                     dataToSentSystem = "boring";
-                    lastActionTime = Time.time;
+                    lastActionTime = Time.unscaledTime;
                 }
             }
 
@@ -1010,7 +1018,7 @@ namespace MitaAI
 
                         lastPosition = Mita.transform.GetChild(0).position;
                         List<string> excludedNames = new List<string> { "Hips", "Maneken" };
-                        if (roomIDMita == 4) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
+                        if (roomMita == Rooms.Basement) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
                         else hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldHouse.Find("House").transform, excludedNames);
 
                         //LoggerInstance.Msg(hierarchy);
@@ -1020,8 +1028,8 @@ namespace MitaAI
                 if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
 
                 distance = getDistanceToPlayer();
-                roomIDPlayer = GetRoomID(playerPerson.transform);
-                roomIDMita = GetRoomID(Mita.transform);
+                roomPlayer = GetRoomID(playerPerson.transform);
+                roomMita = GetRoomID(Mita.transform);
 
                 try
                 {
@@ -2168,6 +2176,8 @@ namespace MitaAI
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
                 else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>";
 
+                info += PlayerMovement.getPlayerDistance(true);
+
                 MelonLogger.Msg("CurrentInfo 6");
 
                 try
@@ -2205,6 +2215,8 @@ namespace MitaAI
             try
             {
                 InputControl.processInpute();
+                PlayerMovement.onUpdate();
+
             }
             catch (Exception e)
             {

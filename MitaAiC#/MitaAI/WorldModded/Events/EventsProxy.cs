@@ -16,6 +16,8 @@ namespace MitaAI
     public class EventsProxy : MonoBehaviour
     {
 
+
+
         // Функция, которая будет вызываться через AnimationEvent
         public void OnAnimationEvent(UnityEngine.AnimationEvent evt)
         {
@@ -36,7 +38,8 @@ namespace MitaAI
         {
             MelonLogger.Msg("AddAnimationEvent start");
             // Добавляем прокси-компонент к объекту
-            var proxy = targetObject.AddComponent<EventsProxy>();
+            EventsProxy proxy =  targetObject.AddComponent<EventsProxy>();
+            if ( proxy == null) proxy = targetObject.AddComponent<EventsProxy>();
             MelonLogger.Msg("AddAnimationEvent added proxi");
             // Создаем AnimationEvent
             var animationEvent = new UnityEngine.AnimationEvent
