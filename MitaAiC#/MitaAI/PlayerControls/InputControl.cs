@@ -82,7 +82,7 @@ namespace MitaAI.PlayerControls
             }
 
             // Обработка нажатия Enter для открытия/закрытия чата и отправки текста
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (Input.GetKeyDown(KeyCode.Tab) )
             {
                 if (!InputFieldExists()) return;
 
@@ -189,7 +189,6 @@ namespace MitaAI.PlayerControls
                         MelonLogger.Msg(e);
                     }
 
-                    changeMitaButtons();
                 }
             // unstack player anim
             else if (Input.GetKeyDown(KeyCode.O) && (Input.GetKeyDown(KeyCode.L)))
@@ -210,7 +209,7 @@ namespace MitaAI.PlayerControls
             }
             else if (Input.GetKeyDown(KeyCode.J) )
             {
-                MelonCoroutines.Start(changeMitaButtons());
+                changeMitaButtons();
             }
 
 
@@ -249,9 +248,8 @@ namespace MitaAI.PlayerControls
         private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
         private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(4); // Задержка в 5 секунд
 
-        static IEnumerator changeMitaButtons()
+        static void changeMitaButtons()
         {
-            MelonLogger.Msg("Try change Mita");
 
             // Проверяем нажатие клавиш
             if (Input.GetKeyDown(KeyCode.I))
@@ -260,7 +258,7 @@ namespace MitaAI.PlayerControls
                 MitaCore.Instance.changeMita(MitaCore.KindObject, MitaCore.character.Kind);
                 _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
 
-                yield return new WaitForSeconds(0.25f);
+
                 MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
 
             }
@@ -270,7 +268,7 @@ namespace MitaAI.PlayerControls
                 MitaCore.Instance.changeMita(MitaCore.CappyObject, MitaCore.character.Cappy);
                 _lastChangeTime = DateTime.Now;
 
-                yield return new WaitForSeconds(0.25f);
+
                 MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
 
             }
@@ -280,7 +278,7 @@ namespace MitaAI.PlayerControls
                 MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Mita);
                 _lastChangeTime = DateTime.Now;
 
-                yield return new WaitForSeconds(0.25f);
+
                 MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
 
             }
@@ -290,7 +288,7 @@ namespace MitaAI.PlayerControls
                 MitaCore.Instance.changeMita(MitaCore.ShortHairObject, MitaCore.character.ShortHair);
                 _lastChangeTime = DateTime.Now;
 
-                yield return new WaitForSeconds(0.25f);
+
                 MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
 
             }

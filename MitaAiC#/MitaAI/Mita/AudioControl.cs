@@ -13,30 +13,54 @@ namespace MitaAI.Mita
         private static Dictionary<string, GameObject> _audioObjects = new Dictionary<string, GameObject>();
 
         public static GameObject currentAudioObject;
+        public static GameObject templateAudioObject;
+        public static Transform sound_parent;
 
         public static DataValues_Sounds dataValues_Sounds;
         public static AudioClip chibiMitaAudio;
         static AudioSource mitaAudioSourse;
         public static GameObject MitaDualogueSpeak;
         public static AudioSource cartAudioSource;
+
+        private static GameObject fingerClick;
+
         public static string getCurrrentMusic()
         {
             if (currentAudioObject == null) return "None";
             else return currentAudioObject.name;
         }
+        public static string MusicInfo()
+        {
+            string musicInfo = $"\nCurrent music is {getCurrrentMusic()},available options to set using block <music>: ";
+
+            foreach (string item in _audioObjects.Keys)
+            {
+                musicInfo += $"<music>{item}</music>";
+            }
+
+            return musicInfo;
+        }
+
         // Метод для инициализации словаря
         public static void Init(Transform worldHouse)
         {
+
+            sound_parent =  MitaCore.worldHouse.FindChild("Audio");
+
             // Добавляем объекты в словарь с обработкой исключений
             try
             {
                 _audioObjects["Music 1"] = worldHouse.Find("Audio/Music 1").gameObject;
                 currentAudioObject = _audioObjects["Music 1"];
+                templateAudioObject = currentAudioObject;
             }
             catch (Exception e)
             {
                 MelonLogger.Error($"Failed to find or add 'Music 1': {e.Message}");
             }
+
+            fingerClick = worldHouse.Find("Audio/Audio ClickFinger").gameObject;
+            fingerClick.GetComponent<Audio_DestroyTime>().enabled = false;
 
             try
             {
@@ -85,17 +109,65 @@ namespace MitaAI.Mita
                 MelonLogger.Error($"Failed to find or add 'Dialogues/DialogueMita Speak': {e.Message}");
             }
 
+            getObjectFromMenu();
+
             // По умолчанию все объекты выключены
             //   foreach (var audioObject in _audioObjects.Values)
             //{
             //  audioObject.SetActive(false);
             //}
         }
-        public static void addMusicObject(GameObject gameObject)
+
+
+        public static void playFingerClick() {
+
+            MelonCoroutines.Start(playFingerClickWait());
+            
+        }
+
+        public static IEnumerator playFingerClickWait()
+        {
+
+            fingerClick.active = true;
+            yield return new WaitForSeconds(2f);
+            fingerClick.active = false;
+        }
+
+        private static void getObjectFromMenu()
+        {
+
+            for (int i = 0; i < TotalInitialization.objectsFromMenu.Count; i++)
+            {
+                try
+                {
+                    addMusicObject(TotalInitialization.objectsFromMenu[i]);
+                }
+                catch (Exception e) { MelonLogger.Error(e); } 
+
+            }
+
+            
+        }
+
+        public static void addMusicObject(GameObject gameObject, string newName = "")
         {
             try
             {
-                _audioObjects[gameObject.name] = gameObject;
+                
+                if (gameObject.transform.parent != sound_parent)
+                {
+                    GameObject newMusic = GameObject.Instantiate(templateAudioObject);
+                    newMusic.GetComponent<AudioSource>().clip = gameObject.GetComponent<AudioSource>().clip;
+                    newMusic.active = false;
+                    newMusic.transform.SetParent(templateAudioObject.transform.parent);
+                    newMusic.GetComponent<Audio_Pitch>().pitch = 1;
+                    newMusic.GetComponent<AudioSource>().pitch = 1;
+                    if (newName != "") newMusic.name = newName;
+                    else newMusic.name = gameObject.name;
+                    _audioObjects[gameObject.name] = newMusic;
+                    GameObject.Destroy(gameObject);
+                }
+                else _audioObjects[gameObject.name] = gameObject;
             }
             catch (Exception ex)
             {
@@ -116,7 +188,9 @@ namespace MitaAI.Mita
             {
                 if (match.Success)
                 {
-                    TurnAudio(match.Groups[1].Value);
+                    string music = match.Groups[1].Value;
+                    MelonLogger.Msg($"Found {music}");
+                    TurnAudio(music);
                     break;
                 }
             }
@@ -131,24 +205,36 @@ namespace MitaAI.Mita
         // Функция для включения объекта по имени и выключения остальных
         public static void TurnAudio(string audioName, bool on = true)
         {
-            // Проверяем, существует ли объект с таким именем в словаре
-            if (_audioObjects.ContainsKey(audioName))
+            try
             {
-
-                currentAudioObject?.SetActive(false);
-                currentAudioObject = null;
-                // Включаем нужный объект
-                if (audioName != "None")
+                // Проверяем, существует ли объект с таким именем в словаре
+                if (_audioObjects.ContainsKey(audioName))
                 {
-                    currentAudioObject = _audioObjects[audioName];
-                    currentAudioObject.SetActive(true);
-                }
 
+                    currentAudioObject?.SetActive(false);
+                    currentAudioObject = null;
+
+                    // Включаем нужный объект
+                    if (audioName != "None")
+                    {
+                        currentAudioObject = _audioObjects[audioName];
+                        currentAudioObject.SetActive(true);
+                        currentAudioObject.GetComponent<AudioSource>().Play();
+                    }
+
+                }
+                else
+                {
+                    MelonLogger.Msg($"Audio object with name '{audioName}' not found!");
+                }
             }
-            else
+            catch (Exception e)
             {
-                MelonLogger.Msg($"Audio object with name '{audioName}' not found!");
+
+                MelonLogger.Error($"Tried turn {audioName} error {e}");
             }
+
+
         }
 
         public static IEnumerator PlayTextAudio(string text)
