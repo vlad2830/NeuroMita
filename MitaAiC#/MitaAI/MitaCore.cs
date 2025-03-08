@@ -36,7 +36,7 @@ namespace MitaAI
         public MitaPerson Mita;
 
         public static GameObject CrazyObject;
-        public static GameObject CreepyObject;
+        public static GameObject CreepyObject; // Объект для уродливой Миты
         public static GameObject CappyObject;
         public static GameObject KindObject;
         public static GameObject ShortHairObject;
@@ -62,6 +62,8 @@ namespace MitaAI
                     return MilaObject;
                 case character.Sleepy:
                     return SleepyObject;
+                case character.Creepy:
+                    return CreepyObject;
                 default:
                     return CrazyObject;
 
@@ -225,8 +227,9 @@ namespace MitaAI
             Cart_portal = 3,
             ShortHair = 4,
             Cart_divan,
-            Mila, // Добавляем нового персонажа
-            Sleepy // Добавляем нового персонажа
+            Mila,
+            Sleepy,
+            Creepy // Добавляем нового персонажа
         }
 
         public character currentCharacter = character.Crazy;
