@@ -710,27 +710,28 @@ namespace MitaAI
             MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
 
             // Находим объект в загруженной сцене
-            Transform world = FindObjectInScene(scene.name, "World");
-            if (world == null)
+            Transform worldDreamer = FindObjectInScene(scene.name, "World");
+            if (worldDreamer == null)
             {
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
             }
-            world.gameObject.SetActive(false);
+            worldDreamer.gameObject.SetActive(false);
 
-            MelonLogger.Msg($"Object found: {world.name}");
+            MelonLogger.Msg($"Object found: {worldDreamer.name}");
             try
             {
+                MitaCore.SleepyObject = GameObject.Instantiate(Utils.TryfindChild(worldDreamer, "General/Mita Dreamer"), MitaCore.worldHouse);
+                             
+                //MitaCore.SleepyObject.transform.position = Vector3.zero; // не работает
+                
+                MitaCore.SleepyObject.active = false;
 
-                AudioControl.addMusicObject(world.Find("Audio/MusicWorld").gameObject, "Music calm comfort");
-
-
+                AudioControl.addMusicObject(worldDreamer.Find("Audio/MusicWorld").gameObject, "Music calm comfort");
             }
-
             catch (Exception ex)
             {
-
-                MelonLogger.Error($"{world.name} founding error: {ex}");
+                MelonLogger.Error($"{worldDreamer.name} founding error: {ex}");
             }
             //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
