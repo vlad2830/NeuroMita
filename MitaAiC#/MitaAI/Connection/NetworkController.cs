@@ -18,7 +18,7 @@ namespace MitaAI
             mitaCore = MitaCore.Instance;
         }
 
-        static public async Task<(string,string,string, string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Mita)
+        static public async Task<(string,string,string, string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Crazy)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 

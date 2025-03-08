@@ -49,7 +49,7 @@ namespace MitaAI
         {
             switch (character)
             {
-                case character.Mita:
+                case character.Crazy:
                     return CrazyObject;
                 case character.Kind:
                     return KindObject;
@@ -66,7 +66,7 @@ namespace MitaAI
 
 
         }
-        public void changeMita(GameObject NewMitaObject = null,character character = character.Mita)
+        public void changeMita(GameObject NewMitaObject = null,character character = character.Crazy)
         {
             if (NewMitaObject == null)
             {
@@ -215,7 +215,7 @@ namespace MitaAI
         public enum character
         {
             None = -1,
-            Mita = 0,
+            Crazy = 0,
             Cappy = 1,
             Kind = 2,
             Cart_portal = 3,
@@ -224,7 +224,7 @@ namespace MitaAI
             Mila // Добавляем нового персонажа
         }
 
-        public character currentCharacter = character.Mita;
+        public character currentCharacter = character.Crazy;
         public enum MovementStyles
         {
             walkNear = 0,
@@ -541,7 +541,7 @@ namespace MitaAI
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             CrazyObject = MitaObject;
-            currentCharacter = character.Mita;
+            currentCharacter = character.Crazy;
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
@@ -1013,7 +1013,18 @@ namespace MitaAI
                 distance = getDistanceToPlayer();
                 roomIDPlayer = GetRoomID(playerPerson.transform);
                 roomIDMita = GetRoomID(Mita.transform);
-                currentInfo = formCurrentInfo();
+
+                try
+                {
+                    currentInfo = formCurrentInfo();
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error($"formCurrentInfo error {ex}");
+                    currentInfo = "";
+                }
+                
             }
             catch (Exception ex)
             {
@@ -1336,7 +1347,7 @@ namespace MitaAI
             currentDialog.SetActive(true);  
             if ( !NetworkController.connectedToSilero && !itIsWaitingDialogue ) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
-            yield return new WaitForSeconds(delay+0.15f);
+            yield return new WaitForSeconds(delay * 1.15f);
             //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
             GameObject.Destroy(currentDialog);
 
@@ -1363,7 +1374,7 @@ namespace MitaAI
 
                 currentDialog.SetActive(true);
 
-                yield return new WaitForSeconds(delay+ 0.15f);
+                yield return new WaitForSeconds(delay * 1.15f);
                 //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
                 GameObject.Destroy(currentDialog);
                 
@@ -1418,7 +1429,7 @@ namespace MitaAI
                     LoggerInstance.Msg($"PlayerTalk: {ex.Message}");
                 }
                 
-                yield return new WaitForSeconds(delay+0.15f);
+                yield return new WaitForSeconds(delay*1.15f);
 
                 if (currentDialog != null)
                 {
@@ -1767,7 +1778,7 @@ namespace MitaAI
             try
             {
                 // Проверка на наличие объекта Mita перед применением эмоции
-                if (Mita == null || Mita.gameObject == null || currentCharacter!=character.Mita)
+                if (Mita == null || Mita.gameObject == null || currentCharacter!=character.Crazy)
                 {
                     LoggerInstance.Error("Mita object is null or Mita.gameObject is not active.");
                     return cleanedResponse; // Возвращаем faceStyle и очищенный текст
@@ -2102,12 +2113,16 @@ namespace MitaAI
             string info = "-";
             try
             {
+                MelonLogger.Msg("CurrentInfo");
+
                 info += $"Current movement type: {movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
                 if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!";
                 if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!";
 
                 info += $"Current emotion anim: {currentEmotion}\n";
+
+                MelonLogger.Msg("CurrentInfo 2");
 
 
                 if (mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
@@ -2117,10 +2132,13 @@ namespace MitaAI
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
 
+                MelonLogger.Msg("CurrentInfo 3");
+
                 if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere";
 
                 info += $"Player size: {playerObject.transform.localScale.x}\n";
                 info += $"Player speed: {playerObject.GetComponent<PlayerMove>().speedPlayer}\n";
+
 
 
                 if (false)
@@ -2128,17 +2146,37 @@ namespace MitaAI
                     info += $"Game house time (%): {location21_World.dayNow}\n";
                     info += $"Current lighing color: {location21_World.timeDay.colorDay}\n";
                     }
-                
+
+                MelonLogger.Msg("CurrentInfo 4");
+
                 if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
                 info += AudioControl.MusicInfo();
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
+
+                MelonLogger.Msg("CurrentInfo 5");
+
                 info += MitaClothesModded.getCurrentHairColor();
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
                 else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>";
 
-                info += Interactions.getObservedObjects();
-                info += $"Current player's hint text {HintText.text}";
+                MelonLogger.Msg("CurrentInfo 6");
 
+                try
+                {
+                    info += Interactions.getObservedObjects();
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error($"CurrentInfo 6.5 {ex}");
+                }
+                
+
+                MelonLogger.Msg("CurrentInfo 7");
+
+                if (HintText!=null) info += $"Current player's hint text {HintText.text}";
+
+                MelonLogger.Msg("CurrentInfo 8");
 
 
 
@@ -2146,7 +2184,7 @@ namespace MitaAI
             catch (Exception ex)
             {
 
-                LoggerInstance.Msg($"formCurrentInfo {ex}");
+                LoggerInstance.Error($"formCurrentInfo {ex}");
             }
             return info;
         }

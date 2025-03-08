@@ -89,10 +89,11 @@ namespace MitaAI
 
         public static string getObservedObjects()
         {
-            StringBuilder answer = new StringBuilder("\nPlayer has observed since last answer (object:view time seconds):");
+            
             //List<string> toRemove = new List<string>();
             try
             {
+                StringBuilder answer = new StringBuilder("\nPlayer has observed since last answer (object:view time seconds):");
                 foreach (var item in objectViewTime)
                 {
                     if (item.Value >= 0.9f)
@@ -102,13 +103,25 @@ namespace MitaAI
                     }
                 }
                 objectViewTime.Clear();
+                return answer.ToString();
             }
             catch (System.Exception ex)
             {
-
                 MelonLogger.Error($"getObservedObjects error: {ex}");
-            }
 
+                try
+                {
+                    objectViewTime.Clear();
+
+                }
+                catch (System.Exception ex2)
+                {
+
+                    MelonLogger.Error($"getObservedObjects clear error: {ex2}"); 
+                }
+                
+            }
+            return "";
 
             // Удаляем только те объекты, которые уже обработаны
             // foreach (var obj in toRemove)
@@ -116,7 +129,7 @@ namespace MitaAI
             //   objectViewTime.Remove(obj);
             // }
 
-            return answer.ToString();
+            
 
         }
         public static void OnGameObjectClicked(GameObject gameObject)

@@ -588,15 +588,14 @@ class CappyMita(Character):
         return response
     
     def current_variables(self):
-        return 
-    {
+        return {
             "role": "system",
             "content": (f"Твои характеристики:"
                         f"Отношение: {self.attitude}/100."
                         f"Скука: {self.boredom}/100."
                         f"Стресс: {self.stress}/100."
                         f"Состояние секрета: {self.secretExposed}")
-        }
+                }
     
     def current_variables_string(self) -> str:
         characteristics = {

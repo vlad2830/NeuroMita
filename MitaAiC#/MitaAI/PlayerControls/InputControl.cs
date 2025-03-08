@@ -275,7 +275,7 @@ namespace MitaAI.PlayerControls
             else if (Input.GetKeyDown(KeyCode.M))
             {
                 MelonLogger.Msg("Try change to Crazy");
-                MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Mita);
+                MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Crazy);
                 _lastChangeTime = DateTime.Now;
 
 

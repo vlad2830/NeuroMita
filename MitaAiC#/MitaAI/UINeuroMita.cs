@@ -217,7 +217,7 @@ namespace MitaAI
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCrazyButton":
-                    Settings.MitaType.Value = MitaCore.character.Mita;
+                    Settings.MitaType.Value = MitaCore.character.Crazy;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);

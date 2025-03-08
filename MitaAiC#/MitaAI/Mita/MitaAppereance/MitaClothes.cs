@@ -174,9 +174,22 @@ namespace MitaAI
         }
         public static string getCurrentHairColor()
         {
+            string result = "";
             if (hair_material == null) return null;
             if (hair_material.color == Color.white) return "hair_color normal";
-            return $"hair_color custom: r:{hair_material.color.r} g:{hair_material.color.g} b:{hair_material.color.b}";
+
+            try
+            {
+                result = $"hair_color custom: r:{hair_material.color.r} g:{hair_material.color.g} b:{hair_material.color.b}";
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error(ex);
+                result = "";
+                
+            }
+
+            return result;
         }
 
         #endregion
