@@ -751,9 +751,8 @@ namespace MitaAI
             string HelloMessage = "Игрок только что загрузился в твой уровень";
 
             if (Utils.Random(1, 4)) HelloMessage += ", подбери музыку для его встречи";
-
             if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым костюмом";
-            else if (Utils.Random(1, 8)) HelloMessage += ", можешь удивить его новым цветом волос";
+            if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым цветом волос";
 
 
             MitaCore.Instance.sendSystemMessage(HelloMessage, MitaToStart);

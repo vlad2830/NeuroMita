@@ -90,6 +90,10 @@ namespace MitaAI.Mita
             Vector3 direction = (MitaTransform.position - playerPerson.position).normalized;
             switch (command.ToLower())
             {
+                case "подойти к игроку":
+                    mitaCore.Mita.AiWalkToTarget(playerPerson);
+                    location34_Communication.indexSwitchAnimation = 1;
+                    break;
                 case "подойти к игроку вплотную":
                     mitaCore.Mita.AiWalkToTarget(playerPerson);
                     location34_Communication.indexSwitchAnimation = 1;
