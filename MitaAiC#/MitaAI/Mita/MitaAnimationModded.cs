@@ -94,6 +94,7 @@ namespace MitaAI.Mita
         { 
             if (anim.name.Contains("Click")){
 
+                anim.events = new Il2CppReferenceArray<AnimationEvent>(0);
                 MelonLogger.Msg("AddedAnimationEvent for" + anim.name);
                 EventsProxy.AddAnimationEvent(MitaCore.Instance.MitaObject, anim, "Mita Click");
                 return;

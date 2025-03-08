@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using MelonLoader;
+using MitaAI.Mita;
 
 namespace MitaAI
 {
@@ -8,8 +9,8 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class WardrobeFix : MonoBehaviour
     {
-        private float moveDuration = 1f; // Время перемещения
-        private float moveDistance = 1.7f; // Дистанция перемещения
+        private float moveDuration = 1.3f; // Время перемещения
+        private float moveDistance = 1.5f; // Дистанция перемещения
 
         private bool active = false;
 
@@ -60,6 +61,8 @@ namespace MitaAI
         private IEnumerator MovementSequence(float direction, GameObject targetObject)
         {
             // Первый этап: движение к центру
+            MitaAnimationModded.EnqueueAnimation("Walk");
+
             yield return MelonCoroutines.Start(MoveObject(targetObject.transform,direction * moveDistance,moveDuration));
 
             // Второй этап: движение за край

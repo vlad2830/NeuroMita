@@ -196,10 +196,10 @@ namespace MitaAI
 
 
                 MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
+                MitaClothesModded.init_hair();
                 MelonLogger.Msg("777");
 
-
-
+                
 
 
             }
@@ -1072,12 +1072,12 @@ namespace MitaAI
                         globalChildObjects.Add(newPoint);
                         remakeArrayl34(Location34_Communication, newPoint, "b");
 
-                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.2978f, 0, -7.3997f), Quaternion.identity, childTransform.parent);
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.2978f, 0, -7), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Enter_Basement";
                         globalChildObjects.Add(newPoint);
                         remakeArrayl34(Location34_Communication, newPoint, "b");
                         
-                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.1936f, 0, -8.9503f), Quaternion.identity, childTransform.parent);
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.1936f, 0, -10f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Leave_Basement";
                         globalChildObjects.Add(newPoint);
                         remakeArrayl34(Location34_Communication, newPoint, "b");

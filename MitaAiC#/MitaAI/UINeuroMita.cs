@@ -213,26 +213,31 @@ namespace MitaAI
                 case "MitaShortButton":
                     Settings.MitaType.Value = MitaCore.character.ShortHair;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCrazyButton":
                     Settings.MitaType.Value = MitaCore.character.Mita;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaKindButton":
                     Settings.MitaType.Value = MitaCore.character.Kind;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCappyButton":
                     Settings.MitaType.Value = MitaCore.character.Cappy;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MilaButton":
                     Settings.MitaType.Value = MitaCore.character.Mila;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "ButtonReturn":
@@ -258,11 +263,12 @@ namespace MitaAI
             float time = 0f;
             while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font)
             {
-                if (time >= 60f)
+                if (MitaCore.isRequiredScene())
                 {
                     break;
                 }
-
+                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = text;
+                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = text;
                 time += Time.unscaledDeltaTime;
                 yield return null;
             }

@@ -271,6 +271,21 @@ namespace MitaAI
             cat.transform.localScale = new Vector3(0.07f, 0.07f, 0.07f);
             cat.transform.parent = MitaCore.worldBasement.Find("House");
 
+            try
+            {
+                Transform door = MitaCore.worldBasement.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame/BasementDoor");
+                door.parent.gameObject.GetComponent<Animator>().enabled = false;
+                door.parent.gameObject.GetComponent<Events_Data>().enabled = false;
+                door.FindChild("BasementDoorHandle").gameObject.active = false;
+                door.localRotation = Quaternion.EulerAngles(0, 0, 270);
+                door.gameObject.active = true;
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error(ex);
+            }
+   
+
 
             InitializeGameObjectsWhenReady();
         }
@@ -792,11 +807,16 @@ namespace MitaAI
                     wardrobeGameObject.AddComponent<WardrobeFix>();
 
 
-                    Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorL", false);
-                    Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorR", false);
+                    Transform door =  wardrobeGameObject.transform.Find("Bedroom WardrobeDoorL");
+                    door.gameObject.AddComponent<BoxCollider>();
+                    door.localRotation = Quaternion.Euler(0, 0, 335);
 
-                    
-     
+                    door = wardrobeGameObject.transform.Find("Bedroom WardrobeDoorR");
+                    door.gameObject.AddComponent<BoxCollider>();
+                    door.localRotation = Quaternion.Euler(0, 0, 180);
+
+
+
 
                 }
                 catch (Exception)

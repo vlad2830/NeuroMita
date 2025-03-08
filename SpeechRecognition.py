@@ -9,8 +9,9 @@ import sounddevice as sd
 from collections import deque
 from threading import Lock
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig()
 logger = logging.getLogger(__name__)
+
 
 class AudioState:
     def __init__(self):
@@ -20,15 +21,17 @@ class AudioState:
         self.is_playing = False
         self.lock = asyncio.Lock()
         self.vc = None
-        self.max_buffer_size = 9999999999999999999999999999999999999999999999999999999999999999
+        self.max_buffer_size = 9999999
 
     async def add_to_buffer(self, data):
         async with self.lock:
             if len(self.audio_buffer) >= self.max_buffer_size:
-                self.audio_buffer = self.audio_buffer[-self.max_buffer_size//2:]  # Сохраняем последние 50%
+                self.audio_buffer = self.audio_buffer[-self.max_buffer_size // 2:]  # Сохраняем последние 50%
             self.audio_buffer.append(data.copy())
 
+
 audio_state = AudioState()
+
 
 class SpeechRecognition:
     user_input = ""
@@ -82,7 +85,8 @@ class SpeechRecognition:
 
         with sr.Microphone(device_index=SpeechRecognition.microphone_index, sample_rate=SpeechRecognition.SAMPLE_RATE,
                            chunk_size=SpeechRecognition.CHUNK_SIZE) as source:
-            logger.info(f"Используется микрофон: {sr.Microphone.list_microphone_names()[SpeechRecognition.microphone_index]}")
+            logger.info(
+                f"Используется микрофон: {sr.Microphone.list_microphone_names()[SpeechRecognition.microphone_index]}")
             recognizer.adjust_for_ambient_noise(source)
             logger.info("Скажите что-нибудь...")
 
@@ -209,19 +213,19 @@ class SpeechRecognition:
 
     # @staticmethod
     # def start_audio_monitoring(device_id: int, loop):
-      #  SpeechRecognition.microphone_index = device_id
-        # asyncio.run_coroutine_threadsafe(SpeechRecognition.speach_recognition_start_async(), loop)
+    #  SpeechRecognition.microphone_index = device_id
+    # asyncio.run_coroutine_threadsafe(SpeechRecognition.speach_recognition_start_async(), loop)
 
     @staticmethod
     async def audio_monitoring():
         try:
             logger.info("🚀 Запуск аудиомониторинга")
             with sd.InputStream(
-                callback=lambda indata, *_: asyncio.create_task(SpeechRecognition.async_audio_callback(indata)),
-                channels=1,
-                samplerate=SpeechRecognition.SAMPLE_RATE,
-                blocksize=SpeechRecognition.CHUNK_SIZE,
-                device=SpeechRecognition.microphone_index
+                    callback=lambda indata, *_: asyncio.create_task(SpeechRecognition.async_audio_callback(indata)),
+                    channels=1,
+                    samplerate=SpeechRecognition.SAMPLE_RATE,
+                    blocksize=SpeechRecognition.CHUNK_SIZE,
+                    device=SpeechRecognition.microphone_index
             ):
                 while SpeechRecognition.active:
                     await asyncio.sleep(0.1)
@@ -233,8 +237,10 @@ class SpeechRecognition:
         async with SpeechRecognition._text_lock:
             return SpeechRecognition._current_text.strip()
 
+
 async def main():
     speech_recognition = SpeechRecognition()
+
 
 if __name__ == "__main__":
     speech_recognition = SpeechRecognition()
