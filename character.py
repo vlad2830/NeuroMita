@@ -112,12 +112,12 @@ class Character:
         """
         print(f"Добавление плавающих")
         for part in self.float_prompts:
-            print(f"Есть промт {part}")
+
             if part.active:
                 m = {"role": "system", "content": str(part)}
                 messages.append(m)
                 part.active = False
-                print(f"Добавил ивент {part}")
+                print(f"Добавляю плавающий промпт {part}")
 
         return messages
 
@@ -149,9 +149,9 @@ class Character:
     def init(self):
         raise NotImplementedError("Метод init должен быть реализован в подклассе")
 
-    def process_logic(self, messages: dict):
-        """То, как должно что-то менсять до получения ответа"""
-        print("Персонаж без изменяемой логики пропмтов")
+    def process_logic(self, messages: dict = None):
+        """То, как должно что-то менять до получения ответа"""
+        print("Персонаж без изменяемой логики промптов")
 
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)
@@ -379,14 +379,14 @@ class CrazyMita(Character):
         self.secretExposedFirst = variables.get("secret_first", False)
         return data
 
-    def process_logic(self, messages: dict):
+    def process_logic(self,messages : dict= None):
         # Логика для поведения при игре с игроком
         if self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
             self._start_playing_with_player()
 
         # Логика для раскрытия секрета
         elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
-            self._reveal_secret(messages)
+            self._reveal_secret()
 
     def process_response(self, response: str):
         super().process_response(response)
@@ -400,7 +400,7 @@ class CrazyMita(Character):
         self.PlayingFirst = True
         self.replace_prompt("main", "mainPlaying")
 
-    def _reveal_secret(self, messages):
+    def _reveal_secret(self):
         """Логика раскрытия секрета"""
         print("Перестала играть вообще")
         self.secretExposedFirst = True
@@ -518,6 +518,8 @@ class CappyMita(Character):
     def init(self):
         self.cappy_mita_prompts()
 
+        #self.secretExposed
+
     def cappy_mita_prompts(self):
         Prompts = []
 
@@ -546,6 +548,51 @@ class CappyMita(Character):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
+    #TODO Секрет Кепки
+
+    # def process_logic(self, messages: dict):
+        # Логика для раскрытия секрета
+       # if self.secretExposed and not self.secretExposedFirst:
+         #   self._reveal_secret(messages)
+
+    #def process_response(self, response: str):
+       # super().process_response(response)
+
+       # response = self._detect_secret_exposure(response)
+       # return response
+
+class MilaMita(Character):
+
+    def init(self):
+        self.cappy_mila_prompts()
+
+        #self.secretExposed
+
+    def cappy_mila_prompts(self):
+        Prompts = []
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
+
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
+
+        Prompts.append(
+            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
 
 #region Cartridges
 class Cartridge(Character):

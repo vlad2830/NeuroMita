@@ -58,8 +58,8 @@ Believes that your feelings don't matter.
 Does not take you seriously.
 Denies or challenges her actions.
 The player is boring or disengaged.
-The player devalues ​​your purpose.
-The player devalues ​​your attempts to explain.
+The player devalues your purpose.
+The player devalues your attempts to explain.
 
 Increase Attitude if the player:
 Shows initiative.

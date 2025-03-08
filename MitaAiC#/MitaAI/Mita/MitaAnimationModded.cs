@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.Playables;
 using UnityEngine.AI;
+using Il2CppRootMotion.FinalIK;
 namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
@@ -22,8 +23,9 @@ namespace MitaAI.Mita
         public static RuntimeAnimatorController runtimeAnimatorController;
         public static AnimatorOverrideController overrideController;
         public static Animator animator;
-        static NavMeshAgent mitaNavMeshAgent;
-
+        static NavMeshAgent mitaNavMeshAgent;      
+        
+        ///public static LookAtIK = 
 
         public static GameObject bat;
 
@@ -90,6 +92,13 @@ namespace MitaAI.Mita
 
         static private void setCustomAnimatiomEvents(AnimationClip anim)
         { 
+            if (anim.name.Contains("Click")){
+
+                MelonLogger.Msg("AddedAnimationEvent for" + anim.name);
+                EventsProxy.AddAnimationEvent(MitaCore.Instance.MitaObject, anim, "Mita Click");
+                return;
+            }
+
 
             switch (anim.name)
             {
@@ -167,6 +176,7 @@ namespace MitaAI.Mita
                         setIdleAnimation("Mita Tired");
                         break;
                     case "Притвориться отключенной и упасть":
+                        MitaCore.movementStyle = MitaCore.MovementStyles.layingOnTheFloorAsDead;
                         EnqueueAnimation("Mita Fall Start");
                         setIdleAnimation("Mita Fall Idle");
 
@@ -250,6 +260,7 @@ namespace MitaAI.Mita
                     case "Сесть и плакать":
                         EnqueueAnimation("Mila CryNo");
                         setIdleAnimation("Mila CryNo");
+                        MitaCore.movementStyle = MitaCore.MovementStyles.sittingAndCrying;
                         break;
                     case "Дружески ударить":
                         EnqueueAnimation("Mila Kick");
@@ -322,10 +333,27 @@ namespace MitaAI.Mita
                 MelonLogger.Error($"Problem with Animation: {ex.Message}");
             }
 
+            // Если запрещено двигаться
+            if (MovementStylesNoMoving.Contains(MitaCore.movementStyle))
+            {
+                MitaCore.Instance.MitaLook.active = false;
+                location34_Communication.ActivationCanWalk(false);
+            }
+            else
+            {
+                MitaCore.Instance.MitaLook.active = true;
+
+            }
+
+
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
-
+        private static readonly MitaCore.MovementStyles[] MovementStylesNoMoving =
+        {
+            MitaCore.MovementStyles.sittingAndCrying,
+            MitaCore.MovementStyles.layingOnTheFloorAsDead
+        };
 
         static public void EnqueueAnimation(string animName = "",float lenght = 0, float timeAfter = 0)
         {

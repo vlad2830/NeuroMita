@@ -115,6 +115,7 @@ class ChatModel:
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley", True)
         self.kind_mita_character = KindMita("Kind", "/speaker kind", True)
         self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", True)
+        self.mila_character = MilaMita("Mila", "/speaker mila", True)
         self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
 
         # Словарь для сопоставления имен персонажей с их объектами
@@ -125,12 +126,13 @@ class ChatModel:
             self.cart_space.name: self.cart_space,
             self.cart_divan.name: self.cart_divan,
             self.shorthair_mita_character.name: self.shorthair_mita_character,
+            self.mila_character.name: self.mila_character
         }
 
         self.current_character = self.crazy_mita_character
 
     def get_all_mitas(self):
-        print(f"ASDASDASDASDASD {self.characters.keys()}")
+        print(f"Characters {self.characters.keys()}")
         return list(self.characters.keys())
 
     def update_openai_client(self, reserve_key=False):
@@ -253,8 +255,8 @@ class ChatModel:
         # Проверяем правильность вызова get_room_name
         repeated_system_message += f"You are in {self.get_room_name(int(self.roomMita))}, player is in {self.get_room_name(int(self.roomPlayer))}. "
 
-        if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaked me</memory>"
+        if self.LongMemoryRememberCount % 4 == 0:
+            repeated_system_message += " Remember facts for messages using memory block, like <+memory>high|The player attaked me</memory>. This text is EXAMPLE!"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -331,7 +333,7 @@ class ChatModel:
 
             try:
                 # Выбираем провайдера
-                if use_gemini and attempt == 1:  # Gemini только на первой попытке
+                if use_gemini:  # Gemini только на первой попытке
                     formatted = self._format_messages_for_gemini(combined_messages)
                     response = self._generate_gemini_response(formatted)
                 else:
@@ -373,8 +375,6 @@ class ChatModel:
         for msg in combined_messages:
             if msg["role"] == "system":
                 formatted_messages.append({"role": "user", "content": f"[System Prompt]: {msg['content']}"})
-            #if msg["role"] == "assistant":
-            #msg["role"] = "model"
             else:
                 formatted_messages.append(msg)
         save_combined_messages(formatted_messages, "Gem")
@@ -440,13 +440,6 @@ class ChatModel:
             logger.error("Что-то не так при генерации OpenAI", str(e))
             return None
 
-    def _log_generation_start(self):
-        logger.info("Перед отправкой на генерацию")
-        logger.info(f"API Key: {SH(self.api_key)}")
-        logger.info(f"API Key res: {SH(self.api_key_res)}")
-        logger.info(f"API URL: {self.api_url}")
-        logger.info(f"API Model: {self.api_model}")
-        logger.info(f"Make Request: {self.makeRequest}")
 
     def _save_and_calculate_cost(self, combined_messages):
         save_combined_messages(combined_messages)

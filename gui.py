@@ -228,7 +228,7 @@ class ChatGUI:
         self.user_entry = tk.Text(input_frame, height=3, width=50, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
                                   font=("Arial", 12))
         self.user_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-        self.user_entry.bind("<KeyRelease>", self.update_token_count)
+        #self.user_entry.bind("<KeyRelease>", self.update_token_count)
 
         self.send_button = tk.Button(
             input_frame, text="Отправить", command=self.send_message,
@@ -406,14 +406,6 @@ class ChatGUI:
             bg="#8a2be2", fg="#ffffff"
         )
         save_history_button.pack(side=tk.LEFT, padx=10)
-
-        """
-        reload_prompts_button = tk.Button(
-            history_frame, text="Перезагрузить промпты", command=self.model.reload_promts,
-            bg="#8a2be2", fg="#ffffff"
-        )
-        reload_prompts_button.pack(side=tk.LEFT, padx=15)
-        """
 
     def load_chat_history(self):
 

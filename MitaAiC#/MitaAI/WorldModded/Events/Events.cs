@@ -23,6 +23,9 @@ namespace MitaAI
                 case "Mita Kick":
                     MelonCoroutines.Start(MitaKickEnd());
                     break;
+                case "Mita Click":
+                    AudioControl.playFingerClick();
+                    break;
             }
             MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
         }

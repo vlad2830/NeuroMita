@@ -77,7 +77,7 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Error processing command '{command}': {ex.Message}");
                 }
             }
-            
+
         }
 
         private static void ProcessSimpleCommand(string command)
@@ -153,11 +153,13 @@ namespace MitaAI.Mita
                 case "continue":
                     ContinueCounter = ContinueCounter + 1;
                     MelonLogger.Msg($"Cont times {ContinueCounter}");
-                    if (ContinueCounter < 3) {
+                    if (ContinueCounter < 3)
+                    {
                         mitaCore.sendSystemInfo($"У тебя осталось {3 - ContinueCounter} возможностей продолжить фразу");
                         mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль");
                     }
-                    else {
+                    else
+                    {
                         MelonLogger.Warning("tryied 4 continue");
                         mitaCore.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен");
                     }
@@ -204,7 +206,7 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Time of day changed to {time}");
                     break;
                 case "изменить размер игрока":
-                    time = Math.Clamp(time,0.5f,3f);
+                    time = Math.Clamp(time, 0.5f, 3f);
                     playerPerson.localScale = new Vector3(time, time, time);
                     break;
                 case "изменить свой размер":
@@ -283,7 +285,7 @@ namespace MitaAI.Mita
             {
                 if (match.Success)
                 {
-                    MitaCore.Instance.playerController.ShowHint(match.Groups[1].Value,new Vector2(25,-25));
+                    MitaCore.Instance.playerController.ShowHint(match.Groups[1].Value, new Vector2(25, -25));
                     break;
                 }
             }

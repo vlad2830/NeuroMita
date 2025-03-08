@@ -74,7 +74,7 @@ namespace MitaAI
 
             }
 
-            MelonLogger.Msg("Change Mita Begin");
+            MelonLogger.Msg($"Change Mita {currentCharacter} to {character} Begin");
 
             try
             {
@@ -98,13 +98,14 @@ namespace MitaAI
                 {
                     Transform child = MitaObject.transform.GetChild(i);
                     // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
-                    if (child != null && child.name.Contains("MitaPerson"))
+                    if (child != null && child.name.Contains("Person"))
                     {
+                        MelonLogger.Msg("Change Mita finded  MitaPersonObject");
                         MitaPersonObject = child.gameObject;
                         break; // Прерываем цикл, как только нашли первый подходящий объект
                     }
                 }
-                MelonLogger.Msg("Change Mita finded  MitaPersonObject");
+                
 
                 if (MitaPersonObject == null)
                 {
@@ -224,16 +225,17 @@ namespace MitaAI
         }
 
         public character currentCharacter = character.Mita;
-        enum MovementStyles
+        public enum MovementStyles
         {
             walkNear = 0,
             follow = 1,
             stay = 2,
             noclip = 3,
-            layingOnTheFloor = 4
+            layingOnTheFloorAsDead = 4,
+            sittingAndCrying
 
         }
-        MovementStyles movementStyle = MovementStyles.walkNear;
+        public static MovementStyles movementStyle = MovementStyles.walkNear;
         enum MitaState
         {
             normal = 0,
@@ -267,7 +269,7 @@ namespace MitaAI
         public static Transform worldTogether;
         public static Transform worldHouse;
         public static Transform worldBasement;
-        public static Transform worldBackrooms;
+        public static Transform world;
         public static Transform worldBackrooms2;
 
 
@@ -309,9 +311,14 @@ namespace MitaAI
         static public Il2CppAssetBundle bundle;
         //static public Il2CppAssetBundle bundle2;
 
-        string requiredSceneName = "Scene 4 - StartSecret";
+        static string requiredSceneName = "Scene 4 - StartSecret";
         public string requiredSave = "SaveGame startsecret";
-        string CurrentSceneName;
+        static string CurrentSceneName;
+
+        public static bool isRequiredScene()
+        {
+            return CurrentSceneName == requiredSceneName;
+        }
 
 
         private bool AllLoaded = false;
@@ -332,29 +339,6 @@ namespace MitaAI
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
-
-
-
-            
-/*
- *          Пока не удалось
-  
-            MelonLogger.Msg("111");
-            GameObject settingsObject = new GameObject("Settings");
-            this.settings = settingsObject.AddComponent<Settings>();
-            
-            MelonLogger.Msg("222");
-            Object_DontDestroy.DontDestroyOnLoad(settingsObject);
-
-            MelonLogger.Msg("333");
-
-            settings.Set("Test", "This is test ASDFASDFASDASDASD");
-
-
-            MelonLogger.Msg("444");
-            MelonLogger.Msg($"Получил из настроек {settings.Get("Test")}");
-*/
-
 
             harmony = new HarmonyLib.Harmony("1");
             MitaClothesModded.init(harmony);
@@ -459,7 +443,7 @@ namespace MitaAI
             }
             else
             {
-                LoggerInstance.Msg("Scene loaded addictive!!! " + sceneName);
+                LoggerInstance.Msg("Scene loaded addictive " + sceneName);
                 return;
             }
 
@@ -468,7 +452,7 @@ namespace MitaAI
 
 
                 UINeuroMita.init();
-
+                TotalInitialization.GetObjectsFromMenu();
 
                 //MainMenu.ButtonLoadScene(requiredSave);
                 //MainMenu.Alternative();
@@ -1187,7 +1171,7 @@ namespace MitaAI
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
 
             float elapsedTime = 0f; // Счетчик времени
-            float timeout = 15f;     // Лимит времени ожидания
+            float timeout = 20f;     // Лимит времени ожидания
             float lastCallTime = 0f; // Время последнего вызова
 
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -1212,7 +1196,7 @@ namespace MitaAI
 
                 elapsedTime += 0.1f; // Увеличиваем счетчик времени
 
-                yield return new WaitForSeconds(0.1f);             // Пауза до следующего кадра
+                yield return new WaitForSecondsRealtime(0.1f);             // Пауза до следующего кадра
             }
 
             yield return null;
@@ -1266,7 +1250,7 @@ namespace MitaAI
                 else MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
-                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 80);
+                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
                 MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
@@ -2146,7 +2130,7 @@ namespace MitaAI
                     }
                 
                 if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
-                info += $"Current music: {AudioControl.getCurrrentMusic()}\n";
+                info += AudioControl.MusicInfo();
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
                 info += MitaClothesModded.getCurrentHairColor();
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
@@ -2158,12 +2142,11 @@ namespace MitaAI
 
 
 
-
             }
             catch (Exception ex)
             {
 
-                LoggerInstance.Msg(ex);
+                LoggerInstance.Msg($"formCurrentInfo {ex}");
             }
             return info;
         }
