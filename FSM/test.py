@@ -2,7 +2,7 @@ import asyncio
 
 from Events.PlayerEvents import PlayerEvents
 from FiniteStateMachine import FiniteStateMachine
-from MitaStates import MitaDefaultState
+from FSM.Crazy.MitaStates import MitaDefaultState
 
 async def main():
     fsm = FiniteStateMachine(MitaDefaultState())
