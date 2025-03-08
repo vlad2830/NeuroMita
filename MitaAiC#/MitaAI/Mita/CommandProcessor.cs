@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.AI;
+using static MelonLoader.MelonLogger;
 
 namespace MitaAI.Mita
 {
@@ -83,11 +84,27 @@ namespace MitaAI.Mita
         private static void ProcessSimpleCommand(string command)
         {
             Transform loc;
+
+            Transform MitaTransform = MitaCore.Instance.MitaPersonObject.transform;
+            Transform newPosition = new GameObject().transform;
+            Vector3 direction = (MitaTransform.position - playerPerson.position).normalized;
             switch (command.ToLower())
             {
-                case "подойти к игроку":
+                case "подойти к игроку вплотную":
                     mitaCore.Mita.AiWalkToTarget(playerPerson);
                     location34_Communication.indexSwitchAnimation = 1;
+                    break;
+                case "подойти к игроку близко":
+                    newPosition.transform.position = playerPerson.position + direction * 1.2f; // closeDistance — ваше значение
+                    mitaCore.Mita.AiWalkToTarget(newPosition);
+                    location34_Communication.indexSwitchAnimation = 1;
+                    GameObject.Destroy(newPosition);
+                    break;
+                case "подойти к игроку далеко":
+                    newPosition.transform.position = playerPerson.position + direction * 3f; // farDistance — ваше значение
+                    mitaCore.Mita.AiWalkToTarget(newPosition);
+                    location34_Communication.indexSwitchAnimation = 1;
+                    GameObject.Destroy(newPosition);
                     break;
 
                 case "подойти к случайной точке":
