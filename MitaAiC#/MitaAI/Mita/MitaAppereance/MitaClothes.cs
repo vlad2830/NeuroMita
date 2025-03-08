@@ -130,7 +130,7 @@ namespace MitaAI
         #region HairColor
 
         private static Shader originalShader;
-        private static void init_hair()
+        public static void init_hair()
         {
             hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hair").GetComponent<Renderer>().material;
             originalShader = hair_material.shader;
