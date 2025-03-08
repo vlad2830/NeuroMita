@@ -519,6 +519,7 @@ class CappyMita(Character):
         self.cappy_mita_prompts()
 
         self.secretExposed = False
+        self.secretExposedFirst = False
 
     def cappy_mita_prompts(self):
         Prompts = []
@@ -549,7 +550,6 @@ class CappyMita(Character):
             self.add_prompt_part(prompt)
 
     #TODO Секрет Кепки
-
     def process_logic(self, messages: dict = None):
         # Логика для раскрытия секрета
         if self.secretExposed and not self.secretExposedFirst:
