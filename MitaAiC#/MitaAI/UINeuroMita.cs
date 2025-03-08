@@ -170,6 +170,20 @@ namespace MitaAI
 
             try
             {
+                // Новая кнопка SleepyMitaButton
+                GameObject SleepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                SleepyMitaButton.active = false;
+                SleepyMitaButton = GameObject.Instantiate(NeuroMitaButton, SleepyMitaButton.transform.position, SleepyMitaButton.transform.rotation, SleepyMitaButton.transform.parent);
+                SleepyMitaButton.name = "SleepyMitaButton";
+                SleepyMitaButton.active = true;
+                SleepyMitaButton.transform.localPosition += new Vector3(0, -110);
+                MelonCoroutines.Start(changeName(SleepyMitaButton.transform.Find("Text").gameObject, "Сонная Мита"));
+                SleepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(SleepyMitaButton, SleepyMitaButton.name);
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+            try
+            {
                 // Новая кнопка MitaMilaButton
                 GameObject MilaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
                 MilaButton.active = false;
@@ -196,7 +210,7 @@ namespace MitaAI
 
             GameObject Back = StartMenuObject.transform.Find("Button Back").gameObject;
             Back.name = "ButtonReturn";
-            Back.transform.localPosition += new Vector3(0, -55);
+            Back.transform.localPosition += new Vector3(0, -110);
             Back.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(Back, Back.name);
 
         }
@@ -213,36 +227,36 @@ namespace MitaAI
                 case "MitaShortButton":
                     Settings.MitaType.Value = MitaCore.character.ShortHair;
                     Settings.Save();
-                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCrazyButton":
                     Settings.MitaType.Value = MitaCore.character.Mita;
                     Settings.Save();
-                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaKindButton":
                     Settings.MitaType.Value = MitaCore.character.Kind;
                     Settings.Save();
-                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCappyButton":
                     Settings.MitaType.Value = MitaCore.character.Cappy;
                     Settings.Save();
-                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MilaButton":
                     Settings.MitaType.Value = MitaCore.character.Mila;
                     Settings.Save();
-                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "ButtonReturn":
                     StartMenu.Active(false);
                     MainMenuLocation.Active(true);
+                    break;
+                case "SleepyMitaButton":
+                    Settings.MitaType.Value = MitaCore.character.Sleepy;
+                    Settings.Save();
+                    MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 default:
                     MelonLogger.Warning($"Unhandled button {eventName}");
@@ -263,12 +277,11 @@ namespace MitaAI
             float time = 0f;
             while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font)
             {
-                if (MitaCore.isRequiredScene())
+                if (time >= 60f)
                 {
                     break;
                 }
-                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = text;
-                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = text;
+
                 time += Time.unscaledDeltaTime;
                 yield return null;
             }
