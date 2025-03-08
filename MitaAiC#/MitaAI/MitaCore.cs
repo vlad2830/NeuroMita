@@ -136,8 +136,7 @@ namespace MitaAI
                 };
                 MitaAnimationModded.mitaAnimatorFunctions = MitaAnimatorFunctions;
                 MitaAnimationModded.animator = MitaPersonObject.GetComponent<Animator>();
-                MitaAnimationModded.resetToIdleAnimation();
-                MelonLogger.Msg("555");
+
 
                 try
                 {
@@ -202,8 +201,11 @@ namespace MitaAI
                 MitaClothesModded.init_hair();
                 MelonLogger.Msg("777");
 
-
-
+                MitaSharplyStopTimed(1f);
+                MitaAnimationModded.resetToIdleAnimation();
+                Mita.AiShraplyStop();
+                
+                MelonLogger.Msg("999");
 
 
             }

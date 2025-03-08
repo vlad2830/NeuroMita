@@ -261,6 +261,7 @@ namespace MitaAI
                 case "SleepyMitaButton":
                     Settings.MitaType.Value = MitaCore.character.Sleepy;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 default:
