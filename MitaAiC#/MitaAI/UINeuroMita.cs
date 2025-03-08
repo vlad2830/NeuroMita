@@ -170,20 +170,6 @@ namespace MitaAI
 
             try
             {
-                // Новая кнопка SleepyMitaButton
-                GameObject SleepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
-                SleepyMitaButton.active = false;
-                SleepyMitaButton = GameObject.Instantiate(NeuroMitaButton, SleepyMitaButton.transform.position, SleepyMitaButton.transform.rotation, SleepyMitaButton.transform.parent);
-                SleepyMitaButton.name = "SleepyMitaButton";
-                SleepyMitaButton.active = true;
-                SleepyMitaButton.transform.localPosition += new Vector3(0, -110);
-                MelonCoroutines.Start(changeName(SleepyMitaButton.transform.Find("Text").gameObject, "Сонная Мита"));
-                SleepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(SleepyMitaButton, SleepyMitaButton.name);
-            }
-            catch (Exception e) { MelonLogger.Error(e); }
-
-            try
-            {
                 // Новая кнопка MitaMilaButton
                 GameObject MilaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
                 MilaButton.active = false;
@@ -191,10 +177,27 @@ namespace MitaAI
                 MilaButton.name = "MilaButton";
                 MilaButton.active = true;
                 MilaButton.transform.localPosition += new Vector3(0, -55);
-                MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, "Мила"));
+                MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, "Мила (TODO)"));
                 MilaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MilaButton, MilaButton.name);
             }
             catch (Exception e) { MelonLogger.Error(e); }
+
+
+            try
+            {
+                // Новая кнопка SleepyMitaButton
+                GameObject SleepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                SleepyMitaButton.active = false;
+                SleepyMitaButton = GameObject.Instantiate(NeuroMitaButton, SleepyMitaButton.transform.position, SleepyMitaButton.transform.rotation, SleepyMitaButton.transform.parent);
+                SleepyMitaButton.name = "SleepyMitaButton";
+                SleepyMitaButton.active = true;
+                SleepyMitaButton.transform.localPosition += new Vector3(0, -110);
+                MelonCoroutines.Start(changeName(SleepyMitaButton.transform.Find("Text").gameObject, "Сонная Мита (TODO 2X)"));
+                SleepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(SleepyMitaButton, SleepyMitaButton.name);
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+
 
             Il2CppSystem.Collections.Generic.List<RectTransform> list = new Il2CppSystem.Collections.Generic.List<RectTransform>();
             for (int i = 0; i < StartMenuObject.transform.childCount; i++)

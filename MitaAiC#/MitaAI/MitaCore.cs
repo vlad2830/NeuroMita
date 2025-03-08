@@ -202,6 +202,8 @@ namespace MitaAI
                 MelonLogger.Msg("777");
 
                 MitaSharplyStopTimed(1f);
+
+                MitaSharplyStopTimed(1f);
                 MitaAnimationModded.resetToIdleAnimation();
                 Mita.AiShraplyStop();
                 
