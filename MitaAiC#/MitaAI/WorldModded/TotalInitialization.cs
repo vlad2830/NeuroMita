@@ -271,21 +271,6 @@ namespace MitaAI
             cat.transform.localScale = new Vector3(0.07f, 0.07f, 0.07f);
             cat.transform.parent = MitaCore.worldBasement.Find("House");
 
-            try
-            {
-                Transform door = MitaCore.worldBasement.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame/BasementDoor");
-                door.parent.gameObject.GetComponent<Animator>().enabled = false;
-                door.parent.gameObject.GetComponent<Events_Data>().enabled = false;
-                door.FindChild("BasementDoorHandle").gameObject.active = false;
-                door.localRotation = Quaternion.EulerAngles(0, 0, 270);
-                door.gameObject.active = true;
-            }
-            catch (Exception ex)
-            {
-                MelonLogger.Error(ex);
-            }
-   
-
 
             InitializeGameObjectsWhenReady();
         }
@@ -710,27 +695,28 @@ namespace MitaAI
             MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
 
             // Находим объект в загруженной сцене
-            Transform world = FindObjectInScene(scene.name, "World");
-            if (world == null)
+            Transform worldDreamer = FindObjectInScene(scene.name, "World");
+            if (worldDreamer == null)
             {
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
             }
-            world.gameObject.SetActive(false);
+            worldDreamer.gameObject.SetActive(false);
 
-            MelonLogger.Msg($"Object found: {world.name}");
+            MelonLogger.Msg($"Object found: {worldDreamer.name}");
             try
             {
+                MitaCore.SleepyObject = GameObject.Instantiate(Utils.TryfindChild(worldDreamer, "General/Mita Dreamer"), MitaCore.worldHouse);
+                             
+                //MitaCore.SleepyObject.transform.position = Vector3.zero; // не работает
+                
+                MitaCore.SleepyObject.active = false;
 
-                AudioControl.addMusicObject(world.Find("Audio/MusicWorld").gameObject, "Music calm comfort");
-
-
+                AudioControl.addMusicObject(worldDreamer.Find("Audio/MusicWorld").gameObject, "Music calm comfort");
             }
-
             catch (Exception ex)
             {
-
-                MelonLogger.Error($"{world.name} founding error: {ex}");
+                MelonLogger.Error($"{worldDreamer.name} founding error: {ex}");
             }
             //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
@@ -807,16 +793,11 @@ namespace MitaAI
                     wardrobeGameObject.AddComponent<WardrobeFix>();
 
 
-                    Transform door =  wardrobeGameObject.transform.Find("Bedroom WardrobeDoorL");
-                    door.gameObject.AddComponent<BoxCollider>();
-                    door.localRotation = Quaternion.Euler(0, 0, 335);
+                    Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorL", false);
+                    Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorR", false);
 
-                    door = wardrobeGameObject.transform.Find("Bedroom WardrobeDoorR");
-                    door.gameObject.AddComponent<BoxCollider>();
-                    door.localRotation = Quaternion.Euler(0, 0, 180);
-
-
-
+                    
+     
 
                 }
                 catch (Exception)
