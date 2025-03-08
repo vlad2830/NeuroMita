@@ -101,7 +101,7 @@ namespace MitaAI
                 {
                     Transform child = MitaObject.transform.GetChild(i);
                     // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
-                    if (child != null && child.name.Contains("Person"))
+                    if (child != null && (child.name.Contains("Person")|| child.name.Contains("Mita")))
                     {
                         MelonLogger.Msg("Change Mita finded  MitaPersonObject");
                         MitaPersonObject = child.gameObject;
