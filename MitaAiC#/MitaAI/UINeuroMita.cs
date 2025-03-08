@@ -184,6 +184,20 @@ namespace MitaAI
 
             try
             {
+                // Новая кнопка CreepyMitaButton
+                GameObject CreepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                CreepyMitaButton.active = false;
+                CreepyMitaButton = GameObject.Instantiate(NeuroMitaButton, CreepyMitaButton.transform.position, CreepyMitaButton.transform.rotation, CreepyMitaButton.transform.parent);
+                CreepyMitaButton.name = "CreepyMitaButton";
+                CreepyMitaButton.active = true;
+                CreepyMitaButton.transform.localPosition += new Vector3(0, -165);
+                MelonCoroutines.Start(changeName(CreepyMitaButton.transform.Find("Text").gameObject, "Уродливая Мита"));
+                CreepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(CreepyMitaButton, CreepyMitaButton.name);
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+            try
+            {
                 // Новая кнопка MitaMilaButton
                 GameObject MilaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
                 MilaButton.active = false;
@@ -210,7 +224,7 @@ namespace MitaAI
 
             GameObject Back = StartMenuObject.transform.Find("Button Back").gameObject;
             Back.name = "ButtonReturn";
-            Back.transform.localPosition += new Vector3(0, -110);
+            Back.transform.localPosition += new Vector3(0, -165);
             Back.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(Back, Back.name);
 
         }
@@ -261,6 +275,12 @@ namespace MitaAI
                 case "SleepyMitaButton":
                     Settings.MitaType.Value = MitaCore.character.Sleepy;
                     Settings.Save();
+                    MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
+                    break;
+                case "CreepyMitaButton":
+                    Settings.MitaType.Value = MitaCore.character.Creepy;
+                    Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 default:
