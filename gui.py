@@ -171,12 +171,31 @@ class ChatGUI:
                 print("Ошибка: Цикл событий не готов.")
 
         text_from_recognition = SpeechRecognition.receive_text()
-        if bool(self.settings.get("MIC_ACTIVE")) and text_from_recognition and self.user_entry:
+        if bool(self.settings.get("MIC_INSTANT_SENT")):
+            self.instant_send(text_from_recognition)
+        elif bool(self.settings.get("MIC_ACTIVE")) and text_from_recognition and self.user_entry:
             self.user_entry.insert(tk.END, text_from_recognition)
             self.user_input = self.user_entry.get("1.0", "end-1c").strip()
 
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
+
+    def instant_send(self,text_from_recognition):
+        """Мгновенная отправка распознанного текста"""
+        try:
+            if text_from_recognition:
+                print(f"Получен текст: {text_from_recognition}")
+
+                self.user_entry.delete("1.0", tk.END)
+                self.user_entry.insert(tk.END, text_from_recognition)
+
+                self.send_message(text_from_recognition)
+
+                SpeechRecognition._text_buffer.clear()
+                SpeechRecognition._current_text = ""
+
+        except Exception as e:
+            print(f"Ошибка обработки текста: {str(e)}")
 
     def clear_user_input(self):
         self.user_input = ""
@@ -822,6 +841,9 @@ class ChatGUI:
         refresh_btn.pack(side=tk.LEFT, padx=5)
 
         self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton',
+                                   default_checkbutton=False)
+
+        self.create_setting_widget(parent, 'Мгновенная отправка', "MIC_INSTANT_SENT", widget_type='checkbutton',
                                    default_checkbutton=False)
 
     def get_microphone_list(self):

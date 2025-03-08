@@ -56,7 +56,7 @@ class SpeechRecognition:
             result = " ".join(SpeechRecognition._text_buffer).strip()
             SpeechRecognition._text_buffer.clear()
             SpeechRecognition._current_text = ""
-            logger.debug(f"Returned text: {result}")
+            #logger.debug(f"Returned text: {result}")
             return result
 
     @staticmethod
@@ -110,7 +110,8 @@ class SpeechRecognition:
                     if SpeechRecognition.TIMEOUT_MESSAGE:
                         logger.info("Таймаут ожидания речи...")
                 except sr.UnknownValueError:
-                    logger.info("Речь не распознана")
+                    ...
+                    #logger.info("Речь не распознана")
                 except Exception as e:
                     logger.error(f"Ошибка при распознавании: {e}")
                     break
@@ -163,7 +164,8 @@ class SpeechRecognition:
                             logger.info(f"Распознано: {text}")
                             await SpeechRecognition.handle_voice_message(text)  # Исправленный вызов
                     except sr.UnknownValueError:
-                        logger.warning("Речь не распознана")
+                        ...
+                        #logger.warning("Речь не распознана")
                     except Exception as e:
                         logger.error(f"Ошибка распознавания: {str(e)}")
         except Exception as e:
