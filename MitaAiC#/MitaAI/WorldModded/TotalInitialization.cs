@@ -767,25 +767,29 @@ namespace MitaAI
                     AudioSource[] audioSources = neck1Obj.GetComponentsInChildren<AudioSource>(true);
                     MelonLogger.Msg($"Found {audioSources.Length} audio sources in hierarchy");
                     
-                    foreach(var audioSource in audioSources)
-                    {
-                        MelonLogger.Msg($"Removing audio source from: {audioSource.gameObject.name}");
-                        audioSource.enabled = false;
-                        audioSource.clip = null;
-                        GameObject.Destroy(audioSource);
-                    }
+                    if (false) { 
+
+                        foreach(var audioSource in audioSources)
+                        {
+                            MelonLogger.Msg($"Removing audio source from: {audioSource.gameObject.name}");
+                            audioSource.enabled = false;
+                            audioSource.clip = null;
+                            //GameObject.Destroy(audioSource);
+                        }
                     
-                    // Дополнительно проверим компоненты на самом объекте
-                    AudioSource[] directAudioSources = neck1Obj.GetComponents<AudioSource>();
-                    foreach(var audioSource in directAudioSources)
-                    {
-                        MelonLogger.Msg($"Removing direct audio source from: {neck1Obj.name}");
-                        audioSource.enabled = false;
-                        audioSource.clip = null;
-                        GameObject.Destroy(audioSource);
+                        // Дополнительно проверим компоненты на самом объекте
+                        AudioSource[] directAudioSources = neck1Obj.GetComponents<AudioSource>();
+                        foreach(var audioSource in directAudioSources)
+                        {
+                            MelonLogger.Msg($"Removing direct audio source from: {neck1Obj.name}");
+                            audioSource.enabled = false;
+                            audioSource.clip = null;
+                            //GameObject.Destroy(audioSource);
+                        }
+                        MelonLogger.Msg($"Total removed audio sources: {audioSources.Length + directAudioSources.Length}");
                     }
+
                     
-                    MelonLogger.Msg($"Total removed audio sources: {audioSources.Length + directAudioSources.Length}");
                 }
                 else
                 {
@@ -816,7 +820,7 @@ namespace MitaAI
                 MelonLogger.Msg($"Run change Mita");
                 MitaCore.Instance.changeMita(null,character : MitaToStart);
             }
-            yield return null;
+            yield return new WaitForSeconds(1f);
 
             EventsModded.sceneEnter(MitaToStart);
 

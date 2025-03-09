@@ -116,7 +116,7 @@ class ChatModel:
         self.kind_mita_character = KindMita("Kind", "/speaker kind", True)
         self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", True)
         self.mila_character = MilaMita("Mila", "/speaker mila", True)
-        self.sleepy_character = SleepyMita("Dream", "/speaker dream", True)
+        self.sleepy_character = SleepyMita("Sleepy", "/speaker dream", True)
         self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
         self.creepy_character = CreepyMita("Creepy", "/speaker ghost", True) #Спикер на рандом поставил
 

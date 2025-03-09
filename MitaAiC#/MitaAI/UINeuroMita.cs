@@ -168,8 +168,7 @@ namespace MitaAI
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
-            try
-            {
+
             try 
             { 
 
@@ -209,7 +208,7 @@ namespace MitaAI
                 CreepyMitaButton.name = "CreepyMitaButton";
                 CreepyMitaButton.active = true;
                 CreepyMitaButton.transform.localPosition += new Vector3(0, -165);
-                MelonCoroutines.Start(changeName(CreepyMitaButton.transform.Find("Text").gameObject, "Уродливая Мита"));
+                MelonCoroutines.Start(changeName(CreepyMitaButton.transform.Find("Text").gameObject, "Уродливая Мита (TODO X3)"));
                 CreepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(CreepyMitaButton, CreepyMitaButton.name);
             }
             catch (Exception e) { MelonLogger.Error(e); }
