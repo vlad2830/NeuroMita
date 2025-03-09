@@ -121,7 +121,7 @@ namespace MitaAI
         // Если долго на что-то смотрит
         public static void LongWatching(string objectName,float time)
         {
-            if (TimeBlock("LongWatching", 30f)) return;
+            if (TimeBlock("LongWatching", 40f)) return;
             MelonLogger.Msg("Event LongWatching");
 
 

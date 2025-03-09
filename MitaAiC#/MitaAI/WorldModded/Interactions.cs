@@ -69,8 +69,8 @@ namespace MitaAI
                     objectViewTime[objectName] += Time.unscaledDeltaTime;
 
 
-                    if ( (objectName.Contains("Mita") || objectName.Contains("head)")) && objectViewTime[objectName] > 30f) EventsModded.LongWatching(objectName, objectViewTime[objectName]);
-                    else if (objectViewTime[objectName] > 50f) EventsModded.LongWatching(objectName, objectViewTime[objectName]);
+                    if ( (objectName.Contains("Mita") || objectName.Contains("head)")) && objectViewTime[objectName] > 40f) EventsModded.LongWatching(objectName, objectViewTime[objectName]);
+                    else if (objectViewTime[objectName] > 65f) EventsModded.LongWatching(objectName, objectViewTime[objectName]);
 
                     if (Input.GetMouseButtonDown(0))
                     {

@@ -351,7 +351,7 @@ namespace MitaAI
 
 
 
-        private const float MitaBoringInterval = 70f;
+        private const float MitaBoringInterval = 90f;
         private float MitaBoringtimer = 0f;
 
         bool manekenGame = false;
@@ -528,7 +528,7 @@ namespace MitaAI
         public enum Rooms
         {
             Kitchen = 0,
-            Main = 1,
+            MainHall = 1,
             Bedroom = 2,
             Toilet = 3,
             Basement = 4,
@@ -554,6 +554,8 @@ namespace MitaAI
             float posZ = position.z;
             float posY = position.y;
 
+            if (Utils.getDistanceBetweenObjects(worldHouse.gameObject,playerPersonObject)>50f) return Rooms.Unknown;
+
             if (posY <= -0.1f)
                 return Rooms.Basement;
 
@@ -561,7 +563,7 @@ namespace MitaAI
                 return posZ >= 0 ? Rooms.Kitchen : Rooms.Bedroom;
 
             if (posX > -4f && posX < 5f)
-                return Rooms.Main;
+                return Rooms.MainHall;
 
             if (posX > -11.0f && posX < -4.3f)
                 return Rooms.Toilet;
@@ -922,7 +924,7 @@ namespace MitaAI
                 else if (MitaBoringtimer >= MitaBoringInterval && mitaState == MitaState.normal)
                 {
                     MitaBoringtimer = 0f;
-                    dataToSentSystem = "boring";
+                    dataToSentSystem = "Player did nothing for 90 seconds";
                     lastActionTime = Time.unscaledTime;
                 }
             }
@@ -1613,9 +1615,9 @@ namespace MitaAI
 
 
             // Сохраняем исходную позицию и ориентацию Миты
-            Vector3 originalPosition = Mita.transform.position;
-            Quaternion originalRotation = Mita.transform.rotation;
-            Mita.transform.SetPositionAndRotation(new Vector3(500, 500, 500), Quaternion.identity);
+            Vector3 originalPosition = MitaPersonObject.transform.position;
+            Quaternion originalRotation = MitaPersonObject.transform.rotation;
+            MitaPersonObject.transform.SetPositionAndRotation(new Vector3(500, 500, 500), Quaternion.identity);
             yield return new WaitForSeconds(0.1f);
             try
             {
@@ -2163,11 +2165,11 @@ namespace MitaAI
             try
             {
 
-                if (MitaPersonObject != null) info += $"Your game object name is {MitaPersonObject.name}";
+                if (MitaPersonObject != null) info += $"Your game object name is <{MitaPersonObject.name}>\n";
                 info += $"Current movement type: {movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
-                if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!";
-                if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!";
+                if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!\n";
+                if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!\n";
 
                 info += $"Current emotion anim: {currentEmotion}\n";
 
@@ -2176,7 +2178,7 @@ namespace MitaAI
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
 
-                if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere";
+                if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere\n";
 
                 info += $"Player size: {playerObject.transform.localScale.x}\n";
                 info += $"Player speed: {playerObject.GetComponent<PlayerMove>().speedPlayer}\n";
@@ -2192,8 +2194,8 @@ namespace MitaAI
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
 
                 info += MitaClothesModded.getCurrentHairColor();
-                if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
-                else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>";
+                if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting\n";
+                else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>\n";
 
                 info += PlayerMovement.getPlayerDistance(true);
 
