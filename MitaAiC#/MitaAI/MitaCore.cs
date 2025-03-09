@@ -200,15 +200,15 @@ namespace MitaAI
 
 
                 MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
-                
-                MelonLogger.Msg("777");
-
-
                 Mita.AiWalkToTarget(worldHouse);
+     
+
+
+                
                 MitaAnimationModded.resetToIdleAnimation();
 
                 MitaClothesModded.init_hair();
-                MelonLogger.Msg("999");
+
 
 
             }
