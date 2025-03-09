@@ -173,8 +173,7 @@ class ChatGUI:
 
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
-        try:
-            if self.textToTalk:  #and not self.ConnectedToGame:
+        if self.textToTalk:  #and not self.ConnectedToGame:
                 print(f"Есть текст для отправки: {self.textToTalk}")
                 # Вызываем метод для отправки текста, если переменная не пуста
                 if self.loop and self.loop.is_running():
