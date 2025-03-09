@@ -200,15 +200,14 @@ namespace MitaAI
 
 
                 MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
-                MitaClothesModded.init_hair();
+                
                 MelonLogger.Msg("777");
 
-                MitaSharplyStopTimed(1f);
 
-                MitaSharplyStopTimed(1f);
+                Mita.AiWalkToTarget(worldHouse);
                 MitaAnimationModded.resetToIdleAnimation();
-                Mita.AiShraplyStop();
-                
+
+                MitaClothesModded.init_hair();
                 MelonLogger.Msg("999");
 
 
@@ -342,7 +341,7 @@ namespace MitaAI
 
 
 
-        private const float MitaBoringInterval = 40;
+        private const float MitaBoringInterval = 70f;
         private float MitaBoringtimer = 0f;
 
         bool manekenGame = false;
@@ -449,6 +448,7 @@ namespace MitaAI
             if (sceneName == requiredSceneName)
             {
                 sendSystemInfo("Игрок покинул твой уровень");
+                MitaCore.AllLoaded = false;
             }
             base.OnSceneWasUnloaded(buildIndex, sceneName);
         }
@@ -1147,6 +1147,29 @@ namespace MitaAI
             Location34_Communication.positionsForMita = newArray;
             LoggerInstance.Msg($"End");
             
+        }
+
+        public string GetLocations()
+        {
+            MelonLogger.Msg("TryGetLocations");
+
+            string message = "Objects names in <> for walk or teleport to";
+
+            for (int i = 0; i < globalChildObjects.Count; i++)
+            {
+                if (globalChildObjects[i] == null) continue;
+
+                if( globalChildObjects[i].name.Contains("Point") || globalChildObjects[i].name.Contains("Position")  )
+                {
+
+                    message += $"<{globalChildObjects[i].name}>";
+
+                }
+
+            }
+
+            return message;
+
         }
 
         public Transform GetRandomLoc()
@@ -1863,9 +1886,7 @@ namespace MitaAI
                         MelonCoroutines.Start(LookOnPlayer());
                         break;
                     case "Стоять на месте":
-                        movementStyle = MovementStyles.stay;
-                        Location34_Communication.ActivationCanWalk(false);
-                        MelonCoroutines.Start(LookOnPlayer());
+                        MitaSetStaing();
                         break;
                     case "NoClip":
                         movementStyle = MovementStyles.noclip;
@@ -1886,6 +1907,13 @@ namespace MitaAI
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
+        public void MitaSetStaing()
+        {
+            movementStyle = MovementStyles.stay;
+            Location34_Communication.ActivationCanWalk(false);
+            MelonCoroutines.Start(LookOnPlayer());
+        }
+
 
         public IEnumerator LookOnPlayer()
         {
@@ -1912,23 +1940,23 @@ namespace MitaAI
         }
 
 
-        public IEnumerator FollowPlayer(float distance = 1.15f)
+        public IEnumerator FollowPlayer(float distance = 1f)
         {
 
             while (movementStyle == MovementStyles.follow)
             {
                 if (getDistanceToPlayer() > distance)
                 {
-                    Mita.AiWalkToTarget(playerPerson.transform);
+                    Mita.AiWalkToTarget(playerPersonObject.transform);
                     
                 }
                 else
                 {
                     Mita.AiShraplyStop();
-                    yield break;
+                    yield return new WaitForSeconds(2f);
                 }
 
-                yield return new WaitForSeconds(0.15f);
+                yield return new WaitForSeconds(0.55f);
             }
 
 
@@ -2131,7 +2159,7 @@ namespace MitaAI
             try
             {
 
-
+                if (MitaPersonObject != null) info += $"Your game object name is {MitaPersonObject.name}";
                 info += $"Current movement type: {movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
                 if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!";
@@ -2139,24 +2167,15 @@ namespace MitaAI
 
                 info += $"Current emotion anim: {currentEmotion}\n";
 
-
-
-
                 if (mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
-
-
 
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
-
-   
 
                 if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere";
 
                 info += $"Player size: {playerObject.transform.localScale.x}\n";
                 info += $"Player speed: {playerObject.GetComponent<PlayerMove>().speedPlayer}\n";
-
-
 
                 if (false)
                     {
@@ -2164,13 +2183,9 @@ namespace MitaAI
                     info += $"Current lighing color: {location21_World.timeDay.colorDay}\n";
                     }
 
-
-
                 if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
                 info += AudioControl.MusicInfo();
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
-
-
 
                 info += MitaClothesModded.getCurrentHairColor();
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
@@ -2178,10 +2193,9 @@ namespace MitaAI
 
                 info += PlayerMovement.getPlayerDistance(true);
 
- 
-
                 try
                 {
+                    info += GetLocations();
                     info += Interactions.getObservedObjects();
                 }
                 catch (Exception ex)
@@ -2189,9 +2203,8 @@ namespace MitaAI
 
                     MelonLogger.Error($"CurrentInfo 6.5 {ex}");
                 }
+
                 
-
-
 
                 if (HintText!=null) info += $"Current player's hint text {HintText.text}";
 

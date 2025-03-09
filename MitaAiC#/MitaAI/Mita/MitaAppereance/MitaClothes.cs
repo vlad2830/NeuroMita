@@ -132,8 +132,16 @@ namespace MitaAI
         private static Shader originalShader;
         public static void init_hair()
         {
-            hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hair").GetComponent<Renderer>().material;
-            if (hair_material == null ) hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hairs").GetComponent<Renderer>().material;
+            try
+            {
+                hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hair").GetComponent<Renderer>().material;
+            }
+            catch (Exception)
+            {
+
+                hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hairs").GetComponent<Renderer>().material;
+            }
+            
 
             originalShader = hair_material.shader;
             hair_material.shader = Shader.Find("Legacy Shaders/Diffuse");

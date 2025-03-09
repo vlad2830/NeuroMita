@@ -168,7 +168,7 @@ namespace MitaAI
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
-
+            if (true) { 
             try 
             { 
 
@@ -213,7 +213,7 @@ namespace MitaAI
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
-
+            }
 
 
 

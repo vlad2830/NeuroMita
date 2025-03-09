@@ -1,4 +1,5 @@
 ﻿using Il2Cpp;
+using Il2CppSystem.Threading;
 using MelonLoader;
 using MitaAI.WorldModded;
 using System;
@@ -120,6 +121,7 @@ namespace MitaAI.Mita
                     mitaCore.sendSystemInfo($"Ты пошла к {loc.name}");
                     mitaCore.Mita.AiWalkToTarget(loc);
                     location34_Communication.indexSwitchAnimation = 1;
+                    MitaCore.Instance.MitaSetStaing();
                     break;
 
                 case "телепортироваться к случайной точке":
@@ -127,6 +129,7 @@ namespace MitaAI.Mita
                     mitaCore.sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
                     mitaCore.Mita.MitaTeleport(loc);
                     location34_Communication.indexSwitchAnimation = 1;
+                    MitaCore.Instance.MitaSetStaing();
                     break;
 
                 case "телепортироваться к игроку":
@@ -201,9 +204,9 @@ namespace MitaAI.Mita
         {
             string[] parts = command.Split(',');
 
-            if (parts.Length == 2 && float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float time))
+            if (parts.Length == 2)
             {
-                HandleTwoPartCommand(parts[0].ToLower(), time);
+                HandleTwoPartCommand(parts[0].ToLower(), parts[1]);
             }
             else if (parts.Length == 4 &&
                      float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float r) &&
@@ -218,10 +221,48 @@ namespace MitaAI.Mita
             }
         }
 
-        private static void HandleTwoPartCommand(string command, float time)
+        private static void HandleTwoPartCommand(string command, string secondCommand)
         {
-            switch (command)
+
+            float.TryParse(secondCommand, NumberStyles.Float, CultureInfo.InvariantCulture, out float time);
+            switch (command.ToLower())
             {
+                case "подойти к":
+
+                    try
+                    {
+                        Transform newPosition = GameObject.Find(secondCommand).transform;
+                        mitaCore.Mita.AiWalkToTarget(newPosition);
+                        mitaCore.sendSystemInfo($"Ты пошла к {secondCommand}");
+                        MitaCore.Instance.MitaSetStaing();
+                    }
+                    catch (Exception ex)
+                    {
+                        MelonLogger.Error($"Tried to go to point {secondCommand} {ex}");
+                        MitaCore.Instance.sendSystemInfo($"точки {secondCommand} не нашлось");
+                        MitaCore.Instance.MitaSetStaing();
+                    }
+
+                    break;
+
+                case "телепортироваться в ":
+
+                    try
+                    {
+                        Transform newPosition = GameObject.Find(secondCommand).transform;
+                        mitaCore.Mita.MitaTeleport(newPosition);
+                        mitaCore.sendSystemInfo($"Ты телепортировалась в {secondCommand}");
+                    }
+                    catch (Exception ex)
+                    {
+                        MelonLogger.Error($"Tried to teleport to point {secondCommand} {ex}");
+                        MitaCore.Instance.sendSystemInfo($"точки {secondCommand} не нашлось");
+                    }
+
+                    break;
+
+
+
                 case "изменить моргание игрока":
                     MitaGames.blinkTimer = Math.Max(2, Math.Min(time, 10));
                     break;

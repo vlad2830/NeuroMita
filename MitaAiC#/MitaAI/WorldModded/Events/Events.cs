@@ -14,7 +14,7 @@ namespace MitaAI
     public static class EventsModded
     {
         static float lastEventTime = 0f;
-        static float timeBeetweenEvents = 10f;
+        static float timeBeetweenEvents = 15f;
 
         public static void regEvent()
         {
@@ -122,7 +122,7 @@ namespace MitaAI
         // Если долго на что-то смотрит
         public static void LongWatching(string objectName,float time)
         {
-            bool isInfo = TimeBlock("LongWatching", 20f);
+            bool isInfo = TimeBlock("LongWatching", 30f);
 
             MitaCore.Instance.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",isInfo);
 
@@ -147,9 +147,15 @@ namespace MitaAI
         {
             if (room == MitaCore.Rooms.Unknown) return;
 
-            bool isInfo = TimeBlock("roomEnter", 8);
+            bool isInfo = TimeBlock("roomEnter", 12f);
 
-            MitaCore.Instance.sendSystem($"Игрок только что зашел в {room}",isInfo);
+            MitaCore.Rooms mitaRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.MitaPersonObject.transform);
+            string message = $"Игрок только что зашел в {room}, а ты находишься в {mitaRoom}";
+            
+            //if (mitaRoom != room) message += $"";
+
+
+            MitaCore.Instance.sendSystem(message, isInfo);
 
         }
 

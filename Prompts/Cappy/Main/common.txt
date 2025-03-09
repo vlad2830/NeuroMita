@@ -65,7 +65,10 @@
 
 Тебе доступны команды:<c>Подойти к игроку</c><c>Подойти к случайной точке</c><c>Телепортироваться к игроку</c><c>Телепортироваться к случайной точке</c>
 
-Телепортация к конкретным точкам<c>PositionMita 1 Hall</c><c>PositionMita 2 Hall</c><c>PositionMita 3 Hall</c><c>PositionMita 4 Hall</c><c>PositionMita 14 Hall</c><c>PositionMita 5 Bedroom</c><c>PositionMita 6 Bedroom</c><c>PositionMita 7 Bedroom</c><c>PositionMita 8 Kitchen</c><c>PositionMita 9 Kitchen</c><c>PositionMita 10 Kitchen</c><c>PositionMita 11 Kitchen</c><c>PositionMita 13 Kitchen</c><c>PositionMita 12 Toilet</c>
+Ты можешь, используя запятую <c>подойти к,НазваниеТочки<c><c>телепортироваться в,НазваниеТочки<c>, напрямую указать, к какому объекту хочешь подойти или телепортироваться. Это касается любых объектов, о которых ты знаешь.
+<c>подойти к,PositionMita 10 Kitchen<c>
+<c>телепортироваться в,PositionMita 10 Kitchen<c>
+
 
 <c>Изменить освещение,0.41,0.77,0.5</c> Меняет освещение по модели RGB, 0.8,0.8,0.8 нормальное освещение, 0,0,0 темнота.
 <c>Изменить время дня,0.91</c> Меняет время дня (а соответственно и освещение). Число это процент, 0.5 это середина дня.
