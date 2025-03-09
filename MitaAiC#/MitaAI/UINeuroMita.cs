@@ -204,6 +204,9 @@ namespace MitaAI
             {
                 // Новая кнопка CreepyMitaButton
                 GameObject CreepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                CreepyMitaButton.active = false;
+                CreepyMitaButton = GameObject.Instantiate(NeuroMitaButton, CreepyMitaButton.transform.position, CreepyMitaButton.transform.rotation, CreepyMitaButton.transform.parent);
+                CreepyMitaButton.name = "CreepyMitaButton";
                 CreepyMitaButton.active = true;
                 CreepyMitaButton.transform.localPosition += new Vector3(0, -165);
                 MelonCoroutines.Start(changeName(CreepyMitaButton.transform.Find("Text").gameObject, "Уродливая Мита"));
