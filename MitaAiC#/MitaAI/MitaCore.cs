@@ -330,8 +330,11 @@ namespace MitaAI
         }
 
 
-        private bool AllLoaded = false;
-
+        static public bool AllLoaded = false;
+        public static bool isAllLoadeed()
+        {
+            return AllLoaded;
+        }
 
 
 
@@ -386,6 +389,8 @@ namespace MitaAI
         {
             if (character == character.None) character = currentCharacter;
             systemMessages.Enqueue( (m, character) );
+
+            EventsModded.regEvent();
         }
         public void sendSystemInfo(string m, character character = character.None)
         {
@@ -704,7 +709,7 @@ namespace MitaAI
             }
 
       
-            AllLoaded = true;
+
             //Interactions.Test(GameObject.Find("Table"));
             MelonCoroutines.Start(RealTimer());
 
@@ -781,7 +786,7 @@ namespace MitaAI
             while (true)
             {
                 // Проверяем условия
-                if (CurrentSceneName != "Scene 4 - StartSecret")
+                if ( !isRequiredScene() )
                 {
                     yield break;
 
@@ -1366,7 +1371,7 @@ namespace MitaAI
 
             yield return new WaitForSeconds(delay * 1.15f);
             //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
-            GameObject.Destroy(currentDialog);
+            Utils.DestroyAfterTime(currentDialog, delay * 1.15f + 5f);
 
         }
 
@@ -1393,7 +1398,9 @@ namespace MitaAI
 
                 yield return new WaitForSeconds(delay * 1.15f);
                 //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
-                GameObject.Destroy(currentDialog);
+
+                Utils.DestroyAfterTime(currentDialog, delay * 1.15f + 5f);
+
                 
             }
 
@@ -1448,12 +1455,9 @@ namespace MitaAI
                 
                 yield return new WaitForSeconds(delay*1.15f);
 
-                if (currentDialog != null)
-                {
-                    MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
-                    GameObject.Destroy(currentDialog);
-                }
-              
+                Utils.DestroyAfterTime(currentDialog, (delay * 1.15f) + 5f);
+
+
 
             }
             else
@@ -2130,7 +2134,7 @@ namespace MitaAI
             string info = "-";
             try
             {
-                MelonLogger.Msg("CurrentInfo");
+
 
                 info += $"Current movement type: {movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
@@ -2139,7 +2143,7 @@ namespace MitaAI
 
                 info += $"Current emotion anim: {currentEmotion}\n";
 
-                MelonLogger.Msg("CurrentInfo 2");
+
 
 
                 if (mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
@@ -2149,7 +2153,7 @@ namespace MitaAI
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
 
-                MelonLogger.Msg("CurrentInfo 3");
+   
 
                 if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere";
 
@@ -2164,13 +2168,13 @@ namespace MitaAI
                     info += $"Current lighing color: {location21_World.timeDay.colorDay}\n";
                     }
 
-                MelonLogger.Msg("CurrentInfo 4");
+
 
                 if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
                 info += AudioControl.MusicInfo();
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
 
-                MelonLogger.Msg("CurrentInfo 5");
+
 
                 info += MitaClothesModded.getCurrentHairColor();
                 if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
@@ -2178,7 +2182,7 @@ namespace MitaAI
 
                 info += PlayerMovement.getPlayerDistance(true);
 
-                MelonLogger.Msg("CurrentInfo 6");
+ 
 
                 try
                 {
@@ -2191,11 +2195,11 @@ namespace MitaAI
                 }
                 
 
-                MelonLogger.Msg("CurrentInfo 7");
+
 
                 if (HintText!=null) info += $"Current player's hint text {HintText.text}";
 
-                MelonLogger.Msg("CurrentInfo 8");
+
 
 
 
@@ -2214,8 +2218,12 @@ namespace MitaAI
         {
             try
             {
-                InputControl.processInpute();
-                PlayerMovement.onUpdate();
+                if (isAllLoadeed()){
+                    InputControl.processInpute();
+                    PlayerMovement.onUpdate();
+                }
+
+
 
             }
             catch (Exception e)

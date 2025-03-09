@@ -14,6 +14,13 @@ namespace MitaAI
     public static class EventsModded
     {
         static float lastEventTime = 0f;
+        static float timeBeetweenEvents = 10f;
+
+        public static void regEvent()
+        {
+            lastEventTime = Time.unscaledTime;
+        }
+
 
         public static void HandleAnimationEvent(UnityEngine.AnimationEvent evt)
         {
@@ -93,7 +100,7 @@ namespace MitaAI
         {
             float currentTime = Time.unscaledTime;
 
-            if (currentTime - lastEventTime < 10f)
+            if (currentTime - lastEventTime < timeBeetweenEvents)
             {
                 lastEventTime = currentTime;
                 return true;
@@ -115,7 +122,7 @@ namespace MitaAI
         // Если долго на что-то смотрит
         public static void LongWatching(string objectName,float time)
         {
-            bool isInfo = TimeBlock("LongWatching", 15f);
+            bool isInfo = TimeBlock("LongWatching", 20f);
 
             MitaCore.Instance.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",isInfo);
 
@@ -156,7 +163,7 @@ namespace MitaAI
         }
 
         // Загрузился
-        public static void sceneEnter()
+        public static void sceneEnter(MitaCore.character character)
         {
             string HelloMessage = "Игрок только что загрузился в твой уровень";
 
@@ -165,7 +172,7 @@ namespace MitaAI
             if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым цветом волос";
 
 
-            MitaCore.Instance.sendSystemMessage(HelloMessage);
+            MitaCore.Instance.sendSystemMessage(HelloMessage,character);
         }
 
 

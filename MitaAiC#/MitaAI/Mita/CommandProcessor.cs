@@ -91,24 +91,28 @@ namespace MitaAI.Mita
             switch (command.ToLower())
             {
                 case "подойти к игроку":
-                    mitaCore.Mita.AiWalkToTarget(playerPerson);
+                    newPosition.transform.position = playerPerson.position + direction * 0.85f; // closeDistance — ваше значение
+                    mitaCore.Mita.AiWalkToTarget(newPosition);
                     location34_Communication.indexSwitchAnimation = 1;
+                    Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку вплотную":
-                    mitaCore.Mita.AiWalkToTarget(playerPerson);
+                    newPosition.transform.position = playerPerson.position + direction * 0.4f; // closeDistance — ваше значение
+                    mitaCore.Mita.AiWalkToTarget(newPosition);
                     location34_Communication.indexSwitchAnimation = 1;
+                    Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку близко":
-                    newPosition.transform.position = playerPerson.position + direction * 1.2f; // closeDistance — ваше значение
+                    newPosition.transform.position = playerPerson.position + direction * 0.85f; // closeDistance — ваше значение
                     mitaCore.Mita.AiWalkToTarget(newPosition);
                     location34_Communication.indexSwitchAnimation = 1;
-                    GameObject.Destroy(newPosition);
+                    Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку далеко":
-                    newPosition.transform.position = playerPerson.position + direction * 3f; // farDistance — ваше значение
+                    newPosition.transform.position = playerPerson.position + direction * 2f; // farDistance — ваше значение
                     mitaCore.Mita.AiWalkToTarget(newPosition);
                     location34_Communication.indexSwitchAnimation = 1;
-                    GameObject.Destroy(newPosition);
+                    Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
 
                 case "подойти к случайной точке":

@@ -739,6 +739,8 @@ namespace MitaAI
 
         private static IEnumerator AfterAllLoadded()
         {
+            
+
             MelonLogger.Msg("After all loaded");
             MitaCore.character MitaToStart = Settings.Get<MitaCore.character>("MitaType");
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
@@ -747,11 +749,11 @@ namespace MitaAI
                 MelonLogger.Msg($"Run change Mita");
                 MitaCore.Instance.changeMita(null,character : MitaToStart);
             }
-            yield return new WaitForSeconds(0.25f);
+            yield return null;
 
-            EventsModded.sceneEnter();
+            EventsModded.sceneEnter(MitaToStart);
 
-
+            MitaCore.AllLoaded = true;
             TestingGround();
         }
         
