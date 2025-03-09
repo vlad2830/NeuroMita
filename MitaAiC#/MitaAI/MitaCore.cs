@@ -198,9 +198,11 @@ namespace MitaAI
                 Settings.MitaType.Value = character;
                 Settings.Save();
 
-
+                MelonCoroutines.Start(walkingFix());
                 MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
-                Mita.AiWalkToTarget(worldHouse);
+
+
+                
      
 
 
@@ -220,6 +222,14 @@ namespace MitaAI
 
             MelonLogger.Msg("Change Mita Final");
         }
+        IEnumerator walkingFix()
+        {
+            yield return new WaitForSeconds(7f);
+            Mita.AiShraplyStop();
+            //Mita.AiWalkToTarget(worldHouse);
+        }
+
+
 
         public enum character
         {
@@ -544,16 +554,16 @@ namespace MitaAI
             float posZ = position.z;
             float posY = position.y;
 
-            if (posY <= -0.0002f)
+            if (posY <= -0.1f)
                 return Rooms.Basement;
 
-            if (posX > 5.3000002f)
+            if (posX > 5.3f)
                 return posZ >= 0 ? Rooms.Kitchen : Rooms.Bedroom;
 
             if (posX > -4f && posX < 5f)
                 return Rooms.Main;
 
-            if (posX > -11.0f && posX < -4.3000002f)
+            if (posX > -11.0f && posX < -4.3f)
                 return Rooms.Toilet;
 
             return Rooms.Unknown;

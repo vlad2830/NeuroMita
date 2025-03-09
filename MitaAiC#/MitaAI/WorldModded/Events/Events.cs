@@ -102,7 +102,6 @@ namespace MitaAI
 
             if (currentTime - lastEventTime < timeBeetweenEvents)
             {
-                lastEventTime = currentTime;
                 return true;
             }
 
@@ -122,6 +121,8 @@ namespace MitaAI
         // Если долго на что-то смотрит
         public static void LongWatching(string objectName,float time)
         {
+            MelonLogger.Msg("Event roomEnter");
+
             bool isInfo = TimeBlock("LongWatching", 30f);
 
             MitaCore.Instance.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",isInfo);
@@ -145,6 +146,8 @@ namespace MitaAI
         // Зашел в комнату
         public static void roomEnter(MitaCore.Rooms room)
         {
+            MelonLogger.Msg("Event roomEnter");
+
             if (room == MitaCore.Rooms.Unknown) return;
 
             bool isInfo = TimeBlock("roomEnter", 12f);

@@ -15,6 +15,9 @@ namespace MitaAI
 {
     public static class UINeuroMita
     {
+        static bool InludeNewMita_TEST = false;
+
+
         static GameObject MenuObject;
         static Menu MainMenu;
         static GameObject StartMenuObject;
@@ -168,7 +171,7 @@ namespace MitaAI
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
-            if (true) { 
+            if (InludeNewMita_TEST) { 
             try 
             { 
 

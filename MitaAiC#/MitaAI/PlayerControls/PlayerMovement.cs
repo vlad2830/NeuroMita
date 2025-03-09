@@ -62,7 +62,7 @@ namespace MitaAI
 
             MitaCore.Rooms currentRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.playerPersonObject.transform);
 
-            if (currentRoom != lastRoom && lastRoom!= MitaCore.Rooms.Unknown)
+            if (currentRoom != lastRoom)
             {
                 EventsModded.roomEnter(currentRoom);
             }
