@@ -1269,7 +1269,7 @@ namespace MitaAI
             }
 
             // После того как patch_to_sound_file стал не пустым, вызываем метод DisplayResponseAndEmotion
-            DisplayResponseAndEmotion(response, audioSource);
+            yield return DisplayResponseAndEmotion(response, audioSource);
 
             dialogActive = false;
         }
@@ -1280,14 +1280,11 @@ namespace MitaAI
             list.RemoveAt(list.Count - 1);
             return last;
         }
-        private void DisplayResponseAndEmotion(string response, AudioSource audioSource = null)
+        private IEnumerator DisplayResponseAndEmotion(string response, AudioSource audioSource = null)
         {
             LoggerInstance.Msg("DisplayResponseAndEmotion");
 
-            
-            try
-            {
-
+    
                 string modifiedResponse = SetMovementStyle(response);
 
                 AudioClip audioClip = null;
@@ -1309,18 +1306,14 @@ namespace MitaAI
                 float delay = modifiedResponse.Length / simbolsPerSecond;
 
                 if (audioSource != null) PlaySound(audioClip, audioSource);
-                else MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
+                else yield return MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
-                MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
-            }
-            catch (Exception ex)
-            {
-                LoggerInstance.Error($"Error in DisplayResponseAndEmotion: {ex.Message}");
-            }
+                yield return MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
+         
         }
 
         private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
@@ -1331,6 +1324,7 @@ namespace MitaAI
 
                 string partCleaned = Utils.CleanFromTags(part); // Очищаем от всех тегов
                 float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.75f,8f); 
+
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay, itIsWaitingDialogue));
 

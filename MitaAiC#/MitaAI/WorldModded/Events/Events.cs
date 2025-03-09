@@ -14,7 +14,7 @@ namespace MitaAI
     public static class EventsModded
     {
         static float lastEventTime = 0f;
-        static float timeBeetweenEvents = 15f;
+        static float timeBeetweenEvents = 30f;
 
         public static void regEvent()
         {
@@ -107,7 +107,7 @@ namespace MitaAI
 
 
             // Если ключ существует и время еще не прошло
-            if (eventRepeatBlock.TryGetValue(name, out float lastTime) && Time.unscaledTime - lastTime < needed)
+            if (eventRepeatBlock.TryGetValue(name, out float lastTime) && currentTime - lastTime < needed)
             {
                 return true; // Блокируем выполнение
             }
@@ -121,11 +121,11 @@ namespace MitaAI
         // Если долго на что-то смотрит
         public static void LongWatching(string objectName,float time)
         {
-            MelonLogger.Msg("Event roomEnter");
+            if (TimeBlock("LongWatching", 30f)) return;
+            MelonLogger.Msg("Event LongWatching");
 
-            bool isInfo = TimeBlock("LongWatching", 30f);
 
-            MitaCore.Instance.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",isInfo);
+            MitaCore.Instance.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",false);
 
         }
 
@@ -146,11 +146,11 @@ namespace MitaAI
         // Зашел в комнату
         public static void roomEnter(MitaCore.Rooms room)
         {
-            MelonLogger.Msg("Event roomEnter");
+            MelonLogger.Msg($"Event roomEnter {room}");
 
             if (room == MitaCore.Rooms.Unknown) return;
 
-            bool isInfo = TimeBlock("roomEnter", 12f);
+            bool isInfo = TimeBlock("roomEnter", 15f);
 
             MitaCore.Rooms mitaRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.MitaPersonObject.transform);
             string message = $"Игрок только что зашел в {room}, а ты находишься в {mitaRoom}";

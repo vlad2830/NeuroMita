@@ -33,8 +33,8 @@ namespace MitaAI.PlayerControls
             inputField.text = inputField.text.Insert(caretPos, userInput);
 
             // Обновляем позиции курсора и выделения
-            //int newCaretPos = caretPos + userInput.Length;
-            //inputField.caretPosition = newCaretPos;
+            int newCaretPos = caretPos + userInput.Length;
+            inputField.caretPosition = newCaretPos;
             //inputField.selectionAnchorPosition = newCaretPos;
             //inputField.selectionFocusPosition = newCaretPos;           
         }
