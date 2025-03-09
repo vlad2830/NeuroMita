@@ -245,7 +245,7 @@ namespace MitaAI.Mita
 
                     break;
 
-                case "телепортироваться в ":
+                case "телепортироваться в":
 
                     try
                     {
