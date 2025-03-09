@@ -217,7 +217,7 @@ namespace MitaAI.PlayerControls
             }
             else if (Input.GetKeyDown(KeyCode.J) )
             {
-                changeMitaButtons();
+                // changeMitaButtons();
             }
 
 

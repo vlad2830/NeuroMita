@@ -173,6 +173,7 @@ class ChatModel:
 
         # Добавление информации о времени и пользовательского ввода
 
+        messages = self.current_character.add_context(messages)
         messages = self._add_input(user_input, system_input, messages)
 
         # Ограничение на количество сообщений
@@ -286,7 +287,7 @@ class ChatModel:
             print("messages успешно добавлены. Количество:", len(messages))
         messages = character.prepare_float_messages(messages)
 
-        combined_messages = character.add_context(combined_messages)
+        #combined_messages = character.add_context(combined_messages)
 
         return combined_messages, messages
 
