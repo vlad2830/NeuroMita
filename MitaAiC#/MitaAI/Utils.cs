@@ -127,6 +127,16 @@ namespace MitaAI
                 return;
             }
         }
+        public static void DestroyAfterTime(GameObject gameObject, float delay = 5f)
+        {
+            MelonCoroutines.Start(DestroyAfterTimeCorutine(gameObject, delay));
+        }
+
+        public static IEnumerator DestroyAfterTimeCorutine(GameObject gameObject, float delay = 5f)
+        {
+            yield return new WaitForSeconds(delay);
+            GameObject.Destroy(gameObject);
+        }
 
         // Корутинa для переключения активности компоненты
         public static IEnumerator ToggleComponentAfterTime(Component component, float delay)

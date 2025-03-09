@@ -130,9 +130,19 @@ namespace MitaAI
         #region HairColor
 
         private static Shader originalShader;
-        private static void init_hair()
+        public static void init_hair()
         {
-            hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hair").GetComponent<Renderer>().material;
+            try
+            {
+                hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hair").GetComponent<Renderer>().material;
+            }
+            catch (Exception)
+            {
+
+                hair_material = MitaCore.Instance.MitaPersonObject.transform.Find("Hairs").GetComponent<Renderer>().material;
+            }
+            
+
             originalShader = hair_material.shader;
             hair_material.shader = Shader.Find("Legacy Shaders/Diffuse");
         }
@@ -174,9 +184,22 @@ namespace MitaAI
         }
         public static string getCurrentHairColor()
         {
+            string result = "";
             if (hair_material == null) return null;
             if (hair_material.color == Color.white) return "hair_color normal";
-            return $"hair_color custom: r:{hair_material.color.r} g:{hair_material.color.g} b:{hair_material.color.b}";
+
+            try
+            {
+                result = $"hair_color custom: r:{hair_material.color.r} g:{hair_material.color.g} b:{hair_material.color.b}";
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error(ex);
+                result = "";
+                
+            }
+
+            return result;
         }
 
         #endregion

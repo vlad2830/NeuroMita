@@ -271,6 +271,21 @@ namespace MitaAI
             cat.transform.localScale = new Vector3(0.07f, 0.07f, 0.07f);
             cat.transform.parent = MitaCore.worldBasement.Find("House");
 
+            try
+            {
+                Transform door = MitaCore.worldBasement.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame/BasementDoor");
+                door.parent.gameObject.GetComponent<Animator>().enabled = false;
+                door.parent.gameObject.GetComponent<Events_Data>().enabled = false;
+                door.FindChild("BasementDoorHandle").gameObject.active = false;
+                door.localRotation = Quaternion.EulerAngles(0, 0, 270);
+                door.gameObject.active = true;
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error(ex);
+            }
+   
+
 
             InitializeGameObjectsWhenReady();
         }
@@ -660,20 +675,56 @@ namespace MitaAI
             world.gameObject.SetActive(false);
 
             MelonLogger.Msg($"Object found: {world.name}");
-            try { 
+            try
+            {
+                // Инициализация CreepyMita и удаление аудио компонентов
+                MitaCore.CreepyObject = GameObject.Instantiate(Utils.TryfindChild(world, "Acts/CreepyMita/CreepyMita"), MitaCore.worldHouse);
+                GameObject chestObj = Utils.TryfindChild(MitaCore.CreepyObject.transform, "Acts/CreepyMita/CreepyMita/Armature/Hips/Spine/Chest");
+                if (chestObj != null)
+                {
+                    MelonLogger.Msg($"Found Chest object in CreepyMita: {chestObj.name}");
+                    
+                    // Получаем все аудио компоненты, включая дочерние объекты
+                    AudioSource[] audioSources = chestObj.GetComponentsInChildren<AudioSource>(true);
+                    MelonLogger.Msg($"Found {audioSources.Length} audio sources in CreepyMita hierarchy");
+                    
+                    foreach(var audioSource in audioSources)
+                    {
+                        MelonLogger.Msg($"Removing audio source from CreepyMita: {audioSource.gameObject.name}");
+                        audioSource.enabled = false;
+                        audioSource.clip = null;
+                        GameObject.Destroy(audioSource);
+                    }
+                    
+                    // Дополнительно проверим компоненты на самом объекте
+                    AudioSource[] directAudioSources = chestObj.GetComponents<AudioSource>();
+                    foreach(var audioSource in directAudioSources)
+                    {
+                        MelonLogger.Msg($"Removing direct audio source from CreepyMita chest: {chestObj.name}");
+                        audioSource.enabled = false;
+                        audioSource.clip = null;
+                        GameObject.Destroy(audioSource);
+                    }
+                    
+                    MelonLogger.Msg($"Total removed audio sources from CreepyMita: {audioSources.Length + directAudioSources.Length}");
+                }
+                else
+                {
+                    MelonLogger.Error("Failed to find Chest object in CreepyMita hierarchy");
+                }
+                
+                MitaCore.CreepyObject.active = false;
 
+                // Добавление музыкальных объектов
                 AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 1").gameObject, "Embient horrific tension");
                 AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 2").gameObject, "Embient horrific waiting");
                 AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 3").gameObject, "Embient horrific tension large");
-
             }
-
             catch (Exception ex)
             {
-
-                MelonLogger.Error($"Mila founding error: {ex}");
+                MelonLogger.Error($"CreepyMita initialization error: {ex}");
             }
-            //yield return new WaitForSeconds(1f);
+            
             SceneManager.UnloadScene(sceneToLoad);
         }
 
@@ -695,27 +746,63 @@ namespace MitaAI
             MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
 
             // Находим объект в загруженной сцене
-            Transform world = FindObjectInScene(scene.name, "World");
-            if (world == null)
+            Transform worldDreamer = FindObjectInScene(scene.name, "World");
+            if (worldDreamer == null)
             {
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
             }
-            world.gameObject.SetActive(false);
+            worldDreamer.gameObject.SetActive(false);
 
-            MelonLogger.Msg($"Object found: {world.name}");
+            MelonLogger.Msg($"Object found: {worldDreamer.name}");
             try
             {
+                MitaCore.SleepyObject = GameObject.Instantiate(Utils.TryfindChild(worldDreamer, "General/Mita Dreamer"), MitaCore.worldHouse);
+                GameObject neck1Obj = Utils.TryfindChild(MitaCore.SleepyObject.transform, "Mita Dream/Armature/Hips/Spine/Chest/Neck2/Neck1");
+                if (neck1Obj != null)
+                {
+                    MelonLogger.Msg($"Found Neck1 object: {neck1Obj.name}");
+                    
+                    // Получаем все аудио компоненты, включая дочерние объекты
+                    AudioSource[] audioSources = neck1Obj.GetComponentsInChildren<AudioSource>(true);
+                    MelonLogger.Msg($"Found {audioSources.Length} audio sources in hierarchy");
+                    
+                    if (false) { 
 
-                AudioControl.addMusicObject(world.Find("Audio/MusicWorld").gameObject, "Music calm comfort");
+                        foreach(var audioSource in audioSources)
+                        {
+                            MelonLogger.Msg($"Removing audio source from: {audioSource.gameObject.name}");
+                            audioSource.enabled = false;
+                            audioSource.clip = null;
+                            //GameObject.Destroy(audioSource);
+                        }
+                    
+                        // Дополнительно проверим компоненты на самом объекте
+                        AudioSource[] directAudioSources = neck1Obj.GetComponents<AudioSource>();
+                        foreach(var audioSource in directAudioSources)
+                        {
+                            MelonLogger.Msg($"Removing direct audio source from: {neck1Obj.name}");
+                            audioSource.enabled = false;
+                            audioSource.clip = null;
+                            //GameObject.Destroy(audioSource);
+                        }
+                        MelonLogger.Msg($"Total removed audio sources: {audioSources.Length + directAudioSources.Length}");
+                    }
 
+                    
+                }
+                else
+                {
+                    MelonLogger.Error("Failed to find Neck1 object in the hierarchy");
+                }
+                
+                MitaCore.SleepyObject.active = false;
 
+                AudioControl.addMusicObject(worldDreamer.Find("Audio/MusicWorld").gameObject, "Music calm comfort");
             }
-
             catch (Exception ex)
             {
-
-                MelonLogger.Error($"{world.name} founding error: {ex}");
+                MelonLogger.Error($"{worldDreamer.name} founding error: {ex}");
             }
             //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
@@ -723,6 +810,8 @@ namespace MitaAI
 
         private static IEnumerator AfterAllLoadded()
         {
+            
+
             MelonLogger.Msg("After all loaded");
             MitaCore.character MitaToStart = Settings.Get<MitaCore.character>("MitaType");
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
@@ -731,18 +820,11 @@ namespace MitaAI
                 MelonLogger.Msg($"Run change Mita");
                 MitaCore.Instance.changeMita(null,character : MitaToStart);
             }
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSeconds(1f);
 
-            string HelloMessage = "Игрок только что загрузился в твой уровень";
+            EventsModded.sceneEnter(MitaToStart);
 
-            if (Utils.Random(1, 4)) HelloMessage += ", подбери музыку для его встречи";
-
-            if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым костюмом";
-            else if (Utils.Random(1, 8)) HelloMessage += ", можешь удивить его новым цветом волос";
-
-
-            MitaCore.Instance.sendSystemMessage(HelloMessage, MitaToStart);
-            
+            MitaCore.AllLoaded = true;
             TestingGround();
         }
         
@@ -792,11 +874,16 @@ namespace MitaAI
                     wardrobeGameObject.AddComponent<WardrobeFix>();
 
 
-                    Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorL", false);
-                    Utils.TryTurnChild(wardrobeGameObject.transform, "Bedroom WardrobeDoorR", false);
+                    Transform door =  wardrobeGameObject.transform.Find("Bedroom WardrobeDoorL");
+                    door.gameObject.AddComponent<BoxCollider>();
+                    door.localRotation = Quaternion.Euler(0, 0, 335);
 
-                    
-     
+                    door = wardrobeGameObject.transform.Find("Bedroom WardrobeDoorR");
+                    door.gameObject.AddComponent<BoxCollider>();
+                    door.localRotation = Quaternion.Euler(0, 0, 180);
+
+
+
 
                 }
                 catch (Exception)

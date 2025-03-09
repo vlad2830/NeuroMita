@@ -31,14 +31,26 @@ namespace MitaAI.Mita
         }
         public static string MusicInfo()
         {
-            string musicInfo = $"\nCurrent music is {getCurrrentMusic()},available options to set using block <music>: ";
-
-            foreach (string item in _audioObjects.Keys)
+            string musicInfo = "";
+            try
             {
-                musicInfo += $"<music>{item}</music>";
-            }
+                musicInfo += $"\nCurrent music is {getCurrrentMusic()},available options to set using block <music>: ";
 
-            return musicInfo;
+                foreach (string item in _audioObjects.Keys)
+                {
+                    musicInfo += $"<music>{item}</music>";
+                }
+                return musicInfo;
+            }
+            catch (Exception ex) { 
+
+                MelonLogger.Error(ex);
+                return "musicInfo";
+               
+            }
+ 
+
+            return "";
         }
 
         // Метод для инициализации словаря
@@ -61,6 +73,9 @@ namespace MitaAI.Mita
 
             fingerClick = worldHouse.Find("Audio/Audio ClickFinger").gameObject;
             fingerClick.GetComponent<Audio_DestroyTime>().enabled = false;
+            fingerClick.GetComponent<Time_Events>().enabled = false;
+            fingerClick.GetComponent<Object_DontDestroy>().enabled = false;
+            fingerClick.GetComponent<Achievement_function>().enabled = false;
 
             try
             {

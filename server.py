@@ -104,6 +104,7 @@ class ChatServer:
         """Генерирует текст с помощью модели."""
         try:
 
+            self.gui.waiting_answer = True
             response = self.chat_model.generate_response(input_text, system_input_text)
             if input_text != "":
                 self.gui.insertDialog(input_text, response)
@@ -111,6 +112,8 @@ class ChatServer:
         except Exception as e:
             print(f"Ошибка генерации ответа: {e}")
             response = "Произошла ошибка при обработке вашего сообщения."
+
+        self.gui.waiting_answer = False
         return response
 
     def send_message_to_server(self, message):

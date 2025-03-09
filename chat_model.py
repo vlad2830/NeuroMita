@@ -116,7 +116,9 @@ class ChatModel:
         self.kind_mita_character = KindMita("Kind", "/speaker kind", True)
         self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", True)
         self.mila_character = MilaMita("Mila", "/speaker mila", True)
+        self.sleepy_character = SleepyMita("Sleepy", "/speaker dream", True)
         self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
+        self.creepy_character = CreepyMita("Creepy", "/speaker ghost", True) #Спикер на рандом поставил
 
         # Словарь для сопоставления имен персонажей с их объектами
         self.characters = {
@@ -126,7 +128,9 @@ class ChatModel:
             self.cart_space.name: self.cart_space,
             self.cart_divan.name: self.cart_divan,
             self.shorthair_mita_character.name: self.shorthair_mita_character,
-            self.mila_character.name: self.mila_character
+            self.mila_character.name: self.mila_character,
+            self.sleepy_character.name: self.sleepy_character,
+            self.creepy_character.name: self.creepy_character
         }
 
         self.current_character = self.crazy_mita_character
@@ -168,7 +172,6 @@ class ChatModel:
         self.current_character.process_logic(messages)
 
         # Добавление информации о времени и пользовательского ввода
-        messages = self.current_character.add_context(messages)
 
         messages = self._add_input(user_input, system_input, messages)
 
@@ -234,33 +237,6 @@ class ChatModel:
         if self.current_character_to_change in self.characters:
             self.current_character = self.characters[self.current_character_to_change]
             self.current_character_to_change = ""  # Сбрасываем значение
-
-    def _add_context(self, messages):
-        """
-        Перед сообщением пользователя будет контекст, он не запишется в историю.
-        :param messages:
-        :return: Сообщение с добавленным временным сообщением до
-        """
-
-        self.LongMemoryRememberCount += 1
-
-        """Обработка пользовательского ввода и добавление сообщений"""
-        date_now = datetime.datetime.now().replace(microsecond=0)
-
-        repeated_system_message = f"Time: {date_now}. до игрока {self.distance}м. "
-
-        if self.distance == 0:
-            repeated_system_message = f"Time: {date_now}. до игрока ? м. "
-
-        # Проверяем правильность вызова get_room_name
-        repeated_system_message += f"You are in {self.get_room_name(int(self.roomMita))}, player is in {self.get_room_name(int(self.roomPlayer))}. "
-
-        if self.LongMemoryRememberCount % 4 == 0:
-            repeated_system_message += " Remember facts for messages using memory block, like <+memory>high|The player attaked me</memory>. This text is EXAMPLE!"
-
-        messages.append({"role": "system", "content": repeated_system_message})
-
-        return messages
 
     def _add_input(self, user_input, system_input, messages):
         """Добавляет то самое последнее сообщение"""
