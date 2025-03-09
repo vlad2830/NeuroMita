@@ -1306,7 +1306,7 @@ namespace MitaAI
                 float delay = modifiedResponse.Length / simbolsPerSecond;
 
                 if (audioSource != null) PlaySound(audioClip, audioSource);
-                else yield return MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
+                MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
