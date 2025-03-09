@@ -140,7 +140,7 @@ class Character:
         repeated_system_message = f"Time: {formatted_date}."
 
         if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Remember facts for 3 messages by using <+memory>high|The player attaсked me</memory> (this text is example)"
+            repeated_system_message += " Remember facts for 3 messages by using block <+memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 

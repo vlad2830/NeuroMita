@@ -64,7 +64,7 @@ namespace MitaAI
 
             if (currentRoom != lastRoom)
             {
-                EventsModded.roomEnter(currentRoom);
+                EventsModded.roomEnter(currentRoom, lastRoom);
             }
 
             lastRoom = currentRoom;
