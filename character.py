@@ -675,4 +675,72 @@ class DivanCartridge(Cartridge):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
+class CreepyMita(Character):
+    def __init__(self, name: str = "Creepy", silero_command: str = "/speaker ghost", silero_turn_off_video=False):
+        self.secretExposed = False
+        self.secretExposedFirst = False
+        super().__init__(name, silero_command, silero_turn_off_video)
+
+    def init(self):
+        self.creepy_mita_prompts()
+
+    def creepy_mita_prompts(self):
+        Prompts = []
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
+
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
+
+
+
+class SleepyMita(Character):
+    def __init__(self, name: str = "Dream", silero_command: str = "/speaker dream", silero_turn_off_video=False):
+        self.secretExposed = False
+        self.secretExposedFirst = False
+        super().__init__(name, silero_command, silero_turn_off_video)
+
+    def init(self):
+        self.sleepy_mita_prompts()
+
+    def sleepy_mita_prompts(self):
+        Prompts = []
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
+
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
+
 #endregion

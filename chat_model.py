@@ -116,7 +116,9 @@ class ChatModel:
         self.kind_mita_character = KindMita("Kind", "/speaker kind", True)
         self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", True)
         self.mila_character = MilaMita("Mila", "/speaker mila", True)
+        self.sleepy_character = SleepyMita("Dream", "/speaker dream", True)
         self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
+        self.creepy_character = CreepyMita("Creepy", "/speaker ghost", True) #Спикер на рандом поставил
 
         # Словарь для сопоставления имен персонажей с их объектами
         self.characters = {
@@ -126,7 +128,9 @@ class ChatModel:
             self.cart_space.name: self.cart_space,
             self.cart_divan.name: self.cart_divan,
             self.shorthair_mita_character.name: self.shorthair_mita_character,
-            self.mila_character.name: self.mila_character
+            self.mila_character.name: self.mila_character,
+            self.sleepy_character.name: self.sleepy_character,
+            self.creepy_character.name: self.creepy_character
         }
 
         self.current_character = self.crazy_mita_character

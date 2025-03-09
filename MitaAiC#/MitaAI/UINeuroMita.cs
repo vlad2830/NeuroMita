@@ -170,6 +170,9 @@ namespace MitaAI
 
             try
             {
+            try 
+            { 
+
                 // Новая кнопка MitaMilaButton
                 GameObject MilaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
                 MilaButton.active = false;
@@ -197,6 +200,19 @@ namespace MitaAI
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
+            try
+            {
+                // Новая кнопка CreepyMitaButton
+                GameObject CreepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                CreepyMitaButton.active = true;
+                CreepyMitaButton.transform.localPosition += new Vector3(0, -165);
+                MelonCoroutines.Start(changeName(CreepyMitaButton.transform.Find("Text").gameObject, "Уродливая Мита"));
+                CreepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(CreepyMitaButton, CreepyMitaButton.name);
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+
+
 
 
             Il2CppSystem.Collections.Generic.List<RectTransform> list = new Il2CppSystem.Collections.Generic.List<RectTransform>();
@@ -213,7 +229,7 @@ namespace MitaAI
 
             GameObject Back = StartMenuObject.transform.Find("Button Back").gameObject;
             Back.name = "ButtonReturn";
-            Back.transform.localPosition += new Vector3(0, -110);
+            Back.transform.localPosition += new Vector3(0, -165);
             Back.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(Back, Back.name);
 
         }
@@ -263,6 +279,12 @@ namespace MitaAI
                     break;
                 case "SleepyMitaButton":
                     Settings.MitaType.Value = MitaCore.character.Sleepy;
+                    Settings.Save();
+                    StartMenu.Active(false);
+                    MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
+                    break;
+                case "CreepyMitaButton":
+                    Settings.MitaType.Value = MitaCore.character.Creepy;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
