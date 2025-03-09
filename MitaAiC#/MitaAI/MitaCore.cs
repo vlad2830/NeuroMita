@@ -777,13 +777,6 @@ namespace MitaAI
 
         bool FirstTime = true;
 
-        public override void OnLateUpdate()
-        {
-            
-            base.OnLateUpdate();
-            Interactions.Update();
-            // if (eyeModifier!=null) eyeModifier.OnUpdateTest();
-        }
         public IEnumerator RealTimer()
         {
             while (true)
@@ -2222,6 +2215,7 @@ namespace MitaAI
             try
             {
                 if (isAllLoadeed()){
+                    Interactions.Update();
                     InputControl.processInpute();
                     PlayerMovement.onUpdate();
                 }
