@@ -13,6 +13,15 @@ namespace MitaAI
 {
     public static class EventsModded
     {
+        static float lastEventTime = 0f;
+        static float timeBeetweenEvents = 30f;
+
+        public static void regEvent()
+        {
+            lastEventTime = Time.unscaledTime;
+        }
+
+
         public static void HandleAnimationEvent(UnityEngine.AnimationEvent evt)
         {
             switch (evt.stringParameter)
@@ -80,6 +89,107 @@ namespace MitaAI
                     break;
             }
         }
+
+
+        #region EventsEnter
+        // Место, где в теории смогу уловить все, что будет вызывать генерацию реакции миты
+
+        static Dictionary<string, float> eventRepeatBlock = new Dictionary<string, float>();
+
+        static bool TimeBlock(string name, float needed = 8)
+        {
+            float currentTime = Time.unscaledTime;
+
+            if (currentTime - lastEventTime < timeBeetweenEvents)
+            {
+                return true;
+            }
+
+
+            // Если ключ существует и время еще не прошло
+            if (eventRepeatBlock.TryGetValue(name, out float lastTime) && currentTime - lastTime < needed)
+            {
+                return true; // Блокируем выполнение
+            }
+
+            // Обновляем время последнего вызова
+            eventRepeatBlock[name] = currentTime;
+            lastEventTime = currentTime;
+            return false; // Не блокируем выполнение
+        }
+
+        // Если долго на что-то смотрит
+        public static void LongWatching(string objectName,float time)
+        {
+            if (TimeBlock("LongWatching", 30f)) return;
+            MelonLogger.Msg("Event LongWatching");
+
+
+            MitaCore.Instance.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",false);
+
+        }
+
+        #region Position
+        // Отошел от Миты
+        public static void leaveMita()
+        {
+
+
+        }
+        // Отошел от Миты
+        public static void enterMita()
+        {
+
+
+        }
+
+        // Зашел в комнату
+        public static void roomEnter(MitaCore.Rooms room)
+        {
+            MelonLogger.Msg($"Event roomEnter {room}");
+
+            if (room == MitaCore.Rooms.Unknown) return;
+
+            bool isInfo = TimeBlock("roomEnter", 15f);
+
+            MitaCore.Rooms mitaRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.MitaPersonObject.transform);
+            string message = $"Игрок только что зашел в {room}, а ты находишься в {mitaRoom}";
+            
+            //if (mitaRoom != room) message += $"";
+
+
+            MitaCore.Instance.sendSystem(message, isInfo);
+
+        }
+
+
+        #endregion
+
+        // Долго ничего не делал
+        public static void boringTime()
+        {
+
+        }
+
+        // Загрузился
+        public static void sceneEnter(MitaCore.character character)
+        {
+            string HelloMessage = "Игрок только что загрузился в твой уровень";
+
+            if (Utils.Random(1, 4)) HelloMessage += ", подбери музыку для его встречи";
+            if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым костюмом";
+            if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым цветом волос";
+
+
+            MitaCore.Instance.sendSystemMessage(HelloMessage,character);
+        }
+
+
+
+
+
+        #endregion
+
 
 
     }

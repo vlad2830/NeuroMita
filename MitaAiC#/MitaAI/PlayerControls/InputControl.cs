@@ -33,8 +33,8 @@ namespace MitaAI.PlayerControls
             inputField.text = inputField.text.Insert(caretPos, userInput);
 
             // Обновляем позиции курсора и выделения
-            //int newCaretPos = caretPos + userInput.Length;
-            //inputField.caretPosition = newCaretPos;
+            int newCaretPos = caretPos + userInput.Length;
+            inputField.caretPosition = newCaretPos;
             //inputField.selectionAnchorPosition = newCaretPos;
             //inputField.selectionFocusPosition = newCaretPos;           
         }
@@ -51,6 +51,8 @@ namespace MitaAI.PlayerControls
 
         public static void processInpute()
         {
+            if (!MitaCore.isRequiredScene()) return;
+
             // Обработка блокировки движения при активном вводе
             if (isInputActive != wasInputActive) // Проверяем, изменилось ли состояние ввода
             {
@@ -136,6 +138,12 @@ namespace MitaAI.PlayerControls
                 }
                 else // Активирую ентером
                 {
+
+                    if (InputFieldComponent != null)
+                    {
+                        if (!InputFieldComponent.active) InputFieldComponent.SetActive(true);
+                    }
+                        
                     inputField.Select();
                     inputField.ActivateInputField();
 
@@ -275,7 +283,7 @@ namespace MitaAI.PlayerControls
             else if (Input.GetKeyDown(KeyCode.M))
             {
                 MelonLogger.Msg("Try change to Crazy");
-                MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Mita);
+                MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Crazy);
                 _lastChangeTime = DateTime.Now;
 
 

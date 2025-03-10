@@ -20,7 +20,7 @@ namespace MitaAI
             // Создаем категорию настроек
             category = MelonPreferences.CreateCategory("NeuroMita", "NeuroMita Settings");
 
-            MitaType = category.CreateEntry("MitaType", MitaCore.character.Mita);
+            MitaType = category.CreateEntry("MitaType", MitaCore.character.Crazy);
 
             // Добавляем нового персонажа как опцию
            // category.CreateEntry("MilaType", MitaCore.character.Mila);

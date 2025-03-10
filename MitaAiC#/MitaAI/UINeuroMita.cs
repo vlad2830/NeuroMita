@@ -15,6 +15,9 @@ namespace MitaAI
 {
     public static class UINeuroMita
     {
+        static bool InludeNewMita_TEST = false;
+
+
         static GameObject MenuObject;
         static Menu MainMenu;
         static GameObject StartMenuObject;
@@ -168,8 +171,10 @@ namespace MitaAI
             }
             catch (Exception e) { MelonLogger.Error(e); }
 
-            try
-            {
+            if (InludeNewMita_TEST) { 
+            try 
+            { 
+
                 // Новая кнопка MitaMilaButton
                 GameObject MilaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
                 MilaButton.active = false;
@@ -177,10 +182,43 @@ namespace MitaAI
                 MilaButton.name = "MilaButton";
                 MilaButton.active = true;
                 MilaButton.transform.localPosition += new Vector3(0, -55);
-                MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, "Мила"));
+                MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, "Мила (TODO)"));
                 MilaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MilaButton, MilaButton.name);
             }
             catch (Exception e) { MelonLogger.Error(e); }
+
+
+            try
+            {
+                // Новая кнопка SleepyMitaButton
+                GameObject SleepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                SleepyMitaButton.active = false;
+                SleepyMitaButton = GameObject.Instantiate(NeuroMitaButton, SleepyMitaButton.transform.position, SleepyMitaButton.transform.rotation, SleepyMitaButton.transform.parent);
+                SleepyMitaButton.name = "SleepyMitaButton";
+                SleepyMitaButton.active = true;
+                SleepyMitaButton.transform.localPosition += new Vector3(0, -110);
+                MelonCoroutines.Start(changeName(SleepyMitaButton.transform.Find("Text").gameObject, "Сонная Мита (TODO 2X)"));
+                SleepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(SleepyMitaButton, SleepyMitaButton.name);
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+            try
+            {
+                // Новая кнопка CreepyMitaButton
+                GameObject CreepyMitaButton = StartMenuObject.transform.Find("Button Volume").gameObject;
+                CreepyMitaButton.active = false;
+                CreepyMitaButton = GameObject.Instantiate(NeuroMitaButton, CreepyMitaButton.transform.position, CreepyMitaButton.transform.rotation, CreepyMitaButton.transform.parent);
+                CreepyMitaButton.name = "CreepyMitaButton";
+                CreepyMitaButton.active = true;
+                CreepyMitaButton.transform.localPosition += new Vector3(0, -165);
+                MelonCoroutines.Start(changeName(CreepyMitaButton.transform.Find("Text").gameObject, "Уродливая Мита (TODO X3)"));
+                CreepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(CreepyMitaButton, CreepyMitaButton.name);
+            }
+            catch (Exception e) { MelonLogger.Error(e); }
+
+            }
+
+
 
             Il2CppSystem.Collections.Generic.List<RectTransform> list = new Il2CppSystem.Collections.Generic.List<RectTransform>();
             for (int i = 0; i < StartMenuObject.transform.childCount; i++)
@@ -196,7 +234,7 @@ namespace MitaAI
 
             GameObject Back = StartMenuObject.transform.Find("Button Back").gameObject;
             Back.name = "ButtonReturn";
-            Back.transform.localPosition += new Vector3(0, -55);
+            Back.transform.localPosition += new Vector3(0, -165);
             Back.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(Back, Back.name);
 
         }
@@ -213,31 +251,48 @@ namespace MitaAI
                 case "MitaShortButton":
                     Settings.MitaType.Value = MitaCore.character.ShortHair;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCrazyButton":
-                    Settings.MitaType.Value = MitaCore.character.Mita;
+                    Settings.MitaType.Value = MitaCore.character.Crazy;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaKindButton":
                     Settings.MitaType.Value = MitaCore.character.Kind;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCappyButton":
                     Settings.MitaType.Value = MitaCore.character.Cappy;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MilaButton":
                     Settings.MitaType.Value = MitaCore.character.Mila;
                     Settings.Save();
+                    StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "ButtonReturn":
                     StartMenu.Active(false);
                     MainMenuLocation.Active(true);
+                    break;
+                case "SleepyMitaButton":
+                    Settings.MitaType.Value = MitaCore.character.Sleepy;
+                    Settings.Save();
+                    StartMenu.Active(false);
+                    MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
+                    break;
+                case "CreepyMitaButton":
+                    Settings.MitaType.Value = MitaCore.character.Creepy;
+                    Settings.Save();
+                    StartMenu.Active(false);
+                    MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 default:
                     MelonLogger.Warning($"Unhandled button {eventName}");
@@ -258,11 +313,12 @@ namespace MitaAI
             float time = 0f;
             while (NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().font == original_font)
             {
-                if (time >= 60f)
+                if (MitaCore.isRequiredScene())
                 {
                     break;
                 }
-
+                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().text = text;
+                NeuroMitaButtonText.GetComponent<UnityEngine.UI.Text>().m_Text = text;
                 time += Time.unscaledDeltaTime;
                 yield return null;
             }

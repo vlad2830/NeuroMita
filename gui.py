@@ -66,10 +66,14 @@ class ChatGUI:
         self.server_thread = None
         self.running = False
         self.start_server()
+
+
         self.textToTalk = ""
         self.textSpeaker = "/Speaker Mita"
         self.silero_turn_off_video = False
         self.patch_to_sound_file = ""
+        self.waiting_answer = False
+
 
         self.root = tk.Tk()
         self.root.title("Чат с NeuroMita")
@@ -168,7 +172,9 @@ class ChatGUI:
     async def run_send_and_receive(self, response, speaker_command):
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
+        self.waiting_answer = True
         await self.bot_handler.send_and_receive(response, speaker_command)
+        self.waiting_answer = False
         print("Завершение получения фразы")
 
     def check_text_to_talk_or_send(self):
@@ -192,10 +198,14 @@ class ChatGUI:
                 else:
                     print("Ошибка: Цикл событий не готов.")
 
-        text_from_recognition = SpeechRecognition.receive_text()
+
         if bool(self.settings.get("MIC_INSTANT_SENT")):
-            self.instant_send(text_from_recognition)
-        elif bool(self.settings.get("MIC_ACTIVE")) and text_from_recognition and self.user_entry:
+
+            if not self.waiting_answer:
+                text_from_recognition = SpeechRecognition.receive_text()
+                self.instant_send(text_from_recognition)
+        elif bool(self.settings.get("MIC_ACTIVE")) and self.user_entry:
+            text_from_recognition = SpeechRecognition.receive_text()
             self.user_entry.insert(tk.END, text_from_recognition)
             self.user_input = self.user_entry.get("1.0", "end-1c").strip()
 

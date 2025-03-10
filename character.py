@@ -518,7 +518,8 @@ class CappyMita(Character):
     def init(self):
         self.cappy_mita_prompts()
 
-        #self.secretExposed
+        self.secretExposed = False
+        self.secretExposedFirst = False
 
     def cappy_mita_prompts(self):
         Prompts = []
@@ -549,17 +550,63 @@ class CappyMita(Character):
             self.add_prompt_part(prompt)
 
     #TODO Секрет Кепки
-
-    # def process_logic(self, messages: dict):
+    def process_logic(self, messages: dict = None):
         # Логика для раскрытия секрета
-       # if self.secretExposed and not self.secretExposedFirst:
-         #   self._reveal_secret(messages)
+        if self.secretExposed and not self.secretExposedFirst:
+            self._reveal_secret()
 
-    #def process_response(self, response: str):
-       # super().process_response(response)
+    def process_response(self, response: str):
+        response = super().process_response(response)
+        response = self._detect_secret_exposure(response)
+        return response
 
-       # response = self._detect_secret_exposure(response)
-       # return response
+    def _reveal_secret(self):
+        """Логика раскрытия секрета"""
+        print("Перестала играть вообще")
+        self.secretExposedFirst = True
+        self.secretExposed = True
+        #self.replace_prompt("main", "mainCrazy")
+        #self.replace_prompt("mainPlaying", "mainCrazy")
+        #self.replace_prompt("examplesLong", "examplesLongCrazy") #я хз что тут менять на что
+
+        self.find_float("SecretExposedText").active = True
+
+    def _detect_secret_exposure(self, response):
+        """
+        Проверяем, содержит ли ответ маркер <Secret!>, и удаляем его.
+        """
+        if "<Secret!>" in response:
+
+            if not self.secretExposedFirst:
+                self.secretExposed = True
+                print(f"Секрет раскрыт")
+                self.attitude = 15
+                self.boredom = 20
+
+            response = response.replace("<Secret!>", "")
+
+        return response
+    
+    def current_variables(self):
+        return {
+            "role": "system",
+            "content": (f"Твои характеристики:"
+                        f"Отношение: {self.attitude}/100."
+                        f"Скука: {self.boredom}/100."
+                        f"Стресс: {self.stress}/100."
+                        f"Состояние секрета: {self.secretExposed}")
+                }
+    
+    def current_variables_string(self) -> str:
+        characteristics = {
+            "Отношение": self.attitude,
+            "Стресс": self.stress,
+            "Скука": self.boredom,
+            "Состояние секрета": self.secretExposed,
+        }
+        return f"характеристики {self.name}:\n" + "\n".join(
+            f"- {key}: {value} " for key, value in characteristics.items()
+        )
 
 class MilaMita(Character):
 
@@ -624,6 +671,74 @@ class DivanCartridge(Cartridge):
 
         response_structure = "Prompts/Cartridges/divan_cart.txt"
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
+
+class CreepyMita(Character):
+    def __init__(self, name: str = "Creepy", silero_command: str = "/speaker ghost", silero_turn_off_video=False):
+        self.secretExposed = False
+        self.secretExposedFirst = False
+        super().__init__(name, silero_command, silero_turn_off_video)
+
+    def init(self):
+        self.creepy_mita_prompts()
+
+    def creepy_mita_prompts(self):
+        Prompts = []
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
+
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
+
+
+
+class SleepyMita(Character):
+    def __init__(self, name: str = "Dream", silero_command: str = "/speaker dream", silero_turn_off_video=False):
+        self.secretExposed = False
+        self.secretExposedFirst = False
+        super().__init__(name, silero_command, silero_turn_off_video)
+
+    def init(self):
+        self.sleepy_mita_prompts()
+
+    def sleepy_mita_prompts(self):
+        Prompts = []
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
+
+        security = "Prompts/Common/Security.txt"
+        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+
+        Prompts.append(
+            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)

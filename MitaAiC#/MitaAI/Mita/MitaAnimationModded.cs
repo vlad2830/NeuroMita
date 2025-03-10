@@ -75,7 +75,7 @@ namespace MitaAI.Mita
                 mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
 
                 MelonLogger.Msg("b!");
-                setIdleWalk("Mita Walk_1");
+                //setIdleWalk("Mita Walk_1");
                 
                 animator.Rebind();
                 animator.Update(0);
@@ -94,6 +94,7 @@ namespace MitaAI.Mita
         { 
             if (anim.name.Contains("Click")){
 
+                anim.events = new Il2CppReferenceArray<AnimationEvent>(0);
                 MelonLogger.Msg("AddedAnimationEvent for" + anim.name);
                 EventsProxy.AddAnimationEvent(MitaCore.Instance.MitaObject, anim, "Mita Click");
                 return;
