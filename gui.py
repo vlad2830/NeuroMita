@@ -50,15 +50,15 @@ class ChatGUI:
         self.api_id = ""
         self.phone = ""
 
-        self.settings = SettingsManager("Settings/settings.json")
-
         try:
             target_folder = "Settings"
             os.makedirs(target_folder, exist_ok=True)
             self.config_path = os.path.join(target_folder, "settings.json")
+            self.settings = SettingsManager(self.config_path)
             self.load_api_settings(False)  # Загружаем настройки при инициализации
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
+            self.settings = SettingsManager("Settings/settings.json")
 
         self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.settings.get("gpt4free_model"),
                                self.makeRequest)
@@ -109,9 +109,15 @@ class ChatGUI:
             asyncio.set_event_loop(self.loop)
             print("Цикл событий asyncio успешно запущен.")
             self.loop_ready_event.set()  # Сигнализируем, что цикл событий готов
-            self.loop.run_forever()
+            try:
+                self.loop.run_forever()
+            except Exception as e:
+                print(f"Ошибка в цикле событий asyncio: {e}")
+            finally:
+                self.loop.close()
         except Exception as e:
             print(f"Ошибка при запуске цикла событий asyncio: {e}")
+            self.loop_ready_event.set()  # Сигнализируем даже в случае ошибки
 
     def start_silero_async(self):
         """Отправляет задачу для запуска Silero в цикл событий."""
@@ -127,18 +133,30 @@ class ChatGUI:
         """Асинхронный запуск обработчика Telegram Bot."""
         print("Telegram Bot запускается!")
         try:
+            if not self.api_id or not self.api_hash or not self.phone:
+                print("Ошибка: отсутствуют необходимые данные для Telegram бота")
+                self.silero_connected = False
+                return
+
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone, self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
-            await self.bot_handler.start()
-            self.bot_handler_ready = True
-            if self.silero_connected.get():
-                print("ТГ успешно подключен")
-            else:
-                print("ТГ не подключен")
+            
+            try:
+                await self.bot_handler.start()
+                self.bot_handler_ready = True
+                if hasattr(self, 'silero_connected') and self.silero_connected:
+                    print("ТГ успешно подключен")
+                else:
+                    print("ТГ не подключен")
+            except Exception as e:
+                print(f"Ошибка при запуске Telegram бота: {e}")
+                self.bot_handler_ready = False
+                self.silero_connected = False
 
         except Exception as e:
-            print(f"Ошибка при запуске Telegram Bot: {e}")
-            self.silero_connected.set(False)
+            print(f"Критическая ошибка при инициализации Telegram Bot: {e}")
+            self.silero_connected = False
+            self.bot_handler_ready = False
 
     def run_in_thread(self, response):
         """Запуск асинхронной задачи в отдельном потоке."""
@@ -161,20 +179,24 @@ class ChatGUI:
 
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
-
-        if self.textToTalk != "":  #and not self.ConnectedToGame:
-            print(f"Есть текст для отправки: {self.textToTalk}")
-            # Вызываем метод для отправки текста, если переменная не пуста
-            if self.loop and self.loop.is_running():
-
-                if bool(self.settings.get("SILERO_USE")):
-                    print("Цикл событий готов. Отправка текста.")
-                    asyncio.run_coroutine_threadsafe(self.run_send_and_receive(self.textToTalk, self.textSpeaker),
-                                                     self.loop)
-                self.textToTalk = ""  # Очищаем текст после отправки
-                print("Выполнено")
-            else:
-                print("Ошибка: Цикл событий не готов.")
+        if self.textToTalk:  #and not self.ConnectedToGame:
+                print(f"Есть текст для отправки: {self.textToTalk}")
+                # Вызываем метод для отправки текста, если переменная не пуста
+                if self.loop and self.loop.is_running():
+                    try:
+                        if bool(self.settings.get("SILERO_USE")):
+                            print("Цикл событий готов. Отправка текста.")
+                            asyncio.run_coroutine_threadsafe(
+                                self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                                self.loop
+                            )
+                        self.textToTalk = ""  # Очищаем текст после отправки
+                        print("Выполнено")
+                    except Exception as e:
+                        print(f"Ошибка при отправке текста: {e}")
+                        self.textToTalk = ""  # Очищаем текст в случае ошибки
+                else:
+                    print("Ошибка: Цикл событий не готов.")
 
 
         if bool(self.settings.get("MIC_INSTANT_SENT")):

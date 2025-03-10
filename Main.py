@@ -13,8 +13,6 @@ from gui import ChatGUI
 
 # Не забудь рядом папку промптов и ffmpeg
 
-# Устанавливаем глобальные настройки SSL в самом начале приложения
-
 def main():
     gui = ChatGUI()
     gui.run()

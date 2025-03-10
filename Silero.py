@@ -7,7 +7,7 @@ import pygame
 import asyncio
 from telethon.tl.types import MessageMediaDocument, DocumentAttributeAudio
 
-import ffmpeg
+import tkinter as tk
 import platform
 
 from AudioConverter import AudioConverter
@@ -17,7 +17,9 @@ from utils import SH
 # Пример использования:
 class TelegramBotHandler:
 
-    def __init__(self, gui, api_id, api_hash, phone, tg_bot, message_limit_per_minute=20):
+    def __init__(
+        self, gui, api_id, api_hash, phone, tg_bot, message_limit_per_minute=20
+    ):
         # Получение параметров из окружения
         self.api_id = api_id
         self.api_hash = api_hash
@@ -29,7 +31,7 @@ class TelegramBotHandler:
 
         self.silero_time_limit = 8
 
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             # Если программа собрана в exe, получаем путь к исполняемому файлу
             base_dir = os.path.dirname(sys.executable)
 
@@ -41,7 +43,9 @@ class TelegramBotHandler:
             alt_base_dir = base_dir  # Для единообразия
 
         # Проверяем, где лежит ffmpeg
-        ffmpeg_rel_path = os.path.join("ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe")
+        ffmpeg_rel_path = os.path.join(
+            "ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe"
+        )
 
         ffmpeg_path = os.path.join(base_dir, ffmpeg_rel_path)
         if not os.path.exists(ffmpeg_path):
@@ -64,12 +68,12 @@ class TelegramBotHandler:
         try:
             # Создание клиента Telegram с системными параметрами
             self.client = TelegramClient(
-                'session_name',
+                "session_name",
                 int(self.api_id),
                 self.api_hash,
                 device_model=device_model,
                 system_version=system_version,
-                app_version=app_version
+                app_version=app_version,
             )
         except:
             print("Проблема в ините тг")
@@ -167,12 +171,12 @@ class TelegramBotHandler:
                     doc = message.media.document
 
                     # Проверяем MP3-файл
-                    if 'audio/mpeg' in doc.mime_type:
+                    if "audio/mpeg" in doc.mime_type:
                         response = message
                         break
 
                     # Проверяем голосовое сообщение (OGG, voice)
-                    if 'audio/ogg' in doc.mime_type:
+                    if "audio/ogg" in doc.mime_type:
                         for attr in doc.attributes:
                             if isinstance(attr, DocumentAttributeAudio) and attr.voice:
                                 response = message
@@ -199,24 +203,32 @@ class TelegramBotHandler:
                     print("Подключен к игре, нужна конвертация")
 
                     # Генерируем путь для WAV-файла на основе имени исходного MP3
-                    base_name = os.path.splitext(os.path.basename(file_path))[0]  # Получаем имя файла без расширения
-                    wav_path = os.path.join(os.path.dirname(file_path), f"{base_name}.wav")  # Создаем новый путь
+                    base_name = os.path.splitext(os.path.basename(file_path))[
+                        0
+                    ]  # Получаем имя файла без расширения
+                    wav_path = os.path.join(
+                        os.path.dirname(file_path), f"{base_name}.wav"
+                    )  # Создаем новый путь
 
                     # Получаем абсолютный путь
 
                     absolute_wav_path = os.path.abspath(wav_path)
                     # Конвертируем MP3 в WAV
                     # await  AudioConverter.convert_mp3_to_wav(sound_absolute_path, absolute_wav_path)
-                    await AudioConverter.convert_to_wav(sound_absolute_path, absolute_wav_path)
+                    await AudioConverter.convert_to_wav(
+                        sound_absolute_path, absolute_wav_path
+                    )
 
                     try:
                         print(f"Удаляю файл: {sound_absolute_path}")
                         os.remove(sound_absolute_path)
                         print(f"Файл {sound_absolute_path} удалён.")
                     except OSError as remove_error:
-                        print(f"Ошибка при удалении файла {sound_absolute_path}: {remove_error}")
+                        print(
+                            f"Ошибка при удалении файла {sound_absolute_path}: {remove_error}"
+                        )
 
-                    #.BnmRvcModel.process(absolute_wav_path, absolute_wav_path+"_RVC_.wav")
+                    # .BnmRvcModel.process(absolute_wav_path, absolute_wav_path+"_RVC_.wav")
 
                     self.gui.patch_to_sound_file = absolute_wav_path
                     print(f"Файл wav загружен: {absolute_wav_path}")
@@ -229,12 +241,62 @@ class TelegramBotHandler:
     async def start(self):
         print("Запуск коннектора ТГ!")
         try:
-            await self.client.start(phone=self.phone)  # тут на macOS проблема: какая-то фигня с ткинтером
-            await self.client.send_message(self.tg_bot, "/start")
+            await self.client.connect()
 
+            # Проверяем, авторизован ли уже клиент
+            if not await self.client.is_user_authorized():
+                # Создаем окно для ввода кода подтверждения
+                code_window = tk.Toplevel()
+                code_window.title("Подтверждение Telegram")
+                code_window.geometry("300x150")
+                code_window.resizable(False, False)
+
+                frame = tk.Frame(code_window)
+                frame.place(relx=0.5, rely=0.5, anchor="center")
+
+                code_var = tk.StringVar()
+
+                code_entry = tk.Entry(
+                    frame, textvariable=code_var, width=20, justify="center"
+                )
+                code_entry.pack(pady=10)
+                code_entry.focus()  # Устанавливаем фокус на поле ввода
+
+                code_future = asyncio.Future()
+
+                def submit_code():
+                    if code_var.get().strip():  # Проверяем, что код не пустой
+                        code_future.set_result(code_var.get().strip())
+                        code_window.destroy()
+                    else:
+                        tk.messagebox.showerror("Ошибка", "Введите код подтверждения")
+
+                def on_enter(event):
+                    submit_code()
+
+                code_entry.bind("<Return>", on_enter)  # Добавляем обработку Enter
+
+                submit_button = tk.Button(
+                    frame,
+                    text="Подтвердить",
+                    command=submit_code,
+                    width=15,
+                    relief="flat",
+                )
+                submit_button.pack(pady=15)
+
+                # Ждем код подтверждения
+                try:
+                    await self.client.sign_in(phone=self.phone)
+                    verification_code = await code_future
+                    await self.client.sign_in(phone=self.phone, code=verification_code)
+                except Exception as e:
+                    print(f"Ошибка при вводе кода: {e}")
+                    raise
+
+            await self.client.send_message(self.tg_bot, "/start")
             self.gui.silero_connected.set(True)
-            print("Успешно авторизован!")
-            
+
             if self.tg_bot == "@silero_voice_bot":
                 await asyncio.sleep(0.35)
                 await self.client.send_message(self.tg_bot, "/speaker mita")
