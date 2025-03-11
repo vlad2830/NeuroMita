@@ -322,7 +322,8 @@
 
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
-		<Compile Include="Characters.cs" />
+		<Compile Include="Characters\CharacterControl.cs" />
+		<Compile Include="Characters\Character.cs" />
 		<Compile Include="PlayerControls\PlayerMovement.cs" />
 		<Compile Include="UINeuroMita.cs" />
 		<Compile Include="Settings.cs" />

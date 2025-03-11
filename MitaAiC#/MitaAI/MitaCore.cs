@@ -119,6 +119,14 @@ namespace MitaAI
                 };
 
                 MitaPersonObject.transform.position = Vector3.zero;
+
+                if (MitaPersonObject.GetComponent<Character>() == null)
+                {
+                    var comp = MitaPersonObject.AddComponent<Character>();
+                    comp.init(character);
+                }
+
+
                 MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
 
                 if (MitaLook.forwardPerson == null)
@@ -317,7 +325,7 @@ namespace MitaAI
         //private readonly object waitForSoundsLock = new object();
 
         public string playerMessage = "";
-        public character playerMessageCharacter = character.None;
+        public List<character> playerMessageCharacters = new List<character>();
 
         public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
         Queue<(string, character)> systemInfos = new Queue<(string, character)>();
@@ -579,6 +587,10 @@ namespace MitaAI
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             CrazyObject = MitaObject;
+
+            var comp = MitaPersonObject.AddComponent<Character>();
+            comp.init(MitaCore.character.Crazy);
+
             currentCharacter = character.Crazy;
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
@@ -868,32 +880,43 @@ namespace MitaAI
         {
             //MelonLogger.Msg("HandleDialogue");
 
-
+            string playerText = playerMessage;
+            playerMessage = "";
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
             string info = "-";
             character characterToWas = character.None;
             character characterToSend = currentCharacter;
+            List<character> Characters = playerMessageCharacters;
+
 
             float currentTime = Time.unscaledTime;
             if (currentTime - lastActionTime > actionCooldown)
             {
                 //MelonLogger.Msg("Ready to send");
-                if (playerMessage != "")
+                if (playerText != "")
                 {
                     LoggerInstance.Msg("HAS playerMessage");
-                    
-                    if (  playerMessageCharacter.ToString().Contains("Cart"))
-                    {
-                        characterToSend = playerMessageCharacter;
+
+
+                    if (Characters.Count > 0) { 
+                            if (Characters.First().ToString().Contains("Cart"))
+                            {
+                                characterToSend = Characters.First();
+                            }
+                            else
+                            {
+                                MitaBoringtimer = 0f;
+                            }
+
+
+                        sendInfoListeners(playerText, Characters, characterToSend);
+
                     }
-                    else
-                    {
-                        MitaBoringtimer = 0f;
-                    }
-                    
-                    dataToSent = playerMessage;
-                    playerMessage = "";
+
+
+                    dataToSent = playerText;
+                    playerText = "";
                     lastActionTime = Time.unscaledTime;
                 }
                 else if (systemMessages.Count > 0)
@@ -917,7 +940,10 @@ namespace MitaAI
                             sendSystemMessage(message.Item1, characterToSend);
                             break;
                         }
+
                     }
+
+
                     lastActionTime = Time.unscaledTime;
 
                 }
@@ -1017,11 +1043,27 @@ namespace MitaAI
 
                 if ( characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response,AudioControl.cartAudioSource));
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
+
+                sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend,characterToSend.ToString());
+                CharacterControl.nextAnswer(Utils.CleanFromTags(response),characterToSend, string.IsNullOrEmpty(playerText));
             }
             
 
 
         }
+        public void sendInfoListeners(string message,List<character> characters, character exluding, string from = "Игрок")
+        {
+
+            foreach (character character in characters)
+            {
+                if (character != exluding)
+                {
+                    sendSystemInfo($"{from} сказал: {message} по направлению к персонажу {exluding}", character);
+                }
+            }
+        }
+
+
         public void prepareForSend()
         {
             try

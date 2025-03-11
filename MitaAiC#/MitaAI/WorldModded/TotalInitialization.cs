@@ -86,6 +86,10 @@ namespace MitaAI
         {
             GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
             MitaCore.Instance.cartridgeReader = console;
+
+            var comp = console.AddComponent<Character>();
+            comp.init_cartridge();
+
             AudioControl.cartAudioSource = console.AddComponent<AudioSource>();
 
             ObjectInteractive objectInteractive = console.GetComponent<ObjectInteractive>();
@@ -442,7 +446,10 @@ namespace MitaAI
                 MelonLogger.Msg($"Object found: {world.name}");
 
                 MitaCore.CappyObject = GameObject.Instantiate(Utils.TryfindChild(world, "Acts/Mita Кепка"), MitaCore.worldHouse);
+
+
                 MitaCore.KindObject = GameObject.Instantiate(Utils.TryfindChild(world, "Acts/Mita Добрая"), MitaCore.worldHouse);
+
 
                 world.gameObject.SetActive(false);
                 
