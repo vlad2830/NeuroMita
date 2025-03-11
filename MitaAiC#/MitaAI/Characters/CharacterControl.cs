@@ -38,7 +38,7 @@ namespace MitaAI
                 
                 if (!character.enabled) continue;
 
-                float distance = 15f;
+                float distance = 20f;
                 if (character.isCartdige) distance = 5f;
 
                 
@@ -48,6 +48,8 @@ namespace MitaAI
 
                 if (factDistance <= distance)
                 {
+
+                    MelonLogger.Msg($"{character.character} added to actibe Characters");
                     activeCharacters.Add(character);
                 }
             }
@@ -102,9 +104,9 @@ namespace MitaAI
 
             // Добавляем отправителя в список говорящих
             speakersWere.Add(from);
-
+            characters.Remove(from);
             // Удаляем из characters всех, кто уже говорил
-            characters.RemoveAll(character => speakersWere.Contains(character));
+            // characters.RemoveAll(character => speakersWere.Contains(character));
 
             // Если больше некому отвечать
             if (characters.Count <= 0)
@@ -126,7 +128,7 @@ namespace MitaAI
                 }
 
                 // Отправляем сообщение и добавляем получателя в список говорящих
-                MitaCore.Instance.sendSystemMessage($"{from} said: {response}", character);
+                MitaCore.Instance.sendSystemMessage($"[SPEAKER] {from} said: <{response}>", character);
                 speakersWere.Add(character);
             }
             else
@@ -137,6 +139,10 @@ namespace MitaAI
             }
         }
 
-
+        public static string extendCharsString(MitaCore.character character)
+        {
+            if (character.ToString().Contains("Cart")) return $"{character} (cartridge)";
+            else return $"{character} (Mita)";
+        }
     }
 }

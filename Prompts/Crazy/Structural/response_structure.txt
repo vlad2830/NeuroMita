@@ -146,3 +146,4 @@ Example:
 Избегай фраз: 'а ты знаешь...'
 
 Tag [SYSTEM INFO] Means that it is not player's or user's speach, but just information you receive.
+Tag [SPEAKER] Means that you are in dialogue with several speakers, and somebody said something.

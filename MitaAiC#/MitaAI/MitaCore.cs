@@ -12,6 +12,7 @@ using MitaAI.Mita;
 using MitaAI.PlayerControls;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.Networking.Match;
 
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
@@ -1044,21 +1045,41 @@ namespace MitaAI
                 if ( characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response,AudioControl.cartAudioSource));
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
 
-                sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend,characterToSend.ToString());
-                CharacterControl.nextAnswer(Utils.CleanFromTags(response),characterToSend, string.IsNullOrEmpty(playerText));
+                sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend, CharacterControl.extendCharsString(characterToSend));
+
+                //Тестово
+                MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
+
+                
+
             }
             
 
 
         }
+
+        IEnumerator testNextAswer(string response, character currentCharacter, string playerText = "")
+        {
+            yield return new WaitForSeconds(2);
+            while (dialogActive)
+            {
+                yield return null;
+            }
+
+            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter, string.IsNullOrEmpty(playerText));
+        }
+
+
         public void sendInfoListeners(string message,List<character> characters, character exluding, string from = "Игрок")
         {
+
+            string charName = CharacterControl.extendCharsString(exluding);
 
             foreach (character character in characters)
             {
                 if (character != exluding)
                 {
-                    sendSystemInfo($"{from} сказал: {message} по направлению к персонажу {exluding}", character);
+                    sendSystemInfo($"[SPEAKER] : {from} said: {message} and was answered by {charName}", character);
                 }
             }
         }
@@ -1357,7 +1378,8 @@ namespace MitaAI
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
                 yield return MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
-         
+            
+
         }
 
         private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
@@ -1376,6 +1398,9 @@ namespace MitaAI
             }
             if (!itIsWaitingDialogue && CommandProcessor.ContinueCounter > 0) CommandProcessor.ContinueCounter = CommandProcessor.ContinueCounter - 1;
             InputControl.BlockInputField(false);
+
+
+            
         }
 
 
