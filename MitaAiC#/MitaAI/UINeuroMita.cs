@@ -217,8 +217,7 @@ namespace MitaAI
             catch (Exception e) { MelonLogger.Error(e); }
 
             }
-
-
+            
 
             Il2CppSystem.Collections.Generic.List<RectTransform> list = new Il2CppSystem.Collections.Generic.List<RectTransform>();
             for (int i = 0; i < StartMenuObject.transform.childCount; i++)
@@ -238,6 +237,59 @@ namespace MitaAI
             Back.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(Back, Back.name);
 
         }
+
+        static void ReplaceButtonWithInputField(GameObject buttonToReplace, string inputFieldName, Vector3 positionOffset)
+        {
+            try
+            {
+                // Деактивируем кнопку
+                buttonToReplace.SetActive(false);
+
+                // Создаем новый InputField
+                GameObject inputFieldObject = new GameObject(inputFieldName);
+                inputFieldObject.transform.SetParent(buttonToReplace.transform.parent);
+                inputFieldObject.transform.position = buttonToReplace.transform.position;
+                inputFieldObject.transform.rotation = buttonToReplace.transform.rotation;
+                inputFieldObject.transform.localPosition += positionOffset;
+
+                // Добавляем компонент InputField
+                InputField inputField = inputFieldObject.AddComponent<InputField>();
+
+                // Создаем Text для отображения текста в InputField
+                GameObject textObject = new GameObject("Text");
+                textObject.transform.SetParent(inputFieldObject.transform);
+                Text textComponent = textObject.AddComponent<Text>();
+                textComponent.text = "Введите текст...";
+                textComponent.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                textComponent.color = Color.black;
+                textComponent.alignment = TextAnchor.MiddleLeft;
+
+                // Настраиваем RectTransform для Text
+                RectTransform textRectTransform = textObject.GetComponent<RectTransform>();
+                textRectTransform.anchorMin = Vector2.zero;
+                textRectTransform.anchorMax = Vector2.one;
+                textRectTransform.offsetMin = new Vector2(10, 0);
+                textRectTransform.offsetMax = new Vector2(-10, 0);
+
+                // Настраиваем InputField
+                inputField.textComponent = textComponent;
+                inputField.placeholder = textComponent; // Можно создать отдельный Text для placeholder, если нужно
+
+                // Настраиваем RectTransform для InputField
+                RectTransform inputFieldRectTransform = inputFieldObject.GetComponent<RectTransform>();
+                inputFieldRectTransform.sizeDelta = new Vector2(160, 30); // Размер поля ввода
+
+                // Настраиваем событие, если нужно
+                //inputField.onValueChanged.AddListener((UnityAction)OnEventTriggered));
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Error(e);
+            }
+        }
+        
+
+
         static public void MenuEventsCases(string eventName){
             MelonLogger.Msg($"MenuEventsCases: {eventName}");
 
