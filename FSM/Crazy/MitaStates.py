@@ -25,23 +25,34 @@ logger.addHandler(handler)
 
 
 class MitaHelloState(BaseState):
-    ...
+    """Самое первое состояние, когда Мита встречает игрока"""
+
+    def on_enter(self) -> None:
+        logger.info("MitaHelloState: on_enter")
+
+    def on_exit(self) -> None:
+        logger.info("MitaHelloState: on_exit")
+
+    def handle_event(self, event: MitaEvents | PlayerEvents) -> BaseState:
+        if event == PlayerEvents.TOUCH_LAPTOP:
+            return MitaMurderState(["Игрок тронул терминал", "Ты хочешь убить его за это"])
+        elif event == PlayerEvents.KISS_MITA:
+            return MitaDefaultState(["Игрок поцеловал Миту", "Посмотри на обстановку и подумай, что делать"])
+        return self
 
 
 class MitaMurderState(BaseState):
     """Состояние для убийства игрока"""
 
     def on_enter(self) -> None:
-        # await MitaAction.execute()
         logger.info("MitaMurderState: on_enter")
 
     def on_exit(self) -> None:
-        # await MitaAction.execute()
         logger.info("MitaMurderState: on_exit")
 
     def handle_event(self, event: MitaEvents | PlayerEvents) -> BaseState:
         if event == MitaEvents.MitaKilledPlayer:
-            return MitaDefaultState()
+            return MitaDefaultState(["Ты убила игрока", "Ты хочешь мирно существовать"])
         return self
 
 
@@ -56,5 +67,5 @@ class MitaDefaultState(BaseState):
 
     def handle_event(self, event: MitaEvents | PlayerEvents) -> BaseState:
         if event in [PlayerEvents.TOUCH_LOCKBOX_BUTTON, PlayerEvents.TOUCH_LAPTOP, PlayerEvents.TRY_TO_KILL_MITA]:
-            return MitaMurderState()
+            return MitaMurderState([f"Игрок совершил действие: {event}", "Ты хочешь убить его за это"])
         return self

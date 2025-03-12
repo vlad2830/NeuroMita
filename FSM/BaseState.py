@@ -8,7 +8,7 @@ from Events.PlayerEvents import PlayerEvents
 class BaseState(ABC):
     """Абстрактный класс для состояний"""
 
-    def __init__(self, prompts: list = None, sub_fsm=None):
+    def __init__(self, prompts: list, sub_fsm=None):
         self._prompts = prompts
         self._sub_fsm = sub_fsm
 
