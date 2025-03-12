@@ -15,7 +15,7 @@ namespace MitaAI
 {
     public static class UINeuroMita
     {
-        static bool InludeNewMita_TEST = false;
+        static bool InludeNewMita_TEST = true;
 
 
         static GameObject MenuObject;

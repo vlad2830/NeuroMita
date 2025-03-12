@@ -1048,7 +1048,7 @@ namespace MitaAI
                 sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend, CharacterControl.extendCharsString(characterToSend));
 
                 //Тестово
-                MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
+                //MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
 
                 
 

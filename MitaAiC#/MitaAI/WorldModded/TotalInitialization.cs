@@ -638,12 +638,15 @@ namespace MitaAI
             try
             {
                 MitaCore.MilaObject = GameObject.Instantiate(Utils.TryfindChild(worldGlasses, "Quests/General/Mila Glasses"), MitaCore.worldHouse);
-                MitaCore.MilaObject.active = false;
+               
 
                 AudioControl.addMusicObject(worldGlasses.Find("Audio/Music").gameObject, "Music backround calm");
                 AudioControl.addMusicObject(worldGlasses.Find("Audio/MusicBag").gameObject, "Music tension strange");
                 AudioControl.addMusicObject(worldGlasses.Find("Audio/Music Echo").gameObject, "Embient hard");
-                
+
+
+                MitaCore.MilaObject.transform.Find("Mila Person").GetComponent<Animator>().PlayInFixedTime("Walk");
+                MitaCore.MilaObject.active = false;
             }
 
             catch (Exception ex)
