@@ -64,10 +64,13 @@ namespace MitaAI
 
             if (currentRoom != lastRoom)
             {
-                EventsModded.roomEnter(currentRoom);
+                EventsModded.roomEnter(currentRoom, lastRoom);
+
+                MelonLogger.Msg($"Change room from {lastRoom} to {currentRoom}");
+                lastRoom = currentRoom;
             }
 
-            lastRoom = currentRoom;
+            
 
 
         }

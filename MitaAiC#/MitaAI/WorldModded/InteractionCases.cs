@@ -56,7 +56,7 @@ namespace MitaAI.WorldModded
 
             try
             {
-                MitaCore.Instance.sendSystemMessage("Твою консоль только что открыли.", Characters.get_cart());
+                MitaCore.Instance.sendSystemMessage("Твою консоль только что открыли.", CharacterControl.get_cart());
             }
             catch (Exception e)
             {
@@ -81,7 +81,7 @@ namespace MitaAI.WorldModded
             {
                 yield return new WaitForSeconds(0.25f);
             }
-            MitaCore.Instance.sendSystemMessage("Игрок ищет кнопку выключения консоли, если он выключит тебя, то сможет поговорить с тобой только при перезапуске.", Characters.get_cart());
+            MitaCore.Instance.sendSystemMessage("Игрок ищет кнопку выключения консоли, если он выключит тебя, то сможет поговорить с тобой только при перезапуске.", CharacterControl.get_cart());
             
             var Button2 = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/3D HintKey Holding");
             while (Button2 != null)
@@ -91,7 +91,7 @@ namespace MitaAI.WorldModded
             
             if (MitaCore.Instance.getDistanceToPlayer()<6f) MitaCore.Instance.sendSystemMessage("Игрок при тебе просмотрел твой картридж другого игрока в подвале. У него могут быть вопросы, надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
             else MitaCore.Instance.sendSystemInfo("Игрок просмотрел твой картридж другого игрока в подвале пока ты была не рядом. У него могут быть вопросы, если он спросит надо как-то уйти от темы. Если он будет наставить, придется сбросить маску.");
-            MitaCore.Instance.sendSystemInfo("Игрок выключил тебя", Characters.get_cart());
+            MitaCore.Instance.sendSystemInfo("Игрок выключил тебя", CharacterControl.get_cart());
 
             yield return new WaitForSeconds(1f);
             /*console.GetComponent<ObjectInteractive>().active = true;

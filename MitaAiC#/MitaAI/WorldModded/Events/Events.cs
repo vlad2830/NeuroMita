@@ -13,6 +13,8 @@ namespace MitaAI
 {
     public static class EventsModded
     {
+        static bool DisableEvents = false;
+
         static float lastEventTime = 0f;
         static float timeBeetweenEvents = 30f;
 
@@ -121,7 +123,9 @@ namespace MitaAI
         // Если долго на что-то смотрит
         public static void LongWatching(string objectName,float time)
         {
-            if (TimeBlock("LongWatching", 30f)) return;
+            if (DisableEvents) return;
+
+            if (TimeBlock("LongWatching", 40f)) return;
             MelonLogger.Msg("Event LongWatching");
 
 
@@ -144,8 +148,10 @@ namespace MitaAI
         }
 
         // Зашел в комнату
-        public static void roomEnter(MitaCore.Rooms room)
+        public static void roomEnter(MitaCore.Rooms room, MitaCore.Rooms lastRoom)
         {
+            if (DisableEvents) return;
+
             MelonLogger.Msg($"Event roomEnter {room}");
 
             if (room == MitaCore.Rooms.Unknown) return;
@@ -153,7 +159,8 @@ namespace MitaAI
             bool isInfo = TimeBlock("roomEnter", 15f);
 
             MitaCore.Rooms mitaRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.MitaPersonObject.transform);
-            string message = $"Игрок только что зашел в {room}, а ты находишься в {mitaRoom}";
+            string message = $"Игрок только что перешел комнаты в {room} из комнаты {lastRoom}, а ты сейчас находишься в комнате {mitaRoom}. " +
+                $"Реагируй резко, только если это обоснованно, в общем случае можешь это не заметить или продолжить по теме разговора";
             
             //if (mitaRoom != room) message += $"";
 

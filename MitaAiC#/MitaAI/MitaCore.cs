@@ -12,6 +12,7 @@ using MitaAI.Mita;
 using MitaAI.PlayerControls;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.Networking.Match;
 
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
@@ -119,6 +120,14 @@ namespace MitaAI
                 };
 
                 MitaPersonObject.transform.position = Vector3.zero;
+
+                if (MitaPersonObject.GetComponent<Character>() == null)
+                {
+                    var comp = MitaPersonObject.AddComponent<Character>();
+                    comp.init(character);
+                }
+
+
                 MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
 
                 if (MitaLook.forwardPerson == null)
@@ -317,7 +326,7 @@ namespace MitaAI
         //private readonly object waitForSoundsLock = new object();
 
         public string playerMessage = "";
-        public character playerMessageCharacter = character.None;
+        public List<character> playerMessageCharacters = new List<character>();
 
         public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
         Queue<(string, character)> systemInfos = new Queue<(string, character)>();
@@ -351,7 +360,7 @@ namespace MitaAI
 
 
 
-        private const float MitaBoringInterval = 70f;
+        private const float MitaBoringInterval = 90f;
         private float MitaBoringtimer = 0f;
 
         bool manekenGame = false;
@@ -528,7 +537,7 @@ namespace MitaAI
         public enum Rooms
         {
             Kitchen = 0,
-            Main = 1,
+            MainHall = 1,
             Bedroom = 2,
             Toilet = 3,
             Basement = 4,
@@ -554,6 +563,8 @@ namespace MitaAI
             float posZ = position.z;
             float posY = position.y;
 
+            if (Utils.getDistanceBetweenObjects(worldHouse.gameObject,playerPersonObject)>50f) return Rooms.Unknown;
+
             if (posY <= -0.1f)
                 return Rooms.Basement;
 
@@ -561,7 +572,7 @@ namespace MitaAI
                 return posZ >= 0 ? Rooms.Kitchen : Rooms.Bedroom;
 
             if (posX > -4f && posX < 5f)
-                return Rooms.Main;
+                return Rooms.MainHall;
 
             if (posX > -11.0f && posX < -4.3f)
                 return Rooms.Toilet;
@@ -577,6 +588,10 @@ namespace MitaAI
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             CrazyObject = MitaObject;
+
+            var comp = MitaPersonObject.AddComponent<Character>();
+            comp.init(MitaCore.character.Crazy);
+
             currentCharacter = character.Crazy;
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
@@ -866,32 +881,43 @@ namespace MitaAI
         {
             //MelonLogger.Msg("HandleDialogue");
 
-
+            string playerText = playerMessage;
+            playerMessage = "";
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
             string info = "-";
             character characterToWas = character.None;
             character characterToSend = currentCharacter;
+            List<character> Characters = playerMessageCharacters;
+
 
             float currentTime = Time.unscaledTime;
             if (currentTime - lastActionTime > actionCooldown)
             {
                 //MelonLogger.Msg("Ready to send");
-                if (playerMessage != "")
+                if (playerText != "")
                 {
                     LoggerInstance.Msg("HAS playerMessage");
-                    
-                    if (  playerMessageCharacter.ToString().Contains("Cart"))
-                    {
-                        characterToSend = playerMessageCharacter;
+
+
+                    if (Characters.Count > 0) { 
+                            if (Characters.First().ToString().Contains("Cart"))
+                            {
+                                characterToSend = Characters.First();
+                            }
+                            else
+                            {
+                                MitaBoringtimer = 0f;
+                            }
+
+
+                        sendInfoListeners(playerText, Characters, characterToSend);
+
                     }
-                    else
-                    {
-                        MitaBoringtimer = 0f;
-                    }
-                    
-                    dataToSent = playerMessage;
-                    playerMessage = "";
+
+
+                    dataToSent = playerText;
+                    playerText = "";
                     lastActionTime = Time.unscaledTime;
                 }
                 else if (systemMessages.Count > 0)
@@ -915,14 +941,17 @@ namespace MitaAI
                             sendSystemMessage(message.Item1, characterToSend);
                             break;
                         }
+
                     }
+
+
                     lastActionTime = Time.unscaledTime;
 
                 }
                 else if (MitaBoringtimer >= MitaBoringInterval && mitaState == MitaState.normal)
                 {
                     MitaBoringtimer = 0f;
-                    dataToSentSystem = "boring";
+                    dataToSentSystem = "Player did nothing for 90 seconds";
                     lastActionTime = Time.unscaledTime;
                 }
             }
@@ -1015,11 +1044,47 @@ namespace MitaAI
 
                 if ( characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response,AudioControl.cartAudioSource));
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
+
+                sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend, CharacterControl.extendCharsString(characterToSend));
+
+                //Тестово
+                MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
+
+                
+
             }
             
 
 
         }
+
+        IEnumerator testNextAswer(string response, character currentCharacter, string playerText = "")
+        {
+            yield return new WaitForSeconds(2);
+            while (dialogActive)
+            {
+                yield return null;
+            }
+
+            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter, string.IsNullOrEmpty(playerText));
+        }
+
+
+        public void sendInfoListeners(string message,List<character> characters, character exluding, string from = "Игрок")
+        {
+
+            string charName = CharacterControl.extendCharsString(exluding);
+
+            foreach (character character in characters)
+            {
+                if (character != exluding)
+                {
+                    sendSystemInfo($"[SPEAKER] : {from} said: {message} and was answered by {charName}", character);
+                }
+            }
+        }
+
+
         public void prepareForSend()
         {
             try
@@ -1306,14 +1371,15 @@ namespace MitaAI
                 float delay = modifiedResponse.Length / simbolsPerSecond;
 
                 if (audioSource != null) PlaySound(audioClip, audioSource);
-                else yield return MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
+                MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
 
                 // Запуск диалогов последовательно, с использованием await или вложенных корутин
                 yield return MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
-         
+            
+
         }
 
         private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
@@ -1332,6 +1398,9 @@ namespace MitaAI
             }
             if (!itIsWaitingDialogue && CommandProcessor.ContinueCounter > 0) CommandProcessor.ContinueCounter = CommandProcessor.ContinueCounter - 1;
             InputControl.BlockInputField(false);
+
+
+            
         }
 
 
@@ -1497,15 +1566,16 @@ namespace MitaAI
             textDialogueMemory.text = dialogue_3DText.textPrint;
             if (dialogue_3DText.themeDialogue == Dialogue_3DText.Dialogue3DTheme.Mita)
             {
-                textDialogueMemory.clr = new Color(0.515f, 0f, 1f);
-                textDialogueMemory.clr2 = new Color(0.5f, 0f, 0.9f);
-                textDialogueMemory.clr1 = new Color(1, 1, 1);
+                Color characterColor = GetCharacterTextColor(currentCharacter);
+                textDialogueMemory.clr = characterColor;
+                textDialogueMemory.clr2 = new Color(characterColor.r * 0.9f, characterColor.g * 0.9f, characterColor.b * 0.9f);
+                textDialogueMemory.clr1 = Color.white;
             }
             else
             {
                 textDialogueMemory.clr = new Color(1f, 0.6f, 0f);
                 textDialogueMemory.clr2 = new Color(0.9f, 0.5f, 0f);
-                textDialogueMemory.clr1 = new Color(1, 1, 1);
+                textDialogueMemory.clr1 = Color.white;
             }
             //textDialogueMemory.clr = dialogue_3DText.
             playerController.dialoguesMemory.Add(textDialogueMemory);
@@ -1613,9 +1683,9 @@ namespace MitaAI
 
 
             // Сохраняем исходную позицию и ориентацию Миты
-            Vector3 originalPosition = Mita.transform.position;
-            Quaternion originalRotation = Mita.transform.rotation;
-            Mita.transform.SetPositionAndRotation(new Vector3(500, 500, 500), Quaternion.identity);
+            Vector3 originalPosition = MitaPersonObject.transform.position;
+            Quaternion originalRotation = MitaPersonObject.transform.rotation;
+            MitaPersonObject.transform.SetPositionAndRotation(new Vector3(500, 500, 500), Quaternion.identity);
             yield return new WaitForSeconds(0.1f);
             try
             {
@@ -2163,20 +2233,39 @@ namespace MitaAI
             try
             {
 
-                if (MitaPersonObject != null) info += $"Your game object name is {MitaPersonObject.name}";
+                if (MitaPersonObject != null) info += $"Your game object name is <{MitaPersonObject.name}>\n";
                 info += $"Current movement type: {movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
-                if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!";
-                if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!";
+                if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!\n";
+                if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!\n";
 
                 info += $"Current emotion anim: {currentEmotion}\n";
+
+                try 
+                {
+                    var glasses = MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject;
+                    info += $"Очки: {(glasses.activeSelf ? "надеты" : "сняты")}\n";
+                    // хз что то попробовал ниже но не уверен
+                if (glasses.activeSelf)
+                {
+                    info += "you put on glasses, if you want to take them off use the command remove glasses.\n";
+                }
+                else
+                {
+                    info += "you took off glasses, if you want to put them on use the command put on glasses.\n";
+                }
+                }
+                catch (Exception) { }
+
+                MelonLogger.Msg("CurrentInfo 2");
+
 
                 if (mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
 
                 info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
 
-                if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere";
+                if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere\n";
 
                 info += $"Player size: {playerObject.transform.localScale.x}\n";
                 info += $"Player speed: {playerObject.GetComponent<PlayerMove>().speedPlayer}\n";
@@ -2192,8 +2281,8 @@ namespace MitaAI
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
 
                 info += MitaClothesModded.getCurrentHairColor();
-                if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting";
-                else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>";
+                if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting\n";
+                else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>\n";
 
                 info += PlayerMovement.getPlayerDistance(true);
 
@@ -2248,7 +2337,47 @@ namespace MitaAI
             
         }
 
+        public static Color GetCharacterTextColor(character character)
+        {
+            switch (character)
+            {
+                case character.Crazy:
+                    return new Color(1f, 0.2f, 0.2f); // Красный
+                case character.Cappy:
+                    return new Color(0.2f, 0.8f, 1f); // Голубой
+                case character.Kind:
+                    return new Color(0.2f, 1f, 0.2f); // Зеленый
+                case character.ShortHair:
+                    return new Color(1f, 0.8f, 0.2f); // Золотой
+                case character.Mila:
+                    return new Color(1f, 0.4f, 0.8f); // Розовый
+                case character.Sleepy:
+                    return new Color(0.6f, 0.6f, 1f); // Фиолетовый
+                case character.Creepy:
+                    return new Color(0.8f, 0.2f, 0.8f); // Темно-фиолетовый
+                default:
+                    return Color.white;
+            }
+        }
 
+        public void GlassesObj()
+        {
+            MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject.SetActive(true);
+        }
+
+        public void GlassesObj(bool state)
+        {
+            try 
+            {
+                var glasses = MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject;
+                glasses.SetActive(state);
+                sendSystemInfo(state ? "Очки надеты" : "Очки сняты");
+            }
+            catch (Exception ex)
+            {
+                LoggerInstance.Error($"Ошибка при работе с очками: {ex.Message}");
+            }
+        }
 
     }
 

@@ -957,17 +957,17 @@ class ChatGUI:
             self.model.current_character_to_change = value
 
         elif key == "MODEL_MESSAGE_LIMIT":
-            self.model.memory_limit = value
+            self.model.memory_limit = int(value)
         elif key == "MODEL_MESSAGE_ATTEMPTS_COUNT":
-            self.model.max_request_attempts = value
+            self.model.max_request_attempts = int(value)
         elif key == "MODEL_MESSAGE_ATTEMPTS_TIME":
-            self.model.request_delay = value
+            self.model.request_delay = float(value)
 
         elif key == "gpt4free_model":
             self.model.gpt4free_model = value
 
         elif key == "MIC_ACTIVE":
-            SpeechRecognition.active = value
+            SpeechRecognition.active = bool(value)
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
