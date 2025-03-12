@@ -2,15 +2,15 @@ from abc import ABC, abstractmethod
 
 from Events.MitaEvents import MitaEvents
 from Events.PlayerEvents import PlayerEvents
-from promptPart import PromptPart
+# from promptPart import PromptPart
 
 
 class BaseState(ABC):
     """Абстрактный класс для состояний"""
 
     def __init__(self, prompts: list = None, sub_fsm=None):
-        self.prompts = prompts
-        self.sub_fsm = sub_fsm
+        self._prompts = prompts
+        self._sub_fsm = sub_fsm
 
     @abstractmethod
     def on_enter(self) -> None:
@@ -24,18 +24,17 @@ class BaseState(ABC):
 
     @abstractmethod
     def handle_event(self, event: MitaEvents | PlayerEvents) -> 'BaseState':
-        # if event == MitaEvents.StartHunt:
-        #     return MitaMurderState()
-
         """Обработка событий, возвращает State"""
         pass
 
-    @abstractmethod
     def process_logic(self, message_text):
         """Вычленяет команды из текста, а затем в соответствии с этим реагирует"""
         if self.sub_fsm:
             self.sub_fsm.process_logic(message_text)
         else:
+            # parsed_command = CommandParser.parse(message_text)
+            # if parsed_command:
+            #     self.handle_event(parsed_command)
             pass
 
     def get_prompts_text(self):

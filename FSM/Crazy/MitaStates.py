@@ -1,6 +1,6 @@
-from FSM.BaseState import BaseState
-from FSM.Events.MitaEvents import MitaEvents
-from FSM.Events.PlayerEvents import PlayerEvents
+from BaseState import BaseState
+from Events.MitaEvents import MitaEvents
+from Events.PlayerEvents import PlayerEvents
 #region Logging
 # Настройка логирования
 import logging
@@ -31,15 +31,15 @@ class MitaHelloState(BaseState):
 class MitaMurderState(BaseState):
     """Состояние для убийства игрока"""
 
-    async def on_enter(self) -> None:
+    def on_enter(self) -> None:
         # await MitaAction.execute()
         logger.info("MitaMurderState: on_enter")
 
-    async def on_exit(self) -> None:
+    def on_exit(self) -> None:
         # await MitaAction.execute()
         logger.info("MitaMurderState: on_exit")
 
-    async def handle_event(self, event: MitaEvents | PlayerEvents) -> BaseState:
+    def handle_event(self, event: MitaEvents | PlayerEvents) -> BaseState:
         if event == MitaEvents.MitaKilledPlayer:
             return MitaDefaultState()
         return self
@@ -48,15 +48,13 @@ class MitaMurderState(BaseState):
 class MitaDefaultState(BaseState):
     """Состояние для обычного поведения Миты"""
 
-    async def on_enter(self) -> None:
-        # await MitaAction.execute()
+    def on_enter(self) -> None:
         logger.info("MitaDefaultState: on_enter")
 
-    async def on_exit(self) -> None:
-        # await MitaAction.execute()
+    def on_exit(self) -> None:
         logger.info("MitaDefaultState: on_exit")
 
-    async def handle_event(self, event: MitaEvents | PlayerEvents) -> BaseState:
+    def handle_event(self, event: MitaEvents | PlayerEvents) -> BaseState:
         if event in [PlayerEvents.TOUCH_LOCKBOX_BUTTON, PlayerEvents.TOUCH_LAPTOP, PlayerEvents.TRY_TO_KILL_MITA]:
             return MitaMurderState()
         return self

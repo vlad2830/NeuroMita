@@ -139,10 +139,10 @@ class ChatGUI:
                 return
 
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
-            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone, self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
+            # self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone, self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
             
             try:
-                # await self.bot_handler.start()
+                await self.bot_handler.start()
                 self.bot_handler_ready = True
                 if hasattr(self, 'silero_connected') and self.silero_connected:
                     print("ТГ успешно подключен")
