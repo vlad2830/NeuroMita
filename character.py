@@ -140,7 +140,11 @@ class Character:
         repeated_system_message = f"Time: {formatted_date}."
 
         if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Remember facts for 3 messages by using block <+memory>"
+            repeated_system_message += " Remember facts for 3 messages using block <+memory>"
+        if self.LongMemoryRememberCount % 5 == 0:
+            repeated_system_message += " Update memories if required using block <#memory>"
+        if self.LongMemoryRememberCount % 10 == 0:
+            repeated_system_message += " Delete repeating memories if required using block <-memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 

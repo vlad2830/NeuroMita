@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Transactions;
 using UnityEngine;
 using UnityEngine.AI;
 using static MelonLoader.MelonLogger;
@@ -369,6 +370,79 @@ namespace MitaAI.Mita
             // Удаляем теги эмоций из текста
             return result;
 
+        }
+
+
+        // TODO дать доброй мите
+        public static void Jail(bool Enter)
+        {
+            if (Enter)
+            {
+                try
+                {
+                    // Находим игрока
+                    GameObject player = GameObject.Find("GameController/Player");
+                    if (player != null)
+                    {
+                        // Телепортируем на указанные координаты
+                        player.transform.position = new Vector3(10.8995f, -2.9825f, -10.6286f);
+
+                        // Деактивируем FixPosition так как в клетку не пустит
+                        Transform rightWrist = player.transform.Find("RightWrist FixPosition");
+                        if (rightWrist != null)
+                        {
+                            rightWrist.gameObject.SetActive(false);
+                        }
+
+                        Transform leftWrist = player.transform.Find("LeftWrist FixPosition");
+                        if (leftWrist != null)
+                        {
+                            leftWrist.gameObject.SetActive(false);
+                        }
+
+                        MelonLogger.Msg("Player teleported and wrist positions deactivated");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Error($"Error during Jail Enter handling: {ex}");
+                }
+            }
+
+            else
+            {
+                try
+                {
+                    // Находим игрока
+                    GameObject player = GameObject.Find("GameController/Player");
+                    if (player != null)
+                    {
+                        // Телепортируем на новые координаты
+                        player.transform.position = new Vector3(12.532f, -2.9825f, -10.612f);
+
+                        // Активируем FixPosition
+                        Transform rightWrist = player.transform.Find("RightWrist FixPosition");
+                        if (rightWrist != null)
+                        {
+                            rightWrist.gameObject.SetActive(true);
+                        }
+
+                        Transform leftWrist = player.transform.Find("LeftWrist FixPosition");
+                        if (leftWrist != null)
+                        {
+                            leftWrist.gameObject.SetActive(true);
+                        }
+
+                        MelonLogger.Msg("Player teleported and wrist positions activated");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Error($"Error during Jail Leave handling: {ex}");
+                }
+            }
+
+           
         }
 
     }

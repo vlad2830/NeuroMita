@@ -988,7 +988,8 @@ namespace MitaAI
 
 
 
-            float timeout = 20f;     // Лимит времени ожидания
+            float timeout = 40f;     // Лимит времени ожидания
+            float waitMessageTimer = 0.5f;
             float elapsedTime = 0f; // Счетчик времени
             float lastCallTime = 0f; // Время последнего вызова
 
@@ -1003,7 +1004,7 @@ namespace MitaAI
                 }
 
                 //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                if (elapsedTime - lastCallTime >= 0.6f)
+                if (elapsedTime - lastCallTime >= waitMessageTimer)
                 {
                     try
                     {
@@ -1298,7 +1299,8 @@ namespace MitaAI
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
 
             float elapsedTime = 0f; // Счетчик времени
-            float timeout = 20f;     // Лимит времени ожидания
+            float timeout = 30f;     // Лимит времени ожидания
+            float waitingTimer = 0.5f;
             float lastCallTime = 0f; // Время последнего вызова
 
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -1313,7 +1315,7 @@ namespace MitaAI
                 }
 
 
-                if (elapsedTime - lastCallTime >= 0.6f)
+                if (elapsedTime - lastCallTime >= waitingTimer)
                 {
                     //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
                     List<String> parts = new List<String> { "***" };
@@ -1450,6 +1452,8 @@ namespace MitaAI
 
             answer.textPrint = modifiedPart;
             answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Mita;
+            changeTextColor(currentDialog);
+
             answer.timeShow = delay;
             answer.speaker = MitaPersonObject;
 
@@ -1467,7 +1471,22 @@ namespace MitaAI
 
         }
 
-        private IEnumerator PlayMitaSound(float delay, AudioClip audioClip, int len)
+        void changeTextColor(GameObject currentDialog)
+        {
+            if (currentCharacter == character.Crazy) return;
+
+            Color characterColor = GetCharacterTextColor(currentCharacter);
+            var textMesh = currentDialog.GetComponentInChildren<Text>();
+            if (textMesh != null)
+            {
+                textMesh.color = characterColor;
+            }
+        }
+
+
+
+
+    private IEnumerator PlayMitaSound(float delay, AudioClip audioClip, int len)
         {
             LoggerInstance.Msg("PlayMitaSound");
 
