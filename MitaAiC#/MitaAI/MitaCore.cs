@@ -1567,9 +1567,9 @@ namespace MitaAI
             if (dialogue_3DText.themeDialogue == Dialogue_3DText.Dialogue3DTheme.Mita)
             {
                 Color characterColor = GetCharacterTextColor(currentCharacter);
-                textDialogueMemory.clr = characterColor;
+                textDialogueMemory.clr = Color.white;
                 textDialogueMemory.clr2 = characterColor;
-                textDialogueMemory.clr1 = color.write;
+                textDialogueMemory.clr1 = Color.white;
             }
             else
             {
