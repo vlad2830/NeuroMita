@@ -6,6 +6,8 @@ from BaseState import BaseState
 import logging
 import colorlog
 
+from Stages.BaseStage import BaseStage
+
 # Настройка цветного логирования
 handler = colorlog.StreamHandler()
 handler.setFormatter(colorlog.ColoredFormatter(
@@ -28,8 +30,9 @@ logger.addHandler(handler)
 
 class FiniteStateMachine:
 
-    def __init__(self, initial_state: BaseState):
+    def __init__(self, initial_state: BaseState, initial_stage: BaseStage):
         self.current_state = initial_state
+        self.current_stage = initial_stage
 
     def _set_state(self, state: BaseState) -> None:
         """Выполнить переход к указанному состоянию"""
@@ -46,6 +49,9 @@ class FiniteStateMachine:
         """Обработать событие"""
         new_state = self.current_state.handle_event(event)
         if new_state is not None and new_state != self.current_state:
+            if not new_state.__class__ in self.current_stage.get_available_states():
+                logger.error(f"{new_state.__class__.__name__} не входит в допустимые состояния для этапа {self.current_stage.__class__.__name__}")
+                return
             logger.info(f"Переход из {self.current_state.__class__.__name__} в {new_state.__class__.__name__}")
             self._set_state(new_state)
 

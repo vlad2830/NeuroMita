@@ -28,3 +28,4 @@ class PlayerEvents(Enum):
 
     # Прочие события
     TRY_TO_KILL_MITA = auto()
+    KISS_MITA = auto()
