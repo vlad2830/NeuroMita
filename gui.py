@@ -4,6 +4,8 @@ from server import ChatServer
 
 from Silero import TelegramBotHandler
 
+import gettext
+
 import os
 import base64
 from pathlib import Path
@@ -21,6 +23,10 @@ from utils import SH
 import sounddevice as sd
 from SpeechRecognition import SpeechRecognition
 
+gettext.bindtextdomain('NeuroMita', '/Translation')
+gettext.textdomain('NeuroMita')
+_ = gettext.gettext
+_ = str # Временно пока чтобы не падало
 
 class ChatGUI:
     def __init__(self):
