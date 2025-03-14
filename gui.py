@@ -854,7 +854,7 @@ class ChatGUI:
 
         tk.Label(
             mic_frame,
-            text="Микрофон:",
+            text=_("Микрофон:"),
             bg="#2c2c2c",
             fg="#ffffff"
         ).pack(side=tk.LEFT, padx=5)
