@@ -298,19 +298,68 @@ class ChatGUI:
         # Второй столбец
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
+        
+        # Создаем канвас и скроллбар для правой секции
+        right_canvas = tk.Canvas(right_frame, bg="#2c2c2c", highlightthickness=0)
+        right_scrollbar = ttk.Scrollbar(right_frame, orient="vertical", command=right_canvas.yview)
+        
+        # Настраиваем скроллбар и канвас
+        right_canvas.configure(yscrollcommand=right_scrollbar.set)
+        right_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        right_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Создаем фрейм внутри канваса для размещения всех элементов
+        settings_frame = tk.Frame(right_canvas, bg="#2c2c2c")
+        settings_frame_window = right_canvas.create_window((0, 0), window=settings_frame, anchor="nw", tags="settings_frame")
+        
+        # Настраиваем изменение размера канваса при изменении размера фрейма
+        def configure_scroll_region(event):
+            right_canvas.configure(scrollregion=right_canvas.bbox("all"))
+        
+        settings_frame.bind("<Configure>", configure_scroll_region)
+        
+        # Настраиваем изменение ширины фрейма при изменении ширины канваса
+        def configure_frame_width(event):
+            right_canvas.itemconfig(settings_frame_window, width=event.width)
+        
+        right_canvas.bind("<Configure>", configure_frame_width)
+        
+        # Настраиваем прокрутку колесиком мыши
+        def _on_mousewheel(event):
+            # Определяем направление прокрутки в зависимости от платформы
+            if hasattr(event, 'num') and event.num in (4, 5):
+                # Linux
+                delta = -1 if event.num == 4 else 1
+            elif hasattr(event, 'delta'):
+                # Windows и macOS
+                # На macOS delta обычно больше, поэтому нормализуем
+                if event.delta > 100 or event.delta < -100:
+                    # macOS, где delta может быть большим числом
+                    delta = -1 if event.delta > 0 else 1
+                else:
+                    # Windows, где delta обычно кратна 120
+                    delta = -1 if event.delta > 0 else 1
+            else:
+                return
+                
+            right_canvas.yview_scroll(delta, "units")
+        
+        # Привязываем события прокрутки для разных платформ
+        right_canvas.bind_all("<MouseWheel>", _on_mousewheel)  # Windows и macOS
+        right_canvas.bind_all("<Button-4>", _on_mousewheel)    # Linux (прокрутка вверх)
+        right_canvas.bind_all("<Button-5>", _on_mousewheel)    # Linux (прокрутка вниз)
 
-        self.setup_microphone_controls(right_frame)
-
-        self.setup_silero_controls(right_frame)
-        self.setup_mita_controls(right_frame)
-        self.setup_model_controls(right_frame)
-        self.setup_common_controls(right_frame)
-        # Передаем right_frame как родителя
-        self.setup_status_indicators(right_frame)
+        self.setup_microphone_controls(settings_frame)
+        self.setup_silero_controls(settings_frame)
+        self.setup_mita_controls(settings_frame)
+        self.setup_model_controls(settings_frame)
+        self.setup_common_controls(settings_frame)
+        # Передаем settings_frame как родителя
+        self.setup_status_indicators(settings_frame)
 
         # Настройка элементов управления
         # Создаем контейнер для всех элементов управления
-        self.controls_frame = tk.Frame(right_frame, bg="#2c2c2c")
+        self.controls_frame = tk.Frame(settings_frame, bg="#2c2c2c")
         self.controls_frame.pack(fill=tk.X, pady=3)
 
         # Настройка элементов управления
@@ -319,9 +368,9 @@ class ChatGUI:
         #self.setup_control("Стресс", "stress", self.model.stress)
         #self.setup_secret_control()
 
-        self.setup_history_controls(right_frame)
-        self.setup_debug_controls(right_frame)
-        self.setup_api_controls(right_frame)
+        self.setup_history_controls(settings_frame)
+        self.setup_debug_controls(settings_frame)
+        self.setup_api_controls(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
 
@@ -877,8 +926,11 @@ class ChatGUI:
             width=2
         )
         refresh_btn.pack(side=tk.LEFT, padx=5)
-
-        self.create_setting_widget(mic_frame, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton',
+        
+        # вот это мне не оч нравится, как-то кривовато, но ок
+        mic_frame_2 = tk.Frame(parent, bg="#2c2c2c")
+        mic_frame_2.pack(fill=tk.X, pady=5)
+        self.create_setting_widget(mic_frame_2, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton',
                                    default_checkbutton=False)
 
         self.create_setting_widget(parent, 'Мгновенная отправка', "MIC_INSTANT_SENT", widget_type='checkbutton',
@@ -1135,6 +1187,14 @@ class ChatGUI:
         self.root.mainloop()
 
     def on_closing(self):
+        # Отвязываем события прокрутки перед закрытием
+        try:
+            self.root.unbind_all("<MouseWheel>")
+            self.root.unbind_all("<Button-4>")
+            self.root.unbind_all("<Button-5>")
+        except:
+            pass
+            
         self.delete_all_sound_files()
         self.stop_server()
         print("Закрываемся")
