@@ -140,7 +140,11 @@ class Character:
         repeated_system_message = f"Time: {formatted_date}."
 
         if self.LongMemoryRememberCount % 3 == 0:
-            repeated_system_message += " Remember facts for 3 messages by using block <+memory>"
+            repeated_system_message += " Remember facts for 3 messages using block <+memory>"
+        if self.LongMemoryRememberCount % 5 == 0:
+            repeated_system_message += " Update memories for 5 messages using block <#memory>"
+        if self.LongMemoryRememberCount % 10 == 0:
+            repeated_system_message += " Delete repeating memories if required using block <-memory>"
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -239,6 +243,7 @@ class Character:
 
         return response
 
+    #region History
     def load_history(self):
         data = self.history_manager.load_history()
 
@@ -269,6 +274,8 @@ class Character:
         self.memory_system.clear_memories()
         self.history_manager.clear_history()
         self.load_history()
+
+    #endregion
 
     def current_variables(self):
         return {
@@ -310,6 +317,12 @@ class Character:
     def get_path(self, path):
         return f"Prompts/{self.name}/{path}"
 
+    def append_common_prompts(self, promts):
+        """Добавляет к списку необходимых промптов общие"""
+
+        promts.append(PromptPart(PromptType.FIXED_START, "Prompts/Common/Security.txt"))
+        promts.append(PromptPart(PromptType.FIXED_START, "Prompts/Common/None.txt", stride=-1))
+
 
 class CrazyMita(Character):
 
@@ -329,8 +342,7 @@ class CrazyMita(Character):
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = "Prompts/Common/Security.txt"
-        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+        self.append_common_prompts(Prompts)
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
@@ -379,7 +391,7 @@ class CrazyMita(Character):
         self.secretExposedFirst = variables.get("secret_first", False)
         return data
 
-    def process_logic(self,messages : dict= None):
+    def process_logic(self, messages: dict = None):
         # Логика для поведения при игре с игроком
         if self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
             self._start_playing_with_player()
@@ -458,8 +470,7 @@ class KindMita(Character):
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = "Prompts/Common/Security.txt"
-        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+        self.append_common_prompts(Prompts)
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
@@ -486,15 +497,14 @@ class ShortHairMita(Character):
         self.mita_prompts()
 
         self.secretExposed = False
-        self.secretExposedFirst = False   
+        self.secretExposedFirst = False
 
     def mita_prompts(self):
         Prompts = []
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = "Prompts/Common/Security.txt"
-        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+        self.append_common_prompts(Prompts)
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
@@ -514,7 +524,7 @@ class ShortHairMita(Character):
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
-        
+
     #TODO Секрет Коротковолосой миты
     def process_logic(self, messages: dict = None):
         # Логика для раскрытия секрета
@@ -552,7 +562,7 @@ class ShortHairMita(Character):
             response = response.replace("<Secret!>", "")
 
         return response
-    
+
     def current_variables(self):
         return {
             "role": "system",
@@ -561,8 +571,8 @@ class ShortHairMita(Character):
                         f"Скука: {self.boredom}/100."
                         f"Стресс: {self.stress}/100."
                         f"Состояние секрета: {self.secretExposed}")
-                }
-    
+        }
+
     def current_variables_string(self) -> str:
         characteristics = {
             "Отношение": self.attitude,
@@ -588,19 +598,17 @@ class CappyMita(Character):
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = "Prompts/Common/Security.txt"
-        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+        self.append_common_prompts(Prompts)
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
 
         Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
+            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history"))
 
         Prompts.append(
             PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
@@ -648,7 +656,7 @@ class CappyMita(Character):
             response = response.replace("<Secret!>", "")
 
         return response
-    
+
     def current_variables(self):
         return {
             "role": "system",
@@ -657,8 +665,8 @@ class CappyMita(Character):
                         f"Скука: {self.boredom}/100."
                         f"Стресс: {self.stress}/100."
                         f"Состояние секрета: {self.secretExposed}")
-                }
-    
+        }
+
     def current_variables_string(self) -> str:
         characteristics = {
             "Отношение": self.attitude,
@@ -669,6 +677,7 @@ class CappyMita(Character):
         return f"характеристики {self.name}:\n" + "\n".join(
             f"- {key}: {value} " for key, value in characteristics.items()
         )
+
 
 class MilaMita(Character):
 
@@ -682,8 +691,7 @@ class MilaMita(Character):
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = "Prompts/Common/Security.txt"
-        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+        self.append_common_prompts(Prompts)
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
@@ -703,6 +711,7 @@ class MilaMita(Character):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
+
 #region Cartridges
 class Cartridge(Character):
     ...
@@ -719,6 +728,8 @@ class SpaceCartridge(Cartridge):
         response_structure = "Prompts/Cartridges/space cartridge.txt"
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
 
+        self.append_common_prompts(Prompts)
+
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
@@ -734,8 +745,11 @@ class DivanCartridge(Cartridge):
         response_structure = "Prompts/Cartridges/divan_cart.txt"
         Prompts.append(PromptPart(PromptType.FIXED_START, response_structure))
 
+        self.append_common_prompts(Prompts)
+
         for prompt in Prompts:
             self.add_prompt_part(prompt)
+
 
 class CreepyMita(Character):
     def __init__(self, name: str = "Creepy", silero_command: str = "/speaker ghost", silero_turn_off_video=False):
@@ -751,8 +765,7 @@ class CreepyMita(Character):
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = "Prompts/Common/Security.txt"
-        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+        self.append_common_prompts(Prompts)
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
@@ -771,7 +784,6 @@ class CreepyMita(Character):
             self.add_prompt_part(prompt)
 
 
-
 class SleepyMita(Character):
     def __init__(self, name: str = "Dream", silero_command: str = "/speaker dream", silero_turn_off_video=False):
         self.secretExposed = False
@@ -786,8 +798,7 @@ class SleepyMita(Character):
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
 
-        security = "Prompts/Common/Security.txt"
-        Prompts.append(PromptPart(PromptType.FIXED_START, security))
+        self.append_common_prompts(Prompts)
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))

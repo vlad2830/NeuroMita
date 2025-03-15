@@ -988,7 +988,8 @@ namespace MitaAI
 
 
 
-            float timeout = 20f;     // Лимит времени ожидания
+            float timeout = 40f;     // Лимит времени ожидания
+            float waitMessageTimer = 0.5f;
             float elapsedTime = 0f; // Счетчик времени
             float lastCallTime = 0f; // Время последнего вызова
 
@@ -1003,7 +1004,7 @@ namespace MitaAI
                 }
 
                 //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                if (elapsedTime - lastCallTime >= 0.6f)
+                if (elapsedTime - lastCallTime >= waitMessageTimer)
                 {
                     try
                     {
@@ -1048,7 +1049,7 @@ namespace MitaAI
                 sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend, CharacterControl.extendCharsString(characterToSend));
 
                 //Тестово
-                MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
+                //MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
 
                 
 
@@ -1298,7 +1299,8 @@ namespace MitaAI
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
 
             float elapsedTime = 0f; // Счетчик времени
-            float timeout = 20f;     // Лимит времени ожидания
+            float timeout = 30f;     // Лимит времени ожидания
+            float waitingTimer = 0.5f;
             float lastCallTime = 0f; // Время последнего вызова
 
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -1313,7 +1315,7 @@ namespace MitaAI
                 }
 
 
-                if (elapsedTime - lastCallTime >= 0.6f)
+                if (elapsedTime - lastCallTime >= waitingTimer)
                 {
                     //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
                     List<String> parts = new List<String> { "***" };
@@ -1450,6 +1452,8 @@ namespace MitaAI
 
             answer.textPrint = modifiedPart;
             answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Mita;
+            changeTextColor(currentDialog);
+
             answer.timeShow = delay;
             answer.speaker = MitaPersonObject;
 
@@ -1467,7 +1471,22 @@ namespace MitaAI
 
         }
 
-        private IEnumerator PlayMitaSound(float delay, AudioClip audioClip, int len)
+        void changeTextColor(GameObject currentDialog)
+        {
+            if (currentCharacter == character.Crazy) return;
+
+            Color characterColor = GetCharacterTextColor(currentCharacter);
+            var textMesh = currentDialog.GetComponentInChildren<Text>();
+            if (textMesh != null)
+            {
+                textMesh.color = characterColor;
+            }
+        }
+
+
+
+
+    private IEnumerator PlayMitaSound(float delay, AudioClip audioClip, int len)
         {
             LoggerInstance.Msg("PlayMitaSound");
 
@@ -1567,17 +1586,16 @@ namespace MitaAI
             if (dialogue_3DText.themeDialogue == Dialogue_3DText.Dialogue3DTheme.Mita)
             {
                 Color characterColor = GetCharacterTextColor(currentCharacter);
-                textDialogueMemory.clr = characterColor;
-                textDialogueMemory.clr2 = new Color(characterColor.r * 0.9f, characterColor.g * 0.9f, characterColor.b * 0.9f);
+                textDialogueMemory.clr = Color.white;
+                textDialogueMemory.clr2 = characterColor;
                 textDialogueMemory.clr1 = Color.white;
             }
             else
             {
                 textDialogueMemory.clr = new Color(1f, 0.6f, 0f);
-                textDialogueMemory.clr2 = new Color(0.9f, 0.5f, 0f);
-                textDialogueMemory.clr1 = Color.white;
+                textDialogueMemory.clr2 = new Color(1f, 0.6f, 0f);
+                textDialogueMemory.clr1 = new Color(1f, 0.6f, 0f);
             }
-            //textDialogueMemory.clr = dialogue_3DText.
             playerController.dialoguesMemory.Add(textDialogueMemory);
         }
 
@@ -2342,19 +2360,19 @@ namespace MitaAI
             switch (character)
             {
                 case character.Crazy:
-                    return new Color(1f, 0.2f, 0.2f); // Красный
+                    return new Color(1f, 0.4f, 0.8f); // розовый
                 case character.Cappy:
-                    return new Color(0.2f, 0.8f, 1f); // Голубой
+                    return new Color(1f, 0.6f, 0f); // оранжевый
                 case character.Kind:
-                    return new Color(0.2f, 1f, 0.2f); // Зеленый
+                    return new Color(1f, 0.4f, 0.8f); // ярко-розовый
                 case character.ShortHair:
-                    return new Color(1f, 0.8f, 0.2f); // Золотой
+                    return new Color(1f, 0.9f, 0.4f); // мягкий желтый
                 case character.Mila:
-                    return new Color(1f, 0.4f, 0.8f); // Розовый
+                    return new Color(0.4f, 0.6f, 1f); // голубой
                 case character.Sleepy:
-                    return new Color(0.6f, 0.6f, 1f); // Фиолетовый
+                    return new Color(0.7f, 0.6f, 1f); // мягкий фиолетовый
                 case character.Creepy:
-                    return new Color(0.8f, 0.2f, 0.8f); // Темно-фиолетовый
+                    return new Color(1f, 0f, 0f); // красный
                 default:
                     return Color.white;
             }

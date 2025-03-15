@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 import enum
 
-from utils import load_text_from_file
+from utils import load_text_from_file, shift_chars
 
 
 class PromptType(enum.Enum):
@@ -14,7 +14,7 @@ class PromptType(enum.Enum):
 class PromptPart:
     """Класс для представления части промпта."""
 
-    def __init__(self, part_type: PromptType, path: str, name=None, active=True, parameters: Optional[Dict] = None):
+    def __init__(self, part_type: PromptType, path: str, name=None, active=True, parameters: Optional[Dict] = None,stride = 0):
         """
         Инициализация части промпта.
 
@@ -29,6 +29,7 @@ class PromptPart:
         self.active = active
         self.parameters = parameters or {}
 
+        self.stride = stride
     def format(self, **kwargs) -> str:
         """Форматирует содержимое с параметрами как f-строка."""
         try:
@@ -52,10 +53,12 @@ class PromptPart:
         """Проверяет, является ли промпт временным контекстным."""
         return self.type == PromptType.CONTEXT_TEMPORARY
 
-
     def __str__(self) -> str:
+        text = load_text_from_file(self.path)
 
-        return load_text_from_file(self.path)
+        # Для секретной инфы... Да да, кто кодер вам все изи
+        if self.stride != 0:
+            text = shift_chars(text,self.stride)
 
-        #"""Строковое представление объекта для удобного вывода."""
-        #return self.text
+        return text
+

@@ -38,8 +38,8 @@ namespace MitaAI
                 
                 if (!character.enabled) continue;
 
-                float distance = 20f;
-                if (character.isCartdige) distance = 5f;
+                float distance = 120f;
+                if (character.isCartdige) distance = 1f;
 
                 
                 float factDistance = Utils.getDistanceBetweenObjects(MitaCore.Instance.playerPersonObject,character.gameObject);

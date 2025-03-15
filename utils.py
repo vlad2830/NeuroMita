@@ -132,3 +132,26 @@ def replace_numbers_with_words(text):
         text = text.replace(number, word)
     return text
 
+def shift_chars(s, shift):
+    """
+    Сдвигает все символы в строке на заданное число.
+    :param s: Исходная строка.
+    :param shift: Число, на которое нужно сдвинуть символы.
+    :return: Зашифрованная или расшифрованная строка.
+    """
+    result = []
+    for char in s:
+        # Сдвигаем символ на shift позиций
+        new_char = chr(ord(char) + shift)
+        result.append(new_char)
+    return ''.join(result)
+
+
+#
+# text = load_text_from_file("Prompts/Common/None.txt")
+# print(text)
+# textEncoded = shift_chars(text,1)
+# print(textEncoded)
+# textDecoded = shift_chars(textEncoded,-1)
+# print(textDecoded)
+#
