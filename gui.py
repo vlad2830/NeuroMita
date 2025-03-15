@@ -273,7 +273,7 @@ class ChatGUI:
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         self.chat_window = tk.Text(
-            left_frame, height=30,  width=40, state=tk.NORMAL,
+            left_frame, height=30, width=80, state=tk.NORMAL,
             bg="#1e1e1e", fg="#ffffff", insertbackground="white", wrap=tk.WORD,
             font=("Arial", 12)
         )
@@ -299,44 +299,29 @@ class ChatGUI:
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        # Создаем Canvas и Scrollbar
-        canvas = tk.Canvas(right_frame, bg="#2c2c2c", highlightthickness=0)
-        scrollbar = tk.Scrollbar(right_frame, orient="vertical", command=canvas.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        canvas.configure(yscrollcommand=scrollbar.set)
+        self.setup_microphone_controls(right_frame)
 
-        # Внутренний фрейм для содержимого
-        inner_frame = tk.Frame(canvas, bg="#2c2c2c")
-        canvas.create_window((0, 0), window=inner_frame, anchor=tk.NW)
+        self.setup_silero_controls(right_frame)
+        self.setup_mita_controls(right_frame)
+        self.setup_model_controls(right_frame)
+        self.setup_common_controls(right_frame)
+        # Передаем right_frame как родителя
+        self.setup_status_indicators(right_frame)
 
-        # Обработчик изменения размера
-        def on_frame_configure(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-
-        inner_frame.bind("<Configure>", on_frame_configure)
-
-        # Прокрутка колесом мыши
-        def on_mousewheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-
-        canvas.bind_all("<MouseWheel>", on_mousewheel)
-
-        # Переносим все элементы управления во inner_frame
-        self.setup_microphone_controls(inner_frame)
-        self.setup_silero_controls(inner_frame)
-        self.setup_mita_controls(inner_frame)
-        self.setup_model_controls(inner_frame)
-        self.setup_common_controls(inner_frame)
-        self.setup_status_indicators(inner_frame)
-
-        # Контейнер элементов управления
-        self.controls_frame = tk.Frame(inner_frame, bg="#2c2c2c")
+        # Настройка элементов управления
+        # Создаем контейнер для всех элементов управления
+        self.controls_frame = tk.Frame(right_frame, bg="#2c2c2c")
         self.controls_frame.pack(fill=tk.X, pady=3)
 
-        self.setup_history_controls(inner_frame)
-        self.setup_debug_controls(inner_frame)
-        self.setup_api_controls(inner_frame)
+        # Настройка элементов управления
+        #self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
+        #self.setup_control("Скука", "boredom", self.model.boredom)
+        #self.setup_control("Стресс", "stress", self.model.stress)
+        #self.setup_secret_control()
+
+        self.setup_history_controls(right_frame)
+        self.setup_debug_controls(right_frame)
+        self.setup_api_controls(right_frame)
 
         #self.setup_advanced_controls(right_frame)
 
