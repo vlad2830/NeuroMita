@@ -8,7 +8,8 @@ from mistralai import Mistral as MistralClient
 
 import re
 
-from character import *
+from Characters.Characters import *
+from Characters.Cartridges import *
 from utils import *
 # Настройка логирования
 import logging

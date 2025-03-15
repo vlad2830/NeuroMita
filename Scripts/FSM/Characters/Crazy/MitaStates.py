@@ -1,6 +1,6 @@
-from FSM.BaseState import BaseState
-from FSM.Events.MitaEvents import MitaEvents
-from FSM.Events.PlayerEvents import PlayerEvents
+from Scripts.FSM.BaseState import BaseState
+from Scripts.FSM.Events.MitaEvents import MitaEvents
+from Scripts.FSM.Events.PlayerEvents import PlayerEvents
 #region Logging
 # Настройка логирования
 import logging
