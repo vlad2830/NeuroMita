@@ -29,8 +29,8 @@ class BaseState(ABC):
 
     def process_logic(self, message_text):
         """Вычленяет команды из текста, а затем в соответствии с этим реагирует"""
-        if self.sub_fsm:
-            self.sub_fsm.process_logic(message_text)
+        if self._sub_fsm:
+            self._sub_fsm.process_logic(message_text)
         else:
             # parsed_command = CommandParser.parse(message_text)
             # if parsed_command:
@@ -39,7 +39,7 @@ class BaseState(ABC):
 
     def get_prompts_text(self):
         combined_text = ""
-        for prompt in self.prompts:
+        for prompt in self._prompts:
             if prompt.active:
                 combined_text += str(prompt)
 

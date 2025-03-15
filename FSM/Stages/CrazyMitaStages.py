@@ -1,4 +1,4 @@
-from Stages.BaseStage import BaseStage
+from FSM.Stages.BaseStage import BaseStage
 
 
 class WelcomeStage(BaseStage):
