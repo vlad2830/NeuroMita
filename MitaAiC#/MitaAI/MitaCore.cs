@@ -72,7 +72,7 @@ namespace MitaAI
 
 
         }
-        public void changeMita(GameObject NewMitaObject = null,character character = character.Crazy, bool ChangeAnimationControler = true)
+        public void addChangeMita(GameObject NewMitaObject = null,character character = character.Crazy, bool ChangeAnimationControler = true, bool turnOfOld = true,bool changePosition = true,bool changeAnimation = true)
         {
             if (NewMitaObject == null)
             {
@@ -91,8 +91,12 @@ namespace MitaAI
                     MelonLogger.Msg("New Mita Object is null!!!");
                     return;
                 }
-
-                MitaObject.active = false;
+                
+                if (turnOfOld)
+                {
+                    MitaObject.active = false;
+                }
+                
                 currentCharacter = character;
                 NewMitaObject.SetActive(true);
                 MelonLogger.Msg("Change Mita activated her");
@@ -119,7 +123,7 @@ namespace MitaAI
                     MitaPersonObject = MitaObject.transform.Find("MitaPerson Future").gameObject;
                 };
 
-                MitaPersonObject.transform.position = Vector3.zero;
+                if (changePosition) MitaPersonObject.transform.position = Vector3.zero;
 
                 if (MitaPersonObject.GetComponent<Character>() == null)
                 {
@@ -201,23 +205,60 @@ namespace MitaAI
                         MelonLogger.Msg($"5a {ex}");
                     }
                 }
- 
+
+                try
+                {
+                    
+                    
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error($"5a {ex}");
+                }
+
 
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
                 MelonLogger.Msg("666");
                 //MitaAnimationModded.overrideController = MitaAnimationModded.runtimeAnimatorController;
                 //location21_World.mitaTransform = MitaPersonObject.transform;
                 //location21_World.
-                MitaAnimationModded.location34_Communication.mita = Mita;
-                MitaAnimationModded.location34_Communication.mitaCanWalk = true;
-                Location34_Communication.play = true;
-                Location34_Communication.mitaAnimator = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
+                try
+                { 
+                    Location34_Communication = MitaObject.GetComponentInChildren<Location34_Communication>();
+                    if (Location34_Communication == null ) Location34_Communication = GameObject.Instantiate(Loc34_Template, MitaObject.transform).GetComponent< Location34_Communication>();
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error($"Location34_Communication set error: {ex}");
+                }
+
+
+                try
+                {
+                    Location34_Communication.play = true;
+                    Location34_Communication.mitaAnimator = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
+                    Location34_Communication.mita = Mita;
+
+                    MitaAnimationModded.location34_Communication = Location34_Communication;
+                    MitaAnimationModded.location34_Communication.mita = Mita;
+                    MitaAnimationModded.location34_Communication.mitaCanWalk = true;
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error($"Loc setting set error: {ex}");
+                }
+
+
                 Settings.MitaType.Value = character;
                 Settings.Save();
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
                 MelonCoroutines.Start(walkingFix());
-                
-                MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication, ChangeAnimationControler);
+
+               
+                MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication, ChangeAnimationControler, changeAnimation);
 
 
                 
@@ -230,6 +271,24 @@ namespace MitaAI
                 MitaClothesModded.init_hair();
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
 
+
+
+
+                Rigidbody rigidbody = MitaPersonObject.GetComponent<Rigidbody>();
+                if (rigidbody == null)
+                {
+                    rigidbody = MitaPersonObject.AddComponent<Rigidbody>();
+                    rigidbody.freezeRotation = true;
+                    rigidbody.useGravity = true;
+                    rigidbody.centerOfMass = new Vector3(0, 0.65f, 0);
+                    rigidbody.mass = 2f;
+                    rigidbody.maxAngularVelocity = 0.3f;
+                    rigidbody.maxDepenetrationVelocity = 0.3f;
+                    rigidbody.drag = 15;
+                    rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                    rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+                }
+;
 
             }
             catch (Exception ex)
@@ -505,38 +564,12 @@ namespace MitaAI
                 UINeuroMita.init();
                 TotalInitialization.GetObjectsFromMenu();
 
-                //MainMenu.ButtonLoadScene(requiredSave);
-                //MainMenu.Alternative();
-
 
             }
 
             else if (requiredSceneName == CurrentSceneName)
             {
-                try
-                {
-                    GameObject Trigger = GameObject.Find("World/Quests/Quest 1/Trigger Entry Kitchen");
-                    Trigger.SetActive(false);
 
-
-                    GameObject Location34_CommunicationObject = GameObject.Find("World/Quests/Quest 1/Addon");
-                    Location34_Communication = GameObject.Find("World/Quests/Quest 1/Addon").GetComponent<Location34_Communication>();
-
-                    Location34_Communication.mitaCanWalk = true;
-                    Location34_Communication.indexSwitchAnimation = 1;
-                    Location34_Communication.play = true;
-
-
-
-                    CollectChildObjects(Location34_CommunicationObject);
-
-
-
-                }
-                catch (Exception ex)
-                {
-                    LoggerInstance.Error(ex);
-                }
                 InitializeGameObjects();
             }
         }
@@ -589,14 +622,35 @@ namespace MitaAI
             return Rooms.Unknown;
         }
 
-        EyeGlowModifier eyeModifier;
+        GameObject Loc34_Template;
+
+
         private void InitializeGameObjects()
         {
+
+            GameObject Trigger = GameObject.Find("World/Quests/Quest 1/Trigger Entry Kitchen");
+            Trigger.SetActive(false);
+
+
+            GameObject Location34_CommunicationObject = GameObject.Find("World/Quests/Quest 1/Addon");
+            Location34_Communication = GameObject.Find("World/Quests/Quest 1/Addon").GetComponent<Location34_Communication>();
+
+            Location34_Communication.mitaCanWalk = true;
+            Location34_Communication.indexSwitchAnimation = 1;
+            Location34_Communication.play = true;
+
+            CollectChildObjects(Location34_CommunicationObject);
+
+            Loc34_Template = Location34_Communication.gameObject;
+
             Mita = GameObject.Find("Mita")?.GetComponent<MitaPerson>();
             MitaObject = GameObject.Find("Mita").gameObject;
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             CrazyObject = MitaObject;
+
+            Location34_Communication.transform.SetParent(CrazyObject.transform);
+
 
             var comp = MitaPersonObject.AddComponent<Character>();
             comp.init(MitaCore.character.Crazy);
@@ -731,8 +785,16 @@ namespace MitaAI
             CustomDialogText.showSubtitles = true;
 
             MelonLogger.Msg($"Attempt Interactions before");
+            try
+            {
+                Interactions.init();
+            }
+            catch (Exception)
+            {
 
-            Interactions.init();
+                throw;
+            }
+           
             
             //MelonLogger.Msg($"Attempt after");
             MelonLogger.Msg($"Attempt Interactions end");
@@ -1058,9 +1120,12 @@ namespace MitaAI
                 sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend, CharacterControl.extendCharsString(characterToSend));
 
                 //Тестово
-                //MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
+                MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
 
-                
+                if (characterToSend != currentCharacter)
+                {
+                    addChangeMita(getMitaByEnum(characterToSend),characterToSend,false,false,false,false);
+                }
 
             }
             
@@ -1080,16 +1145,28 @@ namespace MitaAI
         }
 
 
-        public void sendInfoListeners(string message,List<character> characters, character exluding, string from = "Игрок")
+        public void sendInfoListeners(string message,List<character> characters = null, character exluding = character.None, string from = "Игрок")
         {
+            if ( characters == null ) characters = CharacterControl.GetCharactersToAnswer();
+
+            if ( exluding == character.None ) exluding = currentCharacter;
+
 
             string charName = CharacterControl.extendCharsString(exluding);
 
+            
+
+
             foreach (character character in characters)
             {
+                string speakersText = CharacterControl.getSpeakersInfo(character);
+
                 if (character != exluding)
                 {
-                    sendSystemInfo($"[SPEAKER] : {from} said: {message} and was answered by {charName}", character);
+                    string messageToListener = "";
+                    messageToListener += speakersText;
+                    messageToListener += $"[SPEAKER] : {from} said: {message} and was answered by {charName}";
+                    sendSystemInfo(messageToListener, character );
                 }
             }
         }
@@ -2328,8 +2405,16 @@ namespace MitaAI
 
                 if (HintText!=null) info += $"Current player's hint text {HintText.text}";
 
+                try
+                {
+                    info += CharacterControl.getSpeakersInfo(currentCharacter);
+                }
+                catch (Exception ex)
+                {
 
-
+                    MelonLogger.Error($"CurrentInfo getSpeakersInfo{ex}"); 
+                }
+                
 
 
 

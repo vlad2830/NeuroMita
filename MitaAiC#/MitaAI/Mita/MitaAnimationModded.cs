@@ -39,7 +39,7 @@ namespace MitaAI.Mita
 
 
 
-        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true)
+        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true)
         {
             // Получаем компонент Animator_FunctionsOverride из текущего объекта
             mitaAnimatorFunctions = _mitaAnimatorFunctions;
@@ -54,18 +54,24 @@ namespace MitaAI.Mita
             {
                 MelonLogger.Msg("Animator_FunctionsOverride component not found on this object!");
             }
-            idleAnimation = location34_Communication.mitaAnimationIdle;
-            if (idleAnimation == null) idleAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle,"Mita Idle_2");
-            
 
-            idleWalkAnimation = location34_Communication.mitaAnimationWalk;
-            if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
+            if (changeAnimation)
+            {
+                idleAnimation = location34_Communication.mitaAnimationIdle;
+                if (idleAnimation == null) idleAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Idle_2");
+
+
+                idleWalkAnimation = location34_Communication.mitaAnimationWalk;
+                if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
+            }
+
             try
             {
-                if (changeAnimationController)
+                runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
+                if (changeAnimationController==true)
                 {
                     MelonLogger.Msg("Change Animation controller");
-                    runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
+                    
 
                     animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
                     animator.runtimeAnimatorController = runtimeAnimatorController;
@@ -74,7 +80,7 @@ namespace MitaAI.Mita
                 }
                 else
                 {
-                    MelonLogger.Msg("Change Animation controller");
+                    MelonLogger.Msg("No Change Animation controller");
                     runtimeAnimatorController = animator.runtimeAnimatorController;
                 }
                

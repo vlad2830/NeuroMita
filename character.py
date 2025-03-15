@@ -322,6 +322,7 @@ class Character:
 
         promts.append(PromptPart(PromptType.FIXED_START, "Prompts/Common/Security.txt"))
         promts.append(PromptPart(PromptType.FIXED_START, "Prompts/Common/None.txt", stride=-1))
+        promts.append(PromptPart(PromptType.FIXED_START, "Prompts/Common/Dialogue.txt"))
 
 
 class CrazyMita(Character):

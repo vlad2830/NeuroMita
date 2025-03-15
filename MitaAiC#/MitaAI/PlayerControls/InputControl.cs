@@ -217,7 +217,7 @@ namespace MitaAI.PlayerControls
             }
             else if (Input.GetKeyDown(KeyCode.J) )
             {
-                // changeMitaButtons();
+                ChangeMitaButtons();
             }
             else if (false && Input.GetKeyDown(KeyCode.Insert))
             {
@@ -261,52 +261,39 @@ namespace MitaAI.PlayerControls
         private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
         private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(4); // Задержка в 5 секунд
 
-        static void changeMitaButtons()
+        static void ChangeMitaButtons()
         {
+            MelonLogger.Msg("Try change to Mita");
+
+            bool dontrTurnOfOld = Input.GetKeyDown(KeyCode.LeftControl);
+
+            // Словарь для хранения соответствия клавиш и параметров изменения
+            var keyActions = new Dictionary<KeyCode, (GameObject MitaObject, MitaCore.character Character)>
+            {
+                { KeyCode.I, (MitaCore.KindObject, MitaCore.character.Kind) },
+                { KeyCode.K, (MitaCore.CappyObject, MitaCore.character.Cappy) },
+                { KeyCode.M, (MitaCore.CrazyObject, MitaCore.character.Crazy) },
+                { KeyCode.U, (MitaCore.ShortHairObject, MitaCore.character.ShortHair) },
+                { KeyCode.H, (MitaCore.MilaObject, MitaCore.character.Mila) },
+                { KeyCode.N, (MitaCore.SleepyObject, MitaCore.character.Sleepy) },
+                { KeyCode.B, (MitaCore.CreepyObject, MitaCore.character.Creepy) }
+            };
 
             // Проверяем нажатие клавиш
-            if (Input.GetKeyDown(KeyCode.I))
+            foreach (var keyAction in keyActions)
             {
-                MelonLogger.Msg("Try change to Kind");
-                MitaCore.Instance.changeMita(MitaCore.KindObject, MitaCore.character.Kind);
-                _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
-
-
-                MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
-
+                if (Input.GetKeyDown(keyAction.Key))
+                {
+                    MelonLogger.Msg($"Try change to {keyAction.Value.MitaObject}");
+                    MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
+                    _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
+                    CharacterControl.resetOrders();
+                    MitaCore.Instance.sendSystemMessage("Ты только что прогрузилась на уровень.");
+                    MitaCore.Instance.sendInfoListeners($"{keyAction.Value.Character} только что прогрузилась на уровень",null, keyAction.Value.Character,"Nobody");
+                    break; // Выходим из цикла после первого совпадения
+                    
+                }
             }
-            else if (Input.GetKeyDown(KeyCode.K))
-            {
-                MelonLogger.Msg("Try change to Cappy");
-                MitaCore.Instance.changeMita(MitaCore.CappyObject, MitaCore.character.Cappy);
-                _lastChangeTime = DateTime.Now;
-
-
-                MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
-
-            }
-            else if (Input.GetKeyDown(KeyCode.M))
-            {
-                MelonLogger.Msg("Try change to Crazy");
-                MitaCore.Instance.changeMita(MitaCore.CrazyObject, MitaCore.character.Crazy);
-                _lastChangeTime = DateTime.Now;
-
-
-                MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
-
-            }
-            else if (Input.GetKeyDown(KeyCode.U))
-            {
-                MelonLogger.Msg("Try change to ShortHair");
-                MitaCore.Instance.changeMita(MitaCore.ShortHairObject, MitaCore.character.ShortHair);
-                _lastChangeTime = DateTime.Now;
-
-
-                MitaCore.Instance.sendSystemMessage("Тебя только что заменили");
-
-            }
-
-
         }
 
         static bool checkInput()

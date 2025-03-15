@@ -147,11 +147,11 @@ def shift_chars(s, shift):
     return ''.join(result)
 
 
-#
-# text = load_text_from_file("Prompts/Common/None.txt")
-# print(text)
-# textEncoded = shift_chars(text,1)
-# print(textEncoded)
-# textDecoded = shift_chars(textEncoded,-1)
-# print(textDecoded)
-#
+
+text = load_text_from_file("Prompts/Common/None.txt")
+print(text)
+textEncoded = shift_chars(text,1)
+print(textEncoded)
+textDecoded = shift_chars(textEncoded,-1)
+print(textDecoded)
+

@@ -812,12 +812,9 @@ namespace MitaAI
             MelonLogger.Msg("After all loaded");
             MitaCore.character MitaToStart = Settings.Get<MitaCore.character>("MitaType");
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
-            if (MitaCore.Instance.currentCharacter != MitaToStart)
-            {
-                //bool ChangeAnimationController = MitaToStart != MitaCore.character.Mila;
-                //MelonLogger.Msg($"Run change Mita, ChangeAnimationController is{ChangeAnimationController}");
-                MitaCore.Instance.changeMita(null,character : MitaToStart);
-            }
+            
+            MitaCore.Instance.addChangeMita(null, character: MitaToStart, true);
+            
             yield return new WaitForSeconds(1f);
 
             EventsModded.sceneEnter(MitaToStart);
