@@ -64,7 +64,7 @@ class ChatGUI:
             self.load_api_settings(False)  # Загружаем настройки при инициализации
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
-            self.settings = SettingsManager("../Settings/settings.json")
+            self.settings = SettingsManager("Settings/settings.json")
 
         self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.settings.get("gpt4free_model"),
                                self.makeRequest)

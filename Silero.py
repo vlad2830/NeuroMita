@@ -44,7 +44,7 @@ class TelegramBotHandler:
 
         # Проверяем, где лежит ffmpeg
         ffmpeg_rel_path = os.path.join(
-            "../ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe"
+            "ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe"
         )
 
         ffmpeg_path = os.path.join(base_dir, ffmpeg_rel_path)

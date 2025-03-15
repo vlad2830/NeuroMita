@@ -3,7 +3,7 @@ import asyncio
 from Events.PlayerEvents import PlayerEvents
 from Stages.CrazyMitaStages import WelcomeStage
 from FiniteStateMachine import FiniteStateMachine
-from Scripts.FSM.Characters.Crazy.MitaStates import MitaDefaultState, MitaMurderState, MitaHelloState
+from FSM.Characters.Crazy.MitaStates import MitaDefaultState, MitaMurderState, MitaHelloState
 
 
 async def main():

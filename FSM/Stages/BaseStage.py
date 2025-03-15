@@ -1,6 +1,6 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Type
-from Scripts.FSM.BaseState import BaseState
+from FSM.BaseState import BaseState
 
 
 class BaseStage(ABC):

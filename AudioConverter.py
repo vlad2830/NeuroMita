@@ -5,7 +5,7 @@ import sys
 
 class AudioConverter:
     # Проверяем, где лежит ffmpeg
-    ffmpeg_rel_path = os.path.join("../ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe")
+    ffmpeg_rel_path = os.path.join("ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe")
 
     if getattr(sys, 'frozen', False):
         # Если программа собрана в exe, получаем путь к исполняемому файлу
