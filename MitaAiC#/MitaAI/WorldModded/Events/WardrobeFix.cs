@@ -9,6 +9,8 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class WardrobeFix : MonoBehaviour
     {
+        // Единственная цель этого класса - возможность миты проходить в подвал и обратно
+
         private float moveDuration = 1.3f; // Время перемещения
         private float moveDistance = 1.5f; // Дистанция перемещения
 

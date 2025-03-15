@@ -352,6 +352,10 @@
 		<Compile Include="MitaCore.cs" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Characters\Mitas\" />
+	</ItemGroup>
+
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	  <Exec Command="xcopy /y &quot;$(OutDir)\MitaAI.dll&quot; &quot;E:\Games\steam2\steamapps\common\MiSide\Mods&quot;&#xD;&#xA;xcopy /y &quot;$(OutDir)\MitaAI.dll&quot; &quot;E:\Games\OpenAI_API_TEST\OpenMita\dist&quot;" />
 	</Target>
