@@ -273,7 +273,7 @@ class ChatGUI:
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         self.chat_window = tk.Text(
-            left_frame, height=30, width=80, state=tk.NORMAL,
+            left_frame, height=30, width=40, state=tk.NORMAL,
             bg="#1e1e1e", fg="#ffffff", insertbackground="white", wrap=tk.WORD,
             font=("Arial", 12)
         )

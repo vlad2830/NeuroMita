@@ -39,7 +39,7 @@ namespace MitaAI.Mita
 
 
 
-        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication)
+        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true)
         {
             // Получаем компонент Animator_FunctionsOverride из текущего объекта
             mitaAnimatorFunctions = _mitaAnimatorFunctions;
@@ -62,12 +62,22 @@ namespace MitaAI.Mita
             if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
             try
             {
-                runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
-                MelonLogger.Msg("a");
-                animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
-                animator.runtimeAnimatorController = runtimeAnimatorController;
-                animator.SetTrigger("NextLerp");
-                idleAnimation = FindAnimationClipByName("Idle");
+                if (changeAnimationController)
+                {
+                    MelonLogger.Msg("Change Animation controller");
+                    runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
+
+                    animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
+                    animator.runtimeAnimatorController = runtimeAnimatorController;
+                    animator.SetTrigger("NextLerp");
+                    idleAnimation = FindAnimationClipByName("Idle");
+                }
+                else
+                {
+                    MelonLogger.Msg("Change Animation controller");
+                    runtimeAnimatorController = animator.runtimeAnimatorController;
+                }
+               
                 foreach (var item in runtimeAnimatorController.animationClips)
                 {
                     setCustomAnimatiomEvents(item);

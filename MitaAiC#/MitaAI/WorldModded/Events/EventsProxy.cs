@@ -38,8 +38,10 @@ namespace MitaAI
         {
             MelonLogger.Msg("AddAnimationEvent start");
             // Добавляем прокси-компонент к объекту
-            EventsProxy proxy =  targetObject.AddComponent<EventsProxy>();
-            if ( proxy == null) proxy = targetObject.AddComponent<EventsProxy>();
+
+            EventsProxy proxy = targetObject.GetComponent<EventsProxy>();
+            if (proxy == null) proxy =  targetObject.AddComponent<EventsProxy>();
+
             MelonLogger.Msg("AddAnimationEvent added proxi");
             // Создаем AnimationEvent
             var animationEvent = new UnityEngine.AnimationEvent

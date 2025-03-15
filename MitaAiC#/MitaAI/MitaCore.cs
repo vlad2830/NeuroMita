@@ -72,7 +72,7 @@ namespace MitaAI
 
 
         }
-        public void changeMita(GameObject NewMitaObject = null,character character = character.Crazy)
+        public void changeMita(GameObject NewMitaObject = null,character character = character.Crazy, bool ChangeAnimationControler = true)
         {
             if (NewMitaObject == null)
             {
@@ -146,8 +146,11 @@ namespace MitaAI
                     MelonLogger.Msg("MitaPersonObject is null");
                 };
                 MitaAnimationModded.mitaAnimatorFunctions = MitaAnimatorFunctions;
-                MitaAnimationModded.animator = MitaPersonObject.GetComponent<Animator>();
+                var animator = MitaPersonObject.GetComponent<Animator>();
+                MitaAnimationModded.animator = animator;
 
+
+                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
 
                 try
                 {
@@ -181,21 +184,26 @@ namespace MitaAI
 
                     MelonLogger.Msg($"5a0 {ex}");
                 }
-                
+                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
 
-                try
+                if (ChangeAnimationControler)
                 {
-                    MitaAnimationModded.animator.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
-                    //AnimatorOverrideController AOC = MitaAnimationModded.animator.runtimeAnimatorController as AnimatorOverrideController;
-                    //AOC.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
-                }
-                catch (Exception ex)
-                {
+                    try
+                    {
 
-                    MelonLogger.Msg($"5a {ex}");
-                }
-   
+                        MitaAnimationModded.animator.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
+                        //AnimatorOverrideController AOC = MitaAnimationModded.animator.runtimeAnimatorController as AnimatorOverrideController;
+                        //AOC.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
+                    }
+                    catch (Exception ex)
+                    {
 
+                        MelonLogger.Msg($"5a {ex}");
+                    }
+                }
+ 
+
+                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
                 MelonLogger.Msg("666");
                 //MitaAnimationModded.overrideController = MitaAnimationModded.runtimeAnimatorController;
                 //location21_World.mitaTransform = MitaPersonObject.transform;
@@ -206,9 +214,10 @@ namespace MitaAI
                 Location34_Communication.mitaAnimator = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
                 Settings.MitaType.Value = character;
                 Settings.Save();
-
+                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
                 MelonCoroutines.Start(walkingFix());
-                MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
+                
+                MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication, ChangeAnimationControler);
 
 
                 
@@ -219,7 +228,7 @@ namespace MitaAI
                 MitaAnimationModded.resetToIdleAnimation();
 
                 MitaClothesModded.init_hair();
-
+                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
 
 
             }

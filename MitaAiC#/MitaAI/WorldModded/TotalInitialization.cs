@@ -814,7 +814,8 @@ namespace MitaAI
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
             if (MitaCore.Instance.currentCharacter != MitaToStart)
             {
-                MelonLogger.Msg($"Run change Mita");
+                //bool ChangeAnimationController = MitaToStart != MitaCore.character.Mila;
+                //MelonLogger.Msg($"Run change Mita, ChangeAnimationController is{ChangeAnimationController}");
                 MitaCore.Instance.changeMita(null,character : MitaToStart);
             }
             yield return new WaitForSeconds(1f);
