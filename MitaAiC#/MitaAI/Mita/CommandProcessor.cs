@@ -216,6 +216,10 @@ namespace MitaAI.Mita
             {
                 HandleTwoPartCommand(parts[0].ToLower(), parts[1]);
             }
+            else if(parts.Length == 3)
+            {
+                HandleThreePartCommand(parts[0], parts[1], parts[2]);
+            }
             else if (parts.Length == 4 &&
                      float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float r) &&
                      float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out float g) &&
@@ -269,6 +273,15 @@ namespace MitaAI.Mita
 
                     break;
 
+                case "LookAt":
+                    MitaCore.Instance.MitaLook.LookOnObject(GameObject.Find(secondCommand).transform);
+                    break;
+                case "LookAtTurnTo":
+                    MitaCore.Instance.MitaLook.LookOnObjectAndRotate(GameObject.Find(secondCommand).transform);
+                    break;
+                case "TurnTo":
+                    MitaCore.Instance.MitaLook.RotateOnTarget(GameObject.Find(secondCommand).transform);
+                    break;
 
 
                 case "изменить моргание игрока":
@@ -301,9 +314,38 @@ namespace MitaAI.Mita
                     }
 
                     break;
+                #region GameMaster
+                case "SendAll":
+
+                    MelonLogger.Msg($"GameMaster Try {command} Send {secondCommand} To all");
+                    MitaCore.Instance.sendInfoListenersFromGm(secondCommand);
+                    break;
+
+                #endregion
+
+
 
                 default:
                     MelonLogger.Msg($"Unknown two-part command: {command}");
+                    break;
+            }
+        }
+        private static void HandleThreePartCommand(string command, string secondCommand, string thrirdCommand)
+        {
+            switch (command)
+            {
+                #region GameMaster
+                case "Send":
+
+                    MelonLogger.Msg($"GameMaster Try {command} Send {thrirdCommand} To {secondCommand}");
+                    Enum.TryParse<MitaCore.character>(secondCommand, true, out var characterToSend);
+                    MitaCore.Instance.sendSystemInfo(thrirdCommand, characterToSend);
+                    break;
+
+                #endregion
+
+                default:
+                    MelonLogger.Msg($"Unknown three-part command: {command}");
                     break;
             }
         }

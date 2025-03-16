@@ -141,13 +141,24 @@ namespace MitaAI.Mita
             string pattern = @"<a>(.*?)</a>";
             Match match = Regex.Match(response, pattern);
 
-            string animName = string.Empty;
             string cleanedResponse = Regex.Replace(response, @"<a>.*?</a>", ""); // Очищаем от всех тегов
+
+            string animName = "";
+            string param1 = "";
+            string param2 = "";
+            string param3 = "";
+
 
             if (match.Success)
             {
                 // Если эмоция найдена, устанавливаем её в переменную faceStyle
-                animName = match.Groups[1].Value;
+                string[] parts = match.Groups[1].Value.Split(',');
+
+                animName = parts[0];
+                param1 = parts.Length > 1 ? parts[1] : "";
+                param2 = parts.Length > 2 ? parts[2] : "";
+                param3 = parts.Length > 3 ? parts[3] : "";
+
             }
             try
             {
@@ -312,11 +323,14 @@ namespace MitaAI.Mita
                         break;
 
                     case "Круто протанцевать":
-                        EnqueueAnimation("DanceTest");
+                        EnqueueAnimation("Mita HandsDance");
+                        //EnqueueAnimation("DanceTest");
                         break;
                     case "Начать круто танцевать":
-                        EnqueueAnimation("DanceTest");
-                        setIdleAnimation("DanceTest");
+                        EnqueueAnimation("Mita HandsDance");
+                        setIdleAnimation("Mita HandsDance");
+                        //EnqueueAnimation("DanceTest");
+                        //setIdleAnimation("DanceTest");
                         break;
 
                     case "Похвастаться предметом":
@@ -336,6 +350,8 @@ namespace MitaAI.Mita
                     case "Случайная анимация":
                         EnqueueAnimation("");
                         break;
+
+
                     default:
                         if (animName != "")
                         {

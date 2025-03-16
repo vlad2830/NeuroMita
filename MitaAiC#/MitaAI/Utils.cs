@@ -136,6 +136,12 @@ namespace MitaAI
         {
             yield return new WaitForSeconds(delay);
             GameObject.Destroy(gameObject);
+
+            while (gameObject != null)
+            {
+                yield return new WaitForSeconds(delay);
+                GameObject.Destroy(gameObject);
+            }
         }
 
         // Корутинa для переключения активности компоненты

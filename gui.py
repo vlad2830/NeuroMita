@@ -502,7 +502,13 @@ class ChatGUI:
         history_frame.pack(fill=tk.X, pady=4)
 
         clear_button = tk.Button(
-            history_frame, text="Очистить историю", command=self.clear_history,
+            history_frame, text="Очистить историю персонажа", command=self.clear_history,
+            bg="#8a2be2", fg="#ffffff"
+        )
+        clear_button.pack(side=tk.LEFT, padx=5)
+
+        clear_button = tk.Button(
+            history_frame, text="Очистить все истории", command=self.clear_history_all,
             bg="#8a2be2", fg="#ffffff"
         )
         clear_button.pack(side=tk.LEFT, padx=5)
@@ -520,6 +526,8 @@ class ChatGUI:
             role = entry["role"]
             content = entry["content"]
             self.insert_message(role, content)
+        # Прокручиваем вниз
+        self.chat_window.see(tk.END)
 
         self.update_debug_info()
 
@@ -892,6 +900,13 @@ class ChatGUI:
         self.model.current_character.clear_history()
         self.chat_window.delete(1.0, tk.END)
         self.update_debug_info()
+
+    def clear_history_all(self):
+        for character in self.model.characters.values():
+            character.clear_history()
+        self.chat_window.delete(1.0, tk.END)
+        self.update_debug_info()
+
 
     # region Microphone
 

@@ -85,6 +85,7 @@ namespace MitaAI
         public static void initConsole(Transform worldBasement)
         {
             GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
+            MitaCore.Console = console;
             MitaCore.Instance.cartridgeReader = console;
 
             var comp = console.AddComponent<Character>();

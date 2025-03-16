@@ -46,32 +46,72 @@ namespace MitaAI
 
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;
-
-        private GameObject getMitaByEnum(character character)
+        public static GameObject Console;
+        static public GameObject getMitaByEnum(character character, bool getMitaPersonObject = false)
         {
+            GameObject mitaObject;
             switch (character)
             {
                 case character.Crazy:
-                    return CrazyObject;
+                    mitaObject = CrazyObject;
+                    break;
                 case character.Kind:
-                    return KindObject;
+                    mitaObject = KindObject;
+                    break;
                 case character.ShortHair:
-                    return ShortHairObject;
+                    mitaObject = ShortHairObject;
+                    break;
                 case character.Cappy:
-                    return CappyObject;
+                    mitaObject = CappyObject;
+                    break;
                 case character.Mila:
-                    return MilaObject;
+                    mitaObject = MilaObject;
+                    break;
                 case character.Sleepy:
-                    return SleepyObject;
+                    mitaObject = SleepyObject;
+                    break;
                 case character.Creepy:
-                    return CreepyObject;
+                    mitaObject = CreepyObject;
+                    break;
+
+                // Cartdiges
+                case character.Cart_divan:
+                    mitaObject = Console;
+                    break;
+                case character.Cart_portal:
+                    mitaObject = Console;
+                    break;
+
+
                 default:
-                    return CrazyObject;
+                    mitaObject = CrazyObject;
+                    break;
 
             }
+            if (getMitaPersonObject && !character.ToString().Contains("Cart") ) mitaObject = findMitaPersonObject(mitaObject);
 
+            return mitaObject;
 
         }
+        public static GameObject findMitaPersonObject(GameObject MitaObject)
+        {
+            GameObject MitaPersonObject = null;
+            // Рекурсивно добавляем всех детей, если текущий объект не исключен
+            int childCount = MitaObject.transform.childCount;
+            for (int i = 0; i < childCount; i++)
+            {
+                Transform child = MitaObject.transform.GetChild(i);
+                // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
+                if (child != null && (child.name.Contains("Person") || child.name.Contains("Mita")))
+                {
+                    MelonLogger.Msg("found  MitaPersonObject");
+                    MitaPersonObject = child.gameObject;
+                    break; // Прерываем цикл, как только нашли первый подходящий объект
+                }
+            }
+            return MitaPersonObject;
+        }
+
         public void addChangeMita(GameObject NewMitaObject = null,character character = character.Crazy, bool ChangeAnimationControler = true, bool turnOfOld = true,bool changePosition = true,bool changeAnimation = true)
         {
             if (NewMitaObject == null)
@@ -102,20 +142,9 @@ namespace MitaAI
                 MelonLogger.Msg("Change Mita activated her");
                 MitaObject = NewMitaObject;
 
-                // Рекурсивно добавляем всех детей, если текущий объект не исключен
-                int childCount = MitaObject.transform.childCount;
-                for (int i = 0; i < childCount; i++)
-                {
-                    Transform child = MitaObject.transform.GetChild(i);
-                    // Проверяем, содержит ли имя дочернего объекта подстроку "Mita Person"
-                    if (child != null && (child.name.Contains("Person")|| child.name.Contains("Mita")))
-                    {
-                        MelonLogger.Msg("Change Mita finded  MitaPersonObject");
-                        MitaPersonObject = child.gameObject;
-                        break; // Прерываем цикл, как только нашли первый подходящий объект
-                    }
-                }
-                
+                MitaPersonObject =  findMitaPersonObject(MitaObject);
+
+
 
                 if (MitaPersonObject == null)
                 {
@@ -255,7 +284,8 @@ namespace MitaAI
                 Settings.MitaType.Value = character;
                 Settings.Save();
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
-                MelonCoroutines.Start(walkingFix());
+                
+                if (!changeAnimation) MelonCoroutines.Start(walkingFix());
 
                
                 MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication, ChangeAnimationControler, changeAnimation);
@@ -265,8 +295,7 @@ namespace MitaAI
      
 
 
-                
-                MitaAnimationModded.resetToIdleAnimation();
+                if (!changeAnimation) MitaAnimationModded.resetToIdleAnimation();
 
                 MitaClothesModded.init_hair();
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
@@ -310,7 +339,7 @@ namespace MitaAI
 
         public enum character
         {
-            None = -1,
+            None = -1,// Добавляем нового персонажа
             Crazy = 0,
             Cappy = 1,
             Kind = 2,
@@ -319,7 +348,9 @@ namespace MitaAI
             Cart_divan,
             Mila,
             Sleepy,
-            Creepy // Добавляем нового персонажа
+            Creepy,
+            GameMaster
+
         }
 
         public character currentCharacter = character.Crazy;
@@ -678,6 +709,20 @@ namespace MitaAI
             playerObject.GetComponent<PlayerMove>().speedPlayer = 1f;
             playerObject.GetComponent<PlayerMove>().canRun = true;
 
+            if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
+
+            try
+            {
+                if (playerPersonObject == null) MelonLogger.Error("PPO NULL!!!");
+
+                Character GM = playerPersonObject.AddComponent<Character>();
+                GM.init_GameMaster();
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error($"Tried set GameMaster {ex}");
+            }
+            
 
             playerEffects = playerPerson.transform.parent.Find("HeadPlayer/MainCamera").gameObject.GetComponent<PlayerCameraEffects>();
             playerEffectsObject = playerPerson.transform.parent.Find("HeadPlayer/MainCamera/CameraPersons").gameObject;
@@ -982,7 +1027,7 @@ namespace MitaAI
                             }
 
 
-                        sendInfoListeners(playerText, Characters, characterToSend);
+                        sendInfoListeners(playerText, Characters, characterToSend,null);
 
                     }
 
@@ -1052,10 +1097,14 @@ namespace MitaAI
                 }
 
             }
+            if (characterToSend != currentCharacter && characterToSend != character.GameMaster)
+            {
+                addChangeMita(getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
+            }
 
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
-            currentCharacter = characterToSend;
+
             Task<(string, string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
 
 
@@ -1065,7 +1114,7 @@ namespace MitaAI
             float elapsedTime = 0f; // Счетчик времени
             float lastCallTime = 0f; // Время последнего вызова
 
-
+            
             while (!responseTask.IsCompleted)
             {
                 elapsedTime += 0.1f;
@@ -1116,17 +1165,15 @@ namespace MitaAI
                 LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
 
                 if ( characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response,AudioControl.cartAudioSource));
+                else if (characterToSend == character.GameMaster) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.playerAudioSource));
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
 
-                sendInfoListeners( Utils.CleanFromTags(response),Characters,characterToSend, CharacterControl.extendCharsString(characterToSend));
-
+                if (characterToSend != character.GameMaster) sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
+                else sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
                 //Тестово
                 MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
 
-                if (characterToSend != currentCharacter)
-                {
-                    addChangeMita(getMitaByEnum(characterToSend),characterToSend,false,false,false,false);
-                }
+
 
             }
             
@@ -1166,8 +1213,37 @@ namespace MitaAI
                 {
                     string messageToListener = "";
                     messageToListener += speakersText;
+
                     messageToListener += $"[SPEAKER] : {from} said: {message} and was answered by {charName}";
                     sendSystemInfo(messageToListener, character );
+                }
+            }
+        }
+        public void sendInfoListenersFromGm(string message, List<character> characters = null, character exluding = character.None)
+        {
+            if (characters == null) characters = CharacterControl.GetCharactersToAnswer();
+
+            if (exluding == character.None) exluding = currentCharacter;
+            character from = character.GameMaster;
+
+            string charName = CharacterControl.extendCharsString(exluding);
+
+
+
+
+            foreach (character character in characters)
+            {
+                string speakersText = CharacterControl.getSpeakersInfo(character);
+
+                if (character != exluding)
+                {
+                    string messageToListener = "";
+                    messageToListener += speakersText;
+
+                    messageToListener += $"[GAME_MASTER] : {from} said: {message}";
+
+
+                    sendSystemInfo(messageToListener, character);
                 }
             }
         }
@@ -1175,6 +1251,13 @@ namespace MitaAI
 
         public void prepareForSend()
         {
+
+            if (currentCharacter == character.GameMaster)
+            {
+                currentInfo = formCurrentInfoGameMaster();
+                return;
+            }
+
             try
             {
                 if (Vector3.Distance(Mita.transform.GetChild(0).position, lastPosition) > 2f)
@@ -1387,7 +1470,7 @@ namespace MitaAI
 
             float elapsedTime = 0f; // Счетчик времени
             float timeout = 30f;     // Лимит времени ожидания
-            float waitingTimer = 0.5f;
+            float waitingTimer = 1.1f;
             float lastCallTime = 0f; // Время последнего вызова
 
             // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -1538,7 +1621,6 @@ namespace MitaAI
 
 
             answer.textPrint = modifiedPart;
-            answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Mita;
             changeTextColor(currentDialog);
 
             answer.timeShow = delay;
@@ -2427,8 +2509,36 @@ namespace MitaAI
             }
             return info;
         }
+        public string formCurrentInfoGameMaster()
+        {
 
-      
+            string info = "-";
+            try
+            {
+
+
+                try
+                {
+                    info += CharacterControl.getSpeakersInfo(currentCharacter);
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error($"CurrentInfo getSpeakersInfo{ex}");
+                }
+
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+                LoggerInstance.Error($"formCurrentInfo {ex}");
+            }
+            return info;
+        }
+
         public override void OnUpdate()
         {
             try

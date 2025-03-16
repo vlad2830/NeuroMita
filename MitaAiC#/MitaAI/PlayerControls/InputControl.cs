@@ -287,7 +287,7 @@ namespace MitaAI.PlayerControls
                     MelonLogger.Msg($"Try change to {keyAction.Value.MitaObject}");
                     MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
                     _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
-                    CharacterControl.resetOrders();
+                    CharacterControl.resetOrders(true);
                     MitaCore.Instance.sendSystemMessage("Ты только что прогрузилась на уровень.");
                     MitaCore.Instance.sendInfoListeners($"{keyAction.Value.Character} только что прогрузилась на уровень",null, keyAction.Value.Character,"Nobody");
                     break; // Выходим из цикла после первого совпадения

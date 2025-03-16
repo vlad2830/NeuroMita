@@ -16,6 +16,7 @@ namespace MitaAI
     {
         public MitaCore.character character;
         public bool isCartdige;
+        public bool isGameMaster = false;
         public int PointsOrder = 0;
 
         public void init(MitaCore.character character)
@@ -31,9 +32,55 @@ namespace MitaAI
 
         }
 
-        public void increaseOrderPoints(int n = 1)
+
+        public void DecreseOrderPoints(int n = 25)
         {
-            PointsOrder += n;
+            PointsOrder -= n;
+        }
+
+        public void init_GameMaster()
+        {
+            character = MitaCore.character.GameMaster;
+            this.isGameMaster = true;
+            //CharacterControl.Characters.Add(this);
+            CharacterControl.gameMaster = this;
+        }
+
+        int timingEach = 2;
+        int tiningNow = 1;
+        public bool isTimeToCorrect()
+        {
+            bool isIt = tiningNow == timingEach;
+
+            if (isIt) tiningNow = 1;
+            else tiningNow += 1;
+
+            return isIt;
+
+        }
+    }
+    // Не наследуется(((
+    public class GameMaster : Character
+    {
+        public void init_GameMaster()
+        {
+            character = MitaCore.character.GameMaster;
+            this.isGameMaster = true;
+            //CharacterControl.Characters.Add(this);
+            CharacterControl.gameMaster = this;
+        }
+
+        int timingEach = 3;
+        int tiningNow = 1;
+        public bool isTimeToCorrect()
+        {
+            bool isIt = tiningNow == timingEach;
+
+            if (isIt) tiningNow = 0;
+            else tiningNow = 1;
+
+            return isIt;
+
         }
     }
 }

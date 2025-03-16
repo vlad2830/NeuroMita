@@ -3,9 +3,11 @@ using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static Il2CppRootMotion.FinalIK.InteractionObject;
 
 namespace MitaAI
 {
@@ -14,7 +16,7 @@ namespace MitaAI
 
         // Сюда перенести все сharacter и changeMita
         static MitaCore.character cart = MitaCore.character.None;
-
+        static public Character gameMaster = null;
         public static MitaCore.character get_cart()
         {
             if (cart == MitaCore.character.None) init_cart();
@@ -38,8 +40,8 @@ namespace MitaAI
                 
                 if (!character.enabled) continue;
 
-                float distance = 120f;
-                if (character.isCartdige) distance = 1.5f;
+                float distance = 25f;
+                if (character.isCartdige) distance = 3.5f;
 
                 
                 float factDistance = Utils.getDistanceBetweenObjects(MitaCore.Instance.playerPersonObject,character.gameObject);
@@ -56,28 +58,46 @@ namespace MitaAI
 
             return activeCharacters;
         }
+        public static string getObjectName(Character character)
+        {
+            GameObject Mita = MitaCore.getMitaByEnum(character.character, true);
+            string objectName = "";
+            if (Mita != null) objectName += $", its game object {objectName}";
+
+            return objectName;
+        }
+        public static string getObjectName(MitaCore.character character)
+        {
+            GameObject Mita = MitaCore.getMitaByEnum(character, true);
+            string objectName = "";
+            if (Mita != null) objectName += $", its game object {objectName}";
+
+            return objectName;
+        }
 
         public static string getSpeakersInfo(MitaCore.character toWhom)
         {
             if (Characters == null) return "";
 
-            if (Characters.Count <= 2) return "";
+            if (Characters.Count <= 1) return "";
 
             string message = "";
             message += $"[DIALOGUE] You are in dialogue with several ({Characters.Count+1}) speakers: \n player";
             foreach (Character character in Characters)
             {
-                message += $"\n{CharacterControl.extendCharsString(character.character)}";
+
+                string objectName = getObjectName(character);
+                message += $"\n{CharacterControl.extendCharsString(character.character)}{objectName})";
                 if (character.character == toWhom) message += "(you)";
             }
             message += "\n";
             return message;
         }
 
-        public static void increaseOrderPoints(Character character)
+        public static void DecreaseOrderPoints(Character character)
         {
-            if (character.isCartdige) character.increaseOrderPoints(2);
-            else character.increaseOrderPoints();
+            if (character.isCartdige) character.DecreseOrderPoints();
+            else character.DecreseOrderPoints();
         }
 
         public static void resetOrders(bool fillRandom = false)
@@ -91,6 +111,7 @@ namespace MitaAI
             }
         }
 
+
         public static List<MitaCore.character> GetCharactersToAnswer()
         {
             List<Character> activeCharacters = getActiveCharacters();
@@ -100,7 +121,7 @@ namespace MitaAI
 
             if (activeCharacters.Count > 0)
             {
-                increaseOrderPoints(activeCharacters.First());
+                DecreaseOrderPoints(activeCharacters.First());
             }
             
             List<MitaCore.character> characters = new List<MitaCore.character>();
@@ -117,8 +138,6 @@ namespace MitaAI
         }
 
 
-
-        static HashSet<MitaCore.character> speakersWere = new HashSet<MitaCore.character>();
         static int limit = 0;
 
         public static void nextAnswer(string response, MitaCore.character from, bool lastMessageWasFromAi)
@@ -128,8 +147,19 @@ namespace MitaAI
             List<MitaCore.character> characters = GetCharactersToAnswer();
             if (characters == null) return;
 
+
+            if (gameMaster != null)
+            {
+                if (gameMaster.isTimeToCorrect())
+                {
+                    MitaCore.Instance.sendSystemMessage("Проследи за диалогом, выполняя инструкции и основываясь на текущих данных разговора", MitaCore.character.GameMaster);
+                    return;
+                }
+
+            }
+
+
             // Добавляем отправителя в список говорящих
-            speakersWere.Add(from);
             characters.Remove(from);
             // Удаляем из characters всех, кто уже говорил
 
@@ -151,33 +181,40 @@ namespace MitaAI
                     MelonLogger.Msg("Sender and receiver are the same. Skipping.");
                     return;
                 }
-                limit += 100;
+                limit += 1;
                 // Отправляем сообщение и добавляем получателя в список говорящих
 
                 string message = getSpeakersInfo(character);
 
                 string nextSpeaker = "";
+                string objectNameNext = "";
                 if (limit + 1 == Characters.Count)
                 {
                     nextSpeaker = "Player";
                 }
                 else
                 {
-                    if (characters.Count >= 2) nextSpeaker = CharacterControl.extendCharsString(characters[1]);
+                    if (characters.Count >= 2) {
+                        nextSpeaker = CharacterControl.extendCharsString(characters[1]);
+                        objectNameNext = getObjectName(characters[1]);
+                    }
+
                     else nextSpeaker = "Player";
                 }
-                
 
-                message += $"[SPEAKER] {CharacterControl.extendCharsString(from)} said: <{response}>. Next speaker is {nextSpeaker} Respond to him or name somebody you want to speak with.";
+                string objectName = getObjectName(from);
+                
+                message += $"[SPEAKER] {CharacterControl.extendCharsString(from)}{objectName} said: <{response}>. Next speaker is {objectNameNext} Respond to him or name somebody you want to speak with.";
 
                 MitaCore.Instance.sendSystemMessage(message, character);
-                speakersWere.Add(character);
+
             }
             else
             {
+
+
                 // Сбрасываем список говорящих
                 limit = 1;
-                speakersWere.Clear();
                 resetOrders(true);
                 MelonLogger.Msg("Speakers list cleared.");
             }

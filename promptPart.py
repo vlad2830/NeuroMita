@@ -14,7 +14,8 @@ class PromptType(enum.Enum):
 class PromptPart:
     """Класс для представления части промпта."""
 
-    def __init__(self, part_type: PromptType, path: str, name=None, active=True, parameters: Optional[Dict] = None,stride = 0):
+    def __init__(self, part_type: PromptType, path: str, name=None, active=True, parameters: Optional[Dict] = None,
+                 stride=0):
         """
         Инициализация части промпта.
 
@@ -30,6 +31,7 @@ class PromptPart:
         self.parameters = parameters or {}
 
         self.stride = stride
+
     def format(self, **kwargs) -> str:
         """Форматирует содержимое с параметрами как f-строка."""
         try:
@@ -58,7 +60,6 @@ class PromptPart:
 
         # Для секретной инфы... Да да, кто кодер вам все изи
         if self.stride != 0:
-            text = shift_chars(text,self.stride)
+            text = shift_chars(text, self.stride)
 
         return text
-

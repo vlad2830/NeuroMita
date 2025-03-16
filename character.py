@@ -817,4 +817,55 @@ class SleepyMita(Character):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
+
 #endregion
+
+
+class GameMaster(Character):
+    def __init__(self, name: str = "GameMaster", silero_command: str = "/speaker dryad", silero_turn_off_video=False):
+        super().__init__(name, silero_command, silero_turn_off_video)
+
+    def init(self):
+        self.init_prompts()
+
+    def init_prompts(self):
+        Prompts = []
+
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Game_master.txt")))
+
+        for prompt in Prompts:
+            self.add_prompt_part(prompt)
+
+    def process_response(self, response: str):
+        response = self.extract_and_process_memory_data(response)
+        response = self._process_behavior_changes(response)
+        return response
+
+    def _process_behavior_changes(self, response):
+        return response
+
+    def current_variables(self):
+        return {
+            "role": "system",
+            "content": ""
+        }
+
+        # return {
+        #     "role": "system",
+        #     "content": (f"Твои характеристики:"
+        #                 f"Отношение: {self.attitude}/100."
+        #                 f"Скука: {self.boredom}/100."
+        #                 f"Стресс: {self.stress}/100.")
+        # }
+
+    def current_variables_string(self) -> str:
+        characteristics = {
+            "Отношение": self.attitude,
+            "Стресс": self.stress,
+            "Скука": self.boredom,
+        }
+        return ""
+
+        # return f"характеристики {self.name}:\n" + "\n".join(
+        #     f"- {key}: {value} " for key, value in characteristics.items()
+        # )

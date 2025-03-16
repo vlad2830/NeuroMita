@@ -20,7 +20,9 @@ namespace MitaAI.Mita
         public static AudioClip chibiMitaAudio;
         static AudioSource mitaAudioSourse;
         public static GameObject MitaDualogueSpeak;
+
         public static AudioSource cartAudioSource;
+        public static AudioSource playerAudioSource;
 
         private static GameObject fingerClick;
 
