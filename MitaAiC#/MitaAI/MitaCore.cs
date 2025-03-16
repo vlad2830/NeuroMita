@@ -279,7 +279,7 @@ namespace MitaAI
                 {
                     rigidbody = MitaPersonObject.AddComponent<Rigidbody>();
                     rigidbody.freezeRotation = true;
-                    rigidbody.useGravity = true;
+                    rigidbody.useGravity = false;
                     rigidbody.centerOfMass = new Vector3(0, 0.65f, 0);
                     rigidbody.mass = 2f;
                     rigidbody.maxAngularVelocity = 0.3f;
@@ -1055,6 +1055,7 @@ namespace MitaAI
 
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
+            currentCharacter = characterToSend;
             Task<(string, string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
 
 

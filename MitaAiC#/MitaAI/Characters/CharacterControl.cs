@@ -39,7 +39,7 @@ namespace MitaAI
                 if (!character.enabled) continue;
 
                 float distance = 120f;
-                if (character.isCartdige) distance = 1f;
+                if (character.isCartdige) distance = 1.5f;
 
                 
                 float factDistance = Utils.getDistanceBetweenObjects(MitaCore.Instance.playerPersonObject,character.gameObject);
@@ -64,7 +64,7 @@ namespace MitaAI
             if (Characters.Count <= 2) return "";
 
             string message = "";
-            message += $"[DIALOGUE] You are in dialogue with several ({Characters.Count}) speakers: \n player";
+            message += $"[DIALOGUE] You are in dialogue with several ({Characters.Count+1}) speakers: \n player";
             foreach (Character character in Characters)
             {
                 message += $"\n{CharacterControl.extendCharsString(character.character)}";
@@ -80,11 +80,14 @@ namespace MitaAI
             else character.increaseOrderPoints();
         }
 
-        public static void resetOrders()
+        public static void resetOrders(bool fillRandom = false)
         {
             foreach (Character ch in Characters)
-            {
+            { 
                 ch.PointsOrder = 0;
+
+                if (fillRandom) ch.PointsOrder += UnityEngine.Random.Range(0, 25);
+
             }
         }
 
@@ -92,8 +95,7 @@ namespace MitaAI
         {
             List<Character> activeCharacters = getActiveCharacters();
 
-            // Сортировка списка по полю PointsOrder
-            activeCharacters = activeCharacters.OrderBy(character => character.PointsOrder).ToList();
+            activeCharacters = activeCharacters.OrderByDescending(character => character.PointsOrder).ToList();
 
 
             if (activeCharacters.Count > 0)
@@ -149,7 +151,7 @@ namespace MitaAI
                     MelonLogger.Msg("Sender and receiver are the same. Skipping.");
                     return;
                 }
-                limit += 1;
+                limit += 100;
                 // Отправляем сообщение и добавляем получателя в список говорящих
 
                 string message = getSpeakersInfo(character);
@@ -176,6 +178,7 @@ namespace MitaAI
                 // Сбрасываем список говорящих
                 limit = 1;
                 speakersWere.Clear();
+                resetOrders(true);
                 MelonLogger.Msg("Speakers list cleared.");
             }
         }
