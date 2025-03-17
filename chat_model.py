@@ -238,6 +238,7 @@ class ChatModel:
 
         # Проверяем, есть ли имя в словаре
         if self.current_character_to_change in self.characters:
+            print(f"Меняю персонажа на {self.current_character_to_change}")
             self.current_character = self.characters[self.current_character_to_change]
             self.current_character_to_change = ""  # Сбрасываем значение
 

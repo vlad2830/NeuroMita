@@ -25,7 +25,7 @@ namespace MitaAI
             lastId += 1;
             return sendId;
         }
-        static public async Task<Dictionary<string, JsonElement>> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Crazy)
+        static public async Task<Dictionary<string, JsonElement>> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character characterSend = MitaCore.character.Crazy)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 
@@ -50,7 +50,7 @@ namespace MitaAI
                 {
                     id = getIncreaseMessasgeId(),  // Например, ID сообщения
                     type = "chat", // Тип сообщения
-                    character,
+                    character = characterSend.ToString(),
                     input,
                     dataToSentSystem,
                     systemInfo,

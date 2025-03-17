@@ -53,7 +53,9 @@ class ChatServer:
 
             message_type = message_data["type"]
 
-            character = message_data["character"]
+            character = str(message_data["character"])
+            self.chat_model.current_character_to_change = character
+
             message = message_data["input"]
             system_message = message_data["dataToSentSystem"]
             system_info = message_data["systemInfo"]
@@ -67,7 +69,7 @@ class ChatServer:
 
             self.chat_model.actualInfo = message_data["currentInfo"]
 
-            self.chat_model.current_character_to_change = character
+
 
             if system_info != "-":
                 print("Добавил систем инфо " + system_info)

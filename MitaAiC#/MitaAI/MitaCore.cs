@@ -1098,14 +1098,21 @@ namespace MitaAI
                 }
 
             }
-            if (characterToSend != currentCharacter && characterToSend != character.GameMaster)
+            if (characterToSend != currentCharacter)
             {
-                addChangeMita(getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
+                if (characterToSend != character.GameMaster)
+                {
+                    addChangeMita(getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
+                }
+                else
+                {
+                    currentCharacter = characterToSend;
+                }
             }
 
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
-
+            
             Task<Dictionary<string, JsonElement>> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
 
 
@@ -1183,7 +1190,7 @@ namespace MitaAI
             if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
             if (response != "")
             {
-                LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
+                LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend}");
 
                 if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.cartAudioSource));
                 else if (characterToSend == character.GameMaster && GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.playerAudioSource,GM_VOICE));
@@ -1216,6 +1223,8 @@ namespace MitaAI
 
         public void sendInfoListeners(string message,List<character> characters = null, character exluding = character.None, string from = "Игрок")
         {
+            MelonLogger.Msg($"sendInfoListeners char {characters} exl {exluding} from {from}");
+
             if ( characters == null ) characters = CharacterControl.GetCharactersToAnswer();
 
             if ( exluding == character.None ) exluding = currentCharacter;
@@ -1223,8 +1232,8 @@ namespace MitaAI
 
             string charName = CharacterControl.extendCharsString(exluding);
 
-            
-
+            if (CharacterControl.gameMaster != null) characters.Add(character.GameMaster);
+            //characters.Remove(exluding);
 
             foreach (character character in characters)
             {
@@ -1239,6 +1248,8 @@ namespace MitaAI
                     sendSystemInfo(messageToListener, character );
                 }
             }
+ 
+
         }
         public void sendInfoListenersFromGm(string message, List<character> characters = null, character exluding = character.None)
         {
