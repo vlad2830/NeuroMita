@@ -77,7 +77,9 @@ class ChatGUI:
         self.textToTalk = ""
         self.textSpeaker = "/Speaker Mita"
         self.silero_turn_off_video = False
+
         self.patch_to_sound_file = ""
+        self.id_sound = -1
         self.waiting_answer = False
 
 
@@ -354,6 +356,8 @@ class ChatGUI:
         self.setup_mita_controls(settings_frame)
         self.setup_model_controls(settings_frame)
         self.setup_common_controls(settings_frame)
+        self.setup_game_master_controls(settings_frame)
+
         # Передаем settings_frame как родителя
         self.setup_status_indicators(settings_frame)
 
@@ -686,6 +690,18 @@ class ChatGUI:
 
         ]
         self.create_settings_section(parent, "Общие настройки", common_config)
+
+    def setup_game_master_controls(self, parent):
+        # Основные настройки
+        common_config = [
+            {'label': 'ГеймМастер включен', 'key': 'GM_ON', 'type': 'checkbutton',
+             'default_checkbutton': False,'tooltip':'Помогает вести диалоги'},
+            {'label': 'ГеймМастер зачитывается', 'key': 'GN_READ', 'type': 'checkbutton',
+             'default_checkbutton': False},
+            {'label': 'ГеймМастер озвучивает', 'key': 'GN_TALK', 'type': 'checkbutton',
+             'default_checkbutton': False}
+        ]
+        self.create_settings_section(parent, "Настройки Мастера игры", common_config)
 
     def validate_number(self, new_value):
         return 0 < len(new_value) <= 30  # Пример простой валидации
@@ -1055,7 +1071,8 @@ class ChatGUI:
                 options=config.get('options', None),
                 default=config.get('default', ''),
                 default_checkbutton=config.get('default_checkbutton', False),
-                validation=config.get('validation', None)
+                validation=config.get('validation', None),
+                tooltip=config.get('tooltip', "")
             )
             section.add_widget(widget)
 
@@ -1084,7 +1101,7 @@ class ChatGUI:
         frame.pack(fill=tk.X, pady=2)
 
         # Label
-        lbl = tk.Label(frame, text=label, bg="#2c2c2c", fg="#ffffff", width=20, anchor='w')
+        lbl = tk.Label(frame, text=label, bg="#2c2c2c", fg="#ffffff", width=25, anchor='w')
         lbl.pack(side=tk.LEFT, padx=5)
 
         # Widgets

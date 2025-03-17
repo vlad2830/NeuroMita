@@ -37,6 +37,8 @@ class ChatServer:
             message_data = json.loads(received_text)
 
             message_id = message_data["id"]
+            self.gui.id_sound = message_id
+
             message_type = message_data["type"]
 
             character = message_data["character"]
@@ -99,6 +101,7 @@ class ChatServer:
                 "character": character,
                 "response": response,
                 "silero": silero,
+                "id_sound": 1,
                 "patch_to_sound_file": self.gui.patch_to_sound_file,
                 "user_input": self.gui.user_input
             }
