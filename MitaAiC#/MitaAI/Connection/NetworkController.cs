@@ -75,6 +75,10 @@ namespace MitaAI
 
                     var messageData2 = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(receivedMessage);
 
+
+                    int id = messageData2["id"].GetInt32();
+                    string type = messageData2["type"].GetString();
+
                     string new_character = messageData2["character"].GetString();
                     string response = messageData2["response"].GetString();
                     string sileroConnected = messageData2["silero"].GetString();

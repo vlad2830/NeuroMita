@@ -22,7 +22,6 @@ class ChatServer:
         self.server_socket.listen(5)
         print(f"Сервер запущен на {self.host}:{self.port}")
 
-
     def handle_connection(self):
         """Обрабатывает одно подключение."""
         if not self.server_socket:
@@ -95,6 +94,8 @@ class ChatServer:
                 transmitted_to_game = True
 
             message_data = {
+                "id": message_id,
+                "type": message_type,
                 "character": character,
                 "response": response,
                 "silero": silero,
@@ -111,7 +112,6 @@ class ChatServer:
             json_message = json.dumps(message_data)
             self.client_socket.send(json_message.encode("utf-8"))
 
-            #print("Получил")
             self.gui.ConnectedToGame = True
             return True
         except Exception as e:
