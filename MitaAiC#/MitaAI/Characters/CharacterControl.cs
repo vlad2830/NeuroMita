@@ -148,12 +148,13 @@ namespace MitaAI
             List<MitaCore.character> characters = GetCharactersToAnswer();
             if (characters == null) return;
 
-            if (gameMaster != null && from != MitaCore.character.GameMaster)
+            if (gameMaster.enabled && from != MitaCore.character.GameMaster)
             {
                 MelonLogger.Msg("Attempt GameMaster");
                 if (gameMaster.isTimeToCorrect())
                 {
-                    MitaCore.Instance.sendSystemMessage("Проследи за диалогом, выполняя инструкции и основываясь на текущих данных разговора", MitaCore.character.GameMaster);
+                    string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора. Приветствия не нужно";
+                    MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
                     return;
                 }
 

@@ -1198,7 +1198,9 @@ namespace MitaAI
 
                 if (characterToSend != character.GameMaster) sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
                 else sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
-                //Тестово
+                
+                
+                //Тестово - хочешь чтобы было без лишнего отрубай это
                 MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
 
 
