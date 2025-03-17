@@ -29,7 +29,7 @@ class TelegramBotHandler:
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
 
-        self.silero_time_limit = 8
+        #self.silero_time_limit = 8
 
         if getattr(sys, "frozen", False):
             # Если программа собрана в exe, получаем путь к исполняемому файлу
