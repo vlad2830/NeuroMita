@@ -711,17 +711,10 @@ namespace MitaAI
 
             if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
 
-            try
-            {
-                if (playerPersonObject == null) MelonLogger.Error("PPO NULL!!!");
-
-                Character GM = playerPersonObject.AddComponent<Character>();
-                GM.init_GameMaster();
-            }
-            catch (Exception ex)
-            {
-                MelonLogger.Error($"Tried set GameMaster {ex}");
-            }
+            // Временно отключил
+            //Character GM = playerPersonObject.AddComponent<Character>();
+            //GM.init_GameMaster();
+         
             
 
             playerEffects = playerPerson.transform.parent.Find("HeadPlayer/MainCamera").gameObject.GetComponent<PlayerCameraEffects>();
