@@ -26,7 +26,8 @@ from SpeechRecognition import SpeechRecognition
 gettext.bindtextdomain('NeuroMita', '/Translation')
 gettext.textdomain('NeuroMita')
 _ = gettext.gettext
-_ = str # Временно пока чтобы не падало
+_ = str  # Временно пока чтобы не падало
+
 
 class ChatGUI:
     def __init__(self):
@@ -66,13 +67,13 @@ class ChatGUI:
             print("Не удалось удачно получить из системных переменных все данные", e)
             self.settings = SettingsManager("Settings/settings.json")
 
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.settings.get("gpt4free_model"),
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model,
+                               self.settings.get("gpt4free_model"),
                                self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
         self.start_server()
-
 
         self.textToTalk = ""
         self.textSpeaker = "/Speaker Mita"
@@ -81,7 +82,6 @@ class ChatGUI:
         self.patch_to_sound_file = ""
         self.id_sound = -1
         self.waiting_answer = False
-
 
         self.root = tk.Tk()
         self.root.title("Чат с NeuroMita")
@@ -147,8 +147,9 @@ class ChatGUI:
                 return
 
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
-            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone, self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
-            
+            self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone,
+                                                  self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
+
             try:
                 await self.bot_handler.start()
                 self.bot_handler_ready = True
@@ -188,24 +189,23 @@ class ChatGUI:
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
         if self.textToTalk:  #and not self.ConnectedToGame:
-                print(f"Есть текст для отправки: {self.textToTalk}")
-                # Вызываем метод для отправки текста, если переменная не пуста
-                if self.loop and self.loop.is_running():
-                    try:
-                        if bool(self.settings.get("SILERO_USE")):
-                            print("Цикл событий готов. Отправка текста.")
-                            asyncio.run_coroutine_threadsafe(
-                                self.run_send_and_receive(self.textToTalk, self.textSpeaker),
-                                self.loop
-                            )
-                        self.textToTalk = ""  # Очищаем текст после отправки
-                        print("Выполнено")
-                    except Exception as e:
-                        print(f"Ошибка при отправке текста: {e}")
-                        self.textToTalk = ""  # Очищаем текст в случае ошибки
-                else:
-                    print("Ошибка: Цикл событий не готов.")
-
+            print(f"Есть текст для отправки: {self.textToTalk}")
+            # Вызываем метод для отправки текста, если переменная не пуста
+            if self.loop and self.loop.is_running():
+                try:
+                    if bool(self.settings.get("SILERO_USE")):
+                        print("Цикл событий готов. Отправка текста.")
+                        asyncio.run_coroutine_threadsafe(
+                            self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                            self.loop
+                        )
+                    self.textToTalk = ""  # Очищаем текст после отправки
+                    print("Выполнено")
+                except Exception as e:
+                    print(f"Ошибка при отправке текста: {e}")
+                    self.textToTalk = ""  # Очищаем текст в случае ошибки
+            else:
+                print("Ошибка: Цикл событий не готов.")
 
         if bool(self.settings.get("MIC_INSTANT_SENT")):
 
@@ -220,7 +220,7 @@ class ChatGUI:
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
 
-    def instant_send(self,text_from_recognition):
+    def instant_send(self, text_from_recognition):
         """Мгновенная отправка распознанного текста"""
         try:
             if text_from_recognition:
@@ -300,32 +300,33 @@ class ChatGUI:
         # Второй столбец
         right_frame = tk.Frame(main_frame, bg="#2c2c2c")
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
-        
+
         # Создаем канвас и скроллбар для правой секции
         right_canvas = tk.Canvas(right_frame, bg="#2c2c2c", highlightthickness=0)
         right_scrollbar = ttk.Scrollbar(right_frame, orient="vertical", command=right_canvas.yview)
-        
+
         # Настраиваем скроллбар и канвас
         right_canvas.configure(yscrollcommand=right_scrollbar.set)
         right_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         right_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
+
         # Создаем фрейм внутри канваса для размещения всех элементов
         settings_frame = tk.Frame(right_canvas, bg="#2c2c2c")
-        settings_frame_window = right_canvas.create_window((0, 0), window=settings_frame, anchor="nw", tags="settings_frame")
-        
+        settings_frame_window = right_canvas.create_window((0, 0), window=settings_frame, anchor="nw",
+                                                           tags="settings_frame")
+
         # Настраиваем изменение размера канваса при изменении размера фрейма
         def configure_scroll_region(event):
             right_canvas.configure(scrollregion=right_canvas.bbox("all"))
-        
+
         settings_frame.bind("<Configure>", configure_scroll_region)
-        
+
         # Настраиваем изменение ширины фрейма при изменении ширины канваса
         def configure_frame_width(event):
             right_canvas.itemconfig(settings_frame_window, width=event.width)
-        
+
         right_canvas.bind("<Configure>", configure_frame_width)
-        
+
         # Настраиваем прокрутку колесиком мыши
         def _on_mousewheel(event):
             # Определяем направление прокрутки в зависимости от платформы
@@ -343,13 +344,13 @@ class ChatGUI:
                     delta = -1 if event.delta > 0 else 1
             else:
                 return
-                
+
             right_canvas.yview_scroll(delta, "units")
-        
+
         # Привязываем события прокрутки для разных платформ
         right_canvas.bind_all("<MouseWheel>", _on_mousewheel)  # Windows и macOS
-        right_canvas.bind_all("<Button-4>", _on_mousewheel)    # Linux (прокрутка вверх)
-        right_canvas.bind_all("<Button-5>", _on_mousewheel)    # Linux (прокрутка вниз)
+        right_canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux (прокрутка вверх)
+        right_canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux (прокрутка вниз)
 
         self.setup_microphone_controls(settings_frame)
         self.setup_silero_controls(settings_frame)
@@ -651,7 +652,7 @@ class ChatGUI:
             {'label': 'ТГ-бот для озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox',
              'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
             #{'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
-             #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
+            #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
              'validation': self.validate_number}
 
@@ -695,7 +696,7 @@ class ChatGUI:
         # Основные настройки
         common_config = [
             {'label': 'ГеймМастер включен', 'key': 'GM_ON', 'type': 'checkbutton',
-             'default_checkbutton': False,'tooltip':'Помогает вести диалоги'},
+             'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги'},
             {'label': 'ГеймМастер зачитывается', 'key': 'GN_READ', 'type': 'checkbutton',
              'default_checkbutton': False},
             {'label': 'ГеймМастер озвучивает', 'key': 'GN_TALK', 'type': 'checkbutton',
@@ -923,7 +924,6 @@ class ChatGUI:
         self.chat_window.delete(1.0, tk.END)
         self.update_debug_info()
 
-
     # region Microphone
 
     """Спасибо Nelxi (distrane25)"""
@@ -957,7 +957,7 @@ class ChatGUI:
             width=2
         )
         refresh_btn.pack(side=tk.LEFT, padx=5)
-        
+
         # вот это мне не оч нравится, как-то кривовато, но ок
         mic_frame_2 = tk.Frame(parent, bg="#2c2c2c")
         mic_frame_2.pack(fill=tk.X, pady=5)
@@ -1041,7 +1041,7 @@ class ChatGUI:
             self.bot_handler.tg_bot = value
             print(f"ТГ-бот для озвучки изменен на {value}")
         #if key == "TG_BOT":
-         #   self.bot_handler.tg_bot_channel = value
+        #   self.bot_handler.tg_bot_channel = value
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
 
@@ -1226,7 +1226,7 @@ class ChatGUI:
             self.root.unbind_all("<Button-5>")
         except:
             pass
-            
+
         self.delete_all_sound_files()
         self.stop_server()
         print("Закрываемся")
@@ -1236,6 +1236,7 @@ class ChatGUI:
         """Закрытие приложения корректным образом."""
         print("Завершение программы...")
         self.root.destroy()  # Закрывает GUI
+
     @staticmethod
     def delete_all_sound_files():
         # Получаем список всех .wav файлов в корневой директории

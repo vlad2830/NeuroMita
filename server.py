@@ -22,6 +22,7 @@ class ChatServer:
         self.server_socket.listen(5)
         print(f"Сервер запущен на {self.host}:{self.port}")
 
+    #TODO РЕФАКТОРЬ РЕФАКТОРЬ РЕФАКТОРЬ!
     def handle_connection(self):
         """Обрабатывает одно подключение."""
         if not self.server_socket:
