@@ -29,7 +29,12 @@ class TelegramBotHandler:
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
 
-        #self.silero_time_limit = 8
+        print(f"DEBUG. TG TIME LIMIT BEFORE IS: {self.silero_time_limit}")
+
+        if self.silero_time_limit is None:
+            self.silero_time_limit = 10
+
+        print(f"DEBUG. TG TIME LIMIT AFTER IS: {self.silero_time_limit}")
 
         if getattr(sys, "frozen", False):
             # Если программа собрана в exe, получаем путь к исполняемому файлу
