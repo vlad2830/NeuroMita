@@ -24,6 +24,7 @@ namespace MitaAI
     {
         // Ссылка на экземпляр MitaCore, если он нужен
         public static MitaCore Instance;
+        private LogicCharacter characterLogic;
 
         public MitaCore()
         {
@@ -160,6 +161,12 @@ namespace MitaAI
                     comp.init(character);
                 }
 
+                // Интеграция CharacterLogic
+                Character characterComponent = MitaPersonObject.GetComponent<Character>();
+                if (characterComponent == null)
+                {
+                    characterComponent.init(character); // Предполагается, что init инициализирует персонажа
+                }
 
                 MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
 
@@ -471,11 +478,10 @@ namespace MitaAI
         public override void OnInitializeMelon()
         {
             base.OnInitializeMelon();
-
+            characterLogic = LogicCharacter.Instance;
             harmony = new HarmonyLib.Harmony("1");
             MitaClothesModded.init(harmony);
             NetworkController.Initialize();
-            
         }
 
         public override void OnLateInitializeMelon()
@@ -2540,6 +2546,7 @@ namespace MitaAI
                     Interactions.Update();
                     InputControl.processInpute();
                     PlayerMovement.onUpdate();
+                    characterLogic?.Update(); // добавляем для метода update в characterlogic
                 }
 
 
