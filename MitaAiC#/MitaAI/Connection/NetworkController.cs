@@ -18,7 +18,13 @@ namespace MitaAI
         {
             mitaCore = MitaCore.Instance;
         }
-
+        static int lastId = 0;
+        static int getIncreaseMessasgeId()
+        {
+            int sendId = lastId;
+            lastId += 1;
+            return sendId;
+        }
         static public async Task<(string,string,string, string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Crazy)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
@@ -42,7 +48,7 @@ namespace MitaAI
 
                 var messageData = new
                 {
-                    id = 1,  // Например, ID сообщения
+                    id = getIncreaseMessasgeId(),  // Например, ID сообщения
                     type = "chat", // Тип сообщения
                     character,
                     input,
@@ -63,28 +69,20 @@ namespace MitaAI
                 byte[] buffer = new byte[4086];
                 try
                 {
+                    byte[] buffer2 = new byte[4096];
                     int bytesRead = await clientSocket.ReceiveAsync(buffer, SocketFlags.None);
-
                     string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-                    string[] parts = receivedMessage.Split(new string[] { "|||" }, StringSplitOptions.None);
+                    var messageData2 = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(receivedMessage);
 
-                    // Логируем ответ
-                    string new_character = parts[0];
-                    string response = parts[1];
-                    
-                    string patch = "";
-                    if (!string.IsNullOrEmpty(parts[3])) patch = parts[3];
-
-                    string sileroConnected = parts[2];
-                                        
-                    string user_input = "";
-                    if (!string.IsNullOrEmpty(parts[4])) user_input = parts[4];
-                    //MelonLogger.Msg("Reveiced data" + parts[0] + "" + parts[2]);
-                    //waitForSounds = parts[1];
+                    string new_character = messageData2["character"].GetString();
+                    string response = messageData2["response"].GetString();
+                    string sileroConnected = messageData2["silero"].GetString();
+                    string patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
+                    string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
 
 
-                    
+
                     //patch_to_sound_file = parts[1];
                     return (response,sileroConnected,patch,user_input);
                 }

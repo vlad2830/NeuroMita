@@ -94,16 +94,23 @@ class ChatServer:
             if self.gui.user_input:
                 transmitted_to_game = True
 
-            message = f"{character}|||{response}|||{silero}|||{self.gui.patch_to_sound_file}|||{self.gui.user_input}"
+            message_data = {
+                "character": character,
+                "response": response,
+                "silero": silero,
+                "patch_to_sound_file": self.gui.patch_to_sound_file,
+                "user_input": self.gui.user_input
+            }
 
             self.gui.patch_to_sound_file = ""
 
             if transmitted_to_game:
                 self.gui.clear_user_input()
 
-            # Отправляем сообщение через сокет
-            #print("Отправляю обратно в игру")
-            self.client_socket.send(message.encode('utf-8'))
+            # Отправляем JSON через сокет
+            json_message = json.dumps(message_data)
+            self.client_socket.send(json_message.encode("utf-8"))
+
             #print("Получил")
             self.gui.ConnectedToGame = True
             return True
