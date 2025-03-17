@@ -25,7 +25,7 @@ namespace MitaAI
             lastId += 1;
             return sendId;
         }
-        static public async Task<(string,string,string, string)> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Crazy)
+        static public async Task<Dictionary<string, JsonElement>> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, MitaCore.character character = MitaCore.character.Crazy)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 
@@ -34,7 +34,7 @@ namespace MitaAI
                 bool connected = await TryConnectAsync(clientSocket, ServerAddress, Port);
                 if (!connected)
                 {
-                    return (string.Empty, string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ, если не удалось подключиться
+                    return null; // Возвращаем пустой ответ, если не удалось подключиться
                 }
                 //MelonLogger.Msg("In GetResponseFromPythonSocketAsync");
                 bool waitResponse = (input != "waiting" || dataToSentSystem != "-");
@@ -73,27 +73,15 @@ namespace MitaAI
                     int bytesRead = await clientSocket.ReceiveAsync(buffer, SocketFlags.None);
                     string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-                    var messageData2 = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(receivedMessage);
-
-
-                    int id = messageData2["id"].GetInt32();
-                    string type = messageData2["type"].GetString();
-
-                    string new_character = messageData2["character"].GetString();
-                    string response = messageData2["response"].GetString();
-                    string sileroConnected = messageData2["silero"].GetString();
-                    string patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
-                    string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
-
-
+                    Dictionary<string, JsonElement> messageData2 = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(receivedMessage);
 
                     //patch_to_sound_file = parts[1];
-                    return (response,sileroConnected,patch,user_input);
+                    return messageData2;
                 }
                 catch (Exception ex)
                 {
                     MelonLogger.Msg($"Error receiving data: {ex.Message}");
-                    return (string.Empty, string.Empty, string.Empty, string.Empty); // Возвращаем пустой ответ в случае ошибки при получении данных
+                    return null; // Возвращаем пустой ответ в случае ошибки при получении данных
                 }
             }
 

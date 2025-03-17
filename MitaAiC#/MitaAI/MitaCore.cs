@@ -13,6 +13,7 @@ using MitaAI.PlayerControls;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Networking.Match;
+using System.Text.Json;
 
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
@@ -1104,7 +1105,7 @@ namespace MitaAI
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
 
-            Task<(string, string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
+            Task<Dictionary<string, JsonElement>> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
 
 
 
@@ -1145,10 +1146,24 @@ namespace MitaAI
             string patch = null;
             if (responseTask.IsCompleted)
             {
-                response = responseTask.Result.Item1;
-                NetworkController.connectedToSilero = responseTask.Result.Item2 == "1";
-                patch = responseTask.Result.Item3;
-                if (responseTask.Result.Item4 != null) InputControl.UpdateInput(responseTask.Result.Item4);
+                Dictionary<string, JsonElement> messageData2 = responseTask.Result;
+
+
+                int id = messageData2["id"].GetInt32();
+                string type = messageData2["type"].GetString();
+
+                string new_character = messageData2["character"].GetString();
+                response = messageData2["response"].GetString();
+                string connectedToSilero = messageData2["silero"].GetString();
+
+                int idSound = messageData2["id_sound"].GetInt32();
+                patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
+                string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
+
+
+
+                NetworkController.connectedToSilero = connectedToSilero == "1";
+                if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
             }
             else
             {
