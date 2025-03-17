@@ -25,7 +25,7 @@ namespace MitaAI
         // Ссылка на экземпляр MitaCore, если он нужен
         public static MitaCore Instance;
         private LogicCharacter characterLogic;
-
+            
         public MitaCore()
         {
             Instance = this;

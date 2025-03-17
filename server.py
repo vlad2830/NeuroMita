@@ -1,3 +1,4 @@
+import json
 import socket
 import datetime
 
@@ -34,10 +35,24 @@ class ChatServer:
 
             # Получение сообщения от клиента
             received_text = self.client_socket.recv(4086).decode('utf-8')
-            #print("Получил")
-            # Разделяем текст и ссылку по "|||"
-            character, message, system_message, system_info, self.chat_model.distance, self.chat_model.roomPlayer, self.chat_model.roomMita, self.chat_model.nearObjects, self.chat_model.actualInfo = received_text.split(
-                "|||")
+            message_data = json.loads(received_text)
+
+            message_id = message_data["id"]
+            message_type = message_data["type"]
+
+            character = message_data["character"]
+            message = message_data["input"]
+            system_message = message_data["dataToSentSystem"]
+            system_info = message_data["systemInfo"]
+
+            # Вот это этого надо будет изьавиться
+            self.chat_model.distance = float(message_data["distance"].replace(",", "."))
+            self.chat_model.roomPlayer = int(message_data["roomPlayer"])
+            self.chat_model.roomMita = int(message_data["roomMita"])
+            self.chat_model.nearObjects = message_data["hierarchy"]
+            #
+
+            self.chat_model.actualInfo = message_data["currentInfo"]
 
             self.chat_model.current_character_to_change = character
 
