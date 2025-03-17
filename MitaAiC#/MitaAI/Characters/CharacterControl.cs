@@ -51,7 +51,7 @@ namespace MitaAI
                 if (factDistance <= distance)
                 {
 
-                    MelonLogger.Msg($"{character.character} added to actibe Characters");
+                    MelonLogger.Msg($"{character.character} added to active Characters");
                     activeCharacters.Add(character);
                 }
             }
