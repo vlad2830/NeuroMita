@@ -161,6 +161,7 @@ class TelegramBotHandler:
         response = None
         attempts = 0
         attempts_per_second = 4
+        print("DEBUG. TG TIME LIMIT IS:", self.silero_time_limit)
         attempts_max = self.silero_time_limit * attempts_per_second
 
         await asyncio.sleep(0.7)
