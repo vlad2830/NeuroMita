@@ -33,9 +33,20 @@ class ChatServer:
             self.client_socket, addr = self.server_socket.accept()
             #print(f"Подключен {addr}")
 
-            # Получение сообщения от клиента
-            received_text = self.client_socket.recv(4086).decode('utf-8')
-            message_data = json.loads(received_text)
+            received_text = self.client_socket.recv(8192).decode("utf-8")
+
+            # Логируем полученные данные
+            #print(f"Получено: {received_text}")
+
+            # Проверяем, корректно ли закрыт JSON (простая проверка)
+            if not received_text.strip().endswith("}"):
+                print("Ошибка: JSON оборван")
+            else:
+                try:
+                    message_data = json.loads(received_text)
+                    #print("JSON успешно разобран!")
+                except json.JSONDecodeError as e:
+                    print(f"Ошибка обработки JSON: {e}")
 
             message_id = message_data["id"]
             self.gui.id_sound = message_id
@@ -83,12 +94,6 @@ class ChatServer:
                 #self.gui.insertDialog(message,response)
                 print("Отправлено Мите на озвучку: " + response)
 
-            # Ждать ли на той стороне файла озвучки
-            if self.gui.silero_connected and self.gui.settings.get("SILERO_USE"):
-                silero = "1"
-            else:
-                silero = "0"
-
             if not character:
                 character = "Mita"
 
@@ -97,14 +102,20 @@ class ChatServer:
                 transmitted_to_game = True
 
             message_data = {
-                "id": message_id,
-                "type": message_type,
-                "character": character,
-                "response": response,
-                "silero": silero,
-                "id_sound": 1,
-                "patch_to_sound_file": self.gui.patch_to_sound_file,
-                "user_input": self.gui.user_input
+                "id": int(message_id),
+                "type": str(message_type),
+                "character": str(character),
+                "response": str(response),
+                "silero": bool(self.gui.silero_connected and bool(self.gui.settings.get("SILERO_USE"))),
+                "id_sound": int(1),
+                "patch_to_sound_file": str(self.gui.patch_to_sound_file),
+                "user_input": str(self.gui.user_input),
+
+                # Простите, но я хотел за вечер затестить
+                "GM_ON": bool(self.gui.settings.get("GM_ON")),
+                "GM_READ": bool(self.gui.settings.get("GM_READ")),
+                "GM_VOICE": bool(self.gui.settings.get("GM_VOICE"))
+
             }
 
             self.gui.patch_to_sound_file = ""
