@@ -209,11 +209,15 @@ class ChatModel:
             response = self.current_character.process_response(response)
 
             print(f"До фразы {response}")
-            self.gui.textToTalk = self.process_text_to_voice(response)
-            self.gui.textSpeaker = self.current_character.silero_command
-            self.gui.silero_turn_off_video = self.current_character.silero_turn_off_video
-            print("self.gui.textToTalk: " + self.gui.textToTalk)
-            print("self.gui.textSpeaker: " + self.gui.textSpeaker)
+
+            if self.current_character == self.GameMaster and not bool(self.gui.settings.get("GM_VOICE")):
+                pass
+            else:
+                self.gui.textToTalk = self.process_text_to_voice(response)
+                self.gui.textSpeaker = self.current_character.silero_command
+                self.gui.silero_turn_off_video = self.current_character.silero_turn_off_video
+                print("self.gui.textToTalk: " + self.gui.textToTalk)
+                print("self.gui.textSpeaker: " + self.gui.textSpeaker)
 
             self.current_character.safe_history(messages, timed_system_message)
 
@@ -326,7 +330,7 @@ class ChatModel:
 
                 if response:
                     response = self._clean_response(response)
-                    logger.info(f"Успешный ответ:\n{response}")
+                    #logger.info(f"Успешный ответ:\n{response}")
                     return response, True
 
             except Exception as e:

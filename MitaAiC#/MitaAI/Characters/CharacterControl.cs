@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using UnityEngine;
 using static Il2CppRootMotion.FinalIK.InteractionObject;
 
@@ -35,9 +36,16 @@ namespace MitaAI
         private static List<Character> getActiveCharacters()
         {
             List<Character> activeCharacters = new List<Character>();
+            List<Character> ClearCharacters = new List<Character>();
+
             foreach (var character in Characters)
             {
-                
+                if (character == null)
+                {
+                    ClearCharacters.Add(character);
+                    continue;
+                }
+
                 if (!character.enabled) continue;
 
                 float distance = 25f;
@@ -55,6 +63,8 @@ namespace MitaAI
                     activeCharacters.Add(character);
                 }
             }
+            foreach (var character in ClearCharacters) Characters.Remove(character);
+
 
             return activeCharacters;
         }
@@ -138,25 +148,42 @@ namespace MitaAI
         }
 
 
+        private static bool GameMasterCase(MitaCore.character from)
+        {
+            if (gameMaster == null) return false;
+            try
+            {
+                if (gameMaster.enabled && from != MitaCore.character.GameMaster)
+                {
+                    MelonLogger.Msg("nextAnswer Attempt GameMaster");
+                    if (gameMaster.isTimeToCorrect())
+                    {
+                        MelonLogger.Msg("nextAnswer Success Attempt GameMaster");
+                        string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора. Приветствия не нужно";
+                        MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
+                        return true;
+                    }
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error(ex);
+            }
+
+            return false;
+        }
+
+
         static int limit = 0;
 
         public static void nextAnswer(string response, MitaCore.character from, bool lastMessageWasFromAi)
         {
             MelonLogger.Msg($"nextAnswer from {from}");
 
-            if (gameMaster.enabled && from != MitaCore.character.GameMaster)
-            {
-                MelonLogger.Msg("nextAnswer Attempt GameMaster");
-                if (gameMaster.isTimeToCorrect())
-                {
-                    MelonLogger.Msg("nextAnswer Succres Attempt GameMaster");
-                    string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора. Приветствия не нужно";
-                    MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
-                    return;
-                }
-
-            }
-
+            if (GameMasterCase(from)) return;
 
             // Получаем список персонажей
             List<MitaCore.character> characters = GetCharactersToAnswer();

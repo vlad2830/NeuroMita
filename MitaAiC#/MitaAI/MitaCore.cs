@@ -320,7 +320,7 @@ namespace MitaAI
                     rigidbody.centerOfMass = new Vector3(0, 0.65f, 0);
                     rigidbody.mass = 2f;
                     rigidbody.maxAngularVelocity = 0.3f; //0.3 как и было
-                    rigidbody.maxDepenetrationVelocity = 0.9f; //было до этого = 0.3f;
+                    rigidbody.maxDepenetrationVelocity = 0.3f; //было до этого = 0.9f когда пробовал влад;
                     rigidbody.drag = 15;
                     rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic; //ContinuousDynamic вместо Continuous для обработки динамических обьектов
                     rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
@@ -1158,28 +1158,41 @@ namespace MitaAI
             if (responseTask.IsCompleted)
             {
                 Dictionary<string, JsonElement> messageData2 = responseTask.Result;
+                try
+                {
 
+                    int id = messageData2["id"].GetInt32();
+                    string type = messageData2["type"].GetString();
 
-                int id = messageData2["id"].GetInt32();
-                string type = messageData2["type"].GetString();
+                    string new_character = messageData2["character"].GetString();
+                    response = messageData2["response"].GetString();
+                    bool connectedToSilero = messageData2["silero"].GetBoolean();
 
-                string new_character = messageData2["character"].GetString();
-                response = messageData2["response"].GetString();
-                bool connectedToSilero = messageData2["silero"].GetBoolean();
+                    int idSound = messageData2["id_sound"].GetInt32();
+                    patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
+                    string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
 
-                int idSound = messageData2["id_sound"].GetInt32();
-                patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
-                string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
+                    GM_ON = messageData2.ContainsKey("GM_ON") ? messageData2["GM_ON"].GetBoolean() : false;
+                    GM_READ = messageData2.ContainsKey("GM_READ") ? messageData2["GM_READ"].GetBoolean() : false;
+                    GM_VOICE = messageData2.ContainsKey("GM_VOICE") ? messageData2["GM_VOICE"].GetBoolean() : false;
+                    int GM_REPEAT = messageData2.ContainsKey("GM_REPEAT") ? messageData2["GM_REPEAT"].GetInt32() : 2;
 
-                GM_ON = messageData2.ContainsKey("GM_ON") ? messageData2["GM_ON"].GetBoolean() : false;
-                GM_READ = messageData2.ContainsKey("GM_READ") ? messageData2["GM_READ"].GetBoolean() : false;
-                GM_VOICE = messageData2.ContainsKey("GM_VOICE") ? messageData2["GM_VOICE"].GetBoolean() : false;
-                int GM_REPEAT = messageData2.ContainsKey("GM_REPEAT") ? messageData2["GM_REPEAT"].GetInt32() : 2;
+                    if (CharacterControl.gameMaster != null)
+                    {
+                        CharacterControl.gameMaster.timingEach = GM_REPEAT;
+                        CharacterControl.gameMaster.enabled = GM_ON;
+                        NetworkController.connectedToSilero = connectedToSilero;
 
-                CharacterControl.gameMaster.timingEach = GM_REPEAT;
-                CharacterControl.gameMaster.enabled = GM_ON;
-                NetworkController.connectedToSilero = connectedToSilero;
-                if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
+                    }
+
+                    if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error(ex);
+                }
+
             }
             else
             {
