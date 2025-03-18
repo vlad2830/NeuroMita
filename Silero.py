@@ -29,6 +29,10 @@ class TelegramBotHandler:
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
 
+        #Считываем значение настройки SILERO_TIME_LIMIT
+        self.silero_time_limit = int(gui.settings.get("SILERO_TIME", "10"))
+
+        #Проверяем значение. Если пусто подставляем по умолчанию 10 секунд.
         if not hasattr(self, "silero_time_limit") or self.silero_time_limit is None:
             self.silero_time_limit = 10
 
