@@ -284,6 +284,12 @@ class ChatGUI:
         )
 
         self.chat_window.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Добавляем стили
+        self.chat_window.tag_configure("Mita", foreground="hot pink", font=("Arial", 12, "bold"))
+        self.chat_window.tag_configure("Player", foreground="gold", font=("Arial", 12, "bold"))
+
+
         input_frame = tk.Frame(left_frame, bg="#2c2c2c")
         input_frame.pack(fill=tk.X, padx=10, pady=10)
 
@@ -387,11 +393,11 @@ class ChatGUI:
     def insert_message(self, role, content):
         if role == "user":
             # Вставляем имя пользователя с зеленым цветом, а текст — обычным
-            self.chat_window.insert(tk.END, "Вы: ", "user_name")
+            self.chat_window.insert(tk.END, "Вы: ", "Player")
             self.chat_window.insert(tk.END, f"{content}\n")
         elif role == "assistant":
             # Вставляем имя Миты с синим цветом, а текст — обычным
-            self.chat_window.insert(tk.END, f"{self.model.current_character.name}: ", "gpt_name")
+            self.chat_window.insert(tk.END, f"{self.model.current_character.name}: ", "Mita")
             self.chat_window.insert(tk.END, f"{content}\n\n")
 
     def setup_status_indicators(self, parent):
@@ -901,10 +907,13 @@ class ChatGUI:
 
     def insertDialog(self, input_text="", response=""):
         if input_text != "":
-            self.chat_window.insert(tk.END, "Вы: ", "user_name")
+            self.chat_window.insert(tk.END, "Вы: ", "Player")
             self.chat_window.insert(tk.END, f"{input_text}\n")
         if response != "":
-            self.chat_window.insert(tk.END, "Мита: ", "gpt_name")
+
+            MitaName = self.model.current_character.name
+
+            self.chat_window.insert(tk.END, f"{MitaName}: ", "Mita")
             self.chat_window.insert(tk.END, f"{response}\n\n")
 
     def send_message(self, system_input=""):
