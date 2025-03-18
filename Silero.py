@@ -5,6 +5,7 @@ import time
 import random
 import pygame
 import asyncio
+import emoji
 from telethon.tl.types import MessageMediaDocument, DocumentAttributeAudio
 
 import tkinter as tk
@@ -126,6 +127,10 @@ class TelegramBotHandler:
 
         if not input_message or not speaker_command:
             return
+
+        #При компиляции нужно добавить в строку компилятора --add-data "%USERPROFILE%\AppData\Local\Programs\Python\Python313\Lib\site-packages\emoji\unicode_codes\emoji.json;emoji\unicode_codes"
+        #Удаляем эмодзи из озвучки:
+        input_message = emoji.replace_emoji(input_message)  # Заменяет все эмодзи на пустую строку
 
         if self.last_speaker_command != speaker_command:
             await self.client.send_message(self.tg_bot, speaker_command)
