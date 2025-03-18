@@ -149,6 +149,7 @@ class ChatGUI:
                 return
 
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
+
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone,
                                                   self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
 
@@ -709,7 +710,7 @@ class ChatGUI:
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
             return False
-        return 0 < int(new_value) <= 30  # Проверяем, что в пределах диапазона
+        return 0 <= int(new_value) <= 60  # Проверяем, что в пределах диапазона
 
     def pack_unpack(self, var, frame):
         """
