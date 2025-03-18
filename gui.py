@@ -150,8 +150,6 @@ class ChatGUI:
 
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
 
-            self.silero_time_limit = settings.get("SILERO_TIME", 5)
-            
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone,
                                                   self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
 
