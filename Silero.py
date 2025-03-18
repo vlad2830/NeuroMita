@@ -29,7 +29,12 @@ class TelegramBotHandler:
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
 
-        self.silero_time_limit = 8
+        #Считываем значение настройки SILERO_TIME_LIMIT
+        self.silero_time_limit = int(gui.settings.get("SILERO_TIME", "10"))
+
+        #Проверяем значение. Если пусто подставляем по умолчанию 10 секунд.
+        if not hasattr(self, "silero_time_limit") or self.silero_time_limit is None:
+            self.silero_time_limit = 10
 
         if getattr(sys, "frozen", False):
             # Если программа собрана в exe, получаем путь к исполняемому файлу
@@ -160,10 +165,11 @@ class TelegramBotHandler:
         print("Ожидание ответа от бота...")
         response = None
         attempts = 0
-        attempts_per_second = 4
+        attempts_per_second = 2
+
         attempts_max = self.silero_time_limit * attempts_per_second
 
-        await asyncio.sleep(0.7)
+        await asyncio.sleep(2)
         while attempts <= attempts_max:  # Попытки получения ответа
 
             async for message in self.client.iter_messages(self.tg_bot, limit=1):
