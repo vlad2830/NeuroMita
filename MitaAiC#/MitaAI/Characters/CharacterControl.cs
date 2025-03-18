@@ -51,7 +51,7 @@ namespace MitaAI
                 if (factDistance <= distance)
                 {
 
-                    MelonLogger.Msg($"{character.character} added to actibe Characters");
+                    MelonLogger.Msg($"{character.character} added to active Characters");
                     activeCharacters.Add(character);
                 }
             }
@@ -142,17 +142,19 @@ namespace MitaAI
 
         public static void nextAnswer(string response, MitaCore.character from, bool lastMessageWasFromAi)
         {
+      
 
             // Получаем список персонажей
             List<MitaCore.character> characters = GetCharactersToAnswer();
             if (characters == null) return;
 
-
-            if (gameMaster != null)
+            if (gameMaster.enabled && from != MitaCore.character.GameMaster)
             {
+                MelonLogger.Msg("Attempt GameMaster");
                 if (gameMaster.isTimeToCorrect())
                 {
-                    MitaCore.Instance.sendSystemMessage("Проследи за диалогом, выполняя инструкции и основываясь на текущих данных разговора", MitaCore.character.GameMaster);
+                    string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора. Приветствия не нужно";
+                    MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
                     return;
                 }
 

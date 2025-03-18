@@ -13,6 +13,7 @@ using MitaAI.PlayerControls;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Networking.Match;
+using System.Text.Json;
 
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
@@ -717,11 +718,12 @@ namespace MitaAI
 
             if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
 
-            // Временно отключил
-            //Character GM = playerPersonObject.AddComponent<Character>();
-            //GM.init_GameMaster();
-         
-            
+            // Отключить если нужно
+            Character GM = playerPersonObject.AddComponent<Character>();
+            GM.init_GameMaster();
+            GM.enabled = false;
+
+
 
             playerEffects = playerPerson.transform.parent.Find("HeadPlayer/MainCamera").gameObject.GetComponent<PlayerCameraEffects>();
             playerEffectsObject = playerPerson.transform.parent.Find("HeadPlayer/MainCamera/CameraPersons").gameObject;
@@ -1096,15 +1098,22 @@ namespace MitaAI
                 }
 
             }
-            if (characterToSend != currentCharacter && characterToSend != character.GameMaster)
+            if (characterToSend != currentCharacter)
             {
-                addChangeMita(getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
+                if (characterToSend != character.GameMaster)
+                {
+                    addChangeMita(getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
+                }
+                else
+                {
+                    currentCharacter = characterToSend;
+                }
             }
 
             if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
 
-
-            Task<(string, string, string, string)> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
+            
+            Task<Dictionary<string, JsonElement>> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
 
 
 
@@ -1143,12 +1152,32 @@ namespace MitaAI
             }
 
             string patch = null;
+            bool GM_ON = false;
+            bool GM_READ = false;
+            bool GM_VOICE = false;
             if (responseTask.IsCompleted)
             {
-                response = responseTask.Result.Item1;
-                NetworkController.connectedToSilero = responseTask.Result.Item2 == "1";
-                patch = responseTask.Result.Item3;
-                if (responseTask.Result.Item4 != null) InputControl.UpdateInput(responseTask.Result.Item4);
+                Dictionary<string, JsonElement> messageData2 = responseTask.Result;
+
+
+                int id = messageData2["id"].GetInt32();
+                string type = messageData2["type"].GetString();
+
+                string new_character = messageData2["character"].GetString();
+                response = messageData2["response"].GetString();
+                bool connectedToSilero = messageData2["silero"].GetBoolean();
+
+                int idSound = messageData2["id_sound"].GetInt32();
+                patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
+                string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
+
+                GM_ON = messageData2.ContainsKey("GM_ON") ? messageData2["GM_ON"].GetBoolean() : false;
+                GM_READ = messageData2.ContainsKey("GM_READ") ? messageData2["GM_READ"].GetBoolean() : false;
+                GM_VOICE = messageData2.ContainsKey("GM_VOICE") ? messageData2["GM_VOICE"].GetBoolean() : false;
+
+                CharacterControl.gameMaster.enabled = GM_ON;
+                NetworkController.connectedToSilero = connectedToSilero;
+                if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
             }
             else
             {
@@ -1161,15 +1190,17 @@ namespace MitaAI
             if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
             if (response != "")
             {
-                LoggerInstance.Msg("after GetResponseFromPythonSocketAsync");
+                LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend}");
 
-                if ( characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response,AudioControl.cartAudioSource));
-                else if (characterToSend == character.GameMaster) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.playerAudioSource));
+                if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.cartAudioSource));
+                else if (characterToSend == character.GameMaster && GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.playerAudioSource,GM_VOICE));
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
 
                 if (characterToSend != character.GameMaster) sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
                 else sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
-                //Тестово
+                
+                
+                //Тестово - хочешь чтобы было без лишнего отрубай это
                 MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
 
 
@@ -1194,6 +1225,8 @@ namespace MitaAI
 
         public void sendInfoListeners(string message,List<character> characters = null, character exluding = character.None, string from = "Игрок")
         {
+            MelonLogger.Msg($"sendInfoListeners char {characters} exl {exluding} from {from}");
+
             if ( characters == null ) characters = CharacterControl.GetCharactersToAnswer();
 
             if ( exluding == character.None ) exluding = currentCharacter;
@@ -1201,8 +1234,8 @@ namespace MitaAI
 
             string charName = CharacterControl.extendCharsString(exluding);
 
-            
-
+            if (CharacterControl.gameMaster != null) characters.Add(character.GameMaster);
+            //characters.Remove(exluding);
 
             foreach (character character in characters)
             {
@@ -1217,6 +1250,8 @@ namespace MitaAI
                     sendSystemInfo(messageToListener, character );
                 }
             }
+ 
+
         }
         public void sendInfoListenersFromGm(string message, List<character> characters = null, character exluding = character.None)
         {
@@ -1457,7 +1492,7 @@ namespace MitaAI
 
         }
         bool dialogActive = false;
-        private IEnumerator DisplayResponseAndEmotionCoroutine(string response, AudioSource audioSource = null)
+        private IEnumerator DisplayResponseAndEmotionCoroutine(string response, AudioSource audioSource = null,bool voice = true)
         {
             while (dialogActive) { yield return null; }
             dialogActive = true;
@@ -1467,41 +1502,45 @@ namespace MitaAI
             // Пример кода, который будет выполняться на главном потоке
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
 
-            float elapsedTime = 0f; // Счетчик времени
-            float timeout = 30f;     // Лимит времени ожидания
-            float waitingTimer = 1.1f;
-            float lastCallTime = 0f; // Время последнего вызова
-
-            // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
-            while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
+            if (voice)
             {
-                //LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
-                if (patches_to_sound_file.Count > CountPathesWere)
+
+                float elapsedTime = 0f; // Счетчик времени
+                float timeout = 30f;     // Лимит времени ожидания
+                float waitingTimer = 1.1f;
+                float lastCallTime = 0f; // Время последнего вызова
+
+                // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
+                while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
                 {
-                    patch_to_sound_file = patches_to_sound_file.Dequeue();
-                    patches_to_sound_file.Clear();
-                    break;
+                    //LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
+                    if (patches_to_sound_file.Count > CountPathesWere)
+                    {
+                        patch_to_sound_file = patches_to_sound_file.Dequeue();
+                        patches_to_sound_file.Clear();
+                        break;
+                    }
+
+
+                    if (elapsedTime - lastCallTime >= waitingTimer)
+                    {
+                        //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
+                        List<String> parts = new List<String> { "***" };
+                        MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
+                        lastCallTime = elapsedTime; // Обновляем время последнего вызова
+                    }
+
+                    elapsedTime += 0.1f; // Увеличиваем счетчик времени
+
+                    yield return new WaitForSecondsRealtime(0.1f);             // Пауза до следующего кадра
                 }
-
-
-                if (elapsedTime - lastCallTime >= waitingTimer)
+            
+                yield return null;
+                // Если время ожидания истекло, можно выполнить какой-то fallback-лог
+                if (string.IsNullOrEmpty(patch_to_sound_file))
                 {
-                    //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                    List<String> parts = new List<String> { "***" };
-                    MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
-                    lastCallTime = elapsedTime; // Обновляем время последнего вызова
+                    LoggerInstance.Msg("Timeout reached, patch_to_sound_file is still empty.");
                 }
-
-                elapsedTime += 0.1f; // Увеличиваем счетчик времени
-
-                yield return new WaitForSecondsRealtime(0.1f);             // Пауза до следующего кадра
-            }
-
-            yield return null;
-            // Если время ожидания истекло, можно выполнить какой-то fallback-лог
-            if (string.IsNullOrEmpty(patch_to_sound_file))
-            {
-                LoggerInstance.Msg("Timeout reached, patch_to_sound_file is still empty.");
             }
 
             // После того как patch_to_sound_file стал не пустым, вызываем метод DisplayResponseAndEmotion
@@ -1542,7 +1581,7 @@ namespace MitaAI
                 float delay = modifiedResponse.Length / simbolsPerSecond;
 
                 if (audioSource != null) PlaySound(audioClip, audioSource);
-                MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
+                else MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
 
 
                 List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
@@ -1689,7 +1728,7 @@ namespace MitaAI
 
         private void PlaySound(AudioClip audioClip,AudioSource audioSource)
         {
-            LoggerInstance.Msg("PlaySound");
+            LoggerInstance.Msg("PlaySound not Dialogue");
 
             audioSource.clip = audioClip;
             audioSource.Play();

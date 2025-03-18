@@ -702,9 +702,9 @@ class ChatGUI:
         common_config = [
             {'label': 'ГеймМастер включен', 'key': 'GM_ON', 'type': 'checkbutton',
              'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги'},
-            {'label': 'ГеймМастер зачитывается', 'key': 'GN_READ', 'type': 'checkbutton',
+            {'label': 'ГеймМастер зачитывается', 'key': 'GM_READ', 'type': 'checkbutton',
              'default_checkbutton': False},
-            {'label': 'ГеймМастер озвучивает', 'key': 'GN_TALK', 'type': 'checkbutton',
+            {'label': 'ГеймМастер озвучивает', 'key': 'GM_VOICE', 'type': 'checkbutton',
              'default_checkbutton': False}
         ]
         self.create_settings_section(parent, "Настройки Мастера игры", common_config)
