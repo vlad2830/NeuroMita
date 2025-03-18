@@ -387,6 +387,11 @@ class ChatGUI:
         self.setup_api_controls(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
+        
+        #Сворачивание секций
+        for widget in settings_frame.winfo_children():
+            if isinstance(widget, CollapsibleSection):
+                widget.collapse()
 
         self.load_chat_history()
 
