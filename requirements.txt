@@ -66,4 +66,3 @@ typing-inspect==0.9.0
 urllib3==2.3.0
 yarl==1.18.3
 emoji
-binascii
