@@ -319,10 +319,10 @@ namespace MitaAI
                     rigidbody.useGravity = false;
                     rigidbody.centerOfMass = new Vector3(0, 0.65f, 0);
                     rigidbody.mass = 2f;
-                    rigidbody.maxAngularVelocity = 0.3f;
-                    rigidbody.maxDepenetrationVelocity = 0.3f;
+                    rigidbody.maxAngularVelocity = 0.3f; //0.3 как и было
+                    rigidbody.maxDepenetrationVelocity = 0.9f; //было до этого = 0.3f;
                     rigidbody.drag = 15;
-                    rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                    rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic; //ContinuousDynamic вместо Continuous для обработки динамических обьектов
                     rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
                 }
 ;
@@ -2606,15 +2606,15 @@ namespace MitaAI
                 case character.Crazy:
                     return new Color(1f, 0.4f, 0.8f); // розовый
                 case character.Cappy:
-                    return new Color(1f, 0.6f, 0f); // оранжевый
+                    return new Color(1f, 1f, 0.1f); // мягкий оранжевый 
                 case character.Kind:
-                    return new Color(1f, 0.4f, 0.8f); // ярко-розовый
+                    return new Color(0f, 1f, 0f); //поставил зеленый пока что
                 case character.ShortHair:
                     return new Color(1f, 0.9f, 0.4f); // мягкий желтый
                 case character.Mila:
                     return new Color(0.4f, 0.6f, 1f); // голубой
                 case character.Sleepy:
-                    return new Color(0.7f, 0.6f, 1f); // мягкий фиолетовый
+                    return new Color(1f, 1f, 1f); // мягкий розовый
                 case character.Creepy:
                     return new Color(1f, 0f, 0f); // красный
                 default:
