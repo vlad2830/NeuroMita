@@ -527,11 +527,12 @@ class ChatGUI:
         )
         clear_button.pack(side=tk.LEFT, padx=5)
 
-        save_history_button = tk.Button(
-            history_frame, text="Сохранить историю", command=self.model.save_chat_history,
-            bg="#8a2be2", fg="#ffffff"
-        )
-        save_history_button.pack(side=tk.LEFT, padx=10)
+        # TODO Вернуть
+        # save_history_button = tk.Button(
+        #     history_frame, text="Сохранить историю", command=self.model.save_chat_history,
+        #     bg="#8a2be2", fg="#ffffff"
+        # )
+        # save_history_button.pack(side=tk.LEFT, padx=10)
 
     def load_chat_history(self):
 
