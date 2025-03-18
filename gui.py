@@ -699,11 +699,13 @@ class ChatGUI:
         # Основные настройки
         common_config = [
             {'label': 'ГеймМастер включен', 'key': 'GM_ON', 'type': 'checkbutton',
-             'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги'},
+             'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги, в теории устраняя проблемы'},
             {'label': 'ГеймМастер зачитывается', 'key': 'GM_READ', 'type': 'checkbutton',
              'default_checkbutton': False},
             {'label': 'ГеймМастер озвучивает', 'key': 'GM_VOICE', 'type': 'checkbutton',
-             'default_checkbutton': False}
+             'default_checkbutton': False},
+            {'label': 'Встревать через', 'key': 'GM_REPEAT', 'type': 'entry',
+             'default': 2, 'tooltip': 'Через сколько фраз гейммастер вмешивается'}
         ]
         self.create_settings_section(parent, "Настройки Мастера игры", common_config)
 
@@ -752,8 +754,8 @@ class ChatGUI:
                         settings = {}
 
                 except (OSError, IOError) as e:
-                        decoded = base64.b64decode(encoded)
-                        settings = json.loads(decoded.decode("utf-8"))
+                    decoded = base64.b64decode(encoded)
+                    settings = json.loads(decoded.decode("utf-8"))
 
             # Обновляем настройки новыми значениями, если они не пустые
             if api_key := self.api_key_entry.get().strip():

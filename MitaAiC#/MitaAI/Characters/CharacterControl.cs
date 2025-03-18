@@ -82,7 +82,7 @@ namespace MitaAI
             if (Characters.Count <= 1) return "";
 
             string message = "";
-            message += $"[DIALOGUE] You are in dialogue with several ({Characters.Count+1}) speakers: \n player";
+            message += $"[DIALOGUE] You are in dialogue with several ({Characters.Count+1}) speakers: \n Player";
             foreach (Character character in Characters)
             {
 
@@ -142,23 +142,27 @@ namespace MitaAI
 
         public static void nextAnswer(string response, MitaCore.character from, bool lastMessageWasFromAi)
         {
-      
-
-            // Получаем список персонажей
-            List<MitaCore.character> characters = GetCharactersToAnswer();
-            if (characters == null) return;
+            MelonLogger.Msg($"nextAnswer from {from}");
 
             if (gameMaster.enabled && from != MitaCore.character.GameMaster)
             {
-                MelonLogger.Msg("Attempt GameMaster");
+                MelonLogger.Msg("nextAnswer Attempt GameMaster");
                 if (gameMaster.isTimeToCorrect())
                 {
+                    MelonLogger.Msg("nextAnswer Succres Attempt GameMaster");
                     string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора. Приветствия не нужно";
                     MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
                     return;
                 }
 
             }
+
+
+            // Получаем список персонажей
+            List<MitaCore.character> characters = GetCharactersToAnswer();
+            if (characters == null) return;
+
+
 
 
             // Добавляем отправителя в список говорящих
@@ -176,7 +180,7 @@ namespace MitaAI
             if (lastMessageWasFromAi && limit < Characters.Count)
             {
                 MitaCore.character character = characters.First();
-
+                MelonLogger.Msg($"nextAnswer to {character}");
                 // Если отправитель и получатель совпадают, выходим
                 if (from == character)
                 {
@@ -205,7 +209,7 @@ namespace MitaAI
                 }
 
                 string objectName = getObjectName(from);
-                
+                MelonLogger.Msg($"send to {character}");
                 message += $"[SPEAKER] {CharacterControl.extendCharsString(from)}{objectName} said: <{response}>. Next speaker is {objectNameNext} Respond to him or name somebody you want to speak with.";
 
                 MitaCore.Instance.sendSystemMessage(message, character);
@@ -213,7 +217,7 @@ namespace MitaAI
             }
             else
             {
-
+                MelonLogger.Msg($"nextAnswer reset ch count {Characters.Count}");
 
                 // Сбрасываем список говорящих
                 limit = 1;

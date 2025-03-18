@@ -46,7 +46,7 @@ namespace MitaAI
             CharacterControl.gameMaster = this;
         }
 
-        int timingEach = 3;
+        public int timingEach = 3;
         int timingNow = 1;
         public bool isTimeToCorrect()
         {

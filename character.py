@@ -611,6 +611,9 @@ class CappyMita(Character):
         Prompts.append(
             PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history"))
 
+        #Prompts.append( TODO Добавить вместо с промтом это дело
+         #   PromptPart(PromptType.FIXED_START, self.get_path("Context/world.txt"), "world"))
+
         Prompts.append(
             PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
 

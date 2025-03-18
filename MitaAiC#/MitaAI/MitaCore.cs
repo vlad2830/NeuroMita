@@ -1174,7 +1174,9 @@ namespace MitaAI
                 GM_ON = messageData2.ContainsKey("GM_ON") ? messageData2["GM_ON"].GetBoolean() : false;
                 GM_READ = messageData2.ContainsKey("GM_READ") ? messageData2["GM_READ"].GetBoolean() : false;
                 GM_VOICE = messageData2.ContainsKey("GM_VOICE") ? messageData2["GM_VOICE"].GetBoolean() : false;
+                int GM_REPEAT = messageData2.ContainsKey("GM_REPEAT") ? messageData2["GM_REPEAT"].GetInt32() : 2;
 
+                CharacterControl.gameMaster.timingEach = GM_REPEAT;
                 CharacterControl.gameMaster.enabled = GM_ON;
                 NetworkController.connectedToSilero = connectedToSilero;
                 if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
@@ -1190,10 +1192,12 @@ namespace MitaAI
             if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
             if (response != "")
             {
-                LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend}");
+                LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
 
                 if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.cartAudioSource));
-                else if (characterToSend == character.GameMaster && GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.playerAudioSource,GM_VOICE));
+                else if (characterToSend == character.GameMaster) {
+                    if (GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.playerAudioSource, GM_VOICE));
+                }
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
 
                 if (characterToSend != character.GameMaster) sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));

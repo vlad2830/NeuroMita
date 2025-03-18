@@ -69,8 +69,6 @@ class ChatServer:
 
             self.chat_model.actualInfo = message_data["currentInfo"]
 
-
-
             if system_info != "-":
                 print("Добавил систем инфо " + system_info)
                 self.chat_model.add_temporary_system_info(system_info)
@@ -116,8 +114,8 @@ class ChatServer:
                 # Простите, но я хотел за вечер затестить
                 "GM_ON": bool(self.gui.settings.get("GM_ON")),
                 "GM_READ": bool(self.gui.settings.get("GM_READ")),
-                "GM_VOICE": bool(self.gui.settings.get("GM_VOICE"))
-
+                "GM_VOICE": bool(self.gui.settings.get("GM_VOICE")),
+                "GM_REPEAT": int(self.gui.settings.get("GM_REPEAT"))
             }
 
             self.gui.patch_to_sound_file = ""
