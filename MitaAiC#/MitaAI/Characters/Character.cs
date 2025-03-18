@@ -50,7 +50,7 @@ namespace MitaAI
         int timingNow = 1;
         public bool isTimeToCorrect()
         {
-            bool isIt = timingNow == timingEach;
+            bool isIt = timingNow >= timingEach;
 
             if (isIt) timingNow = 1;
             else timingNow += 1;

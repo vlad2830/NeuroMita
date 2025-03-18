@@ -115,7 +115,8 @@ class ChatServer:
                 "GM_ON": bool(self.gui.settings.get("GM_ON")),
                 "GM_READ": bool(self.gui.settings.get("GM_READ")),
                 "GM_VOICE": bool(self.gui.settings.get("GM_VOICE")),
-                "GM_REPEAT": int(self.gui.settings.get("GM_REPEAT"))
+                "GM_REPEAT": int(self.gui.settings.get("GM_REPEAT")),
+                "CC_Limit_mod": int(self.gui.settings.get("CC_Limit_mod"))
             }
 
             self.gui.patch_to_sound_file = ""

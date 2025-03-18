@@ -72,7 +72,7 @@ namespace MitaAI
         {
             GameObject Mita = MitaCore.getMitaByEnum(character.character, true);
             string objectName = "";
-            if (Mita != null) objectName += $", its game object {objectName}";
+            if (Mita != null) objectName += $", its game object {Mita}";
 
             return objectName;
         }
@@ -80,7 +80,7 @@ namespace MitaAI
         {
             GameObject Mita = MitaCore.getMitaByEnum(character, true);
             string objectName = "";
-            if (Mita != null) objectName += $", its game object {objectName}";
+            if (Mita != null) objectName += $", its game object {Mita}";
 
             return objectName;
         }
@@ -178,7 +178,7 @@ namespace MitaAI
 
 
         static int limit = 0;
-
+        public static float limitMod = 100;
         public static void nextAnswer(string response, MitaCore.character from, bool lastMessageWasFromAi)
         {
             MelonLogger.Msg($"nextAnswer from {from}");
@@ -204,7 +204,7 @@ namespace MitaAI
             }
 
             // Логика для сообщений от ИИ
-            if (lastMessageWasFromAi && limit < Characters.Count)
+            if (lastMessageWasFromAi && limit < Math.Round(Characters.Count*limitMod/100))
             {
                 MitaCore.character character = characters.First();
                 MelonLogger.Msg($"nextAnswer to {character}");

@@ -712,7 +712,9 @@ class ChatGUI:
             {'label': 'ГеймМастер озвучивает', 'key': 'GM_VOICE', 'type': 'checkbutton',
              'default_checkbutton': False},
             {'label': 'Встревать через', 'key': 'GM_REPEAT', 'type': 'entry',
-             'default': 2, 'tooltip': 'Через сколько фраз гейммастер вмешивается'}
+             'default': 2, 'tooltip': 'Через сколько фраз гейммастер вмешивается'},
+            {'label': 'Лимит речей нпс %', 'key': 'CC_Limit_mod', 'type': 'entry',
+             'default': 100, 'tooltip': 'Сколько от кол-ва персонажей может отклоняться повтор речей нпс'}
         ]
         self.create_settings_section(parent, "Настройки Мастера игры", common_config)
 

@@ -14,6 +14,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Networking.Match;
 using System.Text.Json;
+using UnityEngine.Playables;
 
 
 [assembly: MelonInfo(typeof(MitaAI.MitaCore), "MitaAI", "1.0.0", "Dmitry", null)]
@@ -411,7 +412,7 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 13;
+        const int simbolsPerSecond = 16;
 
         static public Menu MainMenu;
         private GameObject CustomDialog;
@@ -1177,6 +1178,9 @@ namespace MitaAI
                     GM_VOICE = messageData2.ContainsKey("GM_VOICE") ? messageData2["GM_VOICE"].GetBoolean() : false;
                     int GM_REPEAT = messageData2.ContainsKey("GM_REPEAT") ? messageData2["GM_REPEAT"].GetInt32() : 2;
 
+                    int limitmod = messageData2.ContainsKey("CC_Limit_mod") ? messageData2["CC_Limit_mod"].GetInt32() : 100;
+                    
+
                     if (CharacterControl.gameMaster != null)
                     {
                         CharacterControl.gameMaster.timingEach = GM_REPEAT;
@@ -1184,7 +1188,7 @@ namespace MitaAI
                         NetworkController.connectedToSilero = connectedToSilero;
 
                     }
-
+                    CharacterControl.limitMod = limitmod;
                     if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
                 }
                 catch (Exception ex)

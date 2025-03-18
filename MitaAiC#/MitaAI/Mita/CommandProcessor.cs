@@ -273,13 +273,13 @@ namespace MitaAI.Mita
 
                     break;
 
-                case "LookAt":
+                case "lookat":
                     MitaCore.Instance.MitaLook.LookOnObject(GameObject.Find(secondCommand).transform);
                     break;
-                case "LookAtTurnTo":
+                case "lookaturnto":
                     MitaCore.Instance.MitaLook.LookOnObjectAndRotate(GameObject.Find(secondCommand).transform);
                     break;
-                case "TurnTo":
+                case "turnto":
                     MitaCore.Instance.MitaLook.RotateOnTarget(GameObject.Find(secondCommand).transform);
                     break;
 
