@@ -710,7 +710,7 @@ class ChatGUI:
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
             return False
-        return 0 < int(new_value) <= 30  # Проверяем, что в пределах диапазона
+        return 0 <= int(new_value) <= 60  # Проверяем, что в пределах диапазона
 
     def pack_unpack(self, var, frame):
         """
