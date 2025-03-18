@@ -319,10 +319,10 @@ namespace MitaAI
                     rigidbody.useGravity = false;
                     rigidbody.centerOfMass = new Vector3(0, 0.65f, 0);
                     rigidbody.mass = 2f;
-                    rigidbody.maxAngularVelocity = 0.3f;
-                    rigidbody.maxDepenetrationVelocity = 0.3f;
+                    rigidbody.maxAngularVelocity = 0.3f; //0.3 как и было
+                    rigidbody.maxDepenetrationVelocity = 0.9f; //было до этого = 0.3f;
                     rigidbody.drag = 15;
-                    rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                    rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic; //ContinuousDynamic вместо Continuous для обработки динамических обьектов
                     rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
                 }
 ;
