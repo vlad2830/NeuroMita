@@ -174,7 +174,7 @@ class TelegramBotHandler:
 
         attempts_max = self.silero_time_limit * attempts_per_second
 
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.2)
         while attempts <= attempts_max:  # Попытки получения ответа
 
             async for message in self.client.iter_messages(self.tg_bot, limit=1):
