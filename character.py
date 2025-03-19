@@ -830,6 +830,9 @@ class SleepyMita(Character):
 
 
 class GameMaster(Character):
+    """
+    Специальный служебный персонаж, отвечающий за ход диалога
+    """
     def __init__(self, name: str = "GameMaster", silero_command: str = "/speaker dryad", silero_turn_off_video=False):
         super().__init__(name, silero_command, silero_turn_off_video)
 
@@ -840,6 +843,7 @@ class GameMaster(Character):
         Prompts = []
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Game_master.txt")))
+        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("current_command.txt")))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)

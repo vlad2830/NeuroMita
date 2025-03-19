@@ -118,7 +118,7 @@ class ChatModel:
         self.mila_character = MilaMita("Mila", "/speaker mila", True)
         self.sleepy_character = SleepyMita("Sleepy", "/speaker dream", True)
         self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
-        self.creepy_character = CreepyMita("Creepy", "/speaker ghost", True) #Спикер на рандом поставил
+        self.creepy_character = CreepyMita("Creepy", "/speaker ghost", True)  #Спикер на рандом поставил
         self.GameMaster = GameMaster()  # Спикер на рандом поставил
 
         # Словарь для сопоставления имен персонажей с их объектами
@@ -275,7 +275,7 @@ class ChatModel:
         combined_messages = character.prepare_fixed_messages()
 
         # Добавляем timed_system_message, если это словарь
-        if isinstance(timed_system_message, dict):
+        if isinstance(timed_system_message, dict) and timed_system_message["content"] != "":
             combined_messages.append(timed_system_message)
             print("timed_system_message успешно добавлено.")
 
@@ -423,7 +423,6 @@ class ChatModel:
         except Exception as e:
             logger.error("Что-то не так при генерации OpenAI", str(e))
             return None
-
 
     def _save_and_calculate_cost(self, combined_messages):
         save_combined_messages(combined_messages)
