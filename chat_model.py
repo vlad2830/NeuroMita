@@ -110,15 +110,15 @@ class ChatModel:
         """
         Инициализирует возможных персонажей
         """
-        self.crazy_mita_character = CrazyMita("Crazy", "/speaker mita", True)
-        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap", True)
+        self.crazy_mita_character = CrazyMita("CrazyMita", "/speaker mita", True)
+        self.cappy_mita_character = CappyMita("CapMita", "/speaker cap", True)
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley", True)
-        self.kind_mita_character = KindMita("Kind", "/speaker kind", True)
-        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", True)
-        self.mila_character = MilaMita("Mila", "/speaker mila", True)
-        self.sleepy_character = SleepyMita("Sleepy", "/speaker dream", True)
+        self.kind_mita_character = KindMita("KindMita", "/speaker kind", True)
+        self.shorthair_mita_character = ShortHairMita("ShortHairMita", "/speaker  shorthair", True)
+        self.mila_character = MilaMita("MilaMita", "/speaker mila", True)
+        self.sleepy_character = SleepyMita("SleepyMita", "/speaker dream", True)
         self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
-        self.creepy_character = CreepyMita("Creepy", "/speaker ghost", True) #Спикер на рандом поставил
+        self.creepy_character = CreepyMita("CreepyMita", "/speaker ghost", True) #Спикер на рандом поставил
         self.GameMaster = GameMaster()  # Спикер на рандом поставил
 
         # Словарь для сопоставления имен персонажей с их объектами
