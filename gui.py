@@ -367,7 +367,7 @@ class ChatGUI:
         self.setup_model_controls(settings_frame)
         self.setup_common_controls(settings_frame)
         self.setup_game_master_controls(settings_frame)
-        self.setup_new_game_master_controls(settings_frame)
+        #self.setup_new_game_master_controls(settings_frame)
         # Передаем settings_frame как родителя
         self.setup_status_indicators(settings_frame)
 

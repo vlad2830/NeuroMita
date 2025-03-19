@@ -352,6 +352,7 @@ namespace MitaAI
 
         public enum character
         {
+            Player,
             None = -1,// Добавляем нового персонажа
             Crazy = 0,
             Cappy = 1,
@@ -416,10 +417,10 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 13;
-        const float minDialoguePartLen = 0.65f;
+        const int simbolsPerSecond = 15;
+        const float minDialoguePartLen = 0.50f;
         const float maxDialoguePartLen = 8f;
-        const float delayModifier = 1.13f;
+        const float delayModifier = 1.05f;
 
         static public Menu MainMenu;
         private GameObject CustomDialog;
@@ -1044,7 +1045,7 @@ namespace MitaAI
 
 
                     dataToSent = playerText;
-                    playerText = "";
+                    
                     lastActionTime = Time.unscaledTime;
                 }
                 else if (systemMessages.Count > 0)
@@ -1231,10 +1232,12 @@ namespace MitaAI
 
                 if (characterToSend != character.GameMaster) sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
                 else sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
-                
-                
+
+
                 //Тестово - хочешь чтобы было без лишнего отрубай это
-                MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
+
+                if (playerText != "") characterToSend = character.Player;
+                MelonCoroutines.Start(testNextAswer(response, characterToSend));
 
 
 
@@ -1244,15 +1247,15 @@ namespace MitaAI
 
         }
 
-        IEnumerator testNextAswer(string response, character currentCharacter, string playerText = "")
+        IEnumerator testNextAswer(string response, character currentCharacter)
         {
-            yield return null;
+            yield return new WaitForSeconds(0.25f);
             while (dialogActive)
             {
                 yield return null;
             }
 
-            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter, string.IsNullOrEmpty(playerText));
+            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter);
         }
 
 
@@ -1629,7 +1632,7 @@ namespace MitaAI
             {
 
                 string partCleaned = Utils.CleanFromTags(part); // Очищаем от всех тегов
-                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, minDialoguePartLen, minDialoguePartLen); 
+                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, minDialoguePartLen, maxDialoguePartLen); 
 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay, itIsWaitingDialogue));

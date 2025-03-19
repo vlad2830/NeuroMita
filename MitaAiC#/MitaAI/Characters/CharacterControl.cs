@@ -182,6 +182,12 @@ namespace MitaAI
                         MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
                         return true;
                     }
+                    
+                    // Если игрок, то пора лимит
+                    if (from != MitaCore.character.Player)
+                    {
+                        limit = 1;
+                    }
 
                 }
 
@@ -198,9 +204,9 @@ namespace MitaAI
 
         static int limit = 0;
         public static float limitMod = 100;
-        public static void nextAnswer(string response, MitaCore.character from, bool lastMessageWasFromAi)
+        public static void nextAnswer(string response, MitaCore.character from)
         {
-            MelonLogger.Msg($"nextAnswer from {from}");
+            MelonLogger.Msg($"nextAnswer from {from}, limit now {limit}");
 
             if (GameMasterCase(from)) return;
 
@@ -220,8 +226,9 @@ namespace MitaAI
                 return;
             }
 
+
             // Логика для сообщений от ИИ
-            if (lastMessageWasFromAi && limit < Math.Round(Characters.Count*limitMod/100))
+            if (from!=MitaCore.character.Player && limit < Math.Round(characters.Count*limitMod/100))
             {
                 MitaCore.character character = characters.First();
                 MelonLogger.Msg($"nextAnswer to {character}");
@@ -238,7 +245,7 @@ namespace MitaAI
 
                 string nextSpeaker = "";
                 string objectNameNext = "";
-                if (limit + 1 == Characters.Count)
+                if (limit + 1 == characters.Count)
                 {
                     nextSpeaker = "Player";
                 }
@@ -261,7 +268,7 @@ namespace MitaAI
             }
             else
             {
-                MelonLogger.Msg($"nextAnswer reset ch count {Characters.Count}");
+                MelonLogger.Msg($"nextAnswer reset ch count {limit}/{Math.Round(characters.Count * limitMod / 100)}");
 
                 // Сбрасываем список говорящих
                 limit = 1;
