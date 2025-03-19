@@ -180,6 +180,10 @@ namespace MitaAI
                 {
                     LogicCharacter.Instance.Initialize(MitaPersonObject, character);
                 }
+                if (character == MitaCore.character.Creepy)
+                {
+                    LogicCharacter.Instance.Initialize(MitaPersonObject, character);
+                }
 
                 MelonLogger.Msg("333");
 
@@ -1546,7 +1550,7 @@ namespace MitaAI
 
                 float elapsedTime = 0f; // Счетчик времени
                 float timeout = 30f;     // Лимит времени ожидания
-                float waitingTimer = 0.75f;
+                float waitingTimer = 1.1f;
                 float lastCallTime = 0f; // Время последнего вызова
                 
                 // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -2675,7 +2679,4 @@ namespace MitaAI
         }
 
     }
-
-
-
 }
