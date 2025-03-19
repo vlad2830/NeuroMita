@@ -914,15 +914,16 @@ class ChatGUI:
             self.insert_message("user", user_input)
             self.user_entry.delete("1.0", "end")
 
-        response = self.model.generate_response(user_input, system_input)
+        # Запускаем асинхронную задачу для генерации ответа
+        if self.loop and self.loop.is_running():
+            asyncio.run_coroutine_threadsafe(self.async_send_message(user_input, system_input), self.loop)
 
+    async def async_send_message(self, user_input, system_input=""):
+        response = await self.loop.run_in_executor(None, lambda: self.model.generate_response(user_input, system_input))
         self.insert_message("assistant", response)
-        self.user_entry.delete("1.0", "end")
         self.updateAll()
-        # Отправка сообщения на сервер
         if self.server:
             try:
-                # Отправляем сообщение клиенту через сервер
                 if self.server.client_socket:
                     self.server.send_message_to_server(response)
                     print("Сообщение отправлено на сервер (связь с игрой есть)")
