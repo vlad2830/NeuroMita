@@ -416,10 +416,10 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 14;
-        const float minDialoguePartLen = 0.6f;
+        const int simbolsPerSecond = 13;
+        const float minDialoguePartLen = 0.65f;
         const float maxDialoguePartLen = 8f;
-        const float delayModifier = 1.12f;
+        const float delayModifier = 1.13f;
 
         static public Menu MainMenu;
         private GameObject CustomDialog;
