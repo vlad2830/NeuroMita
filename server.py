@@ -72,7 +72,7 @@ class ChatServer:
         try:   
             # Извлечение базовых параметров сообщения
             message_id = message_data["id"]                             # Уникальный идентификатор сообщения
-            self.gui.id_sound = message_id                              # Уникальный идентификатор сообщения для вывода в окне
+                                         # Уникальный идентификатор сообщения для вывода в окне
 
             message_type = message_data["type"]                         # Тип сообщения (системное/пользовательское)
             character = str(message_data["character"])                  # Персонаж-отправитель
@@ -93,23 +93,31 @@ class ChatServer:
                 print("Добавил систем инфо " + system_info)
                 self.chat_model.add_temporary_system_info(system_info)
 
-            response = ""                                                  # Обработка системных сообщений
+            response = ""
+
+
+            # Обработка системных сообщений
             if message == "waiting":
                 if system_message != "-":
-                    print(f"Получено system_message {system_message}")
+                    print(f"Получено system_message {system_message} id {message_id}")
+                    self.gui.id_sound = message_id
                     response = self.generate_response("", system_message)
                     self.gui.insertDialog("", response)
                 elif self.messages_to_say:
+
                     response = self.messages_to_say.pop(0)
             elif message == "boring":
+                print(f"Получено boring message id {message_id}")
                 date_now = datetime.datetime.now().replace(microsecond=0)
+                self.gui.id_sound = message_id
                 response = self.generate_response("",
                                                   f"Время {date_now}, Игрок долго молчит( Ты можешь что-то сказать или предпринять")
                 self.gui.insertDialog("", response)
                 print("Отправлено Мите на озвучку: " + response)
             else:
-                print("Получено message")
+                print(f"Получено message id {message_id}")
                 # Если игрок отправил внутри игры, message его
+                self.gui.id_sound = message_id
                 response = self.generate_response(message, "")
                 #self.gui.insertDialog(message,response)
                 print("Отправлено Мите на озвучку: " + response)
@@ -121,6 +129,9 @@ class ChatServer:
                 if self.gui.user_input:
                     transmitted_to_game = True
 
+            if self.gui.patch_to_sound_file!="":
+                print(f"id {message_id} Скоро передам {self.gui.patch_to_sound_file} id {self.gui.id_sound}")
+
             message_data = {
             "id": int(message_id),
             "type": str(message_type),
@@ -129,7 +140,7 @@ class ChatServer:
             message_data.update({
                 "response": str(response),
                 "silero": bool(self.gui.silero_connected and bool(self.gui.settings.get("SILERO_USE"))),
-                "id_sound": int(1),
+                "id_sound": int(self.gui.id_sound),
                 "patch_to_sound_file": str(self.gui.patch_to_sound_file),
                 "user_input": str(self.gui.user_input),
 

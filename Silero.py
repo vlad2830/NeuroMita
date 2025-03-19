@@ -121,7 +121,7 @@ class TelegramBotHandler:
         except Exception as e:
             print(f"Ошибка при воспроизведении файла: {e}")
 
-    async def send_and_receive(self, input_message, speaker_command):
+    async def send_and_receive(self, input_message, speaker_command,message_id):
         """Отправляет сообщение боту и обрабатывает ответ."""
         global message_count
 
@@ -142,7 +142,7 @@ class TelegramBotHandler:
             if self.gui.silero_turn_off_video:
                 await self.client.send_message(self.tg_bot, "/videonotes")
 
-                await asyncio.sleep(0.45)
+                await asyncio.sleep(0.65)
 
                 # Получаем последнее сообщение от бота
                 messages = await self.client.get_messages(self.tg_bot, limit=1)
@@ -244,6 +244,7 @@ class TelegramBotHandler:
                     # .BnmRvcModel.process(absolute_wav_path, absolute_wav_path+"_RVC_.wav")
 
                     self.gui.patch_to_sound_file = absolute_wav_path
+                    self.gui.id_sound = message_id
                     print(f"Файл wav загружен: {absolute_wav_path}")
                 else:
                     print(f"Отправлен воспроизводится: {sound_absolute_path}")

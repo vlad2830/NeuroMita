@@ -181,25 +181,25 @@ class ChatGUI:
         else:
             print("Ошибка: Цикл событий asyncio не готов.")
 
-    async def run_send_and_receive(self, response, speaker_command):
+    async def run_send_and_receive(self, response, speaker_command,id):
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
         self.waiting_answer = True
-        await self.bot_handler.send_and_receive(response, speaker_command)
+        await self.bot_handler.send_and_receive(response, speaker_command,id)
         self.waiting_answer = False
         print("Завершение получения фразы")
 
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
         if self.textToTalk:  #and not self.ConnectedToGame:
-            print(f"Есть текст для отправки: {self.textToTalk}")
+            print(f"Есть текст для отправки: {self.textToTalk} id {self.id_sound}")
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
                 try:
                     if bool(self.settings.get("SILERO_USE")):
                         print("Цикл событий готов. Отправка текста.")
                         asyncio.run_coroutine_threadsafe(
-                            self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                            self.run_send_and_receive(self.textToTalk, self.textSpeaker,self.id_sound),
                             self.loop
                         )
                     self.textToTalk = ""  # Очищаем текст после отправки
