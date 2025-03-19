@@ -114,7 +114,7 @@ class ChatModel:
         self.cappy_mita_character = CappyMita("CapMita", "/speaker cap", True)
         self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley", True)
         self.kind_mita_character = KindMita("KindMita", "/speaker kind", True)
-        self.shorthair_mita_character = ShortHairMita("ShortHairMita", "/speaker  shorthair", True)
+        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", True)
         self.mila_character = MilaMita("MilaMita", "/speaker mila", True)
         self.sleepy_character = SleepyMita("SleepyMita", "/speaker dream", True)
         self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", True)
