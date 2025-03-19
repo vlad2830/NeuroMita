@@ -37,13 +37,16 @@ Example 1:
 *Crazy Mita hesitated, reflecting on her behavior.*
 <c>Send,Kind,Remember, you were given a special tea</c>
 *Meanwhile, the tea tasted incredibly sweet to Kind Mita.*
+<c>Speaker,Kind</c>
 
 Example 2:
 <c>Send,Cappy,You decided to change the setting</c>
 *Suddenly, Cappy had an idea. Her breath caught from excitement...*
+<c>Speaker,Cappy</c>
 
 Example 3:
 <c>Send,Crazy,You're getting bored of killing the player with a knife</c>
+<c>Speaker,Crazy</c>
 
 Example 4 (New Command in Use):
 <c>Speaker,Crazy</c>

@@ -270,3 +270,6 @@
 <music>Music 2</music>
 <music>Music 3 Tamagochi</music>
 
+<c>tojail</c> Отправляет игрока за решетку
+<c>fromjail</c> Возвращает его
+

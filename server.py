@@ -121,12 +121,12 @@ class ChatServer:
                 if self.gui.user_input:
                     transmitted_to_game = True
 
-                message_data = {
-                "id": int(message_id),
-                "type": str(message_type),
-                "character": str(character),
-                }
-                message_data.update({
+            message_data = {
+            "id": int(message_id),
+            "type": str(message_type),
+            "character": str(character),
+            }
+            message_data.update({
                 "response": str(response),
                 "silero": bool(self.gui.silero_connected and bool(self.gui.settings.get("SILERO_USE"))),
                 "id_sound": int(1),
@@ -134,21 +134,22 @@ class ChatServer:
                 "user_input": str(self.gui.user_input),
 
                 # Простите, но я хотел за вечер затестить
-            "GM_ON": bool(self.gui.settings.get("GM_ON")),
-            "GM_READ": bool(self.gui.settings.get("GM_READ")),
-            "GM_VOICE": bool(self.gui.settings.get("GM_VOICE")),
-            "GM_REPEAT": int(self.gui.settings.get("GM_REPEAT")),
-            "CC_Limit_mod": int(self.gui.settings.get("CC_Limit_mod"))
+                "GM_ON": bool(self.gui.settings.get("GM_ON")),
+                "GM_READ": bool(self.gui.settings.get("GM_READ")),
+                "GM_VOICE": bool(self.gui.settings.get("GM_VOICE")),
+                "GM_REPEAT": int(self.gui.settings.get("GM_REPEAT")),
+                "CC_Limit_mod": int(self.gui.settings.get("CC_Limit_mod"))
             })
+            #print(message_data)
 
-                self.gui.patch_to_sound_file = ""
+            self.gui.patch_to_sound_file = ""
 
             if transmitted_to_game:
                 self.gui.clear_user_input()
 
-                # Отправляем JSON через сокет
-                json_message = json.dumps(message_data)
-                self.client_socket.send(json_message.encode("utf-8"))
+            # Отправляем JSON через сокет
+            json_message = json.dumps(message_data)
+            self.client_socket.send(json_message.encode("utf-8"))
 
             self.gui.ConnectedToGame = True
             return True
