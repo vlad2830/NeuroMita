@@ -186,7 +186,8 @@ namespace MitaAI
                     // Если игрок, то пора лимит
                     if (from != MitaCore.character.Player)
                     {
-                        limit = 1;
+                        return false;
+                        //limit = 1;  
                     }
 
                 }
