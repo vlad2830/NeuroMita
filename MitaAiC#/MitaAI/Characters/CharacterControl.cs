@@ -209,8 +209,6 @@ namespace MitaAI
             if (characters == null) return;
 
 
-
-
             // Добавляем отправителя в список говорящих
             characters.Remove(from);
             // Удаляем из characters всех, кто уже говорил
