@@ -176,6 +176,10 @@ namespace MitaAI
                 {
                     MitaLook.forwardPerson = MitaPersonObject.transform;
                 }
+                if (character == MitaCore.character.Creepy)
+                {
+                    LogicCharacter.Instance.Initialize(MitaPersonObject, character);
+                }
 
                 MelonLogger.Msg("333");
 
