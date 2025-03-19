@@ -176,6 +176,10 @@ namespace MitaAI
                 {
                     MitaLook.forwardPerson = MitaPersonObject.transform;
                 }
+                if (character == MitaCore.character.Creepy)
+                {
+                    LogicCharacter.Instance.Initialize(MitaPersonObject, character);
+                }
 
                 MelonLogger.Msg("333");
 
@@ -348,6 +352,7 @@ namespace MitaAI
 
         public enum character
         {
+            Player,
             None = -1,// Добавляем нового персонажа
             Crazy = 0,
             Cappy = 1,
@@ -412,7 +417,10 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 16;
+        const int simbolsPerSecond = 15;
+        const float minDialoguePartLen = 0.50f;
+        const float maxDialoguePartLen = 8f;
+        const float delayModifier = 1.05f;
 
         static public Menu MainMenu;
         private GameObject CustomDialog;
@@ -441,6 +449,8 @@ namespace MitaAI
 
         Queue<string> patches_to_sound_file = new Queue<string>();
         string patch_to_sound_file = "";
+
+        static Dictionary<int,string> sound_files = new Dictionary<int,string>();
 
         public string hierarchy = "-";
 
@@ -1035,7 +1045,7 @@ namespace MitaAI
 
 
                     dataToSent = playerText;
-                    playerText = "";
+                    
                     lastActionTime = Time.unscaledTime;
                 }
                 else if (systemMessages.Count > 0)
@@ -1156,13 +1166,14 @@ namespace MitaAI
             bool GM_ON = false;
             bool GM_READ = false;
             bool GM_VOICE = false;
+            int id = 0;
             if (responseTask.IsCompleted)
             {
                 Dictionary<string, JsonElement> messageData2 = responseTask.Result;
                 try
                 {
 
-                    int id = messageData2["id"].GetInt32();
+                    id = messageData2["id"].GetInt32();
                     string type = messageData2["type"].GetString();
 
                     string new_character = messageData2["character"].GetString();
@@ -1179,7 +1190,9 @@ namespace MitaAI
                     int GM_REPEAT = messageData2.ContainsKey("GM_REPEAT") ? messageData2["GM_REPEAT"].GetInt32() : 2;
 
                     int limitmod = messageData2.ContainsKey("CC_Limit_mod") ? messageData2["CC_Limit_mod"].GetInt32() : 100;
-                    
+
+
+                    if (!string.IsNullOrEmpty(patch)) sound_files[idSound] = patch;
 
                     if (CharacterControl.gameMaster != null)
                     {
@@ -1211,18 +1224,20 @@ namespace MitaAI
             {
                 LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
 
-                if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.cartAudioSource));
+                if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.cartAudioSource));
                 else if (characterToSend == character.GameMaster) {
-                    if (GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response, AudioControl.playerAudioSource, GM_VOICE));
+                    if (GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.playerAudioSource, GM_VOICE));
                 }
-                else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(response));
+                else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response));
 
                 if (characterToSend != character.GameMaster) sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
                 else sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
-                
-                
+
+
                 //Тестово - хочешь чтобы было без лишнего отрубай это
-                MelonCoroutines.Start(testNextAswer(response, characterToSend,playerText));
+
+                if (playerText != "") characterToSend = character.Player;
+                MelonCoroutines.Start(testNextAswer(response, characterToSend));
 
 
 
@@ -1232,15 +1247,15 @@ namespace MitaAI
 
         }
 
-        IEnumerator testNextAswer(string response, character currentCharacter, string playerText = "")
+        IEnumerator testNextAswer(string response, character currentCharacter)
         {
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(0.25f);
             while (dialogActive)
             {
                 yield return null;
             }
 
-            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter, string.IsNullOrEmpty(playerText));
+            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter);
         }
 
 
@@ -1513,16 +1528,19 @@ namespace MitaAI
 
         }
         bool dialogActive = false;
-        private IEnumerator DisplayResponseAndEmotionCoroutine(string response, AudioSource audioSource = null,bool voice = true)
+        private IEnumerator DisplayResponseAndEmotionCoroutine(int id,string response, AudioSource audioSource = null,bool voice = true)
         {
             while (dialogActive) { yield return null; }
             dialogActive = true;
 
             LoggerInstance.Msg("DisplayResponseAndEmotionCoroutine");
-            int CountPathesWere = patches_to_sound_file.Count;
+            
+
             // Пример кода, который будет выполняться на главном потоке
             yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
-
+           
+            string patch_to_sound = "";
+            
             if (voice)
             {
 
@@ -1530,15 +1548,15 @@ namespace MitaAI
                 float timeout = 30f;     // Лимит времени ожидания
                 float waitingTimer = 1.1f;
                 float lastCallTime = 0f; // Время последнего вызова
-
+                
                 // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
-                while (string.IsNullOrEmpty(patch_to_sound_file) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
+                while (string.IsNullOrEmpty(patch_to_sound) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
                 {
                     //LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
-                    if (patches_to_sound_file.Count > CountPathesWere)
+                    if (sound_files.ContainsKey(id))
                     {
-                        patch_to_sound_file = patches_to_sound_file.Dequeue();
-                        patches_to_sound_file.Clear();
+                        patch_to_sound = sound_files[id];
+                        sound_files[id] = null;
                         break;
                     }
 
@@ -1558,25 +1576,19 @@ namespace MitaAI
             
                 yield return null;
                 // Если время ожидания истекло, можно выполнить какой-то fallback-лог
-                if (string.IsNullOrEmpty(patch_to_sound_file))
+                if (string.IsNullOrEmpty(patch_to_sound))
                 {
                     LoggerInstance.Msg("Timeout reached, patch_to_sound_file is still empty.");
                 }
             }
 
             // После того как patch_to_sound_file стал не пустым, вызываем метод DisplayResponseAndEmotion
-            yield return DisplayResponseAndEmotion(response, audioSource);
+            yield return DisplayResponseAndEmotion(response, patch_to_sound, audioSource);
 
             dialogActive = false;
         }
-        public static string PopLast(List<string> list)
-        {
-            if (list.Count == 0) throw new InvalidOperationException("List is empty");
-            string last = list[^1]; // Или list[list.Count - 1]
-            list.RemoveAt(list.Count - 1);
-            return last;
-        }
-        private IEnumerator DisplayResponseAndEmotion(string response, AudioSource audioSource = null)
+
+        private IEnumerator DisplayResponseAndEmotion(string response, string patch_to_sound, AudioSource audioSource = null)
         {
             LoggerInstance.Msg("DisplayResponseAndEmotion");
 
@@ -1585,13 +1597,13 @@ namespace MitaAI
 
                 AudioClip audioClip = null;
 
-                if (!string.IsNullOrEmpty(patch_to_sound_file))
+                if (!string.IsNullOrEmpty(patch_to_sound))
                 {
                     try
                     {
-                        LoggerInstance.Msg("patch_to_sound_file not null");
-                        audioClip = NetworkController.LoadAudioClipFromFileAsync(patch_to_sound_file).Result;
-                        patch_to_sound_file = "";
+                        LoggerInstance.Msg("patch_to_sound not null");
+                        audioClip = NetworkController.LoadAudioClipFromFileAsync(patch_to_sound).Result;
+                        
                     }
                     catch (Exception ex)
                     {
@@ -1620,7 +1632,7 @@ namespace MitaAI
             {
 
                 string partCleaned = Utils.CleanFromTags(part); // Очищаем от всех тегов
-                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, 0.75f,8f); 
+                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, minDialoguePartLen, maxDialoguePartLen); 
 
 
                 yield return MelonCoroutines.Start(ShowDialogue(part, delay, itIsWaitingDialogue));
@@ -1693,7 +1705,7 @@ namespace MitaAI
             currentDialog.SetActive(true);  
             if ( !NetworkController.connectedToSilero && !itIsWaitingDialogue ) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
 
-            yield return new WaitForSeconds(delay * 1.15f);
+            yield return new WaitForSeconds(delay * delayModifier);
             //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
             Utils.DestroyAfterTime(currentDialog, delay * 1.15f + 5f);
 
@@ -1762,7 +1774,7 @@ namespace MitaAI
             GameObject currentDialog = null;
 
 
-            float delay = Math.Clamp(text.Length / simbolsPerSecond, 1f,8f);
+            float delay = Math.Clamp(text.Length / simbolsPerSecond, minDialoguePartLen,maxDialoguePartLen);
 
             currentDialog = InstantiateDialog(false);
             if (currentDialog != null)

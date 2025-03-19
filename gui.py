@@ -183,7 +183,7 @@ class ChatGUI:
         else:
             print("Ошибка: Цикл событий asyncio не готов.")
 
-    async def run_send_and_receive(self, response, speaker_command):
+    async def run_send_and_receive(self, response, speaker_command,id):
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
         self.waiting_answer = True
@@ -218,14 +218,14 @@ class ChatGUI:
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
         if self.textToTalk:  #and not self.ConnectedToGame:
-            print(f"Есть текст для отправки: {self.textToTalk}")
+            print(f"Есть текст для отправки: {self.textToTalk} id {self.id_sound}")
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
                 try:
                     if bool(self.settings.get("SILERO_USE")):
                         print("Цикл событий готов. Отправка текста.")
                         asyncio.run_coroutine_threadsafe(
-                            self.run_send_and_receive(self.textToTalk, self.textSpeaker),
+                            self.run_send_and_receive(self.textToTalk, self.textSpeaker,self.id_sound),
                             self.loop
                         )
                     self.textToTalk = ""  # Очищаем текст после отправки
@@ -393,7 +393,7 @@ class ChatGUI:
         self.setup_model_controls(settings_frame)
         self.setup_common_controls(settings_frame)
         self.setup_game_master_controls(settings_frame)
-
+        #self.setup_new_game_master_controls(settings_frame)
         # Передаем settings_frame как родителя
         self.setup_status_indicators(settings_frame)
 
@@ -413,6 +413,11 @@ class ChatGUI:
         self.setup_api_controls(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
+        
+        #Сворачивание секций
+        for widget in settings_frame.winfo_children():
+            if isinstance(widget, CollapsibleSection):
+                widget.collapse()
 
         self.load_chat_history()
 
@@ -744,6 +749,17 @@ class ChatGUI:
              'default': 100, 'tooltip': 'Сколько от кол-ва персонажей может отклоняться повтор речей нпс'}
         ]
         self.create_settings_section(parent, "Настройки Мастера игры", common_config)
+
+    def setup_new_game_master_controls(self, parent):
+        # Основные настройки для новой секции
+        new_common_config = [
+            {'label': 'Новая настройка 1', 'key': 'NEW_SETTING_1', 'type': 'checkbutton',
+             'default_checkbutton': False, 'tooltip': 'Описание новой настройки 1'},
+            {'label': 'Новая настройка 2', 'key': 'NEW_SETTING_2', 'type': 'entry',
+             'default': 5, 'tooltip': 'Описание новой настройки 2'}
+        ]
+        self.create_settings_section(parent, "Новая секция", new_common_config)
+
 
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
