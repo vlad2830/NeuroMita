@@ -85,15 +85,35 @@ namespace MitaAI
             return objectName;
         }
 
+        // Назначает максимальный приоритет персонажу
+        public static void SetNextSpeaker(MitaCore.character nextCharacter)
+        {
+            List<Character> activeCharacters = getActiveCharacters();
+            activeCharacters = activeCharacters.OrderByDescending(character => character.PointsOrder).ToList();
+            
+            foreach (var character in activeCharacters)
+            {
+
+                if (character.character == nextCharacter)
+                {
+                    character.PointsOrder = activeCharacters.First().PointsOrder + 1 ;
+                }
+            }
+
+        }
+        
+        // Дает информацию о собеседниках
         public static string getSpeakersInfo(MitaCore.character toWhom)
         {
-            if (Characters == null) return "";
+            List<Character> activeCharacters =  getActiveCharacters();
 
-            if (Characters.Count <= 1) return "";
+            if (activeCharacters == null) return "";
+
+            if (activeCharacters.Count <= 1) return "";
 
             string message = "";
-            message += $"[DIALOGUE] You are in dialogue with several ({Characters.Count+1}) speakers: \n Player";
-            foreach (Character character in Characters)
+            message += $"[DIALOGUE] You are in dialogue with several ({activeCharacters.Count+1}) speakers: \n Player";
+            foreach (Character character in activeCharacters)
             {
 
                 string objectName = getObjectName(character);
@@ -112,7 +132,8 @@ namespace MitaAI
 
         public static void resetOrders(bool fillRandom = false)
         {
-            foreach (Character ch in Characters)
+            List<Character> activeCharacters = getActiveCharacters();
+            foreach (Character ch in activeCharacters)
             { 
                 ch.PointsOrder = 0;
 
@@ -121,7 +142,7 @@ namespace MitaAI
             }
         }
 
-
+        // Передает достпных для разговора персонажей, притом снижает приоритет первого чтобы очередь перемещалась
         public static List<MitaCore.character> GetCharactersToAnswer()
         {
             List<Character> activeCharacters = getActiveCharacters();
@@ -142,12 +163,10 @@ namespace MitaAI
             }
 
             
-
-            
             return characters;
         }
 
-
+        // Пришло ли время ГеймМастеру вмешаться
         private static bool GameMasterCase(MitaCore.character from)
         {
             if (gameMaster == null) return false;

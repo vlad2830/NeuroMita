@@ -201,6 +201,15 @@ namespace MitaAI.Mita
                     mitaCore.GlassesObj(false);
                     break;
 
+
+                case "tojail":
+                    Jail(true);
+                    break;
+                case "fromjail":
+                    Jail(false);
+                    break;
+
+
                 // Дополнительные команды...
                 default:
                     HandleDefaultCommand(command);
