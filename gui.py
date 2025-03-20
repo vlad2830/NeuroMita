@@ -191,7 +191,10 @@ class ChatGUI:
         # start_time = time.time()
         if self.settings.get("AUDIO_BOT") == "@CrazyMitaAIbot (Без тг)":
             rate = self.settings.get("MIKUTTS_VOICE_RATE")
-            pitch = self.settings.get("MIKUTTS_VOICE_PITCH")
+
+            #print(f"rate {rate}")
+
+            pitch = int(self.settings.get("MIKUTTS_VOICE_PITCH"))
             max_retries = 3
             retry_delay = 1
 
@@ -203,18 +206,32 @@ class ChatGUI:
                                                           "pitch": pitch})
                     if response:
                         break
-                except Exception:
-                    print(f"Попытка {attempt + 1} из {max_retries} не удалась.")
+                except Exception as e:
+                    print(f"Попытка {attempt + 1} из {max_retries} не удалась. {e}")
                     await asyncio.sleep(retry_delay)
 
             print(f"Успешно сгенерирована озвучка, response.content: : {response.text[:20]}...{response.text[-20:]}")
 
             voice_path = f"MitaVoices/{uuid.uuid4()}.{"wav" if self.ConnectedToGame else "mp3"}"
             absolute_audio_path = os.path.abspath(voice_path)
-            
-            with open(voice_path, "wb") as f:
-                f.write(response.content)
 
+            print(f"После uuid {voice_path} \n{absolute_audio_path}")
+
+            try:
+
+                # Создаем директорию в отдельном потоке
+                await asyncio.to_thread(os.makedirs, os.path.dirname(absolute_audio_path), exist_ok=True)
+
+                # Записываем файл в отдельном потоке
+                await asyncio.to_thread(
+                    lambda: open(absolute_audio_path, "wb").write(response.content)
+                )
+
+                print("Запись завершена")
+            except Exception as e:
+                print(f"Ошибка при записи файла: {e}")
+
+            print("После write")
             # end_time = time.time()
             # print(f"Время генерации озвучки {self.settings.get("AUDIO_BOT")}: {end_time - start_time}")
 
@@ -711,7 +728,7 @@ class ChatGUI:
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
              'validation': self.validate_number},
             {'label': 'Без тг | Скорость голоса', 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
-            {'label': 'Без тг | Высота голоса', 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': "8"},
+            {'label': 'Без тг | Высота голоса', 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': 8}
         ]
 
         self.create_settings_section(parent, "Настройка озвучки", mita_voice_config)
