@@ -1240,7 +1240,7 @@ namespace MitaAI
 
                 //Тестово - хочешь чтобы было без лишнего отрубай это
 
-                if (playerText != "") characterToSend = character.Player;
+                if (!string.IsNullOrEmpty(playerText)) characterToSend = character.Player;
                 MelonCoroutines.Start(testNextAswer(response, characterToSend));
 
 

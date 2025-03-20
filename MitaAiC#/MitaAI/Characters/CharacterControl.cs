@@ -214,6 +214,25 @@ namespace MitaAI
             // Добавляем отправителя в список говорящих
             int CharCount = characters.Count;
             int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
+
+            if (OrderFieldExists())
+            {
+                int charOrder = 1;
+                
+                OrderText.text = $"{limit}/{TotalLimit}\n";
+                foreach (MitaCore.character character in characters)
+                {
+                    if (charOrder >= TotalLimit)
+                    {
+                        OrderText.text += $"{charOrder}:Player\n";
+                        break;
+                    }
+                    OrderText.text += $"{charOrder}:{character.ToString()}:\n";
+                    charOrder++;
+                }
+            }
+
+
             characters.Remove(from);
             // Удаляем из characters всех, кто уже говорил
 
@@ -224,26 +243,11 @@ namespace MitaAI
                 return;
             }
 
-            if (OrderFieldExists())
-            {
-                int charOrder = 1;
-                OrderText.text =  $"{limit}/{TotalLimit}\n";
-                foreach (MitaCore.character character in characters)
-                {
-                    if (charOrder>=TotalLimit)
-                    {
-                        OrderText.text += $"{charOrder}:Player:\n";
-                        break;
-                    }
-                    OrderText.text += $"{charOrder}:{character.ToString()}:\n";
-                    charOrder++;
-                }
-            }
-
+      
             MelonLogger.Msg($"Before check lim {limit} /{TotalLimit}");
 
             // Логика для сообщений от ИИ
-            if (from!=MitaCore.character.Player && limit < TotalLimit)
+            if ( limit < TotalLimit)
             {
                 MitaCore.character character = characters.First();
 
@@ -337,15 +341,18 @@ namespace MitaAI
             // Создаем объект для текста
             GameObject textObject = new GameObject("TextComponentOrder");
             textObject.transform.parent = _interface.transform;
-
+            textObject.transform.localPosition = Vector3.zero;
+            
             // Добавляем компонент RectTransform
             var rectTransform = textObject.AddComponent<RectTransform>();
             rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.localPosition = Vector3.zero;
 
             // Настраиваем привязку и точку поворота
-            rectTransform.anchorMin = new Vector2(1f, 1.3f);
-            rectTransform.anchorMax = new Vector2(1f, 1);
+            rectTransform.anchorMin = new Vector2(1f, 1f);
+            rectTransform.anchorMax = new Vector2(1f, 1.3f);
             rectTransform.pivot = new Vector2(0.5f, 0);
+            
 
             // Добавляем компонент Text
             OrderText = textObject.AddComponent<Text>();
