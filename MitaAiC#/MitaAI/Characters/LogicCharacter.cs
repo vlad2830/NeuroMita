@@ -31,7 +31,7 @@ namespace MitaAI
 
         // Новые переменные для логики усталости Sleepy
         private float initializationTime;      // Время инициализации Sleepy
-        private float fatigueStartTime;        // Случайное время до начала усталости (в секундах)
+        private float fatigueStartTime;        // Случайное время до начала усталости (в секундах) это временное решение, пока не будет интегрирована с нейронкой может быть передать это на нейронку или установлю по процентам и временам шансы заснуть (чтобы небыло плоской логики)
         private bool isFatigueStarted;         // Флаг, показывающий, началась ли усталость
         private float fatigueLevel;            // Уровень усталости от 0 до 1
         private float fatigueDuration;         // Время достижения полной усталости после начала (например, 5 минут)
