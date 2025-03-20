@@ -22,6 +22,7 @@ import binascii
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 from utils import SH
 
@@ -110,7 +111,7 @@ class ChatGUI:
 
         self.start_silero_async()
 
-        SpeechRecognition.speach_recognition_start(self.device_id, self.loop)
+        # SpeechRecognition.speach_recognition_start(self.device_id, self.loop)
 
         # Запуск проверки переменной textToTalk через after
         self.root.after(150, self.check_text_to_talk_or_send)
@@ -188,29 +189,55 @@ class ChatGUI:
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
         self.waiting_answer = True
-        # start_time = time.time()
+        text_to_talk = response
+
         if self.settings.get("AUDIO_BOT") == "@CrazyMitaAIbot (Без тг)":
             rate = self.settings.get("MIKUTTS_VOICE_RATE")
-
-            #print(f"rate {rate}")
-
+            engine = self.settings.get("MIKUTTS_ENGINE")
             pitch = int(self.settings.get("MIKUTTS_VOICE_PITCH"))
+
+            params = {'text': text_to_talk, 
+                      'person': self.model.current_character.miku_tts_name}
+            data = None
+            if engine == "Edge":
+                method = "GET"
+                endpoint = "get_edge"
+                port = 2020
+                params['rate'] = rate
+                params['pitch'] = pitch
+            elif engine == "Vosk":
+                method = "GET"
+                endpoint = "get_item"
+                port = 2040
+                params['ids'] = self.settings.get("MIKUTTS_VOSK_IDS", 1)
+                params['pith'] = pitch
+            elif engine == "Silero":
+                method = "POST"
+                endpoint = "get_silero"
+                port = 2060
+                data = {
+                    "text": text_to_talk,
+                    "person": self.model.current_character.miku_tts_name,
+                    "model_id": "v4_ru",
+                    "language": "ru",
+                    "pitch": pitch,
+                    "provider": self.settings.get("MIKUTTS_SILERO_PROVIDER", "Aidar")
+                }
+                params = None
+            
             max_retries = 3
             retry_delay = 1
 
             for attempt in range(max_retries):
                 try:
-                    response = await MikuTTSClient.send_request(method="GET", endpoint="get_edge", timeout=int(self.settings.get("SILERO_TIME")), params={"text": response, 
-                                                          "person": self.model.current_character.miku_tts_name,
-                                                          "rate": rate,
-                                                          "pitch": pitch})
+                    response, time_taken = await MikuTTSClient.send_request(method=method, data=data, port=port, endpoint=endpoint, timeout=int(self.settings.get("SILERO_TIME")), params=params)
                     if response:
                         break
                 except Exception as e:
                     print(f"Попытка {attempt + 1} из {max_retries} не удалась. {e}")
                     await asyncio.sleep(retry_delay)
 
-            print(f"Успешно сгенерирована озвучка, response.content: : {response.text[:20]}...{response.text[-20:]}")
+            print(f"Успешно сгенерирована озвучка, {time_taken} секунд, Движок: {self.settings.get("MIKUTTS_ENGINE")}, Текст: {text_to_talk}")
 
             voice_path = f"MitaVoices/{uuid.uuid4()}.{"wav" if self.ConnectedToGame else "mp3"}"
             absolute_audio_path = os.path.abspath(voice_path)
@@ -218,7 +245,6 @@ class ChatGUI:
             print(f"После uuid {voice_path} \n{absolute_audio_path}")
 
             try:
-
                 # Создаем директорию в отдельном потоке
                 await asyncio.to_thread(os.makedirs, os.path.dirname(absolute_audio_path), exist_ok=True)
 
@@ -231,7 +257,6 @@ class ChatGUI:
             except Exception as e:
                 print(f"Ошибка при записи файла: {e}")
 
-            print("После write")
             # end_time = time.time()
             # print(f"Время генерации озвучки {self.settings.get("AUDIO_BOT")}: {end_time - start_time}")
 
@@ -326,6 +351,7 @@ class ChatGUI:
 
     def setup_ui(self):
         self.root.config(bg="#2c2c2c")  # Установите темный цвет фона для всего окна
+        self.root.geometry("1200x600")
 
         main_frame = tk.Frame(self.root, bg="#2c2c2c")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -727,8 +753,12 @@ class ChatGUI:
             #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
              'validation': self.validate_number},
+            {'label': 'Без тг | Движок', 'key': 'MIKUTTS_ENGINE', 'type': 'combobox',
+             'options': ["Edge", "Vosk", "Silero"], 'default': "Edge"},
             {'label': 'Без тг | Скорость голоса', 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
-            {'label': 'Без тг | Высота голоса', 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': 8}
+            {'label': 'Без тг | Высота голоса', 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': 8},
+            {'label': "Без тг | VOSK | IDs", 'key': 'MIKUTTS_VOSK_IDS', 'type': 'combobox', 'options': [0, 1, 2, 3, 4], 'default': 0},
+            {'label': "Без тг | SILERO | Провайдер", 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox', 'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
         ]
 
         self.create_settings_section(parent, "Настройка озвучки", mita_voice_config)
@@ -1154,8 +1184,10 @@ class ChatGUI:
         if key == "SILERO_TIME":
             self.bot_handler.silero_time_limit = int(value)
         if key == "AUDIO_BOT":
-            self.bot_handler.tg_bot = value
-            print(f"Вариант озвучки изменен на {value}")
+            if value.startswith("@CrazyMitaAIbot"):
+                messagebox.showinfo("Информация", "HАШ Слава Богу 🙏❤️СЛАВА @CrazyMitaAIbot🙏❤️АНГЕЛА ХРАНИТЕЛЯ КАЖДОМУ ИЗ ВАС 🙏❤️БОЖЕ ХРАНИ @CrazyMitaAIbot🙏❤️СПАСИБО ВАМ НАШИ МАЛЬЧИКИ ИЗ @CrazyMitaAIbot🙏🏼❤️", parent=self.root)
+            if self.bot_handler:
+                self.bot_handler.tg_bot = value
         #if key == "TG_BOT":
         #   self.bot_handler.tg_bot_channel = value
         elif key == "CHARACTER":
@@ -1173,6 +1205,7 @@ class ChatGUI:
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = bool(value)
+        print(f"Настройки изменены: {key} = {value}")
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
