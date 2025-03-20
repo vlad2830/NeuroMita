@@ -9,11 +9,12 @@ import re
 
 
 class Character:
-    def __init__(self, name: str, silero_command: str, silero_turn_off_video=False):
+    def __init__(self, name: str, silero_command: str, miku_tts_name: str = "Player", silero_turn_off_video=False, ):
 
         self.name = name
         self.silero_command = silero_command
         self.silero_turn_off_video = silero_turn_off_video
+        self.miku_tts_name = miku_tts_name
 
         self.fixed_prompts: List[PromptPart] = []
         self.float_prompts: List[PromptPart] = []
@@ -328,16 +329,11 @@ class Character:
 
 
 class CrazyMita(Character):
-
-    def __init__(self, name: str = "Mita", silero_command: str = "/speaker Mita", silero_turn_off_video=False):
-
+                
+    def init(self):
         self.secretExposed = False
         self.secretExposedFirst = False
         self.PlayingFirst = False
-
-        super().__init__(name, silero_command, silero_turn_off_video)
-
-    def init(self):
         self.crazy_mita_prompts()
 
     def crazy_mita_prompts(self):
@@ -761,12 +757,10 @@ class DivanCartridge(Cartridge):
 
 
 class CreepyMita(Character):
-    def __init__(self, name: str = "Creepy", silero_command: str = "/speaker ghost", silero_turn_off_video=False):
-        self.secretExposed = False
-        self.secretExposedFirst = False
-        super().__init__(name, silero_command, silero_turn_off_video)
 
     def init(self):
+        self.secretExposed = False
+        self.secretExposedFirst = False
         self.creepy_mita_prompts()
 
     def creepy_mita_prompts(self):
@@ -794,12 +788,10 @@ class CreepyMita(Character):
 
 
 class SleepyMita(Character):
-    def __init__(self, name: str = "Dream", silero_command: str = "/speaker dream", silero_turn_off_video=False):
-        self.secretExposed = False
-        self.secretExposedFirst = False
-        super().__init__(name, silero_command, silero_turn_off_video)
 
     def init(self):
+        self.secretExposed = False
+        self.secretExposedFirst = False
         self.sleepy_mita_prompts()
 
     def sleepy_mita_prompts(self):
@@ -833,10 +825,8 @@ class GameMaster(Character):
     """
     Специальный служебный персонаж, отвечающий за ход диалога
     """
-    def __init__(self, name: str = "GameMaster", silero_command: str = "/speaker dryad", silero_turn_off_video=False):
-        super().__init__(name, silero_command, silero_turn_off_video)
 
-    def init(self):
+    def init(self): 
         self.init_prompts()
 
     def init_prompts(self):

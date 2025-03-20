@@ -3,7 +3,6 @@ import os
 import sys
 import time
 import random
-import pygame
 import asyncio
 #import emoji
 from telethon.tl.types import MessageMediaDocument, DocumentAttributeAudio
@@ -12,6 +11,7 @@ import tkinter as tk
 import platform
 
 from AudioConverter import AudioConverter
+from AudioHandler import AudioHandler
 from utils import SH
 
 
@@ -92,38 +92,10 @@ class TelegramBotHandler:
             self.message_count = 0
             self.start_time = time.time()
 
-    async def play_audio(self, file_path):
-        """Проигрывает аудиофайл (MP3/OGG)."""
-
-        def play():
-            pygame.mixer.init()
-            pygame.mixer.music.load(file_path)  # Pygame поддерживает MP3 и OGG
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():  # Ждем завершения воспроизведения
-                pygame.time.Clock().tick(10)
-            pygame.mixer.music.stop()
-            pygame.mixer.quit()
-
-        await asyncio.to_thread(play)  # Запуск в отдельном потоке
-
-    async def handle_voice_file(self, file_path):
-        """Проигрывает звуковой файл (MP3 или OGG)."""
-        try:
-            print(f"Проигрываю файл: {file_path}")
-            await self.play_audio(file_path)
-            if os.path.exists(file_path):
-                try:
-                    await asyncio.sleep(0.02)
-                    os.remove(file_path)
-                    print(f"Файл {file_path} удалён.")
-                except Exception as e:
-                    print(f"Файл {file_path} НЕ удалён. Ошибка: {e}")
-        except Exception as e:
-            print(f"Ошибка при воспроизведении файла: {e}")
-
     async def send_and_receive(self, input_message, speaker_command,message_id):
         """Отправляет сообщение боту и обрабатывает ответ."""
         global message_count
+        # start_time = time.time()
 
         if not input_message or not speaker_command:
             return
@@ -212,6 +184,10 @@ class TelegramBotHandler:
 
                 print(f"Файл загружен: {file_path}")
                 sound_absolute_path = os.path.abspath(file_path)
+
+                # end_time = time.time()
+                # print(f"Время генерации озвучки {self.tg_bot}: {end_time - start_time}")
+
                 if self.gui.ConnectedToGame:
                     print("Подключен к игре, нужна конвертация")
 
@@ -248,7 +224,7 @@ class TelegramBotHandler:
                     print(f"Файл wav загружен: {absolute_wav_path}")
                 else:
                     print(f"Отправлен воспроизводится: {sound_absolute_path}")
-                    await self.handle_voice_file(file_path)
+                    await AudioHandler.handle_voice_file(file_path)
         elif response.text:  # Если сообщение текстовое
             print(f"Ответ от бота: {response.text}")
 

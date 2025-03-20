@@ -1,0 +1,38 @@
+import asyncio
+import os
+
+import pygame
+
+
+class AudioHandler:
+
+    @classmethod
+    async def handle_voice_file(cls, file_path):
+        """Проигрывает звуковой файл (MP3 или OGG)."""
+        try:
+            print(f"Проигрываю файл: {file_path}")
+            await cls.play_audio_with_pygame(file_path)
+            if os.path.exists(file_path):
+                try:
+                    await asyncio.sleep(0.02)
+                    os.remove(file_path)
+                    print(f"Файл {file_path} удалён.")
+                except Exception as e:
+                    print(f"Файл {file_path} НЕ удалён. Ошибка: {e}")
+        except Exception as e:
+            print(f"Ошибка при воспроизведении файла: {e}")
+
+    @classmethod
+    async def play_audio_with_pygame(self, file_path):
+        """Проигрывает аудиофайл."""
+
+        def play():
+            pygame.mixer.init()
+            pygame.mixer.music.load(file_path)  # Pygame поддерживает MP3 и OGG
+            pygame.mixer.music.play()
+            while pygame.mixer.music.get_busy():  # Ждем завершения воспроизведения
+                pygame.time.Clock().tick(10)
+            pygame.mixer.music.stop()
+            pygame.mixer.quit()
+
+        await asyncio.to_thread(play)  # Запуск в отдельном потоке

@@ -1,5 +1,9 @@
+import time
+import uuid
+from AudioHandler import AudioHandler
 from SettingsManager import SettingsManager, CollapsibleSection
 from chat_model import ChatModel
+from web.client import MikuTTSClient
 from server import ChatServer
 
 from Silero import TelegramBotHandler
@@ -8,7 +12,6 @@ import gettext
 
 import os
 import base64
-from pathlib import Path
 import json
 import glob
 
@@ -145,7 +148,7 @@ class ChatGUI:
         try:
             if not self.api_id or not self.api_hash or not self.phone:
                 print("Ошибка: отсутствуют необходимые данные для Telegram бота")
-                self.silero_connected = False
+                self.silero_connected.set(False)
                 return
 
             print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
@@ -163,11 +166,11 @@ class ChatGUI:
             except Exception as e:
                 print(f"Ошибка при запуске Telegram бота: {e}")
                 self.bot_handler_ready = False
-                self.silero_connected = False
+                self.silero_connected.set(False)
 
         except Exception as e:
             print(f"Критическая ошибка при инициализации Telegram Bot: {e}")
-            self.silero_connected = False
+            self.silero_connected.set(False)
             self.bot_handler_ready = False
 
     def run_in_thread(self, response):
@@ -181,11 +184,48 @@ class ChatGUI:
         else:
             print("Ошибка: Цикл событий asyncio не готов.")
 
-    async def run_send_and_receive(self, response, speaker_command,id):
+    async def run_send_and_receive(self, response, speaker_command, id):
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
         self.waiting_answer = True
-        await self.bot_handler.send_and_receive(response, speaker_command,id)
+        # start_time = time.time()
+        if self.settings.get("AUDIO_BOT") == "@CrazyMitaAIbot (Без тг)":
+            rate = self.settings.get("MIKUTTS_VOICE_RATE")
+            pitch = self.settings.get("MIKUTTS_VOICE_PITCH")
+            max_retries = 3
+            retry_delay = 1
+
+            for attempt in range(max_retries):
+                try:
+                    response = await MikuTTSClient.send_request(method="GET", endpoint="get_edge", timeout=int(self.settings.get("SILERO_TIME")), params={"text": response, 
+                                                          "person": self.model.current_character.miku_tts_name,
+                                                          "rate": rate,
+                                                          "pitch": pitch})
+                    if response:
+                        break
+                except Exception:
+                    print(f"Попытка {attempt + 1} из {max_retries} не удалась.")
+                    await asyncio.sleep(retry_delay)
+
+            print(f"Успешно сгенерирована озвучка, response.content: : {response.text[:20]}...{response.text[-20:]}")
+
+            voice_path = f"MitaVoices/{uuid.uuid4()}.{"wav" if self.ConnectedToGame else "mp3"}"
+            absolute_audio_path = os.path.abspath(voice_path)
+            
+            with open(voice_path, "wb") as f:
+                f.write(response.content)
+
+            # end_time = time.time()
+            # print(f"Время генерации озвучки {self.settings.get("AUDIO_BOT")}: {end_time - start_time}")
+
+            if self.ConnectedToGame:
+                self.patch_to_sound_file = absolute_audio_path
+                print(f"Файл wav загружен: {absolute_audio_path}")
+            else:
+                print(f"Отправлен воспроизводится: {absolute_audio_path}")
+                await AudioHandler.handle_voice_file(absolute_audio_path)
+        else:
+            await self.bot_handler.send_and_receive(response, speaker_command, id)
         self.waiting_answer = False
         print("Завершение получения фразы")
 
@@ -646,7 +686,7 @@ class ChatGUI:
             self.api_settings_frame, text="Сохранить", command=self.save_api_settings,
             bg="#8a2be2", fg="#ffffff"
         )
-        save_button.grid(row=7, column=1, padx=5, sticky=tk.E)
+        save_button.grid(row=8, column=0, padx=5, sticky=tk.E)
 
         # Обновляем поля ввода
         self.api_url_entry.insert(0, self.api_url)
@@ -662,24 +702,25 @@ class ChatGUI:
 
     def setup_silero_controls(self, parent):
         # Основные настройки
-        telegram_config = [
-            {'label': 'Использовать тг-бота', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
-            {'label': 'ТГ-бот для озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox',
-             'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
+        mita_voice_config = [
+            {'label': 'Использовать озвучку', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
+            {'label': 'Вариант озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox',
+             'options': ["@silero_voice_bot", "@CrazyMitaAIbot (Без тг)", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
             #{'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
             #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
-             'validation': self.validate_number}
-
+             'validation': self.validate_number},
+            {'label': 'Без тг | Скорость голоса', 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
+            {'label': 'Без тг | Высота голоса', 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': "8"},
         ]
 
-        self.create_settings_section(parent, "Настройка Telegram", telegram_config)
+        self.create_settings_section(parent, "Настройка озвучки", mita_voice_config)
 
     def setup_mita_controls(self, parent):
         # Основные настройки
         mita_config = [
             {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(),
-             'default': "Mita"}
+             'default': "Crazy"}
         ]
 
         self.create_settings_section(parent, "Выбор персонажа", mita_config)
@@ -1097,7 +1138,7 @@ class ChatGUI:
             self.bot_handler.silero_time_limit = int(value)
         if key == "AUDIO_BOT":
             self.bot_handler.tg_bot = value
-            print(f"ТГ-бот для озвучки изменен на {value}")
+            print(f"Вариант озвучки изменен на {value}")
         #if key == "TG_BOT":
         #   self.bot_handler.tg_bot_channel = value
         elif key == "CHARACTER":
