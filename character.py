@@ -210,15 +210,25 @@ class Character:
                     # Обработка добавления
                     if operation == "+":
                         parts = [p.strip() for p in content.split('|', 1)]
-                        if len(parts) != 2:
+                        if len(parts) == 2:
+                            priority, mem_content = parts
+                            self.memory_system.add_memory(
+                                priority=priority,
+                                content=mem_content
+                            )
+                            print(f"Добавлено воспоминание #{mem_content}")
+                        if len(parts) == 1:
+                            mem_content = parts[0]
+                            self.memory_system.add_memory(
+                                priority="normal",
+                                content=mem_content
+                            )
+                            print(f"Добавлено воспоминание #{mem_content} (Старый формат)")
+                        else:
                             raise ValueError("Неверный формат данных для добавления")
 
-                        priority, mem_content = parts
-                        self.memory_system.add_memory(
-                            priority=priority,
-                            content=mem_content
-                        )
-                        print(f"Добавлено воспоминание #{mem_content}")
+
+
 
                     # Обработка обновления
                     elif operation == "#":

@@ -172,7 +172,7 @@ namespace MitaAI
             if (gameMaster == null) return false;
             try
             {
-                if (gameMaster.enabled && from != MitaCore.character.GameMaster)
+                if (gameMaster.enabled && from != MitaCore.character.GameMaster && from != MitaCore.character.Player)
                 {
                     MelonLogger.Msg("nextAnswer Attempt GameMaster");
                     if (gameMaster.isTimeToCorrect())
@@ -182,14 +182,7 @@ namespace MitaAI
                         MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
                         return true;
                     }
-                    
-                    // Если игрок, то пора лимит
-                    if (from != MitaCore.character.Player)
-                    {
-                        return false;
-                        //limit = 1;  
-                    }
-
+         
                 }
 
             }
@@ -203,7 +196,7 @@ namespace MitaAI
         }
 
 
-        static int limit = 0;
+        static int limit = 1;
         public static float limitMod = 100;
         public static void nextAnswer(string response, MitaCore.character from)
         {
@@ -217,6 +210,7 @@ namespace MitaAI
 
 
             // Добавляем отправителя в список говорящих
+            int CharCount = characters.Count;
             characters.Remove(from);
             // Удаляем из characters всех, кто уже говорил
 
@@ -229,7 +223,7 @@ namespace MitaAI
 
 
             // Логика для сообщений от ИИ
-            if (from!=MitaCore.character.Player && limit < Math.Round(characters.Count*limitMod/100))
+            if (from!=MitaCore.character.Player && limit < Math.Round(CharCount * limitMod/100))
             {
                 MitaCore.character character = characters.First();
                 MelonLogger.Msg($"nextAnswer to {character}");
@@ -246,13 +240,13 @@ namespace MitaAI
 
                 string nextSpeaker = "";
                 string objectNameNext = "";
-                if (limit + 1 == characters.Count)
+                if (limit + 1 >= CharCount)
                 {
                     nextSpeaker = "Player";
                 }
                 else
                 {
-                    if (characters.Count >= 2) {
+                    if (CharCount >= 2) {
                         nextSpeaker = CharacterControl.extendCharsString(characters[1]);
                         objectNameNext = getObjectName(characters[1]);
                     }
@@ -269,7 +263,7 @@ namespace MitaAI
             }
             else
             {
-                MelonLogger.Msg($"nextAnswer reset ch count {limit}/{Math.Round(characters.Count * limitMod / 100)}");
+                MelonLogger.Msg($"nextAnswer reset ch count {limit}/{Math.Round(CharCount * limitMod / 100)}");
 
                 // Сбрасываем список говорящих
                 limit = 1;
