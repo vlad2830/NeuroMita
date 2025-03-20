@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using UnityEngine;
 using static Il2CppRootMotion.FinalIK.InteractionObject;
 
+using UnityEngine.UI;
 namespace MitaAI
 {
     public static class CharacterControl
@@ -18,6 +19,7 @@ namespace MitaAI
         // Сюда перенести все сharacter и changeMita
         static MitaCore.character cart = MitaCore.character.None;
         static public Character gameMaster = null;
+        private static Text OrderText;
         public static MitaCore.character get_cart()
         {
             if (cart == MitaCore.character.None) init_cart();
@@ -211,6 +213,7 @@ namespace MitaAI
 
             // Добавляем отправителя в список говорящих
             int CharCount = characters.Count;
+            int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
             characters.Remove(from);
             // Удаляем из characters всех, кто уже говорил
 
@@ -221,11 +224,30 @@ namespace MitaAI
                 return;
             }
 
+            if (OrderFieldExists())
+            {
+                int charOrder = 1;
+                OrderText.text =  $"{limit}/{TotalLimit}\n";
+                foreach (MitaCore.character character in characters)
+                {
+                    if (charOrder>=TotalLimit)
+                    {
+                        OrderText.text += $"{charOrder}:Player:\n";
+                        break;
+                    }
+                    OrderText.text += $"{charOrder}:{character.ToString()}:\n";
+                    charOrder++;
+                }
+            }
+
+            MelonLogger.Msg($"Before check lim {limit} /{TotalLimit}");
 
             // Логика для сообщений от ИИ
-            if (from!=MitaCore.character.Player && limit < Math.Round(CharCount * limitMod/100))
+            if (from!=MitaCore.character.Player && limit < TotalLimit)
             {
                 MitaCore.character character = characters.First();
+
+
                 MelonLogger.Msg($"nextAnswer to {character}");
                 // Если отправитель и получатель совпадают, выходим
                 if (from == character)
@@ -263,7 +285,7 @@ namespace MitaAI
             }
             else
             {
-                MelonLogger.Msg($"nextAnswer reset ch count {limit}/{Math.Round(CharCount * limitMod / 100)}");
+                MelonLogger.Msg($"nextAnswer reset ch count {limit}/{TotalLimit}");
 
                 // Сбрасываем список говорящих
                 limit = 1;
@@ -276,6 +298,79 @@ namespace MitaAI
         {
             if (character.ToString().Contains("Cart")) return $"{character} (cartridge)";
             else return $"{character} (Mita)";
+        }
+
+        static bool OrderFieldExists()
+        {
+            if (OrderText == null)
+            {
+                try
+                {
+                    CreateTextComponent();
+                    
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Msg("CreateOrderComponent ex:" + ex);
+                    return false; // Прекращаем выполнение, если создание компонента не удалось
+                }
+            }
+            return true;
+        }
+
+        
+
+        private static void CreateTextComponent()
+        {
+
+            MelonLogger.Msg("Creating Order Text");
+            // Находим родительский объект "Interface"
+            GameObject Game = GameObject.Find("Game");
+            GameObject _interface = Game.transform.Find("Interface").gameObject;
+            if (_interface == null)
+            {
+                MelonLogger.Msg("Interface not found!");
+                return;
+            }
+
+            // Создаем объект для текста
+            GameObject textObject = new GameObject("TextComponentOrder");
+            textObject.transform.parent = _interface.transform;
+
+            // Добавляем компонент RectTransform
+            var rectTransform = textObject.AddComponent<RectTransform>();
+            rectTransform.anchoredPosition = Vector2.zero;
+
+            // Настраиваем привязку и точку поворота
+            rectTransform.anchorMin = new Vector2(1f, 1.3f);
+            rectTransform.anchorMax = new Vector2(1f, 1);
+            rectTransform.pivot = new Vector2(0.5f, 0);
+
+            // Добавляем компонент Text
+            OrderText = textObject.AddComponent<Text>();
+
+            // Настраиваем шрифт и стиль текста
+            var existingTexts = GameObject.FindObjectsOfType<Text>();
+            foreach (var text in existingTexts)
+            {
+                OrderText.font = text.font;
+                OrderText.fontStyle = text.fontStyle;
+                OrderText.fontSize = 28;
+                if (OrderText.font != null) break;
+            }
+
+            // Настраиваем текст
+            OrderText.text = "Это пример текста \n, который может занимать \n несколько строк.";
+            OrderText.color = Color.yellow;
+            OrderText.alignment = TextAnchor.UpperRight; // Выравнивание по верхнему левому краю
+            OrderText.horizontalOverflow = HorizontalWrapMode.Wrap; // Перенос текста на новую строку
+            OrderText.verticalOverflow = VerticalWrapMode.Overflow; // Разрешаем тексту выходить за пределы
+
+            // Настраиваем размер текстового компонента
+            RectTransform parentRect = _interface.GetComponent<RectTransform>();
+            float parentWidth = parentRect.rect.width;
+            rectTransform.sizeDelta = new Vector2(parentWidth * 0.7f, OrderText.fontSize * 5); // Высота = 5 строк
         }
     }
 }

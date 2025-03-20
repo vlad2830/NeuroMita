@@ -814,7 +814,7 @@ namespace MitaAI
             MitaCore.character MitaToStart = Settings.Get<MitaCore.character>("MitaType");
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
             
-            MitaCore.Instance.addChangeMita(null, character: MitaToStart, true);
+            MitaCore.Instance.addChangeMita(null, character: MitaToStart, true,true);
             
             yield return new WaitForSeconds(1f);
 
