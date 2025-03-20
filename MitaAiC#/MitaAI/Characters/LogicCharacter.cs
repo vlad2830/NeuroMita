@@ -29,15 +29,53 @@ namespace MitaAI
 
         private GameObject creepyKnife; //не рабочее, нужно найти настоящий gameobject
 
+        // Новые переменные для логики усталости Sleepy
+        private float initializationTime;      // Время инициализации Sleepy
+        private float fatigueStartTime;        // Случайное время до начала усталости (в секундах)
+        private bool isFatigueStarted;         // Флаг, показывающий, началась ли усталость
+        private float fatigueLevel;            // Уровень усталости от 0 до 1
+        private float fatigueDuration;         // Время достижения полной усталости после начала (например, 5 минут)
+
+        // эффекты сна
+        private GameObject particleSleep;
+
         private LogicCharacter() { } //пока-что нечего
 
         public void Initialize(GameObject character, MitaCore.character type)
         {
-            if (isInitialized) return;
+            // Убрана проверка isInitialized, чтобы разрешить повторную инициализацию при смене персонажа
             SetCharacterObject(character);
             characterType = type;
             AdjustCharacterSettings(); // Настройка параметров в зависимости от типа
             isInitialized = true;
+
+            // Инициализация переменных усталости для Sleepy
+            if (characterType == MitaCore.character.Sleepy)
+            {
+                initializationTime = Time.time;
+                fatigueStartTime = UnityEngine.Random.Range(5f * 60f, 20f * 60f); // 5 to 20 minutes in seconds
+                isFatigueStarted = false;
+                fatigueLevel = 0f;
+                fatigueDuration = 5f * 60f; // 5 minutes to full fatigue
+
+                // Locate the Particle Sleep GameObject
+                particleSleep = Utils.TryfindChild(characterObject.transform, "Mita Dream/Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Particle Sleep");
+                if (particleSleep != null)
+                {
+                    particleSleep.SetActive(false); // Initially off
+                    MelonLogger.Msg("Particle Sleep found and initialized for Sleepy.");
+                }
+                else
+                {
+                    MelonLogger.Error("Particle Sleep not found for Sleepy during initialization.");
+                }
+            }
+            else
+            {
+                fatigueLevel = 0f; 
+                particleSleep = null;
+            }
+
             // Инициализация ножа для Creepy
             if (characterType == MitaCore.character.Creepy)
             {
@@ -90,6 +128,37 @@ namespace MitaAI
                 lastCheckTime = currentTime;
                 MonitorCharacterState();
             }
+            // Обновление усталости только для Sleepy
+            if (characterType == MitaCore.character.Sleepy)
+            {
+                UpdateFatigue();
+                SleepyLogic();
+            }
+        }
+
+        private void UpdateFatigue()
+        {
+            if (!isFatigueStarted)
+            {
+                // Проверка, достигнуто ли случайное время начала усталости
+                if (Time.time - initializationTime >= fatigueStartTime)
+                {
+                    isFatigueStarted = true;
+                    fatigueStartTime = Time.time; // Переиспользуем fatigueStartTime как время начала усталости
+                }
+            }
+            else
+            {
+                // Увеличение уровня усталости в течение fatigueDuration
+                float timeSinceFatigueStarted = Time.time - fatigueStartTime;
+                fatigueLevel = Mathf.Clamp01(timeSinceFatigueStarted / fatigueDuration);
+            }
+        }
+
+        // Публичный метод для получения уровня усталости
+        public float GetFatigueLevel()
+        {
+            return characterType == MitaCore.character.Sleepy ? fatigueLevel : 0f;
         }
 
         // Остановка движения например для логики с сонной
@@ -257,6 +326,27 @@ namespace MitaAI
 
                 yield return new WaitForSeconds(0.5f);
             }
+        }
+
+        public void SleepyLogic()
+        {
+            if (characterType != MitaCore.character.Sleepy || particleSleep == null) return;
+
+            // определяет спит ли сонная
+            bool isAsleep = fatigueLevel >= 1f;
+
+            // переключаем эффект сна при сне
+            if (isAsleep && !particleSleep.activeSelf)
+            {
+                particleSleep.SetActive(true);
+                MelonLogger.Msg("Sleepy is now asleep. Particle Sleep activated.");
+            }
+            else if (!isAsleep && particleSleep.activeSelf)
+            {
+                particleSleep.SetActive(false);
+                MelonLogger.Msg("Sleepy is awake. Particle Sleep deactivated.");
+            }
+
         }
 
         //private void CheckCharacterPosition() //тож пример с использованием позиции
