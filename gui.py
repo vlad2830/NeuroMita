@@ -919,18 +919,27 @@ class ChatGUI:
             asyncio.run_coroutine_threadsafe(self.async_send_message(user_input, system_input), self.loop)
 
     async def async_send_message(self, user_input, system_input=""):
-        response = await self.loop.run_in_executor(None, lambda: self.model.generate_response(user_input, system_input))
-        self.insert_message("assistant", response)
-        self.updateAll()
-        if self.server:
-            try:
-                if self.server.client_socket:
-                    self.server.send_message_to_server(response)
-                    print("Сообщение отправлено на сервер (связь с игрой есть)")
-                else:
-                    print("Нет активного подключения к клиенту игры")
-            except Exception as e:
-                print(f"Ошибка при отправке сообщения на сервер: {e}")
+        try:
+            # Ограничиваем выполнение задачи 10 секундами
+            response = await asyncio.wait_for(
+                self.loop.run_in_executor(None, lambda: self.model.generate_response(user_input, system_input)),
+                timeout=10.0  # Тайм-аут в секундах
+            )
+            self.insert_message("assistant", response)
+            self.updateAll()
+            if self.server:
+                try:
+                    if self.server.client_socket:
+                        self.server.send_message_to_server(response)
+                        print("Сообщение отправлено на сервер (связь с игрой есть)")
+                    else:
+                        print("Нет активного подключения к клиенту игры")
+                except Exception as e:
+                    print(f"Ошибка при отправке сообщения на сервер: {e}")
+        except asyncio.TimeoutError:
+            # Обработка тайм-аута
+            print("Тайм-аут: генерация ответа заняла слишком много времени.")
+            #self.insert_message("assistant", "Превышен лимит времени ожидания ответа от нейросети.")
 
     def clear_history(self):
         self.model.current_character.clear_history()
