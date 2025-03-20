@@ -1041,7 +1041,7 @@ class ChatGUI:
             # Ограничиваем выполнение задачи 10 секундами
             response = await asyncio.wait_for(
                 self.loop.run_in_executor(None, lambda: self.model.generate_response(user_input, system_input)),
-                timeout=10.0  # Тайм-аут в секундах
+                timeout=25.0  # Тайм-аут в секундах
             )
             self.insert_message("assistant", response)
             self.updateAll()
