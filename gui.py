@@ -1197,6 +1197,7 @@ class ChatGUI:
     def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
                               options=None, default='', default_checkbutton=False, validation=None, tooltip=None,
                               width=None, height=None, command=None):
+
         """
         Создает виджет настройки с различными параметрами.
 
@@ -1213,6 +1214,10 @@ class ChatGUI:
             height: Высота виджета (для текстовых полей)
             command: Функция, вызываемая при изменении значения
         """
+        # Применяем default при первом запуске
+        if not self.settings.get(setting_key):
+            self.settings.set(setting_key,default if widget_type != 'checkbutton' else default_checkbutton)
+
         frame = tk.Frame(parent, bg="#2c2c2c")
         frame.pack(fill=tk.X, pady=2)
 
@@ -1279,6 +1284,7 @@ class ChatGUI:
                 self._save_setting(setting_key, float(value))
                 if command:
                     command(float(value))
+
 
             scale.config(command=save_scale)
 
