@@ -21,8 +21,8 @@ class BaseClient:
             except httpx.HTTPStatusError as e:
                 logger.error(f"HTTP Error: {e.response.text}")
                 raise e
-            except httpx.TimeoutException as e:
-                logger.error(f"Таймаут запроса: {e}")
+            except httpx.TimeoutException:
+                logger.error(f"Таймаут запроса")
                 raise e
             except Exception as e:
                 logger.error(f"Error: {e}")

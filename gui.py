@@ -1,4 +1,3 @@
-import time
 import uuid
 from AudioHandler import AudioHandler
 from SettingsManager import SettingsManager, CollapsibleSection
@@ -111,7 +110,7 @@ class ChatGUI:
 
         self.start_silero_async()
 
-        # SpeechRecognition.speach_recognition_start(self.device_id, self.loop)
+        SpeechRecognition.speach_recognition_start(self.device_id, self.loop)
 
         # Запуск проверки переменной textToTalk через after
         self.root.after(150, self.check_text_to_talk_or_send)
