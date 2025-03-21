@@ -346,13 +346,13 @@ namespace MitaAI
             // Добавляем компонент RectTransform
             var rectTransform = textObject.AddComponent<RectTransform>();
             rectTransform.anchoredPosition = Vector2.zero;
-            rectTransform.localPosition = Vector3.zero;
+            
 
             // Настраиваем привязку и точку поворота
             rectTransform.anchorMin = new Vector2(1f, 1f);
             rectTransform.anchorMax = new Vector2(1f, 1.3f);
             rectTransform.pivot = new Vector2(0.5f, 0);
-            
+            rectTransform.localPosition = Vector3.zero;
 
             // Добавляем компонент Text
             OrderText = textObject.AddComponent<Text>();

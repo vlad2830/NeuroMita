@@ -195,7 +195,7 @@ class ChatGUI:
             engine = self.settings.get("MIKUTTS_ENGINE")
             pitch = int(self.settings.get("MIKUTTS_VOICE_PITCH"))
 
-            params = {'text': text_to_talk, 
+            params = {'text': text_to_talk,
                       'person': self.model.current_character.miku_tts_name}
             data = None
             if engine == "Edge":
@@ -223,20 +223,23 @@ class ChatGUI:
                     "provider": self.settings.get("MIKUTTS_SILERO_PROVIDER", "Aidar")
                 }
                 params = None
-            
+
             max_retries = 3
             retry_delay = 1
 
             for attempt in range(max_retries):
                 try:
-                    response, time_taken = await MikuTTSClient.send_request(method=method, data=data, port=port, endpoint=endpoint, timeout=int(self.settings.get("SILERO_TIME")), params=params)
+                    response, time_taken = await MikuTTSClient.send_request(method=method, data=data, port=port,
+                                                                            endpoint=endpoint, timeout=int(
+                            self.settings.get("SILERO_TIME")), params=params)
                     if response:
                         break
                 except Exception as e:
                     print(f"Попытка {attempt + 1} из {max_retries} не удалась. {e}")
                     await asyncio.sleep(retry_delay)
 
-            print(f"Успешно сгенерирована озвучка, {time_taken} секунд, Движок: {self.settings.get("MIKUTTS_ENGINE")}, Текст: {text_to_talk}")
+            print(
+                f"Успешно сгенерирована озвучка, {time_taken} секунд, Движок: {self.settings.get("MIKUTTS_ENGINE")}, Текст: {text_to_talk}")
 
             voice_path = f"MitaVoices/{uuid.uuid4()}.{"wav" if self.ConnectedToGame else "mp3"}"
             absolute_audio_path = os.path.abspath(voice_path)
@@ -280,7 +283,7 @@ class ChatGUI:
                     if bool(self.settings.get("SILERO_USE")):
                         print("Цикл событий готов. Отправка текста.")
                         asyncio.run_coroutine_threadsafe(
-                            self.run_send_and_receive(self.textToTalk, self.textSpeaker,self.id_sound),
+                            self.run_send_and_receive(self.textToTalk, self.textSpeaker, self.id_sound),
                             self.loop
                         )
                     self.textToTalk = ""  # Очищаем текст после отправки
@@ -370,7 +373,6 @@ class ChatGUI:
         # Добавляем стили
         self.chat_window.tag_configure("Mita", foreground="hot pink", font=("Arial", 12, "bold"))
         self.chat_window.tag_configure("Player", foreground="gold", font=("Arial", 12, "bold"))
-
 
         input_frame = tk.Frame(left_frame, bg="#2c2c2c")
         input_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -469,7 +471,7 @@ class ChatGUI:
         self.setup_api_controls(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
-        
+
         #Сворачивание секций
         for widget in settings_frame.winfo_children():
             if isinstance(widget, CollapsibleSection):
@@ -747,7 +749,8 @@ class ChatGUI:
         mita_voice_config = [
             {'label': 'Использовать озвучку', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
             {'label': 'Вариант озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox',
-             'options': ["@silero_voice_bot", "@CrazyMitaAIbot (Без тг)", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
+             'options': ["@silero_voice_bot", "@CrazyMitaAIbot (Без тг)", "@CrazyMitaAIbot"],
+             'default': "@silero_voice_bot"},
             #{'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
             #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
             {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
@@ -756,8 +759,10 @@ class ChatGUI:
              'options': ["Edge", "Vosk", "Silero"], 'default': "Edge"},
             {'label': 'Без тг | Скорость голоса', 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
             {'label': 'Без тг | Высота голоса', 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': 8},
-            {'label': "Без тг | VOSK | IDs", 'key': 'MIKUTTS_VOSK_IDS', 'type': 'combobox', 'options': [0, 1, 2, 3, 4], 'default': 0},
-            {'label': "Без тг | SILERO | Провайдер", 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox', 'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
+            {'label': "Без тг | VOSK | IDs", 'key': 'MIKUTTS_VOSK_IDS', 'type': 'combobox', 'options': [0, 1, 2, 3, 4],
+             'default': 0},
+            {'label': "Без тг | SILERO | Провайдер", 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox',
+             'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
         ]
 
         self.create_settings_section(parent, "Настройка озвучки", mita_voice_config)
@@ -808,7 +813,7 @@ class ChatGUI:
             {'label': 'Лимит речей нпс %', 'key': 'CC_Limit_mod', 'type': 'entry',
              'default': 100, 'tooltip': 'Сколько от кол-ва персонажей может отклоняться повтор речей нпс'}
         ]
-        self.create_settings_section(parent, "Настройки Мастера игры", common_config)
+        self.create_settings_section(parent, "Настройки Мастера игры и Диалогов", common_config)
 
     def setup_new_game_master_controls(self, parent):
         # Основные настройки для новой секции
@@ -819,7 +824,6 @@ class ChatGUI:
              'default': 5, 'tooltip': 'Описание новой настройки 2'}
         ]
         self.create_settings_section(parent, "Новая секция", new_common_config)
-
 
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
@@ -1016,7 +1020,6 @@ class ChatGUI:
             self.chat_window.insert(tk.END, "Вы: ", "Player")
             self.chat_window.insert(tk.END, f"{input_text}\n")
         if response != "":
-
             MitaName = self.model.current_character.name
 
             self.chat_window.insert(tk.END, f"{MitaName}: ", "Mita")
@@ -1184,7 +1187,9 @@ class ChatGUI:
             self.bot_handler.silero_time_limit = int(value)
         if key == "AUDIO_BOT":
             if value.startswith("@CrazyMitaAIbot"):
-                messagebox.showinfo("Информация", "HАШ Слава Богу 🙏❤️СЛАВА @CrazyMitaAIbot🙏❤️АНГЕЛА ХРАНИТЕЛЯ КАЖДОМУ ИЗ ВАС 🙏❤️БОЖЕ ХРАНИ @CrazyMitaAIbot🙏❤️СПАСИБО ВАМ НАШИ МАЛЬЧИКИ ИЗ @CrazyMitaAIbot🙏🏼❤️", parent=self.root)
+                messagebox.showinfo("Информация",
+                                    "HАШ Слава Богу 🙏❤️СЛАВА @CrazyMitaAIbot🙏❤️АНГЕЛА ХРАНИТЕЛЯ КАЖДОМУ ИЗ ВАС 🙏❤️БОЖЕ ХРАНИ @CrazyMitaAIbot🙏❤️СПАСИБО ВАМ НАШИ МАЛЬЧИКИ ИЗ @CrazyMitaAIbot🙏🏼❤️",
+                                    parent=self.root)
             if self.bot_handler:
                 self.bot_handler.tg_bot = value
         #if key == "TG_BOT":
@@ -1248,7 +1253,7 @@ class ChatGUI:
         """
         # Применяем default при первом запуске
         if not self.settings.get(setting_key):
-            self.settings.set(setting_key,default if widget_type != 'checkbutton' else default_checkbutton)
+            self.settings.set(setting_key, default_checkbutton if widget_type == 'checkbutton' else default)
 
         frame = tk.Frame(parent, bg="#2c2c2c")
         frame.pack(fill=tk.X, pady=2)
@@ -1316,7 +1321,6 @@ class ChatGUI:
                 self._save_setting(setting_key, float(value))
                 if command:
                     command(float(value))
-
 
             scale.config(command=save_scale)
 
