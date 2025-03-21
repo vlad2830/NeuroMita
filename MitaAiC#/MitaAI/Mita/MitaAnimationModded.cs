@@ -30,13 +30,6 @@ namespace MitaAI.Mita
         public static GameObject bat;
 
         static public string currentIdleAnim = "Idle";
-        public enum IdleStates
-        {
-            normal = 0,
-            talkWithPlayer = 1,
-
-        }
-
 
 
         static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true)
