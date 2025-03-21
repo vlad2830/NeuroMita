@@ -20,6 +20,20 @@ namespace MitaAI
         static MitaCore.character cart = MitaCore.character.None;
         static public Character gameMaster = null;
         private static Text OrderText;
+
+
+        static float lastTime = 0f;
+        public static void Update()
+        {
+            float timeNow = Time.unscaledTime;
+            if (timeNow - lastTime  < 0.5f) return;
+            lastTime = timeNow;
+
+
+            UpdateOrderTest(null,changePrioty:false);
+        }
+
+
         public static MitaCore.character get_cart()
         {
             if (cart == MitaCore.character.None) init_cart();
@@ -56,12 +70,12 @@ namespace MitaAI
                 
                 float factDistance = Utils.getDistanceBetweenObjects(MitaCore.Instance.playerPersonObject,character.gameObject);
 
-                MelonLogger.Msg($"{character.character} found in Characters");
+                //MelonLogger.Msg($"{character.character} found in Characters");
 
                 if (factDistance <= distance)
                 {
 
-                    MelonLogger.Msg($"{character.character} added to active Characters");
+                    //MelonLogger.Msg($"{character.character} added to active Characters");
                     activeCharacters.Add(character);
                 }
             }
@@ -139,20 +153,20 @@ namespace MitaAI
             { 
                 ch.PointsOrder = 0;
 
-                if (fillRandom) ch.PointsOrder += UnityEngine.Random.Range(0, 25);
+                if (fillRandom) ch.PointsOrder += UnityEngine.Random.Range(0, 24);
 
             }
         }
 
         // Передает достпных для разговора персонажей, притом снижает приоритет первого чтобы очередь перемещалась
-        public static List<MitaCore.character> GetCharactersToAnswer()
+        public static List<MitaCore.character> GetCharactersToAnswer(bool changePrioty = true)
         {
             List<Character> activeCharacters = getActiveCharacters();
 
             activeCharacters = activeCharacters.OrderByDescending(character => character.PointsOrder).ToList();
 
 
-            if (activeCharacters.Count > 0)
+            if (changePrioty && activeCharacters.Count > 0)
             {
                 DecreaseOrderPoints(activeCharacters.First());
             }
@@ -160,7 +174,7 @@ namespace MitaAI
             List<MitaCore.character> characters = new List<MitaCore.character>();
             foreach (var character in activeCharacters)
             {
-                MelonLogger.Msg($"{character.character} found in activeCharacters");
+                //MelonLogger.Msg($"{character.character} found in activeCharacters");
                 characters.Add(character.character);
             }
 
@@ -214,24 +228,8 @@ namespace MitaAI
             // Добавляем отправителя в список говорящих
             int CharCount = characters.Count;
             int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
-
-            if (OrderFieldExists())
-            {
-                int charOrder = 1;
-                
-                OrderText.text = $"{limit}/{TotalLimit}\n";
-                foreach (MitaCore.character character in characters)
-                {
-                    if (charOrder >= TotalLimit)
-                    {
-                        OrderText.text += $"{charOrder}:Player\n";
-                        break;
-                    }
-                    OrderText.text += $"{charOrder}:{character.ToString()}:\n";
-                    charOrder++;
-                }
-            }
-
+            
+            UpdateOrderTest(characters, true);
 
             characters.Remove(from);
             // Удаляем из characters всех, кто уже говорил
@@ -304,6 +302,41 @@ namespace MitaAI
             else return $"{character} (Mita)";
         }
 
+        // Выводит в текст справа сверху порядок элементов
+        static void UpdateOrderTest(List<MitaCore.character> characters,bool changePrioty = true)
+        {
+            if (characters == null) characters = GetCharactersToAnswer(changePrioty);
+
+            // Добавляем отправителя в список говорящих
+            int CharCount = characters.Count;
+            int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
+
+            if (OrderFieldExists())
+            {
+                if (CharCount <= 1)
+                {
+                    OrderText.gameObject.SetActive(false);
+                    return;
+                }
+
+                OrderText.gameObject.SetActive(true);
+                int charOrder = limit;
+
+                OrderText.text = $"{limit}/{TotalLimit}\n";
+                foreach (MitaCore.character character in characters)
+                {
+                    if (charOrder > TotalLimit)
+                    {
+                        OrderText.text += $"{charOrder}:Player\n";
+                        break;
+                    }
+                    OrderText.text += $"{charOrder}:{character.ToString()}\n";
+                    charOrder++;
+                }
+            }
+        }
+
+        
         static bool OrderFieldExists()
         {
             if (OrderText == null)
@@ -352,7 +385,7 @@ namespace MitaAI
             rectTransform.anchorMin = new Vector2(1f, 1f);
             rectTransform.anchorMax = new Vector2(1f, 1.3f);
             rectTransform.pivot = new Vector2(0.5f, 0);
-            rectTransform.localPosition = Vector3.zero;
+            rectTransform.localPosition = new Vector3(250,50,0);
 
             // Добавляем компонент Text
             OrderText = textObject.AddComponent<Text>();

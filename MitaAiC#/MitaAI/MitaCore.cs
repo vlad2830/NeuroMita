@@ -578,7 +578,7 @@ namespace MitaAI
         }
         public void playerClickSafe()
         {
-            sendSystemMessage("Игрок кликает на кнопку твоего сейфа");
+            sendSystemMessage("Игрок кликает на кнопку сейфа");
         }
 
 
@@ -587,7 +587,7 @@ namespace MitaAI
         {
             if (sceneName == requiredSceneName)
             {
-                sendSystemInfo("Игрок покинул твой уровень");
+                sendSystemInfo("Игрок покинул уровень");
                 MitaCore.AllLoaded = false;
             }
             base.OnSceneWasUnloaded(buildIndex, sceneName);
@@ -1550,7 +1550,7 @@ namespace MitaAI
 
                 float elapsedTime = 0f; // Счетчик времени
                 float timeout = 30f;     // Лимит времени ожидания
-                float waitingTimer = 1.1f;
+                float waitingTimer = 0.75f;
                 float lastCallTime = 0f; // Время последнего вызова
                 
                 // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -2622,6 +2622,7 @@ namespace MitaAI
                     Interactions.Update();
                     InputControl.processInpute();
                     PlayerMovement.onUpdate();
+                    CharacterControl.Update();
                     characterLogic?.Update(); // добавляем для метода update в characterlogic
                 }
 
