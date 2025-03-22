@@ -1014,7 +1014,8 @@ namespace MitaAI
         }
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
-        private const float actionCooldown = 8f;  // Интервал в секундах
+        private const float actionCooldown = 4f;  // Интервал в секундах, надо сделать умнее для нормальных диалогов
+
         private IEnumerator HandleDialogue()
         {
             //MelonLogger.Msg("HandleDialogue");
@@ -1030,7 +1031,7 @@ namespace MitaAI
 
 
             float currentTime = Time.unscaledTime;
-            if (currentTime - lastActionTime > actionCooldown)
+            if (currentTime - lastActionTime > actionCooldown || CharacterControl.afterGM() )
             {
                 //MelonLogger.Msg("Ready to send");
                 if (playerText != "")
@@ -1154,7 +1155,7 @@ namespace MitaAI
                 }
 
                 //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                if (elapsedTime - lastCallTime >= waitMessageTimer)
+                if (elapsedTime - lastCallTime >= waitMessageTimer && !dialogActive)
                 {
                     try
                     {
@@ -1577,7 +1578,7 @@ namespace MitaAI
                     }
 
 
-                    if (elapsedTime - lastCallTime >= waitingTimer)
+                    if (elapsedTime - lastCallTime >= waitingTimer && !dialogActive)
                     {
                         //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
                         List<String> parts = new List<String> { "***" };
@@ -2658,7 +2659,7 @@ namespace MitaAI
                 case character.Cappy:
                     return new Color(1f, 1f, 0.1f); // мягкий оранжевый 
                 case character.Kind:
-                    return new Color(0f, 1f, 0f); //поставил зеленый пока что
+                    return new Color(0f, 1f, 0f); //поставил зеленый пока что // Надо белый-лазурный
                 case character.ShortHair:
                     return new Color(1f, 0.9f, 0.4f); // мягкий желтый
                 case character.Mila:
@@ -2667,6 +2668,8 @@ namespace MitaAI
                     return new Color(1f, 1f, 1f); // мягкий розовый
                 case character.Creepy:
                     return new Color(1f, 0f, 0f); // красный
+                case character.GameMaster:
+                    return Color.black;
                 default:
                     return Color.white;
             }

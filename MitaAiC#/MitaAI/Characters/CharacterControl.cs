@@ -182,7 +182,7 @@ namespace MitaAI
             return characters;
         }
 
-        static bool lastTimeWasGM = false;
+       
         // Пришло ли время ГеймМастеру вмешаться
         private static bool GameMasterCase(MitaCore.character from)
         {
@@ -200,7 +200,9 @@ namespace MitaAI
              
                         MelonLogger.Msg("nextAnswer Success Attempt GameMaster");
                         string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора.";
+                        lastTimeWasGM = true;
                         MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
+                        
                         return true;
                     }
          
@@ -215,8 +217,21 @@ namespace MitaAI
 
             return false;
         }
+        static bool lastTimeWasGM = false;
+        public static bool afterGM()
+        {
+            if (gameMaster == null) return false;
 
+            if (lastTimeWasGM)
+            {
+                lastTimeWasGM = false;
+                return true;
+            }
+            return true;
 
+        }
+
+        
         static int limit = 1;
         public static float limitMod = 100;
         public static void nextAnswer(string response, MitaCore.character from)
