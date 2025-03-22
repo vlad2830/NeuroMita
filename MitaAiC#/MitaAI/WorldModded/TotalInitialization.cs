@@ -648,6 +648,9 @@ namespace MitaAI
 
                 MitaCore.MilaObject.transform.Find("Mila Person").GetComponent<Animator>().PlayInFixedTime("Walk");
                 MitaCore.MilaObject.active = false;
+
+                MitaCore.MilaObject.transform.Find("Mila Person").GetComponent<CapsuleCollider>().enabled = true;
+                MitaCore.MilaObject.transform.Find("Capsule").gameObject.active = false;
             }
 
             catch (Exception ex)

@@ -35,11 +35,11 @@ from SpeechRecognition import SpeechRecognition
 #_ = str  # Временно пока чтобы не падало
 
 
-def getTranslationVariant(russian_string, english_string=""):
-    if english_string and SettingsManager.get("LANGUAGE") == "EN":
-        return english_string
+def getTranslationVariant(ru_str, en_str=""):
+    if en_str and SettingsManager.get("LANGUAGE") == "EN":
+        return en_str
 
-    return russian_string
+    return ru_str
 
 
 _ = getTranslationVariant  # Временно пока чтобы не падало
@@ -494,7 +494,7 @@ class ChatGUI:
     def insert_message(self, role, content):
         if role == "user":
             # Вставляем имя пользователя с зеленым цветом, а текст — обычным
-            self.chat_window.insert(tk.END, "Вы: ", "Player")
+            self.chat_window.insert(tk.END, _("Вы: ", "You: "), "Player")
             self.chat_window.insert(tk.END, f"{content}\n")
         elif role == "assistant":
             # Вставляем имя Миты с синим цветом, а текст — обычным

@@ -5,6 +5,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 
+
 class SettingsManager:
     instance = None
 
@@ -98,6 +99,7 @@ class CollapsibleSection(ttk.LabelFrame):
 
         # Устанавливаем черный фон для самого LabelFrame
         self.configure(style="Black.TLabelframe")
+
     def toggle(self, event=None):
         self.is_collapsed = not self.is_collapsed
         if self.is_collapsed:

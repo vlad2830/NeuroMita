@@ -51,17 +51,23 @@ namespace MitaAI
 
         public int timingEach = 3;
         int timingNow = 1;
-        public bool isTimeToCorrect()
+        public bool CheckInreaseTiming()
         {
-            bool isIt = timingNow >= timingEach;
+            bool isIt = timingNow+1 >= timingEach;
 
+     
             if (isIt) timingNow = 1;
             else timingNow += 1;
+            
+
 
             return isIt;
 
         }
-
+        public bool isTimeToCorrect(int addition)
+        {
+            return (timingNow + addition) % timingEach == 0;
+        }
 
     }
 }

@@ -195,7 +195,7 @@ namespace MitaAI
                 if (gameMaster.enabled && from != MitaCore.character.GameMaster)
                 {
                     MelonLogger.Msg("nextAnswer Attempt GameMaster");
-                    if (gameMaster.isTimeToCorrect())
+                    if (gameMaster.CheckInreaseTiming())
                     {
                         if (lastTimeWasGM)
                         {
@@ -337,6 +337,12 @@ namespace MitaAI
                 OrderText.text = $"{limit}/{TotalLimit}\n";
                 foreach (MitaCore.character character in characters)
                 {
+                    if (gameMaster.enabled && gameMaster.isTimeToCorrect(charOrder))
+                    {
+                        OrderText.text += $"{charOrder}:GameMaster\n";
+                        continue;
+                    }
+
                     if (charOrder > TotalLimit)
                     {
                         OrderText.text += $"{charOrder}:Player\n";

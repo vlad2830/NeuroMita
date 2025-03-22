@@ -272,7 +272,11 @@ namespace MitaAI
                 try
                 { 
                     Location34_Communication = MitaObject.GetComponentInChildren<Location34_Communication>();
+                    
+
                     if (Location34_Communication == null ) Location34_Communication = GameObject.Instantiate(Loc34_Template, MitaObject.transform).GetComponent< Location34_Communication>();
+
+                    Location34_Communication.gameObject.GetComponentInChildren<CapsuleCollider>().transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
                 }
                 catch (Exception ex)
                 {
@@ -329,7 +333,7 @@ namespace MitaAI
                     rigidbody.centerOfMass = new Vector3(0, 0.65f, 0);
                     rigidbody.mass = 2f;
                     rigidbody.maxAngularVelocity = 0.3f; //0.3 как и было
-                    rigidbody.maxDepenetrationVelocity = 0.3f; //было до этого = 0.9f когда пробовал влад;
+                    rigidbody.maxDepenetrationVelocity = 7f;//0.3f; //было до этого = 0.9f когда пробовал влад;
                     rigidbody.drag = 15;
                     rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic; //ContinuousDynamic вместо Continuous для обработки динамических обьектов
                     rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
