@@ -28,10 +28,21 @@ from utils import SH
 import sounddevice as sd
 from SpeechRecognition import SpeechRecognition
 
-gettext.bindtextdomain('NeuroMita', '/Translation')
-gettext.textdomain('NeuroMita')
-_ = gettext.gettext
-_ = str  # Временно пока чтобы не падало
+
+#gettext.bindtextdomain('NeuroMita', '/Translation')
+#gettext.textdomain('NeuroMita')
+#_ = gettext.gettext
+#_ = str  # Временно пока чтобы не падало
+
+
+def getTranslationVariant(russian_string, english_string=""):
+    if english_string and SettingsManager.get("LANGUAGE") == "EN":
+        return english_string
+
+    return russian_string
+
+
+_ = getTranslationVariant  # Временно пока чтобы не падало
 
 
 class ChatGUI:
@@ -445,6 +456,7 @@ class ChatGUI:
         right_canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux (прокрутка вверх)
         right_canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux (прокрутка вниз)
 
+        self.setup_language_controls(settings_frame)
         self.setup_microphone_controls(settings_frame)
         self.setup_silero_controls(settings_frame)
         self.setup_mita_controls(settings_frame)
@@ -501,7 +513,7 @@ class ChatGUI:
         # Галки для подключения
         self.game_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение к игре",
+            text=_("Подключение к игре","Connection to game"),
             variable=self.game_connected,
             state="disabled",
             bg="#2c2c2c",
@@ -512,7 +524,7 @@ class ChatGUI:
 
         self.silero_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение Telegram",
+            text=_("Подключение Telegram","Connection Telegram"),
             variable=self.silero_connected,
             state="disabled",
             bg="#2c2c2c",
@@ -605,13 +617,13 @@ class ChatGUI:
         history_frame.pack(fill=tk.X, pady=4)
 
         clear_button = tk.Button(
-            history_frame, text="Очистить историю персонажа", command=self.clear_history,
+            history_frame, text=_("Очистить историю персонажа","Clear character history"), command=self.clear_history,
             bg="#8a2be2", fg="#ffffff"
         )
         clear_button.pack(side=tk.LEFT, padx=5)
 
         clear_button = tk.Button(
-            history_frame, text="Очистить все истории", command=self.clear_history_all,
+            history_frame, text=_("Очистить все истории","Clear all histories"), command=self.clear_history_all,
             bg="#8a2be2", fg="#ffffff"
         )
         clear_button.pack(side=tk.LEFT, padx=5)
@@ -747,8 +759,9 @@ class ChatGUI:
     def setup_silero_controls(self, parent):
         # Основные настройки
         mita_voice_config = [
-            {'label': 'Использовать озвучку', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
-            {'label': 'Вариант озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox',
+            {'label': _('Использовать озвучку', 'Use speech'), 'key': 'SILERO_USE', 'type': 'checkbutton',
+             'default': True},
+            {'label': _('Вариант озвучки',"Speech option"), 'key': 'AUDIO_BOT', 'type': 'combobox',
              'options': ["@silero_voice_bot", "@CrazyMitaAIbot (Без тг)", "@CrazyMitaAIbot"],
              'default': "@silero_voice_bot"},
             #{'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
@@ -797,7 +810,7 @@ class ChatGUI:
              'default_checkbutton': True},
 
         ]
-        self.create_settings_section(parent, "Общие настройки", common_config)
+        self.create_settings_section(parent, _("Общие настройки", "Common settings"), common_config)
 
     def setup_game_master_controls(self, parent):
         # Основные настройки
@@ -1219,7 +1232,7 @@ class ChatGUI:
             widget = self.create_setting_widget(
                 parent=section.content_frame,
                 label=config['label'],
-                setting_key=config['key'],
+                setting_key=config.get('key', ''),
                 widget_type=config.get('type', 'entry'),
                 options=config.get('options', None),
                 default=config.get('default', ''),
@@ -1325,17 +1338,28 @@ class ChatGUI:
             scale.config(command=save_scale)
 
         elif widget_type == 'text':
-            text = tk.Text(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
-                           height=height if height else 5, width=width if width else 50)
-            text.insert('1.0', self.settings.get(setting_key, default))
-            text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
-            def save_text():
-                self._save_setting(setting_key, text.get('1.0', 'end-1c'))
-                if command:
-                    command(text.get('1.0', 'end-1c'))
 
-            text.bind("<FocusOut>", lambda e: save_text())
+
+            if setting_key != "":
+                def save_text():
+                    self._save_setting(setting_key, text.get('1.0', 'end-1c'))
+                    if command:
+                        command(text.get('1.0', 'end-1c'))
+
+                text = tk.Text(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
+                               height=height if height else 5, width=width if width else 50)
+                text.insert('1.0', self.settings.get(setting_key, default))
+                text.bind("<FocusOut>", lambda e: save_text())
+                text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+
+            else:
+                lbl.config(width=100)
+
+
+
+
 
         # Добавляем tooltip если указан
         if tooltip:
@@ -1373,6 +1397,21 @@ class ChatGUI:
 
     #endregion
 
+    # region Language
+
+    def setup_language_controls(self, settings_frame):
+        config = [
+            {'label': 'Язык / Language', 'key': 'LANGUAGE', 'type': 'combobox',
+             'options': ["RU", "EN"], 'default': "RU"},
+            {'label': 'Перезапусти программу после смены! / Restart program after change!', 'type': 'text'},
+
+        ]
+
+        self.create_settings_section(settings_frame, "Язык / Language", config)
+
+        pass
+
+    # endregion
     def run(self):
         self.root.mainloop()
 

@@ -6,10 +6,13 @@ import tkinter as tk
 from tkinter import ttk
 
 class SettingsManager:
+    instance = None
+
     def __init__(self, config_path):
         self.config_path = config_path
         self.settings = {}
         self.load_settings()
+        SettingsManager.instance = self
 
     def load_settings(self):
         try:
@@ -36,6 +39,14 @@ class SettingsManager:
 
     def set(self, key, value):
         self.settings[key] = value
+
+    @staticmethod
+    def get(key, default=None):
+        return SettingsManager.instance.settings.get(key, default)
+
+    @staticmethod
+    def set(key, value):
+        SettingsManager.instance.settings[key] = value
 
 
 class CollapsibleSection(ttk.LabelFrame):
