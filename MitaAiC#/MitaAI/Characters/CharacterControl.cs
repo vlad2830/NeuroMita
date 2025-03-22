@@ -18,7 +18,7 @@ namespace MitaAI
 
         // Сюда перенести все сharacter и changeMita
         static MitaCore.character cart = MitaCore.character.None;
-        static public Character gameMaster = null;
+        static public GameMaster gameMaster = null;
         private static Text OrderText;
 
 
@@ -62,7 +62,7 @@ namespace MitaAI
                     continue;
                 }
 
-                if (!character.enabled) continue;
+                if (!character.enabled || !character.gameObject.active) continue;
 
                 float distance = 25f;
                 if (character.isCartdige) distance = 3.5f;
@@ -182,19 +182,30 @@ namespace MitaAI
             return characters;
         }
 
+        static bool lastTimeWasGM = false;
         // Пришло ли время ГеймМастеру вмешаться
         private static bool GameMasterCase(MitaCore.character from)
         {
             if (gameMaster == null) return false;
+
+         
+
             try
             {
-                if (gameMaster.enabled && from != MitaCore.character.GameMaster && from != MitaCore.character.Player)
+                if (gameMaster.enabled && from != MitaCore.character.GameMaster)
                 {
                     MelonLogger.Msg("nextAnswer Attempt GameMaster");
                     if (gameMaster.isTimeToCorrect())
                     {
+                        if (lastTimeWasGM)
+                        {
+                            lastTimeWasGM = false;
+                            return false;
+                        }
+
+                        lastTimeWasGM = true;
                         MelonLogger.Msg("nextAnswer Success Attempt GameMaster");
-                        string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора. Приветствия не нужно";
+                        string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора.";
                         MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
                         return true;
                     }
@@ -228,13 +239,14 @@ namespace MitaAI
             // Добавляем отправителя в список говорящих
             int CharCount = characters.Count;
             int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
-            
-            UpdateOrderTest(characters, true);
+
+            if (from == MitaCore.character.GameMaster) TotalLimit += 1;
+
+            UpdateOrderTest(characters, false);
 
             characters.Remove(from);
-            // Удаляем из characters всех, кто уже говорил
 
-            // Если больше некому отвечать
+            // Если больше некому отвечать+
             if (characters.Count <= 0)
             {
                 MelonLogger.Msg("No characters left to answer.");

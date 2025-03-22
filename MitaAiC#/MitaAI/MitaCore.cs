@@ -451,7 +451,7 @@ namespace MitaAI
         public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
         Queue<(string, character)> systemInfos = new Queue<(string, character)>();
 
-        Queue<string> patches_to_sound_file = new Queue<string>();
+
         string patch_to_sound_file = "";
 
         static Dictionary<int,string> sound_files = new Dictionary<int,string>();
@@ -734,7 +734,7 @@ namespace MitaAI
             if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
 
             // Отключить если нужно
-            Character GM = playerPersonObject.AddComponent<Character>();
+            GameMaster GM = playerPersonObject.AddComponent<GameMaster>();
             GM.init_GameMaster();
             GM.enabled = false;
 
@@ -1202,9 +1202,10 @@ namespace MitaAI
                     {
                         CharacterControl.gameMaster.timingEach = GM_REPEAT;
                         CharacterControl.gameMaster.enabled = GM_ON;
-                        NetworkController.connectedToSilero = connectedToSilero;
+                        
 
                     }
+                    NetworkController.connectedToSilero = connectedToSilero;
                     CharacterControl.limitMod = limitmod;
                     if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
                 }
@@ -1221,16 +1222,20 @@ namespace MitaAI
                 NetworkController.connectedToSilero = false;
             }
 
+
+
             
-            
-            if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
             if (response != "")
             {
                 LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
 
                 if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.cartAudioSource));
                 else if (characterToSend == character.GameMaster) {
+
+
+                    
                     if (GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.playerAudioSource, GM_VOICE));
+                    else CommandProcessor.ProcessCommands(CommandProcessor.ExtractCommands(response).Item1);
                 }
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response));
 
@@ -1240,7 +1245,7 @@ namespace MitaAI
 
                 //Тестово - хочешь чтобы было без лишнего отрубай это
 
-                if (!string.IsNullOrEmpty(playerText)) characterToSend = character.Player;
+                if (playerText != "") characterToSend = character.Player;
                 MelonCoroutines.Start(testNextAswer(response, characterToSend));
 
 
@@ -1253,13 +1258,14 @@ namespace MitaAI
 
         IEnumerator testNextAswer(string response, character currentCharacter)
         {
+            character currentCharacter2 = currentCharacter;
             yield return new WaitForSeconds(0.25f);
             while (dialogActive)
             {
                 yield return null;
             }
 
-            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter);
+            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter2);
         }
 
 

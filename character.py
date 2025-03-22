@@ -843,7 +843,7 @@ class GameMaster(Character):
         Prompts = []
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Game_master.txt")))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("current_command.txt")))
+        Prompts.append(PromptPart(PromptType.CONTEXT_TEMPORARY, self.get_path("current_command.txt")))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
@@ -855,6 +855,15 @@ class GameMaster(Character):
 
     def _process_behavior_changes(self, response):
         return response
+
+    def add_context(self,messages):
+        super().add_context(messages)
+
+        print("Особый контекст ГМ")
+        for prompt in self.temp_prompts:
+            messages.append({"role": "system", "content": str(prompt)})
+
+        return messages
 
     def current_variables(self):
         return {

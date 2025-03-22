@@ -43,10 +43,10 @@ namespace MitaAI.PlayerControls
         public static void BlockInputField(bool blocked)
         {
             isInputBlocked = blocked; // Устанавливаем блокировку
-            if (InputFieldComponent != null && wasInputActive)
-            {
-                InputFieldComponent.SetActive(!blocked); // Отключаем поле ввода, если оно активно
-            }
+           // if (InputFieldComponent != null && wasInputActive)
+            //{
+              //  InputFieldComponent.SetActive(!blocked); // Отключаем поле ввода, если оно активно
+           // }
         }
 
         public static void processInpute()
@@ -288,7 +288,7 @@ namespace MitaAI.PlayerControls
                     MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
                     _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
                     CharacterControl.resetOrders(true);
-                    MitaCore.Instance.sendSystemMessage("Ты только что прогрузилась на уровень.");
+                    MitaCore.Instance.sendSystemMessage("Ты только что прогрузилась на уровень.", keyAction.Value.Character);
                     MitaCore.Instance.sendInfoListeners($"{keyAction.Value.Character} только что прогрузилась на уровень",null, keyAction.Value.Character,"Nobody");
                     break; // Выходим из цикла после первого совпадения
                     
