@@ -365,6 +365,9 @@ namespace MitaAI.PlayerControls
             MelonLogger.Msg("Input received: " + inputText);
             MelonCoroutines.Start(MitaCore.Instance.PlayerTalk(inputText));
             MitaCore.Instance.playerMessage += $"{inputText}\n";
+
+            //MitaCore.playerMessages.Enqueue(inputText);
+
             MitaCore.Instance.playerMessageCharacters = CharacterControl.GetCharactersToAnswer();
 
 

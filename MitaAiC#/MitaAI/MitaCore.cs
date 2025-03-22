@@ -450,6 +450,8 @@ namespace MitaAI
         //private readonly object waitForSoundsLock = new object();
 
         public string playerMessage = "";
+        //static public Queue<string> playerMessages = new Queue<string>();
+
         public List<character> playerMessageCharacters = new List<character>();
 
         public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
