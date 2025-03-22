@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using static Il2Cpp.Event_CreateResource;
 
 namespace MitaAI
 {
@@ -207,7 +208,11 @@ namespace MitaAI
                 yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldReRooms(sceneToLoad));
             }
 
+            // Это загрузит Ядро!!
 
+            //sceneToLoad = "Scene 15 - BasementAndDeath";
+            //additiveLoadedScenes.Add(sceneToLoad);
+            //yield return MelonCoroutines.Start(WaitForSceneAndInstantiateBasementAndDeath(sceneToLoad));
 
 
             sceneToLoad = "Scene 7 - Backrooms";
@@ -233,6 +238,9 @@ namespace MitaAI
             sceneToLoad = "Scene 11 - Backrooms";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms2(sceneToLoad));
+
+
+
 
             sceneToLoad = "Scene 3 - WeTogether";
             additiveLoadedScenes.Add(sceneToLoad);
@@ -728,6 +736,59 @@ namespace MitaAI
             SceneManager.UnloadScene(sceneToLoad);
         }
 
+
+        private static IEnumerator WaitForSceneAndInstantiateBasementAndDeath(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
+
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            Transform world = FindObjectInScene(scene.name, "World");
+            if (world == null)
+            {
+                MelonLogger.Msg("World object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            //world.gameObject.SetActive(false);
+
+            MelonLogger.Msg($"Object found: {world.name}");
+            try
+            {
+                world.Find("Quest").gameObject.active = false;
+                world.Find("House").gameObject.active = false;
+                world.Find("EventDay").gameObject.active = false;
+                world.Find("Sounds").gameObject.active = false;
+                world.Find("Acts").gameObject.active = false;
+                
+                world.Find("House/CoreRoom").SetParent(world);
+                world.Find("CoreRoom").gameObject.active = true;
+                world.Find("CoreRoom").position = new Vector3(1.013f, 0f,10.242f);
+                
+                // Добавление музыкальных объектов
+                //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 1").gameObject, "Embient horrific tension");
+                //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 2").gameObject, "Embient horrific waiting");
+                //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 3").gameObject, "Embient horrific tension large");
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error($"CreepyMita initialization error: {ex}");
+            }
+
+            //SceneManager.UnloadScene(sceneToLoad);
+        }
+
         private static IEnumerator WaitForSceneAndInstantiateWorldDreamer(string sceneToLoad)
         {
             // Загружаем сцену
@@ -808,6 +869,7 @@ namespace MitaAI
             
             SceneManager.UnloadScene(sceneToLoad);
         }
+        
 
         private static IEnumerator AfterAllLoadded()
         {

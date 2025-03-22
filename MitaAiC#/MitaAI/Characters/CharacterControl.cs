@@ -88,7 +88,7 @@ namespace MitaAI
         {
             GameObject Mita = MitaCore.getMitaByEnum(character.character, true);
             string objectName = "";
-            if (Mita != null) objectName += $", its game object {Mita}";
+            if (Mita != null) objectName += $", its game object {Mita.name}";
 
             return objectName;
         }
@@ -96,7 +96,7 @@ namespace MitaAI
         {
             GameObject Mita = MitaCore.getMitaByEnum(character, true);
             string objectName = "";
-            if (Mita != null) objectName += $", its game object {Mita}";
+            if (Mita != null) objectName += $", its game object {Mita.name}";
 
             return objectName;
         }
@@ -192,18 +192,12 @@ namespace MitaAI
 
             try
             {
-                if (gameMaster.enabled && from != MitaCore.character.GameMaster)
+                if (gameMaster.gameObject.active && gameMaster.enabled && from != MitaCore.character.GameMaster)
                 {
                     MelonLogger.Msg("nextAnswer Attempt GameMaster");
                     if (gameMaster.CheckInreaseTiming())
                     {
-                        if (lastTimeWasGM)
-                        {
-                            lastTimeWasGM = false;
-                            return false;
-                        }
-
-                        lastTimeWasGM = true;
+             
                         MelonLogger.Msg("nextAnswer Success Attempt GameMaster");
                         string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора.";
                         MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
@@ -240,7 +234,7 @@ namespace MitaAI
             int CharCount = characters.Count;
             int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
 
-            if (from == MitaCore.character.GameMaster) TotalLimit += 1;
+            if (from == MitaCore.character.GameMaster) TotalLimit += 5;
 
             UpdateOrderTest(characters, false);
 
@@ -340,6 +334,7 @@ namespace MitaAI
                     if (gameMaster.enabled && gameMaster.isTimeToCorrect(charOrder))
                     {
                         OrderText.text += $"{charOrder}:GameMaster\n";
+                        charOrder++;
                         continue;
                     }
 

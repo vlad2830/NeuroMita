@@ -360,7 +360,7 @@ namespace MitaAI
 
         public enum character
         {
-            Player,
+            Player = -2,
             None = -1,// Добавляем нового персонажа
             Crazy = 0,
             Cappy = 1,
