@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 from Events.MitaEvents import MitaEvents
 from Events.PlayerEvents import PlayerEvents
+
+
 # from promptPart import PromptPart
 
 
@@ -43,3 +45,22 @@ class BaseState(ABC):
             if prompt.active:
                 combined_text += str(prompt)
 
+    def get_params(self, response, tag="state", split='|'):
+        """
+        Получает массив строк-параметров из сообщения
+        """
+        start_tag = f"<{tag}>"
+        end_tag = f"</{tag}>"
+
+        if start_tag in response and end_tag in response:
+            # Извлекаем изменения переменных
+            start_index = response.index(start_tag) + len(start_tag)
+            end_index = response.index(end_tag, start_index)
+            changes_str = response[start_index:end_index]
+
+            # Разделяем строку на отдельные значения
+            params = [float(x.strip()) for x in changes_str.split(split)]
+
+            return params
+
+        return []
