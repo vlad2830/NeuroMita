@@ -259,10 +259,14 @@ namespace MitaAI.PlayerControls
         
         
         private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
-        private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(4); // Задержка в 5 секунд
+        private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(2f); // Задержка в 5 секунд
 
         static void ChangeMitaButtons()
         {
+
+            if (DateTime.Now - _lastChangeTime < _cooldown)
+                return;
+
             MelonLogger.Msg("Try change to Mita");
 
             bool dontrTurnOfOld = Input.GetKeyDown(KeyCode.LeftControl);
@@ -282,7 +286,7 @@ namespace MitaAI.PlayerControls
             // Проверяем нажатие клавиш
             foreach (var keyAction in keyActions)
             {
-                if (Input.GetKeyDown(keyAction.Key))
+                if (Input.GetKeyDown(keyAction.Key) )
                 {
                     MelonLogger.Msg($"Try change to {keyAction.Value.MitaObject}");
                     MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
