@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from FSM.FiniteStateMachine import FiniteStateMachine
 from MemorySystem import MemorySystem
 from promptPart import PromptPart, PromptType
 from HistoryManager import HistoryManager
@@ -11,6 +12,7 @@ import re
 class Character:
     def __init__(self, name: str, silero_command: str, miku_tts_name: str = "Player", silero_turn_off_video=False, ):
 
+        self.fsm = None
         self.name = name
         self.silero_command = silero_command
         self.silero_turn_off_video = silero_turn_off_video
@@ -100,8 +102,16 @@ class Character:
                 messages.append(m)
 
         memory_message = {"role": "system", "content": self.memory_system.get_memories_formatted()}
-
         messages.append(memory_message)
+
+        if self.fsm:
+            try:
+                state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FIXED_START)}
+                messages.append(state_message)
+            except Exception as ex:
+                print("FSM",ex)
+
+
 
         return messages
 
@@ -121,6 +131,14 @@ class Character:
                 messages.append(m)
                 part.active = False
                 print(f"Добавляю плавающий промпт {text}")
+        if self.fsm:
+            try:
+                state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FLOATING_SYSTEM)}
+                messages.append(state_message)
+            except Exception as ex:
+                print("FSM",ex)
+
+
 
         return messages
 
@@ -149,6 +167,15 @@ class Character:
         if self.LongMemoryRememberCount % 10 == 0:
             repeated_system_message += " Delete repeating memories if required using block <-memory>"
 
+        if self.fsm:
+            try:
+                repeated_system_message += self.fsm.get_prompts_text(PromptType.CONTEXT_TEMPORARY)
+                repeated_system_message += self.fsm.get_variables_text()
+            except Exception as ex:
+                print("FSM",ex)
+
+
+
         messages.append({"role": "system", "content": repeated_system_message})
 
         return messages
@@ -164,6 +191,13 @@ class Character:
         response = self.extract_and_process_memory_data(response)
         response = self._process_behavior_changes(response)
         """То, как должно что-то меняться в результате ответа"""
+
+        if self.fsm:
+            try:
+                self.fsm.process_response(response)
+            except Exception as ex:
+                print("FSM",ex)
+
         return response
 
     def _process_behavior_changes(self, response):
@@ -217,7 +251,7 @@ class Character:
                                 content=mem_content
                             )
                             print(f"Добавлено воспоминание #{mem_content}")
-                        if len(parts) == 1:
+                        elif len(parts) == 1:
                             mem_content = parts[0]
                             self.memory_system.add_memory(
                                 priority="normal",
@@ -399,6 +433,7 @@ class GameMaster(Character):
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)
         response = self._process_behavior_changes(response)
+
         return response
 
     def _process_behavior_changes(self, response):

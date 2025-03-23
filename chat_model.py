@@ -597,7 +597,7 @@ class ChatModel:
         print("Перезагрузка промптов")
 
         self.current_character.init()
-        self.current_character.process_logic()
+        self.current_character.process_response()
 
     def add_temporary_system_message(self, messages, content):
         """

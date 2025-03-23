@@ -1,5 +1,7 @@
 from typing import Dict, List
 
+from FSM.Characters.Crazy.MitaStates import MitaHelloState
+from FSM.FiniteStateMachine import FiniteStateMachine
 from MemorySystem import MemorySystem
 from character import Character
 from promptPart import PromptPart, PromptType
@@ -16,8 +18,12 @@ class CrazyMita(Character):
         self.secretExposed = False
         self.secretExposedFirst = False
         self.PlayingFirst = False
+
         self.crazy_mita_prompts()
 
+        # Включить когда продолжу работу над FSM
+        #self.fsm = FiniteStateMachine( initial_state=MitaHelloState() )
+        #self.fsm.current_state.on_enter()
     def crazy_mita_prompts(self):
         Prompts = []
 
@@ -73,6 +79,7 @@ class CrazyMita(Character):
         return data
 
     def process_logic(self, messages: dict = None):
+
         # Логика для поведения при игре с игроком
         if self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
             self._start_playing_with_player()
@@ -84,7 +91,10 @@ class CrazyMita(Character):
     def process_response(self, response: str):
         super().process_response(response)
 
+
         response = self._detect_secret_exposure(response)
+
+
         return response
 
     def _start_playing_with_player(self):
