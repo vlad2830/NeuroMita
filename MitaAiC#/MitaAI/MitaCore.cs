@@ -666,7 +666,7 @@ namespace MitaAI
 
             if (Utils.getDistanceBetweenObjects(worldHouse.gameObject,playerPersonObject)>50f) return Rooms.Unknown;
 
-            if (posY <= -0.1f)
+            if (posY <= -0.2f)
                 return Rooms.Basement;
 
             if (posX > 5.3f)

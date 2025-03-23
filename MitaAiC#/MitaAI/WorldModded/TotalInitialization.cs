@@ -219,6 +219,8 @@ namespace MitaAI
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateWorldBackrooms(sceneToLoad));
 
+
+            // Это загрузит кстати Комнату игрока
             sceneToLoad = "Scene 14 - MobilePlayer";
             additiveLoadedScenes.Add(sceneToLoad);
             yield return MelonCoroutines.Start(WaitForSceneAndInstantiateMobilePlayer(sceneToLoad));
@@ -292,6 +294,8 @@ namespace MitaAI
                 door.FindChild("BasementDoorHandle").gameObject.active = false;
                 door.localRotation = Quaternion.EulerAngles(0, 0, 270);
                 door.gameObject.active = true;
+
+                PlayerAnimationModded.copyObjectAnimationPlayer(MitaCore.worldBasement);
             }
             catch (Exception ex)
             {
@@ -337,6 +341,8 @@ namespace MitaAI
 
                 AudioControl.addMusicObject(MitaCore.worldBackrooms2.Find("Sounds/Music Backrooms").gameObject, "Music puzzle 2");
 
+                PlayerAnimationModded.copyObjectAnimationPlayer(MitaCore.worldBackrooms2);
+
             }
             catch (Exception ex)
             {
@@ -372,8 +378,9 @@ namespace MitaAI
                 yield break; // Прерываем выполнение, если объект не найден
             }
             MitaCore.worldTogether.gameObject.SetActive(false);
-            PlayerAnimationModded.FindPlayerAnimationsRecursive(MitaCore.worldTogether.transform);
-            PlayerAnimationModded.Check();
+            PlayerAnimationModded.copyObjectAnimationPlayer(MitaCore.worldTogether);
+            PlayerAnimationModded.FindPlayerAnimationsRecursive(MitaCore.worldTogether);
+            //PlayerAnimationModded.Check();
 
             InitObjects();
 
@@ -413,6 +420,8 @@ namespace MitaAI
             {
                 AudioControl.addMusicObject(world.Find("Audio/Ambient Music").gameObject, "Morning music");
                 AudioControl.addMusicObject(world.Find("Audio/Ambient Horror 1").gameObject);
+
+                PlayerAnimationModded.copyObjectAnimationPlayer(world);
             }
 
             catch (Exception ex)
@@ -468,7 +477,9 @@ namespace MitaAI
 
                 AudioControl.addMusicObject(world.Find("Sounds/Music Cap").gameObject, "Music cappy playful");
                 AudioControl.addMusicObject(world.Find("Sounds/Music Ambient Start").gameObject, "Music cappy playful 2");
-                
+
+                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+
             }
        
             catch (Exception ex)
@@ -515,7 +526,8 @@ namespace MitaAI
 
                 AudioControl.addMusicObject(world.transform.Find("Sounds/Music").gameObject, "Music calm");
                 AudioControl.addMusicObject(world.transform.Find("Sounds/Music Alternative").gameObject, "Music for concentration");
-                
+
+                PlayerAnimationModded.copyObjectAnimationPlayer(world.transform);
             }
 
             catch (Exception ex)
@@ -607,12 +619,33 @@ namespace MitaAI
 
                 MitaCore.CreepyObject = GameObject.Instantiate(Utils.TryfindChild(world, "Quest/Quest 1/CreepyMita"), MitaCore.worldHouse);
                 MitaCore.CreepyObject.active = false;
+
+                // Там реально дубль world!!!
+                var room = world.Find("World/RealRoom");
+                room.SetParent(MitaCore.worldHouse.Find("House"));
+                room.SetPositionAndRotation(new Vector3(1.0871f,0, 5.0743f), Quaternion.EulerAngles(0,180,0));
+                room.Find("Door").gameObject.SetActive(false);
+
+                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+
+
+                var dayFrame = GameObject.Instantiate(world.Find("Quest/Quest 3 RealRoom/Canvas RealRoom/FrameDay"));
+                dayFrame.gameObject.SetActive(false);
+                dayFrame.gameObject.name = "Day Frame";
+                dayFrame.SetParent(GameObject.Find("Interface").transform);
+
+
+                // Добавление музыкальных объектов
+                AudioControl.addMusicObject(world.Find("Sounds/Audio Ambient RealRoom 1").gameObject, "Music Daily calm rutine");
+                AudioControl.addMusicObject(world.Find("Sounds/Audio MitaAttack").gameObject, "Music some Tension");
+                AudioControl.addMusicObject(world.Find("Sounds/Audio Ambient RealRoom 2").gameObject, "Music Daily calm rutine 2");
+
             }
 
             catch (Exception ex)
             {
 
-                MelonLogger.Error($"Founding error: {ex}");
+                MelonLogger.Error($"Founding error MobilePlayer: {ex}");
             }
             //yield return new WaitForSeconds(1f);
             SceneManager.UnloadScene(sceneToLoad);
@@ -766,6 +799,8 @@ namespace MitaAI
             MelonLogger.Msg($"Object found: {world.name}");
             try
             {
+                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+
                 world.Find("Quest").gameObject.active = false;
                 world.Find("House").gameObject.active = false;
                 world.Find("EventDay").gameObject.active = false;
@@ -775,18 +810,19 @@ namespace MitaAI
                 world.Find("House/CoreRoom").SetParent(world);
                 world.Find("CoreRoom").gameObject.active = true;
                 world.Find("CoreRoom").position = new Vector3(1.013f, 0f,10.242f);
-                
-                // Добавление музыкальных объектов
-                //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 1").gameObject, "Embient horrific tension");
+                world.Find("CoreRoom").SetParent(MitaCore.world.Find("House"));
+
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 2").gameObject, "Embient horrific waiting");
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 3").gameObject, "Embient horrific tension large");
+
+               
             }
             catch (Exception ex)
             {
                 MelonLogger.Error($"CreepyMita initialization error: {ex}");
             }
 
-            //SceneManager.UnloadScene(sceneToLoad);
+            SceneManager.UnloadScene(sceneToLoad);
         }
 
         private static IEnumerator WaitForSceneAndInstantiateWorldDreamer(string sceneToLoad)
@@ -861,6 +897,8 @@ namespace MitaAI
                 }
 
                 MitaCore.SleepyObject.SetActive(false);
+
+                PlayerAnimationModded.copyObjectAnimationPlayer(worldDreamer);
             }
             catch (Exception ex)
             {
