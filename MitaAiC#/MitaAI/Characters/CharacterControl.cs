@@ -200,7 +200,7 @@ namespace MitaAI
              
                         MelonLogger.Msg("nextAnswer Success Attempt GameMaster");
                         string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора.";
-                        lastTimeWasGM = true;
+                        needIgnoreTimeout = true;
                         MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
                         
                         return true;
@@ -217,14 +217,13 @@ namespace MitaAI
 
             return false;
         }
-        static bool lastTimeWasGM = false;
-        public static bool afterGM()
-        {
-            if (gameMaster == null) return false;
+        static bool needIgnoreTimeout = false;
+        public static bool needToIgnoreTimeout()
+        { 
 
-            if (lastTimeWasGM)
+            if (needIgnoreTimeout)
             {
-                lastTimeWasGM = false;
+                needIgnoreTimeout = false;
                 return true;
             }
             return true;
@@ -301,6 +300,7 @@ namespace MitaAI
 
                 string objectName = getObjectName(from);
                 MelonLogger.Msg($"send to {character}");
+                needIgnoreTimeout = true;
                 message += $"[SPEAKER] {CharacterControl.extendCharsString(from)}{objectName} said: <{response}>. Next speaker is {objectNameNext} Respond to him or name somebody you want to speak with.";
 
                 MitaCore.Instance.sendSystemMessage(message, character);

@@ -1014,7 +1014,7 @@ namespace MitaAI
         }
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
-        private const float actionCooldown = 4f;  // Интервал в секундах, надо сделать умнее для нормальных диалогов
+        private const float actionCooldown = 6f;  // Интервал в секундах, надо сделать умнее для нормальных диалогов
 
         private IEnumerator HandleDialogue()
         {
@@ -1031,7 +1031,7 @@ namespace MitaAI
 
 
             float currentTime = Time.unscaledTime;
-            if (currentTime - lastActionTime > actionCooldown || CharacterControl.afterGM() )
+            if (currentTime - lastActionTime > actionCooldown || CharacterControl.needToIgnoreTimeout() )
             {
                 //MelonLogger.Msg("Ready to send");
                 if (playerText != "")
