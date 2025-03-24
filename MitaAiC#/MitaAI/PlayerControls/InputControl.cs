@@ -43,10 +43,10 @@ namespace MitaAI.PlayerControls
         public static void BlockInputField(bool blocked)
         {
             isInputBlocked = blocked; // Устанавливаем блокировку
-            if (InputFieldComponent != null && wasInputActive)
-            {
-                InputFieldComponent.SetActive(!blocked); // Отключаем поле ввода, если оно активно
-            }
+           // if (InputFieldComponent != null && wasInputActive)
+            //{
+              //  InputFieldComponent.SetActive(!blocked); // Отключаем поле ввода, если оно активно
+           // }
         }
 
         public static void processInpute()
@@ -259,10 +259,14 @@ namespace MitaAI.PlayerControls
         
         
         private static DateTime _lastChangeTime = DateTime.MinValue; // Время последнего изменения
-        private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(4); // Задержка в 5 секунд
+        private static readonly TimeSpan _cooldown = TimeSpan.FromSeconds(2f); // Задержка в 5 секунд
 
         static void ChangeMitaButtons()
         {
+
+            if (DateTime.Now - _lastChangeTime < _cooldown)
+                return;
+
             MelonLogger.Msg("Try change to Mita");
 
             bool dontrTurnOfOld = Input.GetKeyDown(KeyCode.LeftControl);
@@ -282,13 +286,13 @@ namespace MitaAI.PlayerControls
             // Проверяем нажатие клавиш
             foreach (var keyAction in keyActions)
             {
-                if (Input.GetKeyDown(keyAction.Key))
+                if (Input.GetKeyDown(keyAction.Key) )
                 {
                     MelonLogger.Msg($"Try change to {keyAction.Value.MitaObject}");
                     MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
                     _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
                     CharacterControl.resetOrders(true);
-                    MitaCore.Instance.sendSystemMessage("Ты только что прогрузилась на уровень.");
+                    MitaCore.Instance.sendSystemMessage("Ты только что прогрузилась на уровень.", keyAction.Value.Character);
                     MitaCore.Instance.sendInfoListeners($"{keyAction.Value.Character} только что прогрузилась на уровень",null, keyAction.Value.Character,"Nobody");
                     break; // Выходим из цикла после первого совпадения
                     
@@ -365,6 +369,9 @@ namespace MitaAI.PlayerControls
             MelonLogger.Msg("Input received: " + inputText);
             MelonCoroutines.Start(MitaCore.Instance.PlayerTalk(inputText));
             MitaCore.Instance.playerMessage += $"{inputText}\n";
+
+            //MitaCore.playerMessages.Enqueue(inputText);
+
             MitaCore.Instance.playerMessageCharacters = CharacterControl.GetCharactersToAnswer();
 
 

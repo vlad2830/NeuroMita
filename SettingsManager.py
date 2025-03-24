@@ -5,11 +5,15 @@ import os
 import tkinter as tk
 from tkinter import ttk
 
+
 class SettingsManager:
+    instance = None
+
     def __init__(self, config_path):
         self.config_path = config_path
         self.settings = {}
         self.load_settings()
+        SettingsManager.instance = self
 
     def load_settings(self):
         try:
@@ -36,6 +40,14 @@ class SettingsManager:
 
     def set(self, key, value):
         self.settings[key] = value
+
+    @staticmethod
+    def get(key, default=None):
+        return SettingsManager.instance.settings.get(key, default)
+
+    @staticmethod
+    def set(key, value):
+        SettingsManager.instance.settings[key] = value
 
 
 class CollapsibleSection(ttk.LabelFrame):
@@ -87,6 +99,7 @@ class CollapsibleSection(ttk.LabelFrame):
 
         # Устанавливаем черный фон для самого LabelFrame
         self.configure(style="Black.TLabelframe")
+
     def toggle(self, event=None):
         self.is_collapsed = not self.is_collapsed
         if self.is_collapsed:

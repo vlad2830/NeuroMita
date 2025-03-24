@@ -4,11 +4,13 @@ import tiktoken
 from openai import OpenAI
 from g4f.client import Client as g4fClient
 #from huggingface_hub import HfApi
-from mistralai import Mistral as MistralClient
+#from mistralai import Mistral as MistralClient
 
 import re
 
 from character import *
+from characters import *
+
 from utils import *
 # Настройка логирования
 import logging
@@ -51,11 +53,12 @@ class ChatModel:
             self.g4fClient = g4fClient()
             logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
 
+            #self.hugging_face_client = HfApi()
             #self.mistral_client = MistralClient()
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
-            #self.hugging_face_client = HfApi()
+
             print("Со старта удалось запустить OpenAi client")
         except:
             print("Со старта не получилось запустить OpenAi client")
@@ -594,7 +597,7 @@ class ChatModel:
         print("Перезагрузка промптов")
 
         self.current_character.init()
-        self.current_character.process_logic()
+        self.current_character.process_response()
 
     def add_temporary_system_message(self, messages, content):
         """

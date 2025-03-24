@@ -16,7 +16,6 @@ namespace MitaAI
     {
         public MitaCore.character character;
         public bool isCartdige;
-        public bool isGameMaster = false;
         public int PointsOrder = 0;
 
         public void init(MitaCore.character character)
@@ -38,49 +37,51 @@ namespace MitaAI
             PointsOrder -= n;
         }
 
+    }
+    // Не наследуется(((
+    [RegisterTypeInIl2Cpp]
+    public class GameMaster : Character
+    {
         public void init_GameMaster()
         {
             character = MitaCore.character.GameMaster;
-            this.isGameMaster = true;
             //CharacterControl.Characters.Add(this);
             CharacterControl.gameMaster = this;
         }
 
         public int timingEach = 3;
         int timingNow = 1;
-        public bool isTimeToCorrect()
-        {
-            bool isIt = timingNow >= timingEach;
 
-            if (isIt) timingNow = 1;
+        bool lastTimeWasGM = false;
+        public bool CheckInreaseTiming()
+        {
+            if (lastTimeWasGM)
+            {
+                lastTimeWasGM = false;
+                return false;
+            }
+            
+
+            bool isIt = timingNow+1 >= timingEach;
+
+
+            if (isIt)
+            {
+                lastTimeWasGM = true;
+                timingNow = 1;
+            }
+
             else timingNow += 1;
+            
+            
 
             return isIt;
 
         }
-    }
-    // Не наследуется(((
-    public class GameMaster : Character
-    {
-        public void init_GameMaster()
+        public bool isTimeToCorrect(int addition)
         {
-            character = MitaCore.character.GameMaster;
-            this.isGameMaster = true;
-            //CharacterControl.Characters.Add(this);
-            CharacterControl.gameMaster = this;
+            return (timingNow + addition) % timingEach == 0;
         }
 
-        int timingEach = 3;
-        int timingNow = 1;
-        public bool isTimeToCorrect()
-        {
-            bool isIt = timingNow == timingEach;
-
-            if (isIt) timingNow = 0;
-            else timingNow = 1;
-
-            return isIt;
-
-        }
     }
 }

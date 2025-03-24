@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from FSM.FiniteStateMachine import FiniteStateMachine
 from MemorySystem import MemorySystem
 from promptPart import PromptPart, PromptType
 from HistoryManager import HistoryManager
@@ -11,6 +12,7 @@ import re
 class Character:
     def __init__(self, name: str, silero_command: str, miku_tts_name: str = "Player", silero_turn_off_video=False, ):
 
+        self.fsm = None
         self.name = name
         self.silero_command = silero_command
         self.silero_turn_off_video = silero_turn_off_video
@@ -100,8 +102,16 @@ class Character:
                 messages.append(m)
 
         memory_message = {"role": "system", "content": self.memory_system.get_memories_formatted()}
-
         messages.append(memory_message)
+
+        if self.fsm:
+            try:
+                state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FIXED_START)}
+                messages.append(state_message)
+            except Exception as ex:
+                print("FSM",ex)
+
+
 
         return messages
 
@@ -121,6 +131,14 @@ class Character:
                 messages.append(m)
                 part.active = False
                 print(f"Добавляю плавающий промпт {text}")
+        if self.fsm:
+            try:
+                state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FLOATING_SYSTEM)}
+                messages.append(state_message)
+            except Exception as ex:
+                print("FSM",ex)
+
+
 
         return messages
 
@@ -149,6 +167,15 @@ class Character:
         if self.LongMemoryRememberCount % 10 == 0:
             repeated_system_message += " Delete repeating memories if required using block <-memory>"
 
+        if self.fsm:
+            try:
+                repeated_system_message += self.fsm.get_prompts_text(PromptType.CONTEXT_TEMPORARY)
+                repeated_system_message += self.fsm.get_variables_text()
+            except Exception as ex:
+                print("FSM",ex)
+
+
+
         messages.append({"role": "system", "content": repeated_system_message})
 
         return messages
@@ -164,6 +191,13 @@ class Character:
         response = self.extract_and_process_memory_data(response)
         response = self._process_behavior_changes(response)
         """То, как должно что-то меняться в результате ответа"""
+
+        if self.fsm:
+            try:
+                self.fsm.process_response(response)
+            except Exception as ex:
+                print("FSM",ex)
+
         return response
 
     def _process_behavior_changes(self, response):
@@ -210,15 +244,25 @@ class Character:
                     # Обработка добавления
                     if operation == "+":
                         parts = [p.strip() for p in content.split('|', 1)]
-                        if len(parts) != 2:
+                        if len(parts) == 2:
+                            priority, mem_content = parts
+                            self.memory_system.add_memory(
+                                priority=priority,
+                                content=mem_content
+                            )
+                            print(f"Добавлено воспоминание #{mem_content}")
+                        elif len(parts) == 1:
+                            mem_content = parts[0]
+                            self.memory_system.add_memory(
+                                priority="normal",
+                                content=mem_content
+                            )
+                            print(f"Добавлено воспоминание #{mem_content} (Старый формат)")
+                        else:
                             raise ValueError("Неверный формат данных для добавления")
 
-                        priority, mem_content = parts
-                        self.memory_system.add_memory(
-                            priority=priority,
-                            content=mem_content
-                        )
-                        print(f"Добавлено воспоминание #{mem_content}")
+
+
 
                     # Обработка обновления
                     elif operation == "#":
@@ -328,395 +372,6 @@ class Character:
         promts.append(PromptPart(PromptType.FIXED_START, "Prompts/Common/Dialogue.txt"))
 
 
-class CrazyMita(Character):
-                
-    def init(self):
-        self.secretExposed = False
-        self.secretExposedFirst = False
-        self.PlayingFirst = False
-        self.crazy_mita_prompts()
-
-    def crazy_mita_prompts(self):
-        Prompts = []
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
-
-        self.append_common_prompts(Prompts)
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/mainPlaying.txt"), "mainPlaying", False))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/mainCrazy.txt"), "mainCrazy", False))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLongCrazy.txt"), "examplesLongCrazy",
-                       False))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
-
-        Prompts.append(
-            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
-
-        for prompt in Prompts:
-            self.add_prompt_part(prompt)
-
-    def safe_history(self, messages, temp_context):
-        super().safe_history(messages, temp_context)
-
-        self.variables = {
-            "attitude": self.attitude,
-            "boredom": self.boredom,
-            "stress": self.stress,
-            "playing_first": self.PlayingFirst,
-            "secret": self.secretExposed,
-            "secret_first": self.secretExposedFirst
-        }
-
-    def load_history(self):
-        data = super().load_history()
-
-        variables = data.get("variables")
-
-        self.PlayingFirst = variables.get("playing_first", False)
-        self.secretExposed = variables.get("secret", False)
-        self.secretExposedFirst = variables.get("secret_first", False)
-        return data
-
-    def process_logic(self, messages: dict = None):
-        # Логика для поведения при игре с игроком
-        if self.attitude < 50 and not (self.secretExposed or self.PlayingFirst):
-            self._start_playing_with_player()
-
-        # Логика для раскрытия секрета
-        elif (self.attitude <= 10 or self.secretExposed) and not self.secretExposedFirst:
-            self._reveal_secret()
-
-    def process_response(self, response: str):
-        super().process_response(response)
-
-        response = self._detect_secret_exposure(response)
-        return response
-
-    def _start_playing_with_player(self):
-        """Игровая логика, когда персонаж начинает играть с игроком"""
-        print("Играет с игроком в якобы невиновную")
-        self.PlayingFirst = True
-        self.replace_prompt("main", "mainPlaying")
-
-    def _reveal_secret(self):
-        """Логика раскрытия секрета"""
-        print("Перестала играть вообще")
-        self.secretExposedFirst = True
-        self.secretExposed = True
-        self.replace_prompt("main", "mainCrazy")
-        self.replace_prompt("mainPlaying", "mainCrazy")
-        self.replace_prompt("examplesLong", "examplesLongCrazy")
-
-        self.find_float("SecretExposedText").active = True
-
-    def _detect_secret_exposure(self, response):
-        """
-        Проверяем, содержит ли ответ маркер <Secret!>, и удаляем его.
-        """
-        if "<Secret!>" in response:
-
-            if not self.secretExposedFirst:
-                self.secretExposed = True
-                print(f"Секрет раскрыт")
-                self.attitude = 15
-                self.boredom = 20
-
-            response = response.replace("<Secret!>", "")
-
-        return response
-
-    def current_variables(self):
-        return {
-            "role": "system",
-            "content": (f"Твои характеристики:"
-                        f"Отношение: {self.attitude}/100."
-                        f"Скука: {self.boredom}/100."
-                        f"Стресс: {self.stress}/100."
-                        f"Состояние секрета: {self.secretExposed}")
-        }
-
-    def current_variables_string(self) -> str:
-        characteristics = {
-            "Отношение": self.attitude,
-            "Стресс": self.stress,
-            "Скука": self.boredom,
-            "Состояние секрета": self.secretExposed,
-        }
-        return f"характеристики {self.name}:\n" + "\n".join(
-            f"- {key}: {value} " for key, value in characteristics.items()
-        )
-
-
-class KindMita(Character):
-    def init(self):
-        self.kind_mita_prompts()
-
-    def kind_mita_prompts(self):
-        Prompts = []
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
-
-        self.append_common_prompts(Prompts)
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
-
-        #Prompts.append(
-        #   PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
-
-        for prompt in Prompts:
-            self.add_prompt_part(prompt)
-
-
-class ShortHairMita(Character):
-    def init(self):
-        self.mita_prompts()
-
-        self.secretExposed = False
-        self.secretExposedFirst = False
-
-    def mita_prompts(self):
-        Prompts = []
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
-
-        self.append_common_prompts(Prompts)
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
-
-        #Prompts.append(
-         #   PromptPart(PromptType.FIXED_START, self.get_path("Context/world.txt"), "world"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
-
-        Prompts.append(
-            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
-
-        for prompt in Prompts:
-            self.add_prompt_part(prompt)
-
-    #TODO Секрет Коротковолосой миты
-    def process_logic(self, messages: dict = None):
-        # Логика для раскрытия секрета
-        if self.secretExposed and not self.secretExposedFirst:
-            self._reveal_secret()
-
-    def process_response(self, response: str):
-        response = super().process_response(response)
-        response = self._detect_secret_exposure(response)
-        return response
-
-    def _reveal_secret(self):
-        """Логика раскрытия секрета"""
-        print("Перестала играть вообще")
-        self.secretExposedFirst = True
-        self.secretExposed = True
-        #self.replace_prompt("main", "mainCrazy")
-        #self.replace_prompt("mainPlaying", "mainCrazy")
-        #self.replace_prompt("examplesLong", "examplesLongCrazy") #я хз что тут менять на что
-
-        self.find_float("SecretExposedText").active = True
-
-    def _detect_secret_exposure(self, response):
-        """
-        Проверяем, содержит ли ответ маркер <Secret!>, и удаляем его.
-        """
-        if "<Secret!>" in response:
-
-            if not self.secretExposedFirst:
-                self.secretExposed = True
-                print(f"Секрет раскрыт")
-                self.attitude = 15
-                self.boredom = 20
-
-            response = response.replace("<Secret!>", "")
-
-        return response
-
-    def current_variables(self):
-        return {
-            "role": "system",
-            "content": (f"Твои характеристики:"
-                        f"Отношение: {self.attitude}/100."
-                        f"Скука: {self.boredom}/100."
-                        f"Стресс: {self.stress}/100."
-                        f"Состояние секрета: {self.secretExposed}")
-        }
-
-    def current_variables_string(self) -> str:
-        characteristics = {
-            "Отношение": self.attitude,
-            "Стресс": self.stress,
-            "Скука": self.boredom,
-            "Состояние секрета": self.secretExposed,
-        }
-        return f"характеристики {self.name}:\n" + "\n".join(
-            f"- {key}: {value} " for key, value in characteristics.items()
-        )
-
-
-class CappyMita(Character):
-
-    def init(self):
-        self.cappy_mita_prompts()
-
-        self.secretExposed = False
-        self.secretExposedFirst = False
-
-    def cappy_mita_prompts(self):
-        Prompts = []
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
-
-        self.append_common_prompts(Prompts)
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/world.txt"), "world"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
-
-        Prompts.append(
-            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
-
-        for prompt in Prompts:
-            self.add_prompt_part(prompt)
-
-    #TODO Секрет Кепки
-    def process_logic(self, messages: dict = None):
-        # Логика для раскрытия секрета
-        if self.secretExposed and not self.secretExposedFirst:
-            self._reveal_secret()
-
-    def process_response(self, response: str):
-        response = super().process_response(response)
-        response = self._detect_secret_exposure(response)
-        return response
-
-    def _reveal_secret(self):
-        """Логика раскрытия секрета"""
-        print("Перестала играть вообще")
-        self.secretExposedFirst = True
-        self.secretExposed = True
-        #self.replace_prompt("main", "mainCrazy")
-        #self.replace_prompt("mainPlaying", "mainCrazy")
-        #self.replace_prompt("examplesLong", "examplesLongCrazy") #я хз что тут менять на что
-
-        self.find_float("SecretExposedText").active = True
-
-    def _detect_secret_exposure(self, response):
-        """
-        Проверяем, содержит ли ответ маркер <Secret!>, и удаляем его.
-        """
-        if "<Secret!>" in response:
-
-            if not self.secretExposedFirst:
-                self.secretExposed = True
-                print(f"Секрет раскрыт")
-                self.attitude = 15
-                self.boredom = 20
-
-            response = response.replace("<Secret!>", "")
-
-        return response
-
-    def current_variables(self):
-        return {
-            "role": "system",
-            "content": (f"Твои характеристики:"
-                        f"Отношение: {self.attitude}/100."
-                        f"Скука: {self.boredom}/100."
-                        f"Стресс: {self.stress}/100."
-                        f"Состояние секрета: {self.secretExposed}")
-        }
-
-    def current_variables_string(self) -> str:
-        characteristics = {
-            "Отношение": self.attitude,
-            "Стресс": self.stress,
-            "Скука": self.boredom,
-            "Состояние секрета": self.secretExposed,
-        }
-        return f"характеристики {self.name}:\n" + "\n".join(
-            f"- {key}: {value} " for key, value in characteristics.items()
-        )
-
-
-class MilaMita(Character):
-
-    def init(self):
-        self.cappy_mila_prompts()
-
-        #self.secretExposed
-
-    def cappy_mila_prompts(self):
-        Prompts = []
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
-
-        self.append_common_prompts(Prompts)
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
-
-        Prompts.append(
-            PromptPart(PromptType.FLOATING_SYSTEM, self.get_path("Events/SecretExposed.txt"), "SecretExposedText"))
-
-        for prompt in Prompts:
-            self.add_prompt_part(prompt)
-
-
 #region Cartridges
 class Cartridge(Character):
     ...
@@ -755,69 +410,6 @@ class DivanCartridge(Cartridge):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
-
-class CreepyMita(Character):
-
-    def init(self):
-        self.secretExposed = False
-        self.secretExposedFirst = False
-        self.creepy_mita_prompts()
-
-    def creepy_mita_prompts(self):
-        Prompts = []
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
-
-        self.append_common_prompts(Prompts)
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
-
-        for prompt in Prompts:
-            self.add_prompt_part(prompt)
-
-
-class SleepyMita(Character):
-
-    def init(self):
-        self.secretExposed = False
-        self.secretExposedFirst = False
-        self.sleepy_mita_prompts()
-
-    def sleepy_mita_prompts(self):
-        Prompts = []
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Structural/response_structure.txt")))
-
-        self.append_common_prompts(Prompts)
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/common.txt"), "common"))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/main.txt"), "main"))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Main/player.txt")))
-
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Context/examplesLong.txt"), "examplesLong"))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Context/mita_history.txt"), "mita_history", False))
-
-        Prompts.append(
-            PromptPart(PromptType.FIXED_START, self.get_path("Structural/VariablesEffects.txt"), "variableEffects"))
-
-        for prompt in Prompts:
-            self.add_prompt_part(prompt)
-
-
 #endregion
 
 
@@ -833,7 +425,7 @@ class GameMaster(Character):
         Prompts = []
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Game_master.txt")))
-        Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("current_command.txt")))
+        Prompts.append(PromptPart(PromptType.CONTEXT_TEMPORARY, self.get_path("current_command.txt")))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
@@ -841,10 +433,20 @@ class GameMaster(Character):
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)
         response = self._process_behavior_changes(response)
+
         return response
 
     def _process_behavior_changes(self, response):
         return response
+
+    def add_context(self,messages):
+        super().add_context(messages)
+
+        print("Особый контекст ГМ")
+        for prompt in self.temp_prompts:
+            messages.append({"role": "system", "content": str(prompt)})
+
+        return messages
 
     def current_variables(self):
         return {

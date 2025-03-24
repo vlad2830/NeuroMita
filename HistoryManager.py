@@ -24,11 +24,7 @@ class HistoryManager:
         try:
             with open(self.history_file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                print("Загрузка истории")
-
                 if self.history_format_correct(data):
-
-                    print("Историю получится заполнить")
                     return data
 
                 else:

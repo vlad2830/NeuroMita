@@ -26,6 +26,8 @@ namespace MitaAI
         static public PlayerPersonIK playerPersonIK;
         public static Dictionary<string, AnimationClip> PlayerAnimations { get; private set; } = new Dictionary<string, AnimationClip>();
 
+        public static Dictionary<string, ObjectAnimationPlayer> ObjectsAnimationPlayer { get; private set; } = new Dictionary<string, ObjectAnimationPlayer>();
+
         public static AnimationClip getPlayerAnimationClip(string name)
         {
 
@@ -82,7 +84,7 @@ namespace MitaAI
             // Ищем анимации в DontDestroyOnLoad
 
             FindPlayerAnimationsInDontDestroyOnLoad();
-            foreach (var el in PlayerAnimations) MelonLogger.Msg($"Player clip {el.Key}");
+            //foreach (var el in PlayerAnimations) MelonLogger.Msg($"Player clip {el.Key}");
 
         }
 
@@ -105,6 +107,44 @@ namespace MitaAI
                 }
             }
         }
+
+
+        private static GameObject ObjectAnimationContainer;
+        public static void copyObjectAnimationPlayer(Transform parent)
+        {
+            if (parent == null) return;
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform child = parent.GetChild(i);
+                if (child == null) continue;
+
+                copyObjectAnimationPlayer(child); // Рекурсивный вызов для вложенных объектов
+
+                ObjectAnimationPlayer oap = child.GetComponent<ObjectAnimationPlayer>();
+                if (oap == null) continue;
+
+                if ( !ObjectsAnimationPlayer.ContainsKey(oap.name))
+                {
+
+                    ObjectsAnimationPlayer[oap.name] = GameObject.Instantiate(oap.gameObject).GetComponent<ObjectAnimationPlayer>();
+                    
+
+                    if (ObjectAnimationContainer == null)
+                    {
+                        ObjectAnimationContainer = new GameObject("ObjectAnimationContainer");
+                        GameObject.DontDestroyOnLoad(ObjectAnimationContainer);
+                    }
+                    ObjectsAnimationPlayer[oap.name].name = oap.name;
+                    ObjectsAnimationPlayer[oap.name].transform.SetParent(ObjectAnimationContainer.transform);
+                    ObjectsAnimationPlayer[oap.name].gameObject.SetActive(false);
+                }
+
+               
+            }
+        }
+
+
         public static void FindPlayerAnimationsRecursive(Transform parent)
         {
             if (parent == null) return;

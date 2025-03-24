@@ -30,16 +30,9 @@ namespace MitaAI.Mita
         public static GameObject bat;
 
         static public string currentIdleAnim = "Idle";
-        public enum IdleStates
-        {
-            normal = 0,
-            talkWithPlayer = 1,
-
-        }
 
 
-
-        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true)
+        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, MitaCore.character character = MitaCore.character.None)
         {
             // Получаем компонент Animator_FunctionsOverride из текущего объекта
             mitaAnimatorFunctions = _mitaAnimatorFunctions;
@@ -57,12 +50,53 @@ namespace MitaAI.Mita
 
             if (changeAnimation)
             {
-                idleAnimation = location34_Communication.mitaAnimationIdle;
-                if (idleAnimation == null) idleAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Idle_2");
+                idleAnimation = FindAnimationClipByName("Idle");
+                // Пока что так))
+                switch (character)
+                {
+                    
+                    case MitaCore.character.Player:
+                        break;
+                    case MitaCore.character.None:
+                        break;
+                    case MitaCore.character.Crazy:
+                        break;
+                    case MitaCore.character.Cappy:
+                        idleAnimation = FindAnimationClipByName("Mita Hands Down Idle");
+                        idleWalkAnimation = FindAnimationClipByName("Mita Walk_7");
+                        setIdleAnimation("Mita Hands Down Idle");
+                        setIdleWalk("Mita Walk_7");
+                        break;
+                    case MitaCore.character.Kind:
+                        break;
+                    case MitaCore.character.Cart_portal:
+                        break;
+                    case MitaCore.character.ShortHair:
+                        break;
+                    case MitaCore.character.Cart_divan:
+                        break;
+                    case MitaCore.character.Mila:
+                        idleAnimation = FindAnimationClipByName("MitaWalkMila");
+                        idleWalkAnimation = FindAnimationClipByName("Mila Stay T");
+                        setIdleAnimation("MitaWalkMila");
+                        setIdleWalk("Mila Stay T");
+                        break;
+                    case MitaCore.character.Sleepy:
+                        break;
+                    case MitaCore.character.Creepy:
+                        break;
+                    case MitaCore.character.GameMaster:
+                        break;
+                    default:
+                        break;
+                }
 
+ 
+                //idleAnimation = location34_Communication.mitaAnimationIdle;
+                //if (idleAnimation == null) idleAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Idle_2")
 
-                idleWalkAnimation = location34_Communication.mitaAnimationWalk;
-                if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
+                //idleWalkAnimation = location34_Communication.mitaAnimationWalk;
+                //if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
             }
 
             try
@@ -76,7 +110,7 @@ namespace MitaAI.Mita
                     animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
                     animator.runtimeAnimatorController = runtimeAnimatorController;
                     animator.SetTrigger("NextLerp");
-                    idleAnimation = FindAnimationClipByName("Idle");
+                    
                 }
                 else
                 {

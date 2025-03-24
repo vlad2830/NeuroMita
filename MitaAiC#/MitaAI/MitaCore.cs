@@ -272,7 +272,11 @@ namespace MitaAI
                 try
                 { 
                     Location34_Communication = MitaObject.GetComponentInChildren<Location34_Communication>();
+                    
+
                     if (Location34_Communication == null ) Location34_Communication = GameObject.Instantiate(Loc34_Template, MitaObject.transform).GetComponent< Location34_Communication>();
+
+                    Location34_Communication.gameObject.GetComponentInChildren<CapsuleCollider>().transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
                 }
                 catch (Exception ex)
                 {
@@ -329,7 +333,7 @@ namespace MitaAI
                     rigidbody.centerOfMass = new Vector3(0, 0.65f, 0);
                     rigidbody.mass = 2f;
                     rigidbody.maxAngularVelocity = 0.3f; //0.3 как и было
-                    rigidbody.maxDepenetrationVelocity = 0.3f; //было до этого = 0.9f когда пробовал влад;
+                    rigidbody.maxDepenetrationVelocity = 7f;//0.3f; //было до этого = 0.9f когда пробовал влад;
                     rigidbody.drag = 15;
                     rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic; //ContinuousDynamic вместо Continuous для обработки динамических обьектов
                     rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
@@ -356,7 +360,7 @@ namespace MitaAI
 
         public enum character
         {
-            Player,
+            Player = -2,
             None = -1,// Добавляем нового персонажа
             Crazy = 0,
             Cappy = 1,
@@ -446,12 +450,14 @@ namespace MitaAI
         //private readonly object waitForSoundsLock = new object();
 
         public string playerMessage = "";
+        //static public Queue<string> playerMessages = new Queue<string>();
+
         public List<character> playerMessageCharacters = new List<character>();
 
         public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
         Queue<(string, character)> systemInfos = new Queue<(string, character)>();
 
-        Queue<string> patches_to_sound_file = new Queue<string>();
+
         string patch_to_sound_file = "";
 
         static Dictionary<int,string> sound_files = new Dictionary<int,string>();
@@ -578,7 +584,7 @@ namespace MitaAI
         }
         public void playerClickSafe()
         {
-            sendSystemMessage("Игрок кликает на кнопку твоего сейфа");
+            sendSystemMessage("Игрок кликает на кнопку сейфа");
         }
 
 
@@ -587,7 +593,7 @@ namespace MitaAI
         {
             if (sceneName == requiredSceneName)
             {
-                sendSystemInfo("Игрок покинул твой уровень");
+                sendSystemInfo("Игрок покинул уровень");
                 MitaCore.AllLoaded = false;
             }
             base.OnSceneWasUnloaded(buildIndex, sceneName);
@@ -660,7 +666,7 @@ namespace MitaAI
 
             if (Utils.getDistanceBetweenObjects(worldHouse.gameObject,playerPersonObject)>50f) return Rooms.Unknown;
 
-            if (posY <= -0.1f)
+            if (posY <= -0.2f)
                 return Rooms.Basement;
 
             if (posX > 5.3f)
@@ -734,7 +740,7 @@ namespace MitaAI
             if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
 
             // Отключить если нужно
-            Character GM = playerPersonObject.AddComponent<Character>();
+            GameMaster GM = playerPersonObject.AddComponent<GameMaster>();
             GM.init_GameMaster();
             GM.enabled = false;
 
@@ -1008,7 +1014,8 @@ namespace MitaAI
         }
 
         private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
-        private const float actionCooldown = 8f;  // Интервал в секундах
+        private const float actionCooldown = 6f;  // Интервал в секундах, надо сделать умнее для нормальных диалогов
+
         private IEnumerator HandleDialogue()
         {
             //MelonLogger.Msg("HandleDialogue");
@@ -1024,7 +1031,7 @@ namespace MitaAI
 
 
             float currentTime = Time.unscaledTime;
-            if (currentTime - lastActionTime > actionCooldown)
+            if (currentTime - lastActionTime > actionCooldown || CharacterControl.needToIgnoreTimeout() )
             {
                 //MelonLogger.Msg("Ready to send");
                 if (playerText != "")
@@ -1148,7 +1155,7 @@ namespace MitaAI
                 }
 
                 //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                if (elapsedTime - lastCallTime >= waitMessageTimer)
+                if (elapsedTime - lastCallTime >= waitMessageTimer && !dialogActive)
                 {
                     try
                     {
@@ -1202,9 +1209,10 @@ namespace MitaAI
                     {
                         CharacterControl.gameMaster.timingEach = GM_REPEAT;
                         CharacterControl.gameMaster.enabled = GM_ON;
-                        NetworkController.connectedToSilero = connectedToSilero;
+                        
 
                     }
+                    NetworkController.connectedToSilero = connectedToSilero;
                     CharacterControl.limitMod = limitmod;
                     if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
                 }
@@ -1221,16 +1229,20 @@ namespace MitaAI
                 NetworkController.connectedToSilero = false;
             }
 
+
+
             
-            
-            if (!string.IsNullOrEmpty(patch)) patches_to_sound_file.Enqueue(patch);
             if (response != "")
             {
                 LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
 
                 if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.cartAudioSource));
                 else if (characterToSend == character.GameMaster) {
+
+
+                    
                     if (GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.playerAudioSource, GM_VOICE));
+                    else CommandProcessor.ProcessCommands(CommandProcessor.ExtractCommands(response).Item1);
                 }
                 else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response));
 
@@ -1253,13 +1265,14 @@ namespace MitaAI
 
         IEnumerator testNextAswer(string response, character currentCharacter)
         {
+            character currentCharacter2 = currentCharacter;
             yield return new WaitForSeconds(0.25f);
             while (dialogActive)
             {
                 yield return null;
             }
 
-            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter);
+            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter2);
         }
 
 
@@ -1550,7 +1563,7 @@ namespace MitaAI
 
                 float elapsedTime = 0f; // Счетчик времени
                 float timeout = 30f;     // Лимит времени ожидания
-                float waitingTimer = 1.1f;
+                float waitingTimer = 0.75f;
                 float lastCallTime = 0f; // Время последнего вызова
                 
                 // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
@@ -1565,7 +1578,7 @@ namespace MitaAI
                     }
 
 
-                    if (elapsedTime - lastCallTime >= waitingTimer)
+                    if (elapsedTime - lastCallTime >= waitingTimer && !dialogActive)
                     {
                         //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
                         List<String> parts = new List<String> { "***" };
@@ -2622,6 +2635,7 @@ namespace MitaAI
                     Interactions.Update();
                     InputControl.processInpute();
                     PlayerMovement.onUpdate();
+                    CharacterControl.Update();
                     characterLogic?.Update(); // добавляем для метода update в characterlogic
                 }
 
@@ -2645,7 +2659,7 @@ namespace MitaAI
                 case character.Cappy:
                     return new Color(1f, 1f, 0.1f); // мягкий оранжевый 
                 case character.Kind:
-                    return new Color(0f, 1f, 0f); //поставил зеленый пока что
+                    return new Color(0f, 1f, 0f); //поставил зеленый пока что // Надо белый-лазурный
                 case character.ShortHair:
                     return new Color(1f, 0.9f, 0.4f); // мягкий желтый
                 case character.Mila:
@@ -2654,6 +2668,8 @@ namespace MitaAI
                     return new Color(1f, 1f, 1f); // мягкий розовый
                 case character.Creepy:
                     return new Color(1f, 0f, 0f); // красный
+                case character.GameMaster:
+                    return Color.black;
                 default:
                     return Color.white;
             }

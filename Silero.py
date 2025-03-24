@@ -114,7 +114,7 @@ class TelegramBotHandler:
             if self.gui.silero_turn_off_video:
                 await self.client.send_message(self.tg_bot, "/videonotes")
 
-                await asyncio.sleep(0.65)
+                await asyncio.sleep(0.8)
 
                 # Получаем последнее сообщение от бота
                 messages = await self.client.get_messages(self.tg_bot, limit=1)
@@ -148,7 +148,7 @@ class TelegramBotHandler:
 
         attempts_max = self.silero_time_limit * attempts_per_second
 
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(0.1)
         while attempts <= attempts_max:  # Попытки получения ответа
 
             async for message in self.client.iter_messages(self.tg_bot, limit=1):

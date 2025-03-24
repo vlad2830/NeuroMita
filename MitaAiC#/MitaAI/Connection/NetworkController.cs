@@ -74,7 +74,6 @@ namespace MitaAI
 
                     Dictionary<string, JsonElement> messageData2 = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(receivedMessage);
 
-                    //patch_to_sound_file = parts[1];
                     return messageData2;
                 }
                 catch (Exception ex)

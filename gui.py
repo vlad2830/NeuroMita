@@ -1,4 +1,3 @@
-import time
 import uuid
 from AudioHandler import AudioHandler
 from SettingsManager import SettingsManager, CollapsibleSection
@@ -22,16 +21,28 @@ import binascii
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 from utils import SH
 
 import sounddevice as sd
 from SpeechRecognition import SpeechRecognition
 
-gettext.bindtextdomain('NeuroMita', '/Translation')
-gettext.textdomain('NeuroMita')
-_ = gettext.gettext
-_ = str  # Временно пока чтобы не падало
+
+#gettext.bindtextdomain('NeuroMita', '/Translation')
+#gettext.textdomain('NeuroMita')
+#_ = gettext.gettext
+#_ = str  # Временно пока чтобы не падало
+
+
+def getTranslationVariant(ru_str, en_str=""):
+    if en_str and SettingsManager.get("LANGUAGE") == "EN":
+        return en_str
+
+    return ru_str
+
+
+_ = getTranslationVariant  # Временно пока чтобы не падало
 
 
 class ChatGUI:
@@ -188,32 +199,76 @@ class ChatGUI:
         """Асинхронный метод для вызова send_and_receive."""
         print("Попытка получить фразу")
         self.waiting_answer = True
-        # start_time = time.time()
+        text_to_talk = response
+
         if self.settings.get("AUDIO_BOT") == "@CrazyMitaAIbot (Без тг)":
             rate = self.settings.get("MIKUTTS_VOICE_RATE")
-            pitch = self.settings.get("MIKUTTS_VOICE_PITCH")
+            engine = self.settings.get("MIKUTTS_ENGINE")
+            pitch = int(self.settings.get("MIKUTTS_VOICE_PITCH"))
+
+            params = {'text': text_to_talk,
+                      'person': self.model.current_character.miku_tts_name}
+            data = None
+            if engine == "Edge":
+                method = "GET"
+                endpoint = "get_edge"
+                port = 2020
+                params['rate'] = rate
+                params['pitch'] = pitch
+            elif engine == "Vosk":
+                method = "GET"
+                endpoint = "get_item"
+                port = 2040
+                params['ids'] = self.settings.get("MIKUTTS_VOSK_IDS", 1)
+                params['pith'] = pitch
+            elif engine == "Silero":
+                method = "POST"
+                endpoint = "get_silero"
+                port = 2060
+                data = {
+                    "text": text_to_talk,
+                    "person": self.model.current_character.miku_tts_name,
+                    "model_id": "v4_ru",
+                    "language": "ru",
+                    "pitch": pitch,
+                    "provider": self.settings.get("MIKUTTS_SILERO_PROVIDER", "Aidar")
+                }
+                params = None
+
             max_retries = 3
             retry_delay = 1
 
             for attempt in range(max_retries):
                 try:
-                    response = await MikuTTSClient.send_request(method="GET", endpoint="get_edge", timeout=int(self.settings.get("SILERO_TIME")), params={"text": response, 
-                                                          "person": self.model.current_character.miku_tts_name,
-                                                          "rate": rate,
-                                                          "pitch": pitch})
+                    response, time_taken = await MikuTTSClient.send_request(method=method, data=data, port=port,
+                                                                            endpoint=endpoint, timeout=int(
+                            self.settings.get("SILERO_TIME")), params=params)
                     if response:
                         break
-                except Exception:
-                    print(f"Попытка {attempt + 1} из {max_retries} не удалась.")
+                except Exception as e:
+                    print(f"Попытка {attempt + 1} из {max_retries} не удалась. {e}")
                     await asyncio.sleep(retry_delay)
 
-            print(f"Успешно сгенерирована озвучка, response.content: : {response.text[:20]}...{response.text[-20:]}")
+            print(
+                f"Успешно сгенерирована озвучка, {time_taken} секунд, Движок: {self.settings.get("MIKUTTS_ENGINE")}, Текст: {text_to_talk}")
 
             voice_path = f"MitaVoices/{uuid.uuid4()}.{"wav" if self.ConnectedToGame else "mp3"}"
             absolute_audio_path = os.path.abspath(voice_path)
-            
-            with open(voice_path, "wb") as f:
-                f.write(response.content)
+
+            print(f"После uuid {voice_path} \n{absolute_audio_path}")
+
+            try:
+                # Создаем директорию в отдельном потоке
+                await asyncio.to_thread(os.makedirs, os.path.dirname(absolute_audio_path), exist_ok=True)
+
+                # Записываем файл в отдельном потоке
+                await asyncio.to_thread(
+                    lambda: open(absolute_audio_path, "wb").write(response.content)
+                )
+
+                print("Запись завершена")
+            except Exception as e:
+                print(f"Ошибка при записи файла: {e}")
 
             # end_time = time.time()
             # print(f"Время генерации озвучки {self.settings.get("AUDIO_BOT")}: {end_time - start_time}")
@@ -239,7 +294,7 @@ class ChatGUI:
                     if bool(self.settings.get("SILERO_USE")):
                         print("Цикл событий готов. Отправка текста.")
                         asyncio.run_coroutine_threadsafe(
-                            self.run_send_and_receive(self.textToTalk, self.textSpeaker,self.id_sound),
+                            self.run_send_and_receive(self.textToTalk, self.textSpeaker, self.id_sound),
                             self.loop
                         )
                     self.textToTalk = ""  # Очищаем текст после отправки
@@ -309,6 +364,7 @@ class ChatGUI:
 
     def setup_ui(self):
         self.root.config(bg="#2c2c2c")  # Установите темный цвет фона для всего окна
+        self.root.geometry("1200x600")
 
         main_frame = tk.Frame(self.root, bg="#2c2c2c")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -329,7 +385,6 @@ class ChatGUI:
         self.chat_window.tag_configure("Mita", foreground="hot pink", font=("Arial", 12, "bold"))
         self.chat_window.tag_configure("Player", foreground="gold", font=("Arial", 12, "bold"))
 
-
         input_frame = tk.Frame(left_frame, bg="#2c2c2c")
         input_frame.pack(fill=tk.X, padx=10, pady=10)
 
@@ -339,7 +394,7 @@ class ChatGUI:
         #self.user_entry.bind("<KeyRelease>", self.update_token_count)
 
         self.send_button = tk.Button(
-            input_frame, text="Отправить", command=self.send_message,
+            input_frame, text=_("Отправить","Send"), command=self.send_message,
             bg="#9370db", fg="#ffffff", font=("Arial", 12)
         )
         self.send_button.pack(side=tk.RIGHT, padx=5)
@@ -401,6 +456,7 @@ class ChatGUI:
         right_canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux (прокрутка вверх)
         right_canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux (прокрутка вниз)
 
+        self.setup_language_controls(settings_frame)
         self.setup_microphone_controls(settings_frame)
         self.setup_silero_controls(settings_frame)
         self.setup_mita_controls(settings_frame)
@@ -427,7 +483,7 @@ class ChatGUI:
         self.setup_api_controls(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
-        
+
         #Сворачивание секций
         for widget in settings_frame.winfo_children():
             if isinstance(widget, CollapsibleSection):
@@ -438,7 +494,7 @@ class ChatGUI:
     def insert_message(self, role, content):
         if role == "user":
             # Вставляем имя пользователя с зеленым цветом, а текст — обычным
-            self.chat_window.insert(tk.END, "Вы: ", "Player")
+            self.chat_window.insert(tk.END, _("Вы: ", "You: "), "Player")
             self.chat_window.insert(tk.END, f"{content}\n")
         elif role == "assistant":
             # Вставляем имя Миты с синим цветом, а текст — обычным
@@ -457,7 +513,7 @@ class ChatGUI:
         # Галки для подключения
         self.game_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение к игре",
+            text=_("Подключение к игре","Connection to game"),
             variable=self.game_connected,
             state="disabled",
             bg="#2c2c2c",
@@ -468,7 +524,7 @@ class ChatGUI:
 
         self.silero_status_checkbox = tk.Checkbutton(
             status_frame,
-            text="Подключение Telegram",
+            text=_("Подключение Telegram","Connection Telegram"),
             variable=self.silero_connected,
             state="disabled",
             bg="#2c2c2c",
@@ -561,13 +617,13 @@ class ChatGUI:
         history_frame.pack(fill=tk.X, pady=4)
 
         clear_button = tk.Button(
-            history_frame, text="Очистить историю персонажа", command=self.clear_history,
+            history_frame, text=_("Очистить историю персонажа","Clear character history"), command=self.clear_history,
             bg="#8a2be2", fg="#ffffff"
         )
         clear_button.pack(side=tk.LEFT, padx=5)
 
         clear_button = tk.Button(
-            history_frame, text="Очистить все истории", command=self.clear_history_all,
+            history_frame, text=_("Очистить все истории","Clear all histories"), command=self.clear_history_all,
             bg="#8a2be2", fg="#ffffff"
         )
         clear_button.pack(side=tk.LEFT, padx=5)
@@ -610,7 +666,7 @@ class ChatGUI:
         self.show_api_var = tk.BooleanVar(value=False)
 
         api_toggle = tk.Checkbutton(
-            api_frame, text="Показать настройки API", variable=self.show_api_var,
+            api_frame, text=_("Показать настройки API","Show API settings"), variable=self.show_api_var,
             command=lambda: self.pack_unpack(self.show_api_var, self.api_settings_frame), bg="#2c2c2c", fg="#ffffff"
         )
         api_toggle.pack(side=tk.LEFT, padx=4)
@@ -619,7 +675,7 @@ class ChatGUI:
 
         # Элементы в одном столбце
         tk.Label(
-            self.api_settings_frame, text="API-ключ:", bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("API-ключ:","API-key:"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=0, column=0, padx=4, pady=4, sticky=tk.W)
 
         self.api_key_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -627,7 +683,7 @@ class ChatGUI:
         self.api_key_entry.grid(row=0, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
-            self.api_settings_frame, text="резервный API-ключ:", bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("резервный API-ключ:","reserve API-key:"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=1, column=0, padx=4, pady=4, sticky=tk.W)
 
         self.api_key_res_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -635,7 +691,7 @@ class ChatGUI:
         self.api_key_res_entry.grid(row=1, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
-            self.api_settings_frame, text="Ссылка:", bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("Ссылка:","URL"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_url_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -643,7 +699,7 @@ class ChatGUI:
         self.api_url_entry.grid(row=2, column=1, padx=4, pady=5, sticky=tk.W)
 
         tk.Label(
-            self.api_settings_frame, text="Модель:", bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("Модель:","Model:"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_model_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -683,7 +739,7 @@ class ChatGUI:
         self.toggle_makeRequest(False)
 
         save_button = tk.Button(
-            self.api_settings_frame, text="Сохранить", command=self.save_api_settings,
+            self.api_settings_frame, text=_("Сохранить","Save"), command=self.save_api_settings,
             bg="#8a2be2", fg="#ffffff"
         )
         save_button.grid(row=8, column=0, padx=5, sticky=tk.E)
@@ -703,66 +759,75 @@ class ChatGUI:
     def setup_silero_controls(self, parent):
         # Основные настройки
         mita_voice_config = [
-            {'label': 'Использовать озвучку', 'key': 'SILERO_USE', 'type': 'checkbutton', 'default': True},
-            {'label': 'Вариант озвучки', 'key': 'AUDIO_BOT', 'type': 'combobox',
-             'options': ["@silero_voice_bot", "@CrazyMitaAIbot (Без тг)", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
+            {'label': _('Использовать озвучку', 'Use speech'), 'key': 'SILERO_USE', 'type': 'checkbutton',
+             'default': True},
+            {'label': _('Вариант озвучки',"Speech option"), 'key': 'AUDIO_BOT', 'type': 'combobox',
+             'options': ["@silero_voice_bot", "@CrazyMitaAIbot (Без тг)", "@CrazyMitaAIbot"],
+             'default': "@silero_voice_bot"},
             #{'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
             #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
-            {'label': 'Максимальное ожидание', 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
+            {'label': _('Максимальное ожидание','Max awaiting time'), 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
              'validation': self.validate_number},
-            {'label': 'Без тг | Скорость голоса', 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
-            {'label': 'Без тг | Высота голоса', 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': "8"},
+            {'label': _('Без тг | Движок',"No TG | engine"), 'key': 'MIKUTTS_ENGINE', 'type': 'combobox',
+             'options': ["Edge", "Vosk", "Silero"], 'default': "Edge"},
+            {'label': _('Без тг | Скорость голоса','No TG | Voice speed'), 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
+            {'label': _('Без тг | Высота голоса','No TG | Voice pitch'), 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': 8},
+            {'label': _("Без тг | VOSK | IDs",'No TG | VOSK | IDs'), 'key': 'MIKUTTS_VOSK_IDS', 'type': 'combobox', 'options': [0, 1, 2, 3, 4],
+             'default': 0},
+            {'label': _("Без тг | SILERO | Провайдер",'No TG | SILERO | Provider'), 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox',
+             'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
         ]
 
-        self.create_settings_section(parent, "Настройка озвучки", mita_voice_config)
+        self.create_settings_section(parent, _("Настройка озвучки","Speech settings"), mita_voice_config)
 
     def setup_mita_controls(self, parent):
         # Основные настройки
         mita_config = [
-            {'label': 'Персонаж', 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(),
+            {'label': _('Персонаж','Character'), 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(),
              'default': "Crazy"}
         ]
 
-        self.create_settings_section(parent, "Выбор персонажа", mita_config)
+        self.create_settings_section(parent, _("Выбор персонажа","Character selection"), mita_config)
 
     def setup_model_controls(self, parent):
         # Основные настройки
         mita_config = [
-            {'label': 'Использовать gpt4free', 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
-            {'label': 'Модель gpt4free', 'key': 'gpt4free_model', 'type': 'entry', 'default': "gemini-1.5-flash"},
+            {'label': _('Использовать gpt4free','Use gpt4free'), 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
+            {'label': _('gpt4free | Модель gpt4free','gpt4free | model gpt4free'), 'key': 'gpt4free_model', 'type': 'entry', 'default': "gemini-1.5-flash"},
             # gpt-4o-mini тоже подходит
-            {'label': 'Лимит сообщений', 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40},
-            {'label': 'Кол-во попыток', 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 'type': 'entry', 'default': 3},
-            {'label': 'Время между попытками', 'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20}
+            {'label': _('Лимит сообщений','Message limit'), 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40,
+             'tooltip':_('Сколько сообщений будет помнить мита','How much messages Mita will remember')},
+            {'label': _('Кол-во попыток','Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 'type': 'entry', 'default': 3},
+            {'label': _('Время между попытками','time between attempts'), 'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20}
 
         ]
 
-        self.create_settings_section(parent, "Настройки модели", mita_config)
+        self.create_settings_section(parent, _("Настройки модели","Model settings"), mita_config)
 
     def setup_common_controls(self, parent):
         # Основные настройки
         common_config = [
-            {'label': 'Скрывать данные', 'key': 'HIDE_PRIVATE', 'type': 'checkbutton',
+            {'label': _('Скрывать (приватные) данные','Hide (private) data'), 'key': 'HIDE_PRIVATE', 'type': 'checkbutton',
              'default_checkbutton': True},
 
         ]
-        self.create_settings_section(parent, "Общие настройки", common_config)
+        self.create_settings_section(parent, _("Общие настройки", "Common settings"), common_config)
 
     def setup_game_master_controls(self, parent):
         # Основные настройки
         common_config = [
-            {'label': 'ГеймМастер включен', 'key': 'GM_ON', 'type': 'checkbutton',
+            {'label': _('ГеймМастер включен','GameMaster is on'), 'key': 'GM_ON', 'type': 'checkbutton',
              'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги, в теории устраняя проблемы'},
-            {'label': 'ГеймМастер зачитывается', 'key': 'GM_READ', 'type': 'checkbutton',
+            {'label': _('ГеймМастер зачитывается','GameMaster write in game'), 'key': 'GM_READ', 'type': 'checkbutton',
              'default_checkbutton': False},
-            {'label': 'ГеймМастер озвучивает', 'key': 'GM_VOICE', 'type': 'checkbutton',
+            {'label': _('ГеймМастер озвучивает','GameMaster is voiced'), 'key': 'GM_VOICE', 'type': 'checkbutton',
              'default_checkbutton': False},
-            {'label': 'Встревать через', 'key': 'GM_REPEAT', 'type': 'entry',
-             'default': 2, 'tooltip': 'Через сколько фраз гейммастер вмешивается'},
-            {'label': 'Лимит речей нпс %', 'key': 'CC_Limit_mod', 'type': 'entry',
-             'default': 100, 'tooltip': 'Сколько от кол-ва персонажей может отклоняться повтор речей нпс'}
+            {'label': _('Встревать через','Intervene after'), 'key': 'GM_REPEAT', 'type': 'entry',
+             'default': 2, 'tooltip': _('Через сколько фраз гейммастер вмешивается','How much phares GM need to intervene')},
+            {'label': _('Лимит речей нпс %','Limit NPC convesationg'), 'key': 'CC_Limit_mod', 'type': 'entry',
+             'default': 100, 'tooltip': _('Сколько от кол-ва персонажей может отклоняться повтор речей нпс','How long NPC can talk ignoring player')}
         ]
-        self.create_settings_section(parent, "Настройки Мастера игры", common_config)
+        self.create_settings_section(parent, _("Настройки Мастера игры и Диалогов","GameMaster and Dialogues settings"), common_config)
 
     def setup_new_game_master_controls(self, parent):
         # Основные настройки для новой секции
@@ -773,7 +838,6 @@ class ChatGUI:
              'default': 5, 'tooltip': 'Описание новой настройки 2'}
         ]
         self.create_settings_section(parent, "Новая секция", new_common_config)
-
 
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
@@ -970,7 +1034,6 @@ class ChatGUI:
             self.chat_window.insert(tk.END, "Вы: ", "Player")
             self.chat_window.insert(tk.END, f"{input_text}\n")
         if response != "":
-
             MitaName = self.model.current_character.name
 
             self.chat_window.insert(tk.END, f"{MitaName}: ", "Mita")
@@ -994,7 +1057,7 @@ class ChatGUI:
             # Ограничиваем выполнение задачи 10 секундами
             response = await asyncio.wait_for(
                 self.loop.run_in_executor(None, lambda: self.model.generate_response(user_input, system_input)),
-                timeout=10.0  # Тайм-аут в секундах
+                timeout=25.0  # Тайм-аут в секундах
             )
             self.insert_message("assistant", response)
             self.updateAll()
@@ -1033,7 +1096,7 @@ class ChatGUI:
 
         tk.Label(
             mic_frame,
-            text=_("Микрофон:"),
+            text=_("Микрофон:","Microphone"),
             bg="#2c2c2c",
             fg="#ffffff"
         ).pack(side=tk.LEFT, padx=5)
@@ -1060,10 +1123,10 @@ class ChatGUI:
         # вот это мне не оч нравится, как-то кривовато, но ок
         mic_frame_2 = tk.Frame(parent, bg="#2c2c2c")
         mic_frame_2.pack(fill=tk.X, pady=5)
-        self.create_setting_widget(mic_frame_2, 'Распознавание', "MIC_ACTIVE", widget_type='checkbutton',
+        self.create_setting_widget(mic_frame_2, _('Распознавание','Recognition'), "MIC_ACTIVE", widget_type='checkbutton',
                                    default_checkbutton=False)
 
-        self.create_setting_widget(parent, 'Мгновенная отправка', "MIC_INSTANT_SENT", widget_type='checkbutton',
+        self.create_setting_widget(parent, _('Мгновенная отправка','Immediate sending'), "MIC_INSTANT_SENT", widget_type='checkbutton',
                                    default_checkbutton=False)
 
     def get_microphone_list(self):
@@ -1137,8 +1200,12 @@ class ChatGUI:
         if key == "SILERO_TIME":
             self.bot_handler.silero_time_limit = int(value)
         if key == "AUDIO_BOT":
-            self.bot_handler.tg_bot = value
-            print(f"Вариант озвучки изменен на {value}")
+            if value.startswith("@CrazyMitaAIbot"):
+                messagebox.showinfo("Информация",
+                                    "HАШ Слава Богу 🙏❤️СЛАВА @CrazyMitaAIbot🙏❤️АНГЕЛА ХРАНИТЕЛЯ КАЖДОМУ ИЗ ВАС 🙏❤️БОЖЕ ХРАНИ @CrazyMitaAIbot🙏❤️СПАСИБО ВАМ НАШИ МАЛЬЧИКИ ИЗ @CrazyMitaAIbot🙏🏼❤️",
+                                    parent=self.root)
+            if self.bot_handler:
+                self.bot_handler.tg_bot = value
         #if key == "TG_BOT":
         #   self.bot_handler.tg_bot_channel = value
         elif key == "CHARACTER":
@@ -1156,6 +1223,7 @@ class ChatGUI:
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = bool(value)
+        print(f"Настройки изменены: {key} = {value}")
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
@@ -1165,7 +1233,7 @@ class ChatGUI:
             widget = self.create_setting_widget(
                 parent=section.content_frame,
                 label=config['label'],
-                setting_key=config['key'],
+                setting_key=config.get('key', ''),
                 widget_type=config.get('type', 'entry'),
                 options=config.get('options', None),
                 default=config.get('default', ''),
@@ -1180,6 +1248,7 @@ class ChatGUI:
     def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
                               options=None, default='', default_checkbutton=False, validation=None, tooltip=None,
                               width=None, height=None, command=None):
+
         """
         Создает виджет настройки с различными параметрами.
 
@@ -1196,6 +1265,10 @@ class ChatGUI:
             height: Высота виджета (для текстовых полей)
             command: Функция, вызываемая при изменении значения
         """
+        # Применяем default при первом запуске
+        if not self.settings.get(setting_key):
+            self.settings.set(setting_key, default_checkbutton if widget_type == 'checkbutton' else default)
+
         frame = tk.Frame(parent, bg="#2c2c2c")
         frame.pack(fill=tk.X, pady=2)
 
@@ -1266,17 +1339,28 @@ class ChatGUI:
             scale.config(command=save_scale)
 
         elif widget_type == 'text':
-            text = tk.Text(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
-                           height=height if height else 5, width=width if width else 50)
-            text.insert('1.0', self.settings.get(setting_key, default))
-            text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
-            def save_text():
-                self._save_setting(setting_key, text.get('1.0', 'end-1c'))
-                if command:
-                    command(text.get('1.0', 'end-1c'))
 
-            text.bind("<FocusOut>", lambda e: save_text())
+
+            if setting_key != "":
+                def save_text():
+                    self._save_setting(setting_key, text.get('1.0', 'end-1c'))
+                    if command:
+                        command(text.get('1.0', 'end-1c'))
+
+                text = tk.Text(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
+                               height=height if height else 5, width=width if width else 50)
+                text.insert('1.0', self.settings.get(setting_key, default))
+                text.bind("<FocusOut>", lambda e: save_text())
+                text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+
+            else:
+                lbl.config(width=100)
+
+
+
+
 
         # Добавляем tooltip если указан
         if tooltip:
@@ -1314,6 +1398,21 @@ class ChatGUI:
 
     #endregion
 
+    # region Language
+
+    def setup_language_controls(self, settings_frame):
+        config = [
+            {'label': 'Язык / Language', 'key': 'LANGUAGE', 'type': 'combobox',
+             'options': ["RU", "EN"], 'default': "RU"},
+            {'label': 'Перезапусти программу после смены! / Restart program after change!', 'type': 'text'},
+
+        ]
+
+        self.create_settings_section(settings_frame, "Язык / Language", config)
+
+        pass
+
+    # endregion
     def run(self):
         self.root.mainloop()
 
