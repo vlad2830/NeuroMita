@@ -95,7 +95,10 @@ class ChatGUI:
         self.textSpeaker = "/Speaker Mita"
         self.silero_turn_off_video = False
 
+        self.dialog_active = False
+
         self.patch_to_sound_file = ""
+        self.id_sound = -1
         self.id_sound = -1
         self.waiting_answer = False
 
@@ -309,7 +312,13 @@ class ChatGUI:
 
             if not self.waiting_answer:
                 text_from_recognition = SpeechRecognition.receive_text()
-                self.instant_send(text_from_recognition)
+                user_input = self.user_entry.get("1.0", "end-1c")
+                user_input += text_from_recognition
+                self.user_entry.insert(tk.END, text_from_recognition)
+                self.user_input = self.user_entry.get("1.0", "end-1c").strip()
+                if not self.dialog_active:
+                    self.instant_send()
+
         elif bool(self.settings.get("MIC_ACTIVE")) and self.user_entry:
             text_from_recognition = SpeechRecognition.receive_text()
             self.user_entry.insert(tk.END, text_from_recognition)
@@ -318,19 +327,19 @@ class ChatGUI:
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
 
-    def instant_send(self, text_from_recognition):
+    def instant_send(self):
         """Мгновенная отправка распознанного текста"""
         try:
-            if text_from_recognition:
-                print(f"Получен текст: {text_from_recognition}")
+            #if text:
+            #print(f"Получен текст: {text}")
 
-                self.user_entry.delete("1.0", tk.END)
-                self.user_entry.insert(tk.END, text_from_recognition)
+            #self.user_entry.delete("1.0", tk.END)
+            #self.user_entry.insert(tk.END, text)
 
-                self.send_message(text_from_recognition)
+            self.send_message()
 
-                SpeechRecognition._text_buffer.clear()
-                SpeechRecognition._current_text = ""
+            SpeechRecognition._text_buffer.clear()
+            SpeechRecognition._current_text = ""
 
         except Exception as e:
             print(f"Ошибка обработки текста: {str(e)}")

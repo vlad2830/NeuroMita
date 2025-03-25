@@ -58,7 +58,9 @@ namespace MitaAI
                     roomPlayer = (int)mitaCore.roomPlayer,
                     roomMita = (int)mitaCore.roomMita,
                     hierarchy = mitaCore.hierarchy,
-                    currentInfo = _currentInfo
+                    currentInfo = _currentInfo,
+                    dialog_active = DialogueControl.dialogActive
+
                 };
 
                 string jsonMessage = JsonSerializer.Serialize(messageData);

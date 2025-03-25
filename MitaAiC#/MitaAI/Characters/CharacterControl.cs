@@ -184,7 +184,7 @@ namespace MitaAI
 
        
         // Пришло ли время ГеймМастеру вмешаться
-        private static bool GameMasterCase(MitaCore.character from)
+        private static bool GameMasterCase(bool fromPlayer)
         {
             if (gameMaster == null) return false;
 
@@ -192,7 +192,7 @@ namespace MitaAI
 
             try
             {
-                if (gameMaster.gameObject.active && gameMaster.enabled && from != MitaCore.character.GameMaster)
+                if (gameMaster.gameObject.active && gameMaster.enabled)
                 {
                     MelonLogger.Msg("nextAnswer Attempt GameMaster");
                     if (gameMaster.CheckInreaseTiming())
@@ -233,12 +233,13 @@ namespace MitaAI
         
         static int limit = 1;
         public static float limitMod = 100;
-        public static void nextAnswer(string response, MitaCore.character from)
+        public static void nextAnswer(string response, MitaCore.character from, bool fromPlayer)
         {
-            MelonLogger.Msg($"nextAnswer from {from}, limit now {limit}");
+            MelonLogger.Msg($"nextAnswer: generated to {from} before, limit now {limit}");
 
-            if (GameMasterCase(from)) return;
+            if (GameMasterCase(fromPlayer)) return;
 
+            if (fromPlayer) return;
             // Получаем список персонажей
             List<MitaCore.character> characters = GetCharactersToAnswer();
             if (characters == null) return;

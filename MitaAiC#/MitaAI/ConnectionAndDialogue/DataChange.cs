@@ -259,14 +259,13 @@ namespace MitaAI
 
                 //Тестово - хочешь чтобы было без лишнего отрубай это
 
-                if (playerText != "") characterToSend = MitaCore.character.Player;
-                MelonCoroutines.Start(testNextAswer(response, characterToSend));
+                MelonCoroutines.Start(testNextAswer(response, characterToSend, playerText != ""));
 
 
 
             }
 
-            static IEnumerator testNextAswer(string response, MitaCore.character currentCharacter)
+            static IEnumerator testNextAswer(string response, MitaCore.character currentCharacter, bool fromPlayer)
             {
                 yield return new WaitForSeconds(0.25f);
                 while (DialogueControl.dialogActive)
@@ -274,7 +273,7 @@ namespace MitaAI
                     yield return null;
                 }
 
-                CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter);
+                CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter, fromPlayer);
             }
 
         }
