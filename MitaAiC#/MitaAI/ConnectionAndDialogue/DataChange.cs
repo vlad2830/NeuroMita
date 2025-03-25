@@ -38,7 +38,7 @@ namespace MitaAI
 
 
             float currentTime = Time.unscaledTime;
-            if (currentTime - lastActionTime > actionCooldown || CharacterControl.needToIgnoreTimeout())
+            if (currentTime - lastActionTime > actionCooldown - ( CharacterControl.needToIgnoreTimeout() ? 4 : 0 ) )
             {
                 //MelonLogger.Msg("Ready to send");
                 if (playerText != "")
