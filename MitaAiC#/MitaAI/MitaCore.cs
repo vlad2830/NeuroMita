@@ -388,13 +388,13 @@ namespace MitaAI
 
         }
         public static MovementStyles movementStyle = MovementStyles.walkNear;
-        enum MitaState
+        public enum MitaState
         {
             normal = 0,
             hunt = 1
 
         }
-        MitaState mitaState = MitaState.normal;
+        public MitaState mitaState = MitaState.normal;
 
         EmotionType currentEmotion = EmotionType.none;
 
@@ -456,12 +456,12 @@ namespace MitaAI
         public List<character> playerMessageCharacters = new List<character>();
 
         public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
-        Queue<(string, character)> systemInfos = new Queue<(string, character)>();
+        public Queue<(string, character)> systemInfos = new Queue<(string, character)>();
 
 
         string patch_to_sound_file = "";
 
-        static Dictionary<int,string> sound_files = new Dictionary<int,string>();
+        
 
         public string hierarchy = "-";
 
@@ -489,8 +489,7 @@ namespace MitaAI
 
 
 
-        private const float MitaBoringInterval = 90f;
-        private float MitaBoringtimer = 0f;
+
 
         bool manekenGame = false;
 
@@ -960,13 +959,13 @@ namespace MitaAI
 
                 // Обновляем таймеры
                 timer += Time.deltaTime;
-                MitaBoringtimer += Time.deltaTime;
+                DataChange.MitaBoringtimer += Time.deltaTime;
 
                 // Проверяем, достиг ли timer значения Interval
                 if (timer >= Interval)
                 {
                     timer = 0f; // Сбрасываем таймер
-                    yield return HandleDialogue(); // Запускаем HandleDialogue и ждем его завершения
+                    yield return DataChange.HandleDialogue(); // Запускаем HandleDialogue и ждем его завершения
                 }
 
                 yield return null; // Ждем следующего кадра
@@ -1014,267 +1013,10 @@ namespace MitaAI
 
         }
 
-        private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
-        private const float actionCooldown = 6f;  // Интервал в секундах, надо сделать умнее для нормальных диалогов
 
-        private IEnumerator HandleDialogue()
-        {
-            //MelonLogger.Msg("HandleDialogue");
-
-            string playerText = playerMessage;
-            playerMessage = "";
-            string dataToSent = "waiting";
-            string dataToSentSystem = "-";
-            string info = "-";
-            character characterToWas = character.None;
-            character characterToSend = currentCharacter;
-            List<character> Characters = playerMessageCharacters;
+        
 
 
-            float currentTime = Time.unscaledTime;
-            if (currentTime - lastActionTime > actionCooldown || CharacterControl.needToIgnoreTimeout() )
-            {
-                //MelonLogger.Msg("Ready to send");
-                if (playerText != "")
-                {
-                    LoggerInstance.Msg("HAS playerMessage");
-
-
-                    if (Characters.Count > 0) { 
-                            if (Characters.First().ToString().Contains("Cart"))
-                            {
-                                characterToSend = Characters.First();
-                            }
-                            else
-                            {
-                                MitaBoringtimer = 0f;
-                            }
-
-
-                        sendInfoListeners(playerText, Characters, characterToSend,null);
-
-                    }
-
-
-                    dataToSent = playerText;
-                    
-                    lastActionTime = Time.unscaledTime;
-                }
-                else if (systemMessages.Count > 0)
-                {
-                    LoggerInstance.Msg("HAS SYSTEM MESSAGES");
-                    MitaBoringtimer = 0f;
-                  
-
-                    //Отправляю залпом.
-                    while (systemMessages.Count() > 0)
-                    {
-                        var message = systemMessages.Dequeue();
-                        dataToSentSystem += message.Item1 + "\n";
-                        characterToSend = message.Item2;
-                        if (characterToWas == character.None || characterToWas == characterToSend)
-                        {
-                            characterToWas = message.Item2;
-                        }
-                        else
-                        {
-                            sendSystemMessage(message.Item1, characterToSend);
-                            break;
-                        }
-
-                    }
-
-
-                    lastActionTime = Time.unscaledTime;
-
-                }
-                else if (MitaBoringtimer >= MitaBoringInterval && mitaState == MitaState.normal)
-                {
-                    MitaBoringtimer = 0f;
-                    dataToSentSystem = "Player did nothing for 90 seconds";
-                    lastActionTime = Time.unscaledTime;
-                }
-            }
-
-
-
-            string response = "";
-
-            if (systemInfos.Count > 0)
-            {
-                //LoggerInstance.Msg("HAS SYSTEM INFOS");
-                //Отправляю залпом.
-                while (systemInfos.Count() > 0)
-                {
-                    var message = systemInfos.Dequeue();
-                    character ch = message.Item2;
-
-                    if (ch == characterToSend)
-                    {
-                        info += message.Item1 + "\n";
-                    }
-                    else
-                    {
-                        sendSystemInfo(message.Item1, ch);
-                        break;
-                    }
-                }
-
-            }
-            if (characterToSend != currentCharacter)
-            {
-                if (characterToSend != character.GameMaster)
-                {
-                    addChangeMita(getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
-                }
-                else
-                {
-                    currentCharacter = characterToSend;
-                }
-            }
-
-            if (dataToSent != "waiting" || dataToSentSystem != "-") prepareForSend();
-
-            
-            Task<Dictionary<string, JsonElement>> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
-
-
-
-            float timeout = 40f;     // Лимит времени ожидания
-            float waitMessageTimer = 0.5f;
-            float elapsedTime = 0f; // Счетчик времени
-            float lastCallTime = 0f; // Время последнего вызова
-
-            
-            while (!responseTask.IsCompleted)
-            {
-                elapsedTime += 0.1f;
-                if (elapsedTime >= timeout)
-                {
-                    MelonLogger.Msg("Too long waiting for text");
-                    break;
-                }
-
-                //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                if (elapsedTime - lastCallTime >= waitMessageTimer && !dialogActive)
-                {
-                    try
-                    {
-                        List<String> parts = new List<String> { "..." };
-                        MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
-                        lastCallTime = elapsedTime; // Обновляем время последнего вызова
-                    }
-                    catch (Exception ex)
-                    {
-
-                        MelonLogger.Msg(ex);
-                    }
-
-                }
-                yield return new WaitForSecondsRealtime(0.1f);
-            }
-
-            string patch = null;
-            bool GM_ON = false;
-            bool GM_READ = false;
-            bool GM_VOICE = false;
-            int id = 0;
-            if (responseTask.IsCompleted)
-            {
-                Dictionary<string, JsonElement> messageData2 = responseTask.Result;
-                try
-                {
-
-                    id = messageData2["id"].GetInt32();
-                    string type = messageData2["type"].GetString();
-
-                    string new_character = messageData2["character"].GetString();
-                    response = messageData2["response"].GetString();
-                    bool connectedToSilero = messageData2["silero"].GetBoolean();
-
-                    int idSound = messageData2["id_sound"].GetInt32();
-                    patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
-                    string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
-
-                    GM_ON = messageData2.ContainsKey("GM_ON") ? messageData2["GM_ON"].GetBoolean() : false;
-                    GM_READ = messageData2.ContainsKey("GM_READ") ? messageData2["GM_READ"].GetBoolean() : false;
-                    GM_VOICE = messageData2.ContainsKey("GM_VOICE") ? messageData2["GM_VOICE"].GetBoolean() : false;
-                    int GM_REPEAT = messageData2.ContainsKey("GM_REPEAT") ? messageData2["GM_REPEAT"].GetInt32() : 2;
-
-                    int limitmod = messageData2.ContainsKey("CC_Limit_mod") ? messageData2["CC_Limit_mod"].GetInt32() : 100;
-
-
-                    if (!string.IsNullOrEmpty(patch)) sound_files[idSound] = patch;
-
-                    if (CharacterControl.gameMaster != null)
-                    {
-                        CharacterControl.gameMaster.timingEach = GM_REPEAT;
-                        CharacterControl.gameMaster.enabled = GM_ON;
-                        
-
-                    }
-                    NetworkController.connectedToSilero = connectedToSilero;
-                    CharacterControl.limitMod = limitmod;
-                    if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
-                }
-                catch (Exception ex)
-                {
-
-                    MelonLogger.Error(ex);
-                }
-
-            }
-            else
-            {
-                response = "Too long waited for text from python";
-                NetworkController.connectedToSilero = false;
-            }
-
-
-
-            
-            if (response != "")
-            {
-                LoggerInstance.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
-
-                if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.cartAudioSource));
-                else if (characterToSend == character.GameMaster) {
-
-
-                    
-                    if (GM_READ) MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response, AudioControl.playerAudioSource, GM_VOICE));
-                    else CommandProcessor.ProcessCommands(CommandProcessor.ExtractCommands(response).Item1);
-                }
-                else MelonCoroutines.Start(DisplayResponseAndEmotionCoroutine(id,response));
-
-                if (characterToSend != character.GameMaster) sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
-                else sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
-
-
-                //Тестово - хочешь чтобы было без лишнего отрубай это
-
-                if (playerText != "") characterToSend = character.Player;
-                MelonCoroutines.Start(testNextAswer(response, characterToSend));
-
-
-
-            }
-            
-
-
-        }
-
-        IEnumerator testNextAswer(string response, character currentCharacter)
-        {
-            character currentCharacter2 = currentCharacter;
-            yield return new WaitForSeconds(0.25f);
-            while (dialogActive)
-            {
-                yield return null;
-            }
-
-            CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter2);
-        }
 
 
         public void sendInfoListeners(string message,List<character> characters = null, character exluding = character.None, string from = "Игрок")
@@ -1545,8 +1287,8 @@ namespace MitaAI
             }
 
         }
-        bool dialogActive = false;
-        private IEnumerator DisplayResponseAndEmotionCoroutine(int id,string response, AudioSource audioSource = null,bool voice = true)
+        public bool dialogActive = false;
+        public IEnumerator DisplayResponseAndEmotionCoroutine(int id,string response, AudioSource audioSource = null,bool voice = true)
         {
             while (dialogActive) { yield return null; }
             dialogActive = true;
@@ -1571,10 +1313,10 @@ namespace MitaAI
                 while (string.IsNullOrEmpty(patch_to_sound) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
                 {
                     //LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
-                    if (sound_files.ContainsKey(id))
+                    if (DataChange.sound_files.ContainsKey(id))
                     {
-                        patch_to_sound = sound_files[id];
-                        sound_files[id] = null;
+                        patch_to_sound = DataChange.sound_files[id];
+                        DataChange.sound_files[id] = null;
                         break;
                     }
 
@@ -1643,7 +1385,7 @@ namespace MitaAI
 
         }
 
-        private IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
+        public IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
         {
             InputControl.BlockInputField(true);
             foreach (string part in dialogueParts)
@@ -1815,7 +1557,7 @@ namespace MitaAI
 
 
                     currentDialog.SetActive(true);
-                    MitaBoringtimer = 0f;
+                    DataChange.MitaBoringtimer = 0f;
                 }
                 catch (Exception ex)
                 {
