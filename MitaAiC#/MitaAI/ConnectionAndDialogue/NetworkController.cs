@@ -99,14 +99,14 @@ namespace MitaAI
                     attempt++;
                     if (attempt >= maxRetries)
                     {
-                        //LoggerInstance.Msg($"Max retries reached. Unable to connect to {address}:{port}.{ex}");
+                        //MelonLogger.Msg($"Max retries reached. Unable to connect to {address}:{port}.{ex}");
                         return false; // После превышения количества попыток
                     }
                     await Task.Delay(delayBetweenRetries); // Задержка перед повторной попыткой
                 }
                 catch (Exception)
                 {
-                    //LoggerInstance.Msg($"Unexpected error connecting to {address}:{port}: {ex.Message}");
+                    //MelonLogger.Msg($"Unexpected error connecting to {address}:{port}: {ex.Message}");
                     return false; // Если произошла неожиданная ошибка
                 }
             }

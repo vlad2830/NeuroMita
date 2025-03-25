@@ -358,7 +358,6 @@ namespace MitaAI
         }
 
 
-
         public enum character
         {
             Player = -2,
@@ -396,11 +395,11 @@ namespace MitaAI
         }
         public MitaState mitaState = MitaState.normal;
 
-        EmotionType currentEmotion = EmotionType.none;
+        
 
         public GameObject knife;
 
-        PlayerPerson playerPerson;
+        public PlayerPerson playerPerson;
         public GameObject playerPersonObject;
         public GameObject playerObject;
         PlayerCameraEffects playerEffects;
@@ -426,14 +425,10 @@ namespace MitaAI
 
 
 
-        const int simbolsPerSecond = 15;
-        const float minDialoguePartLen = 0.50f;
-        const float maxDialoguePartLen = 8f;
-        const float delayModifier = 1.05f;
+
 
         static public Menu MainMenu;
-        private GameObject CustomDialog;
-        private GameObject CustomDialogPlayer;
+
         public static GameObject playerCamera;
         public GameObject AnimationKiller;
         public static BlackScreen blackScreen;
@@ -485,9 +480,6 @@ namespace MitaAI
         {
             return AllLoaded;
         }
-
-
-
 
 
 
@@ -559,7 +551,7 @@ namespace MitaAI
                 if (effectComponent is Il2CppObjectBase il2cppComponent)
                 {
                     // Если это Il2CppObjectBase
-                    LoggerInstance.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
+                    MelonLogger.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
 
                     // Проверяем, имеет ли компонент свойство enabled
                     var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
@@ -604,15 +596,15 @@ namespace MitaAI
         {
             
 
-            LoggerInstance.Msg("Scene loaded " + sceneName);
+            MelonLogger.Msg("Scene loaded " + sceneName);
             if (!TotalInitialization.additiveLoadedScenes.Contains(sceneName))
             {
-                LoggerInstance.Msg("Scene loaded not addictive" + sceneName);
+                MelonLogger.Msg("Scene loaded not addictive" + sceneName);
                 CurrentSceneName = sceneName;
             }
             else
             {
-                LoggerInstance.Msg("Scene loaded addictive " + sceneName);
+                MelonLogger.Msg("Scene loaded addictive " + sceneName);
                 return;
             }
 
@@ -755,18 +747,18 @@ namespace MitaAI
             try
             {
                 playerCamera = playerPerson.transform.parent.gameObject.transform.FindChild("HeadPlayer/MainCamera").gameObject;
-                LoggerInstance.Msg("Camera found" + playerCamera.name);
+                MelonLogger.Msg("Camera found" + playerCamera.name);
             }
             catch (Exception)
             {
 
-                LoggerInstance.Msg("Camera not LoggerInstance.Msg(\"Camera found\" + playerCamera.name);found" + playerCamera.name);
+                MelonLogger.Msg("Camera not MelonLogger.Msg(\"Camera found\" + playerCamera.name);found" + playerCamera.name);
             }
 
 
 
-            LoggerInstance.Msg(Mita != null ? "Mita found!" : "Mita not found.");
-            LoggerInstance.Msg(playerPerson != null ? "Player found!" : "Player not found.");
+            MelonLogger.Msg(Mita != null ? "Mita found!" : "Mita not found.");
+            MelonLogger.Msg(playerPerson != null ? "Player found!" : "Player not found.");
 
             if (Mita == null || playerPerson == null) return;
 
@@ -794,12 +786,12 @@ namespace MitaAI
             {
                 AudioControl.Init(worldHouse);
             }
-            catch (Exception ex) { LoggerInstance.Error(ex); }
+            catch (Exception ex) { MelonLogger.Error(ex); }
 
             worldSettings.limitFloor = -200f;
             if (worldHouse == null)
             {
-                LoggerInstance.Msg("World object not found.");
+                MelonLogger.Msg("World object not found.");
 
             }
 
@@ -808,27 +800,27 @@ namespace MitaAI
 
             if (dialogOriginal == null)
             {
-                LoggerInstance.Msg("Target object 'DMita 2' not found.");
+                MelonLogger.Msg("Target object 'DMita 2' not found.");
                 dialogOriginal = worldHouse.Find("Quests/Quest 1 Start/3D Text 5");
 
                 if (dialogOriginal == null)
                 {
 
-                    LoggerInstance.Msg("Target object '3D Text 5' not found.");
+                    MelonLogger.Msg("Target object '3D Text 5' not found.");
                 }
 
             }
 
-            CustomDialog = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
-            CustomDialog.name = "Custom Dialogue Mita";
+            DialogueControl.CustomDialog = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
+            DialogueControl.CustomDialog.name = "Custom Dialogue Mita";
 
             // Опускаем объект CustomDialog на 200 единиц по оси Y
-            Vector3 newPosition = CustomDialog.transform.position; // Получаем текущую позицию
+            Vector3 newPosition = DialogueControl.CustomDialog.transform.position; // Получаем текущую позицию
             newPosition.y -= 200; // Уменьшаем Y на 200
-            CustomDialog.transform.position = newPosition; // Применяем новую позицию
+            DialogueControl.CustomDialog.transform.position = newPosition; // Применяем новую позицию
 
 
-            Dialogue_3DText CustomDialogText = CustomDialog.GetComponent<Dialogue_3DText>();
+            Dialogue_3DText CustomDialogText = DialogueControl.CustomDialog.GetComponent<Dialogue_3DText>();
 
             CustomDialogText.nextText = null;
             CustomDialogText.sizeHeight = 0.0687f;
@@ -838,10 +830,10 @@ namespace MitaAI
             CustomDialogText.indexString = -1;
 
             dialogOriginal = worldHouse.Find("Quests/Quest 1/Dialogues/Dialogue Player/Dialogue Hello/DPlayer 3");
-            CustomDialogPlayer = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
-            CustomDialogPlayer.name = "Custom Dialogue Player";
+            DialogueControl.CustomDialogPlayer = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
+            DialogueControl.CustomDialogPlayer.name = "Custom Dialogue Player";
 
-            CustomDialogText = CustomDialogPlayer.GetComponent<Dialogue_3DText>();
+            CustomDialogText = DialogueControl.CustomDialogPlayer.GetComponent<Dialogue_3DText>();
 
             CustomDialogText.nextText = null;
             CustomDialogText.sizeHeight = 0.0687f;
@@ -887,7 +879,7 @@ namespace MitaAI
         }
         void TestBigMita()
         {
-            LoggerInstance.Msg("Start TestBigMita");
+            MelonLogger.Msg("Start TestBigMita");
             MitaObject.transform.FindChild("MitaPerson Mita").localScale = new Vector3(15f,15f,15f);
             
             Vector3 direction = (MitaObject.transform.position - playerObject.transform.position).normalized;
@@ -901,16 +893,13 @@ namespace MitaAI
             }
             catch (Exception ex)
             {
-                LoggerInstance.Msg("TestBigMita end " + ex);
+                MelonLogger.Msg("TestBigMita end " + ex);
             }
             
             worldHouse.Find("House").gameObject.SetActive(false);
             worldBasement.Find("House").gameObject.SetActive(false);
 
         }
-
-
-
 
 
         public static void DeleteChildren(GameObject parent)
@@ -985,7 +974,7 @@ namespace MitaAI
                 catch (Exception e)
                 {
 
-                    LoggerInstance.Msg("Error LightingAndDaytime CheckDay" + e);
+                    MelonLogger.Msg("Error LightingAndDaytime CheckDay" + e);
                 }
                 yield return new WaitForSeconds(2.3f); // Ждем 7 секунд перед следующим циклом
             }
@@ -999,12 +988,6 @@ namespace MitaAI
         }
 
 
-
-
-
-
-
-
         public float getDistanceToPlayer()
         {
             if (MitaPersonObject == null || playerObject == null) { return 0f; }
@@ -1012,11 +995,6 @@ namespace MitaAI
 
 
         }
-
-
-        
-
-
 
 
         public void sendInfoListeners(string message,List<character> characters = null, character exluding = character.None, string from = "Игрок")
@@ -1098,7 +1076,7 @@ namespace MitaAI
                         if (roomMita == Rooms.Basement) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
                         else hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldHouse.Find("House").transform, excludedNames);
 
-                        //LoggerInstance.Msg(hierarchy);
+                        //MelonLogger.Msg(hierarchy);
                     
 
                 }
@@ -1137,7 +1115,7 @@ namespace MitaAI
             // Проверяем, что объект не null
             if (parentObject == null)
             {
-                LoggerInstance.Error("Parent object is null!");
+                MelonLogger.Error("Parent object is null!");
                 return;
             }
 
@@ -1195,33 +1173,33 @@ namespace MitaAI
             }
             
             // Выводим общее количество детей
-            LoggerInstance.Msg($"Total children collected: {globalChildObjects.Count}");
+            MelonLogger.Msg($"Total children collected: {globalChildObjects.Count}");
         }
 
         
         public void remakeArrayl34(Location34_Communication Location34_Communication, GameObject newPoint, string room)
         {
-            LoggerInstance.Msg($"Start Il2CppReferenceArray {Location34_Communication} 33 {newPoint} ");
+            MelonLogger.Msg($"Start Il2CppReferenceArray {Location34_Communication} 33 {newPoint} ");
             // Создаем новый массив с размером на 1 больше
             Il2CppReferenceArray<Location34_PositionForMita> newArray = new Il2CppReferenceArray<Location34_PositionForMita>(Location34_Communication.positionsForMita.Length + 1);
-            LoggerInstance.Msg($" Il2CppReferenceArray222");
+            MelonLogger.Msg($" Il2CppReferenceArray222");
             // Копируем старые данные
             for (int i = 0; i < Location34_Communication.positionsForMita.Length; i++)
             {
                 newArray[i] = Location34_Communication.positionsForMita[i];
             }
 
-            LoggerInstance.Msg($" Il2CppReferenceArray333");
+            MelonLogger.Msg($" Il2CppReferenceArray333");
             // Добавляем новый элемент
             Location34_PositionForMita l = new Location34_PositionForMita();
-            LoggerInstance.Msg($" Il2CppReferenceArray444");
+            MelonLogger.Msg($" Il2CppReferenceArray444");
             l.target = newPoint.transform;
             l.room = room;
-            LoggerInstance.Msg($" Il2CppReferenceArray5");
+            MelonLogger.Msg($" Il2CppReferenceArray5");
             newArray[newArray.Length - 1] = l;
 
             Location34_Communication.positionsForMita = newArray;
-            LoggerInstance.Msg($"End");
+            MelonLogger.Msg($"End");
             
         }
 
@@ -1250,14 +1228,14 @@ namespace MitaAI
 
         public Transform GetRandomLoc()
         {
-            LoggerInstance.Msg("Before try Tring GetRandomLoc");
+            MelonLogger.Msg("Before try Tring GetRandomLoc");
             try
             {
-                LoggerInstance.Msg("Tring GetRandomLoc");
+                MelonLogger.Msg("Tring GetRandomLoc");
                 // Проверяем, что список не пустой
                 if (globalChildObjects == null || globalChildObjects.Count == 0)
                 {
-                    LoggerInstance.Error("globalChildObjects is null or empty!");
+                    MelonLogger.Error("globalChildObjects is null or empty!");
                     return null; // Возвращаем null, если список пуст
                 }
 
@@ -1270,341 +1248,37 @@ namespace MitaAI
                 // Проверяем, что объект действительно существует и имеет компонент Transform
                 if (randomObject == null)
                 {
-                    LoggerInstance.Error("Random object is null!");
+                    MelonLogger.Error("Random object is null!");
                     return null; // Возвращаем null, если объект не найден
                 }
 
                 // Логируем имя объекта
-                LoggerInstance.Msg($"Random object selected: {randomObject.name}");
+                MelonLogger.Msg($"Random object selected: {randomObject.name}");
 
                 // Возвращаем компонент Transform
                 return randomObject.transform;
             }
             catch (Exception)
             {
-                LoggerInstance.Msg("Error with random loc");
+                MelonLogger.Msg("Error with random loc");
                 return null;
             }
 
         }
         public bool dialogActive = false;
-        public IEnumerator DisplayResponseAndEmotionCoroutine(int id,string response, AudioSource audioSource = null,bool voice = true)
-        {
-            while (dialogActive) { yield return null; }
-            dialogActive = true;
 
-            LoggerInstance.Msg("DisplayResponseAndEmotionCoroutine");
-            
 
-            // Пример кода, который будет выполняться на главном потоке
-            yield return null; // Это нужно для того, чтобы выполнение произошло после завершения текущего кадра
-           
-            string patch_to_sound = "";
-            
-            if (voice)
-            {
 
-                float elapsedTime = 0f; // Счетчик времени
-                float timeout = 30f;     // Лимит времени ожидания
-                float waitingTimer = 0.75f;
-                float lastCallTime = 0f; // Время последнего вызова
-                
-                // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
-                while (string.IsNullOrEmpty(patch_to_sound) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
-                {
-                    //LoggerInstance.Msg("DisplayResponseAndEmotionCicle");
-                    if (DataChange.sound_files.ContainsKey(id))
-                    {
-                        patch_to_sound = DataChange.sound_files[id];
-                        DataChange.sound_files[id] = null;
-                        break;
-                    }
 
-
-                    if (elapsedTime - lastCallTime >= waitingTimer && !dialogActive)
-                    {
-                        //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                        List<String> parts = new List<String> { "***" };
-                        MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
-                        lastCallTime = elapsedTime; // Обновляем время последнего вызова
-                    }
-
-                    elapsedTime += 0.1f; // Увеличиваем счетчик времени
-
-                    yield return new WaitForSecondsRealtime(0.1f);             // Пауза до следующего кадра
-                }
-            
-                yield return null;
-                // Если время ожидания истекло, можно выполнить какой-то fallback-лог
-                if (string.IsNullOrEmpty(patch_to_sound))
-                {
-                    LoggerInstance.Msg("Timeout reached, patch_to_sound_file is still empty.");
-                }
-            }
-
-            // После того как patch_to_sound_file стал не пустым, вызываем метод DisplayResponseAndEmotion
-            yield return DisplayResponseAndEmotion(response, patch_to_sound, audioSource);
-
-            dialogActive = false;
-        }
-
-        private IEnumerator DisplayResponseAndEmotion(string response, string patch_to_sound, AudioSource audioSource = null)
-        {
-            LoggerInstance.Msg("DisplayResponseAndEmotion");
-
-    
-                string modifiedResponse = SetMovementStyle(response);
-
-                AudioClip audioClip = null;
-
-                if (!string.IsNullOrEmpty(patch_to_sound))
-                {
-                    try
-                    {
-                        LoggerInstance.Msg("patch_to_sound not null");
-                        audioClip = NetworkController.LoadAudioClipFromFileAsync(patch_to_sound).Result;
-                        
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerInstance.Error($"Error loading audio file: {ex.Message}");
-                    }
-                }
-
-                float delay = modifiedResponse.Length / simbolsPerSecond;
-
-                if (audioSource != null) PlaySound(audioClip, audioSource);
-                else MelonCoroutines.Start(PlayMitaSound(delay, audioClip, modifiedResponse.Length));
-
-
-                List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
-
-                // Запуск диалогов последовательно, с использованием await или вложенных корутин
-                yield return MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
-            
-
-        }
-
-        public IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
-        {
-            InputControl.BlockInputField(true);
-            foreach (string part in dialogueParts)
-            {
-
-                string partCleaned = Utils.CleanFromTags(part); // Очищаем от всех тегов
-                float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, minDialoguePartLen, maxDialoguePartLen); 
-
-
-                yield return MelonCoroutines.Start(ShowDialogue(part, delay, itIsWaitingDialogue));
-
-                
-            }
-            if (!itIsWaitingDialogue && CommandProcessor.ContinueCounter > 0) CommandProcessor.ContinueCounter = CommandProcessor.ContinueCounter - 1;
-            InputControl.BlockInputField(false);
-
-
-            
-        }
-
-
-        private IEnumerator ShowDialogue(string part, float delay, bool itIsWaitingDialogue = false)
-        {
-
-           
-
-            string modifiedPart = part;
-            List<string> commands;
-            EmotionType emotion = EmotionType.none;
-            
-            if (!itIsWaitingDialogue)
-            {
-                LoggerInstance.Msg("ShowDialogue");
-                try
-                {
-
-                    LoggerInstance.Msg("Begin try:" + modifiedPart);
-                    modifiedPart = SetFaceStyle(modifiedPart);
-                    modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
-                    modifiedPart = ProcessPlayerEffects(modifiedPart);
-                    modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
-                    modifiedPart = AudioControl.ProcessMusic(modifiedPart);
-                    modifiedPart = CommandProcessor.ProcesHint(modifiedPart);
-                    (emotion, modifiedPart) = SetEmotionBasedOnResponse(modifiedPart);
-                    LoggerInstance.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
-
-                    (commands, modifiedPart) = CommandProcessor.ExtractCommands(modifiedPart);
-                    if (commands.Count > 0)
-                    {
-                        CommandProcessor.ProcessCommands(commands);
-                    }
-                    LoggerInstance.Msg("After ExtractCommands " + modifiedPart);
-                    modifiedPart = Utils.CleanFromTags(modifiedPart);
-                }
-                catch (Exception ex)
-                {
-                    LoggerInstance.Error($"Error processing part of response: {ex.Message}");
-                }
-            }
-            
-            GameObject currentDialog = InstantiateDialog();
-
-            Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
-
-
-            answer.textPrint = modifiedPart;
-            changeTextColor(currentDialog);
-
-            answer.timeShow = delay;
-            answer.speaker = MitaPersonObject;
-
-            if (modifiedPart!="***"&&modifiedPart!="...") MelonLogger.Msg($"Text is {answer.textPrint}");
-            if (!itIsWaitingDialogue) addDialogueMemory(answer);
-            if (emotion != EmotionType.none) answer.emotionFinish = emotion;
-            currentEmotion = emotion;
-
-            currentDialog.SetActive(true);  
-            if ( !NetworkController.connectedToSilero && !itIsWaitingDialogue ) MelonCoroutines.Start(AudioControl.PlayTextAudio(part));
-
-            yield return new WaitForSeconds(delay * delayModifier);
-            //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
-            Utils.DestroyAfterTime(currentDialog, delay * 1.15f + 5f);
-
-        }
-
-        void changeTextColor(GameObject currentDialog)
-        {
-            if (currentCharacter == character.Crazy) return;
-
-            Color characterColor = GetCharacterTextColor(currentCharacter);
-            var textMesh = currentDialog.GetComponentInChildren<Text>();
-            if (textMesh != null)
-            {
-                textMesh.color = characterColor;
-            }
-        }
-
-
-
-
-    private IEnumerator PlayMitaSound(float delay, AudioClip audioClip, int len)
-        {
-            LoggerInstance.Msg("PlayMitaSound");
-
-
-
-            // Если есть аудио, проигрываем его до начала текста
-            if (audioClip != null)
-            {
-                GameObject currentDialog = InstantiateDialog();
-                
-                Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
-                LoggerInstance.Msg("Loading voice...");
-                answer.timeSound = delay;
-                answer.LoadVoice(audioClip);
-                audioClip = null;
-                MelonLogger.Msg($"Setting speaker {MitaPersonObject.name}");
-                answer.speaker = MitaPersonObject;
-
-                currentDialog.SetActive(true);
-
-                yield return new WaitForSeconds(delay * 1.15f);
-                //MelonLogger.Msg($"Deleting dialogue {currentDialog.name}");
-
-                Utils.DestroyAfterTime(currentDialog, delay * 1.15f + 5f);
-
-                
-            }
-
-            
-            LoggerInstance.Msg("Dialogue part finished and destroyed.");
-        }
-
-        private void PlaySound(AudioClip audioClip,AudioSource audioSource)
-        {
-            LoggerInstance.Msg("PlaySound not Dialogue");
-
-            audioSource.clip = audioClip;
-            audioSource.Play();
-
-
-        }
-
-        public IEnumerator PlayerTalk(string text)
-        {
-            GameObject currentDialog = null;
-
-
-            float delay = Math.Clamp(text.Length / simbolsPerSecond, minDialoguePartLen,maxDialoguePartLen);
-
-            currentDialog = InstantiateDialog(false);
-            if (currentDialog != null)
-            {
-
-                try
-                {
-                    Dialogue_3DText answer = currentDialog.GetComponent<Dialogue_3DText>();
-                    if (answer == null)
-                    {
-                        throw new Exception("Dialogue_3DText component not found.");
-                    }
-
-                    answer.speaker = playerPerson.gameObject;
-                    answer.textPrint = text;
-                    MelonLogger.Msg($"Player Text is {answer.textPrint}");
-                    answer.themeDialogue = Dialogue_3DText.Dialogue3DTheme.Player;
-                    answer.timeShow = delay;
-                    addDialogueMemory(answer);
-
-
-                    currentDialog.SetActive(true);
-                    DataChange.MitaBoringtimer = 0f;
-                }
-                catch (Exception ex)
-                {
-                    LoggerInstance.Msg($"PlayerTalk: {ex.Message}");
-                }
-                
-                yield return new WaitForSeconds(delay*1.15f);
-
-                Utils.DestroyAfterTime(currentDialog, (delay * 1.15f) + 5f);
-
-
-
-            }
-            else
-            {
-                LoggerInstance.Msg("currentDialog is null.");
-            }
-
-
-        }
         // Добавляет диалог в историю
-        private void addDialogueMemory(Dialogue_3DText dialogue_3DText)
-        {
-            TextDialogueMemory textDialogueMemory = new TextDialogueMemory();
-            textDialogueMemory.text = dialogue_3DText.textPrint;
-            if (dialogue_3DText.themeDialogue == Dialogue_3DText.Dialogue3DTheme.Mita)
-            {
-                Color characterColor = GetCharacterTextColor(currentCharacter);
-                textDialogueMemory.clr = Color.white;
-                textDialogueMemory.clr2 = characterColor;
-                textDialogueMemory.clr1 = Color.white;
-            }
-            else
-            {
-                textDialogueMemory.clr = new Color(1f, 0.6f, 0f);
-                textDialogueMemory.clr2 = new Color(1f, 0.6f, 0f);
-                textDialogueMemory.clr1 = new Color(1f, 0.6f, 0f);
-            }
-            playerController.dialoguesMemory.Add(textDialogueMemory);
-        }
+
 
         #region Hunting
         public void beginHunt()
         {
             try
             {
-                LoggerInstance.Msg("beginHunt ");
+                MelonLogger.Msg("beginHunt ");
                 knife.SetActive(true);
                 mitaState = MitaState.hunt;
                 MelonCoroutines.Start(hunting());
@@ -1619,7 +1293,7 @@ namespace MitaAI
             catch (Exception ex)
             {
 
-                LoggerInstance.Error("beginHunt " + ex);
+                MelonLogger.Error("beginHunt " + ex);
             }
             
         }
@@ -1754,92 +1428,11 @@ namespace MitaAI
 
 
 
-        private List<string> SplitText(string text, int maxLength)
+
+
+        public (EmotionType, string) SetEmotionBasedOnResponse(string response)
         {
-            List<string> parts = new List<string>();
-            Dictionary<string, string> placeholders = new Dictionary<string, string>();
-
-            // Регулярное выражение для поиска служебных частей
-            string pattern = @"<.*?>.*?</.*?>";
-            int placeholderCounter = 0;
-
-            // Заменяем служебные части на уникальные маркеры
-            string processedText = Regex.Replace(text, pattern, match =>
-            {
-                string placeholder = $"@@{placeholderCounter}@@";
-                placeholders[placeholder] = match.Value; // Сохраняем оригинальный текст
-                placeholderCounter++;
-                return placeholder;
-            });
-
-            // Разделяем по строкам
-            string[] lines = processedText.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string line in lines)
-            {
-                // Если длина строки меньше maxLength, добавляем её сразу
-                if (line.Length <= maxLength)
-                {
-                    parts.Add(line.Trim());
-                }
-                else
-                {
-                    // Разделяем на предложения
-                    string[] sentences = line.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
-                    string currentPart = "";
-
-                    foreach (string sentence in sentences)
-                    {
-                        string trimmedSentence = sentence.Trim();
-                        if ((currentPart.Length + trimmedSentence.Length + 1) <= maxLength)
-                        {
-                            currentPart += (currentPart.Length > 0 ? " " : "") + trimmedSentence + ".";
-                        }
-                        else
-                        {
-                            if (!string.IsNullOrWhiteSpace(currentPart)) parts.Add(currentPart.Trim());
-                            currentPart = trimmedSentence + ".";
-                        }
-                    }
-
-                    // Добавляем оставшийся текст
-                    if (!string.IsNullOrWhiteSpace(currentPart)) parts.Add(currentPart.Trim());
-                }
-            }
-
-            // Восстанавливаем служебные части
-            for (int i = 0; i < parts.Count; i++)
-            {
-                foreach (var placeholder in placeholders)
-                {
-                    parts[i] = parts[i].Replace(placeholder.Key, placeholder.Value);
-                }
-            }
-
-            return parts;
-        }
-
-        public GameObject InstantiateDialog(bool Mita = true)
-        {
-            Transform world = GameObject.Find("World")?.transform;
-            if (world == null)
-            {
-                LoggerInstance.Msg("World object not found.");
-                return null;
-            }
-            if (Mita)
-            {
-                return GameObject.Instantiate(CustomDialog, world.Find("Quests/Quest 1/Dialogues"));
-            }
-            else
-            {
-                return GameObject.Instantiate(CustomDialogPlayer, world.Find("Quests/Quest 1/Dialogues"));
-            }
-        }
-
-        private (EmotionType, string) SetEmotionBasedOnResponse(string response)
-        {
-            LoggerInstance.Msg($"Inside SetEmotionBasedOnResponse: " + response);
+            MelonLogger.Msg($"Inside SetEmotionBasedOnResponse: " + response);
             try
             {
                 var (emotions, cleanedResponse) = ExtractEmotions(response);
@@ -1856,12 +1449,12 @@ namespace MitaAI
                     }
 
                 }
-                LoggerInstance.Msg($"Inside SetEmotionBasedOnResponse end: " + cleanedResponse);
+                MelonLogger.Msg($"Inside SetEmotionBasedOnResponse end: " + cleanedResponse);
                 return (emotion, cleanedResponse);
             }
             catch (Exception ex)
             {
-                LoggerInstance.Msg($"Error extracting emotion: {ex.Message}");
+                MelonLogger.Msg($"Error extracting emotion: {ex.Message}");
                 //Mita.FaceEmotionType(GetRandomEmotion());
                 return (EmotionType.none, response); // Если произошла ошибка, возвращаем исходный текст
             }
@@ -1912,7 +1505,7 @@ namespace MitaAI
                 // Проверка на наличие объекта Mita перед применением эмоции
                 if (Mita == null || Mita.gameObject == null || currentCharacter!=character.Crazy)
                 {
-                    LoggerInstance.Error("Mita object is null or Mita.gameObject is not active.");
+                    MelonLogger.Error("Mita object is null or Mita.gameObject is not active.");
                     return cleanedResponse; // Возвращаем faceStyle и очищенный текст
                 }
 
@@ -1935,7 +1528,7 @@ namespace MitaAI
             }
             catch (Exception ex)
             {
-                LoggerInstance.Error($"Problem with FaceStyle: {ex.Message}");
+                MelonLogger.Error($"Problem with FaceStyle: {ex.Message}");
             }
 
             // Возвращаем кортеж: лицо и очищенный текст
@@ -1961,7 +1554,7 @@ namespace MitaAI
                 // Проверка на наличие объекта Mita перед применением эмоции
                 if (Mita == null || Mita.gameObject == null)
                 {
-                    LoggerInstance.Error("Mita object is null or Mita.gameObject is not active.");
+                    MelonLogger.Error("Mita object is null or Mita.gameObject is not active.");
                     return cleanedResponse; // Возвращаем faceStyle и очищенный текст
                 }
                 // Устанавливаем лицо, если оно найдено
@@ -1993,7 +1586,7 @@ namespace MitaAI
             }
             catch (Exception ex)
             {
-                LoggerInstance.Error($"Problem with SetMovementStyle: {ex.Message}");
+                MelonLogger.Error($"Problem with SetMovementStyle: {ex.Message}");
             }
 
             // Возвращаем кортеж: лицо и очищенный текст
@@ -2087,9 +1680,9 @@ namespace MitaAI
             Debug.Log("NoClip movement completed!");
         }
 
-        private string ProcessPlayerEffects(string response)
+        public string ProcessPlayerEffects(string response)
         {
-            LoggerInstance.Msg("Starting ProcessPlayerEffects...");
+            MelonLogger.Msg("Starting ProcessPlayerEffects...");
 
             List<string> effects = new List<string>();
             string pattern = @"<v>(.*?)</v>";
@@ -2100,18 +1693,18 @@ namespace MitaAI
                 if (match.Success)
                 {
                     effects.Add(match.Groups[1].Value);
-                    LoggerInstance.Msg($"Found effect tag: {match.Groups[1].Value}");
+                    MelonLogger.Msg($"Found effect tag: {match.Groups[1].Value}");
                 }
             }
 
             string result = Regex.Replace(response, @"<v>.*?</v>", "");
-            LoggerInstance.Msg("Removed effect tags from response.");
+            MelonLogger.Msg("Removed effect tags from response.");
 
             try
             {
                 foreach (string effectAndTime in effects)
                 {
-                    LoggerInstance.Msg($"Processing effect and time: {effectAndTime}");
+                    MelonLogger.Msg($"Processing effect and time: {effectAndTime}");
 
                     string[] parts = effectAndTime.Split(',');
                     string effect = "";
@@ -2120,18 +1713,18 @@ namespace MitaAI
                     if (parts.Length == 2 && float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out time))
                     {
                         effect = parts[0];
-                        LoggerInstance.Msg($"Parsed effect: {effect}, time: {time}");
+                        MelonLogger.Msg($"Parsed effect: {effect}, time: {time}");
                     }
                     else
                     {
-                        LoggerInstance.Msg($"Invalid format for effect and time: {effectAndTime}");
+                        MelonLogger.Msg($"Invalid format for effect and time: {effectAndTime}");
                         continue;
                     }
 
                     Component effectComponent = null;
                     try
                     {
-                        LoggerInstance.Msg($"Attempting to find component for effect: {effect}");
+                        MelonLogger.Msg($"Attempting to find component for effect: {effect}");
                         switch (effect.ToLower())
                         {
                             case "глитч":
@@ -2157,7 +1750,7 @@ namespace MitaAI
                                 MelonCoroutines.Start(DisableEffectAfterDelay(playerEffects, "Blure", time)); // Запускаем корутину для выключения эффекта
                                 break;
                             default:
-                                LoggerInstance.Msg($"Unknown effect: {effect}");
+                                MelonLogger.Msg($"Unknown effect: {effect}");
                                 continue;
                         }
 
@@ -2172,7 +1765,7 @@ namespace MitaAI
                             else if (effectComponent is Il2CppObjectBase il2cppComponent)
                             {
                                 // Если это Il2CppObjectBase
-                                LoggerInstance.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
+                                MelonLogger.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
 
                                 // Проверяем, имеет ли компонент свойство enabled
                                 var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
@@ -2185,23 +1778,23 @@ namespace MitaAI
                             }
                             else
                             {
-                                LoggerInstance.Warning($"Component {effectComponent?.GetType().Name} is not a MonoBehaviour or Il2CppObjectBase.");
+                                MelonLogger.Warning($"Component {effectComponent?.GetType().Name} is not a MonoBehaviour or Il2CppObjectBase.");
                             }
                         }
 
                     }
                     catch (Exception ex)
                     {
-                        LoggerInstance.Msg($"Error processing effect '{effect}': {ex.Message}");
+                        MelonLogger.Msg($"Error processing effect '{effect}': {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                LoggerInstance.Msg($"Error in ProcessPlayerEffects: {ex.Message}");
+                MelonLogger.Msg($"Error in ProcessPlayerEffects: {ex.Message}");
             }
 
-            LoggerInstance.Msg("Finished ProcessPlayerEffects.");
+            MelonLogger.Msg("Finished ProcessPlayerEffects.");
             return result;
         }
 
@@ -2228,11 +1821,11 @@ namespace MitaAI
             {
                 // Передаём параметр false для выключения эффекта
                 method.Invoke(il2cppComponent, new object[] { false });
-                LoggerInstance.Msg($"Effect {effectMethodName} has been disabled after {delay} seconds.");
+                MelonLogger.Msg($"Effect {effectMethodName} has been disabled after {delay} seconds.");
             }
             else
             {
-                LoggerInstance.Warning($"Effect method {effectMethodName} not found on Il2Cpp component.");
+                MelonLogger.Warning($"Effect method {effectMethodName} not found on Il2Cpp component.");
             }
         }
 
@@ -2257,7 +1850,7 @@ namespace MitaAI
                 if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!\n";
                 if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!\n";
 
-                info += $"Current emotion anim: {currentEmotion}\n";
+                info += $"Current emotion anim: {DialogueControl.currentEmotion}\n";
 
                 try 
                 {
@@ -2336,7 +1929,7 @@ namespace MitaAI
             catch (Exception ex)
             {
 
-                LoggerInstance.Error($"formCurrentInfo {ex}");
+                MelonLogger.Error($"formCurrentInfo {ex}");
             }
             return info;
         }
@@ -2365,7 +1958,7 @@ namespace MitaAI
             catch (Exception ex)
             {
 
-                LoggerInstance.Error($"formCurrentInfo {ex}");
+                MelonLogger.Error($"formCurrentInfo {ex}");
             }
             return info;
         }
@@ -2433,7 +2026,7 @@ namespace MitaAI
             }
             catch (Exception ex)
             {
-                LoggerInstance.Error($"Ошибка при работе с очками: {ex.Message}");
+                MelonLogger.Error($"Ошибка при работе с очками: {ex.Message}");
             }
         }
 
