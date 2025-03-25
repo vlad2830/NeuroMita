@@ -161,12 +161,12 @@ namespace MitaAI
                 }
 
                 //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
-                if (elapsedTime - lastCallTime >= waitMessageTimer && !MitaCore.Instance.dialogActive)
+                if (elapsedTime - lastCallTime >= waitMessageTimer && !DialogueControl.dialogActive)
                 {
                     try
                     {
                         List<String> parts = new List<String> { "..." };
-                        MelonCoroutines.Start(MitaCore.Instance.ShowDialoguesSequentially(parts, true));
+                        MelonCoroutines.Start(DialogueControl.ShowDialoguesSequentially(characterToSend,parts, true));
                         lastCallTime = elapsedTime; // Обновляем время последнего вызова
                     }
                     catch (Exception ex)
@@ -242,16 +242,16 @@ namespace MitaAI
             {
                 MelonLogger.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
 
-                if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(MitaCore.Instance.DisplayResponseAndEmotionCoroutine(id, response, AudioControl.cartAudioSource));
+                if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend, response, AudioControl.cartAudioSource));
                 else if (characterToSend == MitaCore.character.GameMaster)
                 {
 
 
 
-                    if (GM_READ) MelonCoroutines.Start(MitaCore.Instance.DisplayResponseAndEmotionCoroutine(id, response, AudioControl.playerAudioSource, GM_VOICE));
+                    if (GM_READ) MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend, response, AudioControl.playerAudioSource, GM_VOICE));
                     else CommandProcessor.ProcessCommands(CommandProcessor.ExtractCommands(response).Item1);
                 }
-                else MelonCoroutines.Start(MitaCore.Instance.DisplayResponseAndEmotionCoroutine(id, response));
+                else MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend,response));
 
                 if (characterToSend != MitaCore.character.GameMaster) MitaCore.Instance.sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
                 else MitaCore.Instance.sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
@@ -270,7 +270,7 @@ namespace MitaAI
             {
                 MitaCore.character currentCharacter2 = currentCharacter;
                 yield return new WaitForSeconds(0.25f);
-                while (MitaCore.Instance.dialogActive)
+                while (DialogueControl.dialogActive)
                 {
                     yield return null;
                 }

@@ -23,11 +23,11 @@ namespace MitaAI
 
         public static GameObject CustomDialog;
         public static GameObject CustomDialogPlayer;
-        static bool dialogActive = false;
+        public static bool dialogActive = false;
 
         public static EmotionType currentEmotion = EmotionType.none;
 
-        public static IEnumerator DisplayResponseAndEmotionCoroutine(int id, string response, AudioSource audioSource = null, bool voice = true)
+        public static IEnumerator DisplayResponseAndEmotionCoroutine(int id, MitaCore.character characterToSend, string response, AudioSource audioSource = null, bool voice = true)
         {
             while (dialogActive) { yield return null; }
             dialogActive = true;
@@ -60,11 +60,11 @@ namespace MitaAI
                     }
 
 
-                    if (elapsedTime - lastCallTime >= waitingTimer && !dialogActive)
+                    if (elapsedTime - lastCallTime >= waitingTimer)
                     {
                         //MelonLogger.Msg($"!responseTask.IsCompleted{elapsedTime}/{timeout}");
                         List<String> parts = new List<String> { "***" };
-                        MelonCoroutines.Start(ShowDialoguesSequentially(parts, true));
+                        MelonCoroutines.Start(ShowDialoguesSequentially(characterToSend,parts, true));
                         lastCallTime = elapsedTime; // Обновляем время последнего вызова
                     }
 
@@ -82,12 +82,12 @@ namespace MitaAI
             }
 
             // После того как patch_to_sound_file стал не пустым, вызываем метод DisplayResponseAndEmotion
-            yield return DisplayResponseAndEmotion(response, patch_to_sound, audioSource);
+            yield return DisplayResponseAndEmotion(characterToSend,response, patch_to_sound, audioSource);
 
             dialogActive = false;
         }
 
-        private static IEnumerator DisplayResponseAndEmotion(string response, string patch_to_sound, AudioSource audioSource = null)
+        private static IEnumerator DisplayResponseAndEmotion(MitaCore.character characterToSend, string response, string patch_to_sound, AudioSource audioSource = null)
         {
             MelonLogger.Msg("DisplayResponseAndEmotion");
 
@@ -119,12 +119,12 @@ namespace MitaAI
             List<string> dialogueParts = SplitText(modifiedResponse, maxLength: 70);
 
             // Запуск диалогов последовательно, с использованием await или вложенных корутин
-            yield return MelonCoroutines.Start(ShowDialoguesSequentially(dialogueParts, false));
+            yield return MelonCoroutines.Start(ShowDialoguesSequentially(characterToSend,dialogueParts, false));
 
 
         }
 
-        public static IEnumerator ShowDialoguesSequentially(List<string> dialogueParts, bool itIsWaitingDialogue)
+        public static IEnumerator ShowDialoguesSequentially(MitaCore.character characterToSend,List<string> dialogueParts, bool itIsWaitingDialogue)
         {
             InputControl.BlockInputField(true);
             foreach (string part in dialogueParts)
@@ -134,7 +134,7 @@ namespace MitaAI
                 float delay = Math.Clamp(partCleaned.Length / simbolsPerSecond, minDialoguePartLen, maxDialoguePartLen);
 
 
-                yield return MelonCoroutines.Start(ShowDialogue(part, delay, itIsWaitingDialogue));
+                yield return MelonCoroutines.Start(ShowDialogue(characterToSend,part, delay, itIsWaitingDialogue));
 
 
             }
@@ -195,7 +195,7 @@ namespace MitaAI
         }
 
 
-        private static IEnumerator ShowDialogue(string part, float delay, bool itIsWaitingDialogue = false)
+        private static IEnumerator ShowDialogue(MitaCore.character characterToSend, string part, float delay, bool itIsWaitingDialogue = false)
         {
 
 
@@ -240,7 +240,7 @@ namespace MitaAI
 
 
             answer.textPrint = modifiedPart;
-            changeTextColor(currentDialog);
+            changeTextColor(currentDialog, characterToSend);
 
             answer.timeShow = delay;
             answer.speaker = MitaCore.Instance.MitaPersonObject;
@@ -259,11 +259,11 @@ namespace MitaAI
 
         }
 
-        static void changeTextColor(GameObject currentDialog)
+        static void changeTextColor(GameObject currentDialog,MitaCore.character characterToSend)
         {
-            if (MitaCore.Instance.currentCharacter == MitaCore.character.Crazy) return;
+            if (characterToSend == MitaCore.character.Crazy) return;
 
-            Color characterColor = MitaCore.GetCharacterTextColor(MitaCore.Instance.currentCharacter);
+            Color characterColor = MitaCore.GetCharacterTextColor(characterToSend);
             var textMesh = currentDialog.GetComponentInChildren<Text>();
             if (textMesh != null)
             {

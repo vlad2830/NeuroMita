@@ -1265,7 +1265,7 @@ namespace MitaAI
             }
 
         }
-        public bool dialogActive = false;
+        
 
 
 

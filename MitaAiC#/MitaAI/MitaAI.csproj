@@ -325,6 +325,8 @@
 		<Compile Include="Characters\CharacterControl.cs" />
 		<Compile Include="Characters\Character.cs" />
 		<Compile Include="Characters\LogicCharacter.cs" />
+		<Compile Include="ConnectionAndDialogue\DialogueControl.cs" />
+		<Compile Include="ConnectionAndDialogue\DataChange.cs" />
 		<Compile Include="PlayerControls\PlayerMovement.cs" />
 		<Compile Include="UINeuroMita.cs" />
 		<Compile Include="Settings.cs" />
@@ -340,7 +342,7 @@
 		<Compile Include="WorldModded\TotalInitialization.cs" />
 		<Compile Include="Mita\MitaAppereance\EyeModifier.cs" />
 		<Compile Include="Mita\MitaAnimationModded.cs" />
-		<Compile Include="Connection\NetworkController.cs" />
+		<Compile Include="ConnectionAndDialogue\NetworkController.cs" />
 		<Compile Include="WorldModded\Events\Events.cs" />
 		<Compile Include="Mita\CommandProcessor.cs" />
 		<Compile Include="Mita\MitaAppereance\MitaClothes.cs" />

@@ -512,6 +512,7 @@ namespace MitaAI.Mita
 
 
                     MelonLogger.Msg($"zzz2");
+                    
                     yield return WaitForAnimationCompletion(anim, false, 0.25f);
 
                     if (animName == "Mita Kick")
