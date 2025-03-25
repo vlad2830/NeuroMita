@@ -1,4 +1,4 @@
-﻿using Il2Cpp;
+using Il2Cpp;
 
 using MelonLoader;
 using System.Collections;
@@ -28,6 +28,7 @@ namespace MitaAI.Mita
         ///public static LookAtIK = 
 
         public static GameObject bat;
+        public static GameObject pipe;
 
         static public string currentIdleAnim = "Idle";
 
@@ -345,8 +346,19 @@ namespace MitaAI.Mita
                         EnqueueAnimation("Mita StopHug");
                         break;
                     case "Удар":
-                        bat.active = true;
-                        EnqueueAnimation("Mita Kick");
+                        // Проверяем, какой персонаж сейчас активен
+                        if (MitaCore.Instance.currentCharacter == MitaCore.character.Kind)
+                        {
+                            // Если активен Kind персонаж, используем трубу
+                            pipe.active = true;
+                            EnqueueAnimation("Mita Kick");
+                        }
+                        else
+                        {
+                            // Для других персонажей используем биту
+                            bat.active = true;
+                            EnqueueAnimation("Mita Kick");
+                        }
                         break;
                     case "Помахать перед лицом":
                         EnqueueAnimation("Hey");
@@ -501,6 +513,13 @@ namespace MitaAI.Mita
 
                     MelonLogger.Msg($"zzz2");
                     yield return WaitForAnimationCompletion(anim, false, 0.25f);
+
+                    if (animName == "Mita Kick")
+                    {
+                        // После завершения анимации удара деактивируем оба объекта
+                        bat.active = false;
+                        pipe.active = false;
+                    }
                 }
 
                 else 
