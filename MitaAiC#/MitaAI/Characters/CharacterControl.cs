@@ -233,13 +233,14 @@ namespace MitaAI
         
         static int limit = 1;
         public static float limitMod = 100;
-        public static void nextAnswer(string response, MitaCore.character from, bool fromPlayer)
+        public static void nextAnswer(string response, MitaCore.character from, bool fromPlayer = false)
         {
-            MelonLogger.Msg($"nextAnswer: generated to {from} before, limit now {limit}");
+            MelonLogger.Msg($"nextAnswer: generated to {from} before, limit now {limit} from player {fromPlayer}");
 
             if (GameMasterCase(fromPlayer)) return;
 
-            if (fromPlayer) return;
+            //if (fromPlayer) return;
+            
             // Получаем список персонажей
             List<MitaCore.character> characters = GetCharactersToAnswer();
             if (characters == null) return;

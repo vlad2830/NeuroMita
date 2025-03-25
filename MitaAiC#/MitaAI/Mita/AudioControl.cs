@@ -259,7 +259,7 @@ namespace MitaAI.Mita
             MelonLogger.Msg("Chibi Sound Play");
             for (int i = 0; i < text.Length; i = i + 3)
             {
-                GameObject currentDialog = MitaCore.Instance.InstantiateDialog();
+                GameObject currentDialog = DialogueControl.InstantiateDialog();
                 if (text[i] != ' ')
                 {
                     

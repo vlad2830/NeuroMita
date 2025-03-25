@@ -27,6 +27,8 @@ namespace MitaAI
 
             string playerText = MitaCore.Instance.playerMessage;
             MitaCore.Instance.playerMessage = "";
+            bool senfPlayerMessage = false;
+
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
             string info = "-";
@@ -42,7 +44,7 @@ namespace MitaAI
                 if (playerText != "")
                 {
                     MelonLogger.Msg("HAS playerMessage");
-
+                    senfPlayerMessage = true;
 
                     if (Characters.Count > 0)
                     {
@@ -198,6 +200,8 @@ namespace MitaAI
                     bool connectedToSilero = messageData2["silero"].GetBoolean();
 
                     int idSound = messageData2["id_sound"].GetInt32();
+                    int idSound_cp = messageData2.ContainsKey("id_sound_cp") ? messageData2["id_sound_cp"].GetInt32() : 0;
+
                     patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
                     string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
 
@@ -209,8 +213,13 @@ namespace MitaAI
                     int limitmod = messageData2.ContainsKey("CC_Limit_mod") ? messageData2["CC_Limit_mod"].GetInt32() : 100;
 
 
-                    if (!string.IsNullOrEmpty(patch)) sound_files[idSound] = patch;
-
+                    if (!string.IsNullOrEmpty(patch))
+                    {
+                        if (idSound_cp!=0)
+                            sound_files[idSound_cp] = patch;
+                        else
+                            sound_files[idSound] = patch;
+                    }
                     if (CharacterControl.gameMaster != null)
                     {
                         CharacterControl.gameMaster.timingEach = GM_REPEAT;
@@ -259,7 +268,7 @@ namespace MitaAI
 
                 //Тестово - хочешь чтобы было без лишнего отрубай это
 
-                MelonCoroutines.Start(testNextAswer(response, characterToSend, playerText != ""));
+                MelonCoroutines.Start(testNextAswer(response, characterToSend, senfPlayerMessage));
 
 
 
