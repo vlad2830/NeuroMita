@@ -268,14 +268,13 @@ namespace MitaAI
 
             static IEnumerator testNextAswer(string response, MitaCore.character currentCharacter)
             {
-                MitaCore.character currentCharacter2 = currentCharacter;
                 yield return new WaitForSeconds(0.25f);
                 while (DialogueControl.dialogActive)
                 {
                     yield return null;
                 }
 
-                CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter2);
+                CharacterControl.nextAnswer(Utils.CleanFromTags(response), currentCharacter);
             }
 
         }

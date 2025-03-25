@@ -280,9 +280,30 @@ class Character:
 
                     # Обработка удаления
                     elif operation == "-":
-                        number = content.strip()
-                        self.memory_system.delete_memory(number=int(number))
-                        print(f"Удалено воспоминание #{number}")
+                        content = content.strip()
+                        # Обработка записи через запятую (5,6,7)
+                        if "," in content:
+                            numbers = [num.strip() for num in content.split(",")]
+                            for number in numbers:
+                                if number.isdigit():
+                                    self.memory_system.delete_memory(number=int(number))
+                                    print(f"Удалено воспоминание #{number}")
+                        # Обработка записи через дефис (5-9)
+                        elif "-" in content:
+                            start_end = content.split("-")
+                            if len(start_end) == 2 and start_end[0].isdigit() and start_end[1].isdigit():
+                                start = int(start_end[0])
+                                end = int(start_end[1])
+                                for number in range(start, end + 1):
+                                    self.memory_system.delete_memory(number=number)
+                                    print(f"Удалено воспоминание #{number}")
+                        # Обычное удаление одного числа
+                        else:
+                            if content.isdigit():
+                                self.memory_system.delete_memory(number=int(content))
+                                print(f"Удалено воспоминание #{content}")
+
+
 
                     self.MitaLongMemory = {"role": "system", "content": self.memory_system.get_memories_formatted()}
                 except Exception as e:

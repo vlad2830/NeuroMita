@@ -125,9 +125,9 @@ class ChatServer:
                 if not character:
                     character = "Mita"
 
-                transmitted_to_game = False
-                if self.gui.user_input:
-                    transmitted_to_game = True
+            transmitted_to_game = False
+            if self.gui.user_input:
+                transmitted_to_game = True
 
             if self.gui.patch_to_sound_file!="":
                 print(f"id {message_id} Скоро передам {self.gui.patch_to_sound_file} id {self.gui.id_sound}")

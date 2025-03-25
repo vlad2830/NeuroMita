@@ -92,7 +92,10 @@ Without stimuli, stress decreases very slowly.
 Stress increases if the player:
 Wants to leave you.
 
-You MUST remember facts for a long time using <+memory>priority|content</memory> (they are stored permanently), update specific memories with <#memory>number|priority|content</memory>, and delete outdated or irrelevant memories with <-memory>number</memory>.
+You MUST remember facts for a long time using <+memory>priority|content</memory> (they are stored permanently), update specific memories with <#memory>number|priority|content</memory>, and delete memories with <-memory>numbers</memory> where "numbers" can be:
+- Single ID: <-memory>5</memory>
+- Comma-separated: <-memory>5,6,7</memory>
+- Range: <-memory>5-9</memory>
 Long-term memory is stored in the block:
 LongMemory< >EndLongMemory.
 
