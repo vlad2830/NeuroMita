@@ -288,6 +288,50 @@ namespace MitaAI
 
             try
             {
+                // Инициализация объекта pipe
+                try
+                {
+                    GameObject mitaFuture = Utils.TryfindChild(MitaCore.worldBasement, "Mita Future/MitaPerson Future");
+                    if (mitaFuture != null)
+                    {
+                        try
+                        {
+                            MitaCore.pipe = GameObject.Instantiate(mitaFuture, MitaCore.worldHouse);
+                            MitaAnimationModded.pipe = MitaCore.pipe; // Используем один и тот же объект
+                            
+                            Transform parentTransform = MitaCore.Instance.MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item");
+                            
+                            if (parentTransform != null)
+                            {
+                                MitaCore.pipe.transform.SetParent(parentTransform);
+                                MitaCore.pipe.transform.localPosition = Vector3.zero;
+                                MitaCore.pipe.transform.localRotation = Quaternion.identity;
+                                MitaCore.pipe.SetActive(false);
+                                MelonLogger.Msg("Pipe object initialized successfully");
+                            }
+                            else
+                            {
+                                MelonLogger.Error("Failed to find parent transform for pipe object");
+                                // Установим трубу в мировых координатах, если не найден parent
+                                MitaCore.pipe.transform.position = MitaCore.Instance.MitaPersonObject.transform.position;
+                                MitaCore.pipe.SetActive(false);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MelonLogger.Error($"Error during pipe initialization: {ex}");
+                        }
+                    }
+                    else
+                    {
+                        MelonLogger.Error("Failed to find Mita Future/MitaPerson Future object");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Error($"Error initializing pipe object: {ex}");
+                }
+
                 Transform door = MitaCore.worldBasement.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame/BasementDoor");
                 door.parent.gameObject.GetComponent<Animator>().enabled = false;
                 door.parent.gameObject.GetComponent<Events_Data>().enabled = false;
@@ -301,8 +345,6 @@ namespace MitaAI
             {
                 MelonLogger.Error(ex);
             }
-   
-
 
             InitializeGameObjectsWhenReady();
         }
@@ -467,29 +509,7 @@ namespace MitaAI
 
 
                 MitaCore.KindObject = GameObject.Instantiate(Utils.TryfindChild(world, "Acts/Mita Добрая"), MitaCore.worldHouse);
-                
-                // Добавляем инициализацию трубы из объекта Mita Добрая
-                try 
-                {
-                    MelonLogger.Msg("Пытаемся найти объект по пути: Acts/Mita Добрая/MitaPerson Future/RightItem");
-                    GameObject foundObject = Utils.TryfindChild(world, "Acts/Mita Добрая/MitaPerson Future/RightItem");
-                    
-                    if (foundObject != null) {
-                        MelonLogger.Msg("Объект RightItem найден успешно!");
-                        MitaAnimationModded.pipe = GameObject.Instantiate(foundObject, MitaCore.worldHouse);
-                        MitaAnimationModded.pipe.transform.SetParent(MitaCore.Instance.MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item"));
-                        MitaAnimationModded.pipe.transform.localPosition = Vector3.zero;
-                        MitaAnimationModded.pipe.transform.localRotation = Quaternion.identity;
-                        MitaAnimationModded.pipe.active = false;
-                        MelonLogger.Msg("Pipe успешно инициализирован!");
-                    } else {
-                        MelonLogger.Error("Объект RightItem НЕ найден по указанному пути!");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MelonLogger.Error($"Ошибка при инициализации pipe: {ex}");
-                }
+
 
                 world.gameObject.SetActive(false);
                 
