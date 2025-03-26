@@ -1281,21 +1281,25 @@ namespace MitaAI
                 MelonLogger.Msg("beginHunt ");
                 knife.SetActive(true);
                 mitaState = MitaState.hunt;
-                MelonCoroutines.Start(hunting());
-                Location34_Communication.ActivationCanWalk(false);
-                //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita RunWalkKnife")); //
-                MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
-                MitaAnimationModded.setIdleWalk("Mita WalkKnife");
                 
-                
-                
+
+                if (currentCharacter == character.Creepy && LogicCharacter.Instance != null)
+                {
+                    LogicCharacter.Instance.StartHunt(this);
+                }
+                else
+                {
+                    // Для других персонажей - вызываем внутренний метод охоты
+                    Location34_Communication.ActivationCanWalk(false);
+                    MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
+                    MitaAnimationModded.setIdleWalk("Mita WalkKnife");
+                    MelonCoroutines.Start(hunting());
+                }
             }
             catch (Exception ex)
             {
-
                 MelonLogger.Error("beginHunt " + ex);
             }
-            
         }
         IEnumerator hunting()
         {
@@ -1343,15 +1347,34 @@ namespace MitaAI
         }
         public void endHunt()
         {
-            //MitaPersonObject.GetComponent<Animator_FunctionsOverride>().AnimationClipWalk(AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk"));
-            MitaAnimationModded.setIdleWalk("Mita Walk_1");
-            knife.SetActive(false);
-            movementStyle = MovementStyles.walkNear;
-            Location34_Communication.ActivationCanWalk(true);
-            mitaState = MitaState.normal;
-            MitaSharplyStopTimed(0.5f);
+            if (currentCharacter == character.Creepy && LogicCharacter.Instance != null)
+            {
+                // Для Creepy вызываем логику из LogicCharacter
+                LogicCharacter.Instance.EndHunt();
+            }
+            else
+            {
+                // Для других персонажей используем стандартную логику
+                MitaAnimationModded.setIdleWalk("Mita Walk_1");
+                knife.SetActive(false);
+                movementStyle = MovementStyles.walkNear;
+                Location34_Communication.ActivationCanWalk(true);
+                mitaState = MitaState.normal;
+                MitaSharplyStopTimed(0.5f);
+            }
         }
 
+        // Метод для вызова из LogicCharacter, чтобы активировать анимацию убийства
+        public void ActivateKillerAnimation()
+        {
+            MelonCoroutines.Start(ActivateAndDisableKiller(3));
+        }
+
+        // Метод для LogicCharacter, чтобы установить состояние персонажа
+        public void SetHuntState(bool isHunting)
+        {
+            mitaState = isHunting ? MitaState.hunt : MitaState.normal;
+        }
         #endregion
 
         private IEnumerator MitaSharplyStopTimed(float time)
