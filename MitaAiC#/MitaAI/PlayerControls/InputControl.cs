@@ -59,7 +59,7 @@ namespace MitaAI.PlayerControls
             if (!MitaCore.isRequiredScene()) return;
 
 
-
+            if (!InputFieldExists()) return;
 
             // Обработка блокировки движения при активном вводе
             if (isInputActive != wasInputActive) // Проверяем, изменилось ли состояние ввода
@@ -94,7 +94,7 @@ namespace MitaAI.PlayerControls
             // Обработка нажатия Enter для открытия/закрытия чата и отправки текста
             if (Input.GetKeyDown(KeyCode.Tab) )
             {
-                if (!InputFieldExists()) return;
+                
 
 
                 // Переключаем видимость InputField
@@ -124,7 +124,7 @@ namespace MitaAI.PlayerControls
 
             else if (Input.GetKeyDown(KeyCode.Return))
             {
-                if (!InputFieldExists()) return;
+                
         
 
                 if (isInputBlocked) return; // Если поле ввода заблокировано, ничего не делаем
@@ -162,6 +162,7 @@ namespace MitaAI.PlayerControls
 
                 if (Time.unscaledTime - lastSendTime > timeBeforeInstantSend )
                 {
+                    
 
                     sendMessagePlayer();
                     lastSendTime = Time.unscaledTime;

@@ -340,7 +340,7 @@ class ChatGUI:
 
             else:
                 self.send_message()
-                
+
             SpeechRecognition._text_buffer.clear()
             SpeechRecognition._current_text = ""
 
