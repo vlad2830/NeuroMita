@@ -247,6 +247,12 @@ namespace MitaAI.PlayerControls
                 
             }
 
+            // Тест анимок игрока
+            if (Input.GetMouseButton(1))
+            {
+                PlayerAnimationModded.playObjectAnimationOnPlayerRandom(); ;
+            }
+
             // Постоянно возвращаем фокус на поле ввода, если оно активно
             if (isInputActive && inputField != null)
             {

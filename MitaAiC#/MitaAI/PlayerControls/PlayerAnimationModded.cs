@@ -3,6 +3,7 @@
 using MelonLoader;
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Events;
 
 namespace MitaAI
 {
@@ -108,6 +109,7 @@ namespace MitaAI
             }
         }
 
+        #region objectAnimationPlayer
 
         private static GameObject ObjectAnimationContainer;
         public static void copyObjectAnimationPlayer(Transform parent)
@@ -144,6 +146,78 @@ namespace MitaAI
             }
         }
 
+        public static void playObjectAnimationOnPlayerRandom()
+        {
+            if (ObjectsAnimationPlayer == null || ObjectsAnimationPlayer.Count == 0)
+            {
+                MelonLogger.Msg("No animations available in ObjectsAnimationPlayer");
+                return;
+            }
+
+            // Получаем список всех ключей
+            var keys = new List<string>(ObjectsAnimationPlayer.Keys);
+
+            // Выбираем случайный индекс
+            int randomIndex = UnityEngine.Random.Range(0, keys.Count);
+
+            // Получаем случайный ключ
+            string randomKey = keys[randomIndex];
+
+            // Вызываем анимацию
+            playObjectAnimationOnPlayer(randomKey);
+        }
+
+        public static void playObjectAnimationOnPlayer(string objectAnimationName)
+        {
+ 
+            if (ObjectsAnimationPlayer.ContainsKey(objectAnimationName)){
+                try
+                {
+                    var obj = ObjectsAnimationPlayer[objectAnimationName];
+
+                    obj.eventFinish = new UnityEngine.Events.UnityEvent();
+                    obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
+                    obj.AnimationPlayOnPlayer();
+
+                }
+                catch (Exception Ex)
+                {
+
+                    MelonLogger.Error(Ex);
+                }
+                
+            }
+        }
+
+        // -0,4194 0,3125 -0,0256  60,0001 91,5637 89,5765 Кресло
+
+        public static void playObjectAnimation(String objectAnimationName, Transform Object, Vector3 localCoords,Quaternion localRotate)
+        {
+
+            if (ObjectsAnimationPlayer.ContainsKey(objectAnimationName))
+            {
+
+                try
+                {
+                    var obj = ObjectsAnimationPlayer[objectAnimationName];
+                    obj.transform.SetParent(Object);
+                    obj.transform.SetPositionAndRotation(localCoords, localRotate);
+
+                    obj.eventFinish = new UnityEngine.Events.UnityEvent();
+                    obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
+                    obj.AnimationPlay();
+
+                    
+                }
+                catch (Exception Ex)
+                {
+
+                    MelonLogger.Error(Ex);
+                }
+            }
+        }
+
+        #endregion
 
         public static void FindPlayerAnimationsRecursive(Transform parent)
         {
