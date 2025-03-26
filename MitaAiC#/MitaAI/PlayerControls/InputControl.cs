@@ -20,23 +20,28 @@ namespace MitaAI.PlayerControls
         private static bool wasInputActive = false; // Флаг для отслеживания предыдущего состояния ввода
         private static float savedPlayerSpeed = 1f; // Сохранённая скорость персонажа
 
+
+        public static bool instantSend = false;
+        private static float lastSendTime = 0f;
+        private static float timeBeforeInstantSend = 7f;
+
         public static void UpdateInput(string userInput)
         {
             if (InputFieldComponent == null || inputField == null || string.IsNullOrEmpty(userInput)) return;
 
             // Сохраняем текущие позиции
             int caretPos = inputField.caretPosition;
-            //int selectionAnchor = inputField.selectionAnchorPosition;
-            //int selectionFocus = inputField.selectionFocusPosition;
 
             // Вставляем текст в позицию курсора
             inputField.text = inputField.text.Insert(caretPos, userInput);
-
+            lastSendTime = Time.unscaledTime;
+            InputFieldComponent.SetActive(true);
             // Обновляем позиции курсора и выделения
             int newCaretPos = caretPos + userInput.Length;
             inputField.caretPosition = newCaretPos;
-            //inputField.selectionAnchorPosition = newCaretPos;
-            //inputField.selectionFocusPosition = newCaretPos;           
+            
+
+
         }
 
         // Метод для блокировки/разблокировки поля ввода
@@ -52,6 +57,9 @@ namespace MitaAI.PlayerControls
         public static void processInpute()
         {
             if (!MitaCore.isRequiredScene()) return;
+
+
+
 
             // Обработка блокировки движения при активном вводе
             if (isInputActive != wasInputActive) // Проверяем, изменилось ли состояние ввода
@@ -127,11 +135,7 @@ namespace MitaAI.PlayerControls
 
                     if (inputField != null && !string.IsNullOrEmpty(inputField.text)){
 
-                        ProcessInput(inputField.text); // Обрабатываем введенный текст
-                        inputField.text = "";
-                        InputFieldComponent.SetActive(false);
-                        isInputActive = false;  // Ввод завершен, восстанавливаем движение
-                        isInputLocked = false; // Разблокируем поле ввода
+                        sendMessagePlayer();
                     }
 
 
@@ -149,6 +153,19 @@ namespace MitaAI.PlayerControls
 
                 }
                
+
+            }
+
+            // Автоотправка через сколько-то секунд
+            if (instantSend)
+            {
+
+                if (Time.unscaledTime - lastSendTime > timeBeforeInstantSend )
+                {
+
+                    sendMessagePlayer();
+                    lastSendTime = Time.unscaledTime;
+                }
 
             }
 
@@ -363,9 +380,20 @@ namespace MitaAI.PlayerControls
             inputField.ActivateInputField();
         }
 
+        public static void sendMessagePlayer()
+        {
+            ProcessInput(inputField.text); // Обрабатываем введенный текст
+            inputField.text = "";
+            InputFieldComponent.SetActive(false);
+            isInputActive = false;  // Ввод завершен, восстанавливаем движение
+            isInputLocked = false; // Разблокируем поле ввода
+        }
+
         // Пустышка для обработки ввода
         private static void ProcessInput(string inputText)
         {
+            if (string.IsNullOrEmpty(inputText)) return;
+
             MelonLogger.Msg("Input received: " + inputText);
             MelonCoroutines.Start(DialogueControl.PlayerTalk(inputText));
             MitaCore.Instance.playerMessage += $"{inputText}\n";

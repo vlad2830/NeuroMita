@@ -141,7 +141,6 @@ class ChatServer:
                 "response": str(response),
                 "silero": bool(self.gui.silero_connected and bool(self.gui.settings.get("SILERO_USE"))),
                 "id_sound": int(self.gui.id_sound),
-                "id_sound_cp": int(self.gui.id_sound_cp),
                 "patch_to_sound_file": str(self.gui.patch_to_sound_file),
                 "user_input": str(self.gui.user_input),
 
@@ -150,10 +149,12 @@ class ChatServer:
                 "GM_READ": bool(self.gui.settings.get("GM_READ")),
                 "GM_VOICE": bool(self.gui.settings.get("GM_VOICE")),
                 "GM_REPEAT": int(self.gui.settings.get("GM_REPEAT")),
-                "CC_Limit_mod": int(self.gui.settings.get("CC_Limit_mod"))
+                "CC_Limit_mod": int(self.gui.settings.get("CC_Limit_mod")),
+
+                "instant_send": bool(self.gui.instant_send),
             })
             #print(message_data)
-
+            self.gui.instant_send = False
             self.gui.patch_to_sound_file = ""
 
             if transmitted_to_game:

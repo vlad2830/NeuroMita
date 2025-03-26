@@ -99,7 +99,7 @@ class ChatGUI:
 
         self.patch_to_sound_file = ""
         self.id_sound = -1
-        self.id_sound = -1
+        self.instant_send = False
         self.waiting_answer = False
 
         self.root = tk.Tk()
@@ -317,7 +317,7 @@ class ChatGUI:
                 self.user_entry.insert(tk.END, text_from_recognition)
                 self.user_input = self.user_entry.get("1.0", "end-1c").strip()
                 if not self.dialog_active:
-                    self.instant_send()
+                    self.send_istantly()
 
         elif bool(self.settings.get("MIC_ACTIVE")) and self.user_entry:
             text_from_recognition = SpeechRecognition.receive_text()
@@ -327,7 +327,7 @@ class ChatGUI:
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
 
-    def instant_send(self):
+    def send_istantly(self):
         """Мгновенная отправка распознанного текста"""
         try:
             #if text:
@@ -335,9 +335,12 @@ class ChatGUI:
 
             #self.user_entry.delete("1.0", tk.END)
             #self.user_entry.insert(tk.END, text)
+            if self.game_connected:
+                self.instant_send = True
 
-            self.send_message()
-
+            else:
+                self.send_message()
+                
             SpeechRecognition._text_buffer.clear()
             SpeechRecognition._current_text = ""
 

@@ -13,7 +13,7 @@ namespace MitaAI
 {
     public static class DataChange
     {
-        private const float MitaBoringInterval = 90f;
+        private const float MitaBoringInterval = 120f;
         public static float MitaBoringtimer = 0f;
         
         public static Dictionary<int, string> sound_files = new Dictionary<int, string>();
@@ -200,7 +200,7 @@ namespace MitaAI
                     bool connectedToSilero = messageData2["silero"].GetBoolean();
 
                     int idSound = messageData2["id_sound"].GetInt32();
-                    int idSound_cp = messageData2.ContainsKey("id_sound_cp") ? messageData2["id_sound_cp"].GetInt32() : 0;
+                    //int idSound_cp = messageData2.ContainsKey("id_sound_cp") ? messageData2["id_sound_cp"].GetInt32() : 0;
 
                     patch = messageData2.ContainsKey("patch_to_sound_file") ? messageData2["patch_to_sound_file"].GetString() : "";
                     string user_input = messageData2.ContainsKey("user_input") ? messageData2["user_input"].GetString() : "";
@@ -212,14 +212,17 @@ namespace MitaAI
 
                     int limitmod = messageData2.ContainsKey("CC_Limit_mod") ? messageData2["CC_Limit_mod"].GetInt32() : 100;
 
+                    InputControl.instantSend = messageData2.ContainsKey("instant_send") ? messageData2["instant_send"].GetBoolean() : false;
+
 
                     if (!string.IsNullOrEmpty(patch))
                     {
-                        if (idSound_cp!=0)
-                            sound_files[idSound_cp] = patch;
-                        else
-                            sound_files[idSound] = patch;
+
+                        sound_files[idSound] = patch;
+
+                            
                     }
+
                     if (CharacterControl.gameMaster != null)
                     {
                         CharacterControl.gameMaster.timingEach = GM_REPEAT;
@@ -229,7 +232,12 @@ namespace MitaAI
                     }
                     NetworkController.connectedToSilero = connectedToSilero;
                     CharacterControl.limitMod = limitmod;
-                    if (!string.IsNullOrEmpty(user_input)) InputControl.UpdateInput(user_input);
+
+
+                    InputControl.UpdateInput(user_input);
+
+
+
                 }
                 catch (Exception ex)
                 {
