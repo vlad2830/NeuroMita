@@ -23,7 +23,8 @@ namespace MitaAI.PlayerControls
 
         public static bool instantSend = false;
         private static float lastSendTime = 0f;
-        private static float timeBeforeInstantSend = 7f;
+        private static float timeBeforeInstantSend = 8f;
+        
 
         public static void UpdateInput(string userInput)
         {
@@ -351,7 +352,7 @@ namespace MitaAI.PlayerControls
 
             image.color = new Color(0f, 0f, 0f, 0.7f);
             inputField.image = image;
-
+            inputField.onValueChanged.AddListener(new Action<string>(OnInputValueChanged));
             var TextLegacy = new GameObject("TextLegacy");
             var textComponent = TextLegacy.AddComponent<Text>();
             TextLegacy.transform.parent = InputFieldComponent.transform;
@@ -404,6 +405,12 @@ namespace MitaAI.PlayerControls
             MitaCore.Instance.playerMessageCharacters = CharacterControl.GetCharactersToAnswer();
 
 
+        }
+        // В методе CreateInputComponent после создания InputField добавьте:
+        private static void OnInputValueChanged(string text)
+        {
+            // Вызывается при каждом изменении текста
+            lastSendTime = Time.unscaledTime; // Обновляем таймер для instantSend
         }
 
         public static Sprite CreateBlackSprite(int width, int height)
