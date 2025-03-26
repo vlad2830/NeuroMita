@@ -39,13 +39,17 @@ namespace MitaAI
         // эффекты сна
         private GameObject particleSleep;
 
+        private MitaCore mitaCore;
+
         private LogicCharacter() { } //пока-что нечего
 
         public void Initialize(GameObject character, MitaCore.character type)
         {
-            // Убрана проверка isInitialized, чтобы разрешить повторную инициализацию при смене персонажа
             SetCharacterObject(character);
             characterType = type;
+            //Получаем компоненты
+            navMeshAgent = character.GetComponent<NavMeshAgent>();
+            animator = character.GetComponent<Animator>();
             AdjustCharacterSettings(); // Настройка параметров в зависимости от типа
             isInitialized = true;
 
@@ -198,8 +202,9 @@ namespace MitaAI
         }
 
         // Начало охоты для Creepy
-        public void BeginHunt()
+        public void StartHunt(MitaCore mitaCore)
         {
+            this.mitaCore = mitaCore;
             if (characterType != MitaCore.character.Creepy) return;
 
             try
