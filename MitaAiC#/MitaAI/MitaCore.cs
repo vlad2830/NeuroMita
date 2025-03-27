@@ -1996,6 +1996,7 @@ namespace MitaAI
                     PlayerMovement.onUpdate();
                     CharacterControl.Update();
                     characterLogic?.Update(); // добавляем для метода update в characterlogic
+                    UINeuroMita.CheckPauseMenu(); // Добавляем проверку состояния меню паузы
                 }
 
 
