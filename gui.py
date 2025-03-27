@@ -317,7 +317,7 @@ class ChatGUI:
                 self.user_entry.insert(tk.END, text_from_recognition)
                 self.user_input = self.user_entry.get("1.0", "end-1c").strip()
                 if not self.dialog_active:
-                    self.send_istantly()
+                    self.send_instantly()
 
         elif bool(self.settings.get("MIC_ACTIVE")) and self.user_entry:
             text_from_recognition = SpeechRecognition.receive_text()
@@ -327,7 +327,7 @@ class ChatGUI:
         # Перезапуск проверки через 100 миллисекунд
         self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
 
-    def send_istantly(self):
+    def send_instantly(self):
         """Мгновенная отправка распознанного текста"""
         try:
             #if text:
@@ -470,11 +470,14 @@ class ChatGUI:
 
         self.setup_language_controls(settings_frame)
         self.setup_microphone_controls(settings_frame)
-        self.setup_silero_controls(settings_frame)
+        self.setup_tg_controls(settings_frame)
         self.setup_mita_controls(settings_frame)
         self.setup_model_controls(settings_frame)
         self.setup_common_controls(settings_frame)
         self.setup_game_master_controls(settings_frame)
+
+        self.setup_api_controls_new(settings_frame)
+
         #self.setup_new_game_master_controls(settings_frame)
         # Передаем settings_frame как родителя
         self.setup_status_indicators(settings_frame)
@@ -659,6 +662,9 @@ class ChatGUI:
 
         self.update_debug_info()
 
+
+    #region SetupControls
+
     def setup_debug_controls(self, parent):
         debug_frame = tk.Frame(parent, bg="#2c2c2c")
         debug_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -768,7 +774,7 @@ class ChatGUI:
             self.api_hash_entry.insert(0, self.api_hash)
             self.phone_entry.insert(0, self.phone)
 
-    def setup_silero_controls(self, parent):
+    def setup_tg_controls(self, parent):
         # Основные настройки
         mita_voice_config = [
             {'label': _('Использовать озвучку', 'Use speech'), 'key': 'SILERO_USE', 'type': 'checkbutton',
@@ -790,6 +796,13 @@ class ChatGUI:
              'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
         ]
 
+        # В работе
+        if False:
+            mita_voice_config.extend([
+                {'label': _('Telegram id'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry','default':""},
+                {'label': _('Telegram hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry','default':""},
+                {'label': _('Telegram number'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry','default':""},
+        ])
         self.create_settings_section(parent, _("Настройка озвучки","Speech settings"), mita_voice_config)
 
     def setup_mita_controls(self, parent):
@@ -850,6 +863,23 @@ class ChatGUI:
              'default': 5, 'tooltip': 'Описание новой настройки 2'}
         ]
         self.create_settings_section(parent, "Новая секция", new_common_config)
+
+    def setup_api_controls_new(self, parent):
+        # Основные настройки
+        common_config = [
+            {'label': _('Ссылка', 'URL'), 'key': 'NM_API_URL', 'type': 'entry'},
+            {'label': _('Модель', 'Model'), 'key': 'NM_API_MODEL', 'type': 'entry'},
+            {'label': _('Ключ', 'Key'), 'key': 'NM_API_KEY', 'type': 'entry'},
+            {'label': _('Резервные ключи', 'Reserve keys'), 'key': 'NM_API_KEY_RES', 'type': 'text'},
+            {'label': _('Через Request', 'Using Request'), 'key': 'NM_API_REQ', 'type': 'checkbutton'},
+            {'label': _('Спец Структура Гемини', 'Special Gemini Case'), 'key': 'GEMINI_CASE', 'type': 'checkbutton','default_checkbutton':False}
+        ]
+        self.create_settings_section(parent,
+                                     _("Настройки API", "API settings"),
+                                     common_config)
+
+
+    #endregion
 
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
