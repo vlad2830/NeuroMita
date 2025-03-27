@@ -77,8 +77,9 @@ class ChatGUI:
             target_folder = "Settings"
             os.makedirs(target_folder, exist_ok=True)
             self.config_path = os.path.join(target_folder, "settings.json")
-            self.settings = SettingsManager(self.config_path)
+
             self.load_api_settings(False)  # Загружаем настройки при инициализации
+            self.settings = SettingsManager(self.config_path)
         except Exception as e:
             print("Не удалось удачно получить из системных переменных все данные", e)
             self.settings = SettingsManager("Settings/settings.json")

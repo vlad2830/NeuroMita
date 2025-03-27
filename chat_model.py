@@ -38,6 +38,7 @@ class ChatModel:
 
         # Временное решение, чтобы возвращать работоспособность старого формата
 
+        self.last_key = 0
         self.OldSystem = False
 
         self.gui = gui
@@ -106,7 +107,7 @@ class ChatModel:
         self.HideAiData = True
 
         # Настройки реквестов
-        self.max_request_attempts = int(self.gui.settings.get("MODEL_MESSAGE_ATTEMPTS_COUNT", 3))
+        self.max_request_attempts = int(self.gui.settings.get("MODEL_MESSAGE_ATTEMPTS_COUNT", 5))
         self.request_delay = float(self.gui.settings.get("MODEL_MESSAGE_ATTEMPTS_TIME", 0.20))
 
     def init_characters(self):
@@ -305,42 +306,51 @@ class ChatModel:
         """Генерирует ответ с использованием единого цикла"""
         max_attempts = self.max_request_attempts  # Общее максимальное количество попыток
         retry_delay = self.request_delay  # Задержка между попытками в секундах
-        used_reserve_key = False  # Флаг использования резервного ключа
 
         # Определяем провайдера для первой попытки
         use_gemini = self.makeRequest and not bool(self.gui.settings.get("gpt4free"))
 
+        self._log_generation_start()
         for attempt in range(1, max_attempts + 1):
             print(f"Попытка генерации {attempt}/{max_attempts}")
             response = None
 
             # Логируем начало генерации
-            self._log_generation_start()
+
             save_combined_messages(combined_messages)
 
             try:
                 # Выбираем провайдера
-                if use_gemini:  # Gemini только на первой попытке
+                if use_gemini:  #
                     formatted = self._format_messages_for_gemini(combined_messages)
                     response = self._generate_gemini_response(formatted)
                 else:
                     # Переключаем ключи начиная со второй попытки
-                    if attempt > 1:
-                        self.update_openai_client(reserve_key=not used_reserve_key)
-                        used_reserve_key = not used_reserve_key
 
-                    response = self._generate_openai_response(combined_messages)
+                    if attempt >= max_attempts - 2:
+                        print("Пробую gtp4free")
+                        response = self._generate_openai_response(combined_messages, use_gpt4free=True)
+                    else:
+                        if attempt > 1:
+                            key = self.GetOtherKey()
+                            print(f"Пробую другой ключ {self.last_key} {key}")
+                            self.update_openai_client(reserve_key=key)
+
+                        response = self._generate_openai_response(combined_messages)
+
+
 
                 if response:
                     response = self._clean_response(response)
-                    #logger.info(f"Успешный ответ:\n{response}")
-                    return response, True
+                    # logger.info(f"Успешный ответ:\n{response}")
+                    if response:
+                        return response, True
 
             except Exception as e:
                 logger.error(f"Ошибка генерации: {str(e)}")
 
             # Если ответа нет - ждем перед следующей попыткой
-            if attempt < max_attempts and not used_reserve_key:
+            if attempt < max_attempts:
                 print(f"Ожидание {retry_delay} сек. перед повторной попыткой...")
                 time.sleep(retry_delay)
 
@@ -376,7 +386,7 @@ class ChatModel:
             logger.error("Что-то не так при генерации Gemini", str(e))
             return None
 
-    def _generate_openai_response(self, combined_messages):
+    def _generate_openai_response(self, combined_messages,use_gpt4free=False):
         if not self.client:
             logger.info("Попытка переподключения клиента")
             self.update_openai_client()
@@ -389,7 +399,7 @@ class ChatModel:
 
             print(f"Перед запросом  {len(combined_messages)}", )
 
-            if bool(self.gui.settings.get("gpt4free")):
+            if bool(self.gui.settings.get("gpt4free")) or use_gpt4free:
                 print("gpt4free case")
 
                 completion = self.g4fClient.chat.completions.create(
@@ -650,3 +660,19 @@ class ChatModel:
                    isinstance(msg, dict) and "content" in msg)
 
     #endregion
+    def GetOtherKey(self):
+        """
+        Получаем ключ на замену сломанному
+        :return:
+        """
+        keys = [self.api_key] + self.gui.settings.get("NM_API_KEY_RES").split()
+        count = len(keys)
+
+        i = self.last_key + 1
+
+        if i >= count:
+            i = 0
+
+        self.last_key = i
+
+        return keys[i]
