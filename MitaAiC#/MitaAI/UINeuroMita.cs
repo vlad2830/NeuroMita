@@ -17,6 +17,8 @@ namespace MitaAI
     {
         static bool InludeNewMita_TEST = true;
 
+        // Добавляем переменную для отслеживания состояния меню паузы
+        static bool isPauseMenu = false;
 
         static GameObject MenuObject;
         static Menu MainMenu;
@@ -35,11 +37,26 @@ namespace MitaAI
             FrameMenuObject = MenuObject.transform.Find("Canvas/FrameMenu").gameObject;
             //makeButtonTemplate();
 
-
-
             ButtonNeuroMita();
 
             MenuNeuroMita();
+        }
+
+        // Добавляем метод для проверки состояния меню паузы
+        public static void CheckPauseMenu()
+        {
+            // Запоминаем предыдущее состояние
+            bool wasPauseMenu = isPauseMenu;
+
+            // Ищем объект меню паузы
+            GameObject pauseMenuObject = GameObject.Find("GameController/Interface/FastMenu(Clone)");
+            isPauseMenu = pauseMenuObject != null;
+
+            // Если состояние изменилось, выводим сообщение
+            if (wasPauseMenu != isPauseMenu)
+            {
+                MelonLogger.Msg($"Меню паузы: {isPauseMenu}");
+            }
         }
 
         static void makeButtonTemplate()
