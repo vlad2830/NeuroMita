@@ -20,6 +20,16 @@ namespace MitaAI.WorldModded
             ConsoleStarted = true;
 
         }
+        public static void caseConsoleStart()
+        {
+            GameObject console = GameObject.Find("Console");
+            if (ConsoleStarted) return;
+
+            console.GetComponent<ObjectInteractive>().enabled = false;
+            MelonCoroutines.Start(caseConsoleAct(console));
+            ConsoleStarted = true;
+
+        }
 
         public static void sofaStart(GameObject gameObject)
         {

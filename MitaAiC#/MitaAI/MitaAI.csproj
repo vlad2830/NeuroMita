@@ -327,6 +327,7 @@
 		<Compile Include="Characters\LogicCharacter.cs" />
 		<Compile Include="ConnectionAndDialogue\DialogueControl.cs" />
 		<Compile Include="ConnectionAndDialogue\DataChange.cs" />
+		<Compile Include="Mita\ObjectAnimationMita.cs" />
 		<Compile Include="PlayerControls\PlayerMovement.cs" />
 		<Compile Include="UINeuroMita.cs" />
 		<Compile Include="Settings.cs" />

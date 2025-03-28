@@ -2,6 +2,7 @@ using Il2Cpp;
 using Il2CppEPOOutline;
 using MelonLoader;
 using MitaAI.Mita;
+using MitaAI.WorldModded;
 using System;
 using System.Collections;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Il2Cpp.Event_CreateResource;
@@ -114,7 +116,9 @@ namespace MitaAI
             //MitaCore.AddAnimationEvent(drop.gameObject, drop.animationStart,"ConsoleEnd");
             //drop.eventStartAnimaiton = null;
             //drop.eventStartLoop = null;
-            drop.eventFinish = EventsProxy.ChangeAnimationEvent(drop.gameObject, "ConsoleEnd");
+            drop.eventFinish.RemoveAllListeners();
+            drop.eventFinish.AddListener( (UnityAction) InteractionCases.caseConsoleStart  ) ;
+                //EventsProxy.ChangeAnimationEvent(drop.gameObject, "ConsoleEnd");
             //GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
 
         }

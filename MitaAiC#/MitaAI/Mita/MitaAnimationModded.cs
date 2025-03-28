@@ -644,6 +644,34 @@ namespace MitaAI.Mita
             animationQueue.Clear();
             isPlaying = false;
         }
+    
+    
+    
+    
+    
+    
+        public static void animateMitaObject(string anim)
+        {
+
+
+
+
+        }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     }
 
 }
