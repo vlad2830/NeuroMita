@@ -1138,44 +1138,62 @@ class ChatGUI:
     """Спасибо Nelxi (distrane25)"""
 
     def setup_microphone_controls(self, parent):
-        mic_frame = tk.Frame(parent, bg="#2c2c2c")
-        mic_frame.pack(fill=tk.X, pady=5)
+        # Конфигурация настроек микрофона
+        mic_settings = [
+            {
+                'label': _("Микрофон", "Microphone"),
+                'type': 'combobox',
+                'key': 'MIC_DEVICE',
+                'options': self.get_microphone_list(),
+                'default': '',
+                'command': self.on_mic_selected,
+                'widget_attrs': {
+                    'width': 30
+                }
+            },
+            {
+                'label': _("Распознавание", "Recognition"),
+                'type': 'checkbutton',
+                'key': 'MIC_ACTIVE',
+                'default_checkbutton': False,
+                'tooltip': _("Включить/выключить распознавание голоса", "Toggle voice recognition")
+            },
+            {
+                'label': _("Мгновенная отправка", "Immediate sending"),
+                'type': 'checkbutton',
+                'key': 'MIC_INSTANT_SENT',
+                'default_checkbutton': False,
+                'tooltip': _("Отправлять сообщение сразу после распознавания",
+                             "Send message immediately after recognition")
+            },
+            {
+                'label': _("Обновить список", "Refresh list"),
+                'type': 'button',
+                'command': self.update_mic_list,
+                'widget_attrs': {
+                    'width': 3,
+                    'bg': "#6a5acd",
+                    'text': "↻"
+                }
+            }
+        ]
 
-        tk.Label(
-            mic_frame,
-            text=_("Микрофон:","Microphone"),
-            bg="#2c2c2c",
-            fg="#ffffff"
-        ).pack(side=tk.LEFT, padx=5)
-
-        self.mic_combobox = ttk.Combobox(
-            mic_frame,
-            values=self.get_microphone_list(),
-            state="readonly",
-            width=30
+        # Создаем секцию
+        self.mic_section = self.create_settings_section(
+            parent,
+            _("Настройки микрофона", "Microphone Settings"),
+            mic_settings
         )
-        self.mic_combobox.pack(side=tk.LEFT, padx=5)
-        self.mic_combobox.bind("<<ComboboxSelected>>", self.on_mic_selected)
 
-        refresh_btn = tk.Button(
-            mic_frame,
-            text="↻",
-            command=self.update_mic_list,
-            bg="#8a2be2",
-            fg="#ffffff",
-            width=2
-        )
-        refresh_btn.pack(side=tk.LEFT, padx=5)
-
-        # вот это мне не оч нравится, как-то кривовато, но ок
-        mic_frame_2 = tk.Frame(parent, bg="#2c2c2c")
-        mic_frame_2.pack(fill=tk.X, pady=5)
-        self.create_setting_widget(mic_frame_2, _('Распознавание','Recognition'), "MIC_ACTIVE", widget_type='checkbutton',
-                                   default_checkbutton=False)
-
-        self.create_setting_widget(parent, _('Мгновенная отправка','Immediate sending'), "MIC_INSTANT_SENT", widget_type='checkbutton',
-                                   default_checkbutton=False)
-
+        # Сохраняем ссылки на важные виджеты
+        for widget in self.mic_section.content_frame.winfo_children():
+            if isinstance(widget, tk.Frame):
+                for child in widget.winfo_children():
+                    if isinstance(child, ttk.Combobox):
+                        self.mic_combobox = child
+                    elif isinstance(child, tk.Checkbutton):
+                        if 'MIC_ACTIVE' in str(widget):
+                            self.mic_active_check = child
     def get_microphone_list(self):
         try:
             devices = sd.query_devices()
@@ -1190,6 +1208,7 @@ class ChatGUI:
             return []
 
     def update_mic_list(self):
+        print("Test")
         self.mic_combobox['values'] = self.get_microphone_list()
 
     def on_mic_selected(self, event):
@@ -1368,12 +1387,27 @@ class ChatGUI:
             cb.pack(side=tk.LEFT, padx=5)
 
         elif widget_type == 'button':
-            btn = tk.Button(frame, text=label, bg="#8a2be2", fg="#ffffff",
-                            command=lambda: [self._save_setting(setting_key, True),
-                                             command() if command else None])
+
+            btn = tk.Button(
+                frame,
+                text=label,
+                bg="#8a2be2",
+                fg="#ffffff",
+                activebackground="#6a1bcb",
+                activeforeground="#ffffff",
+                relief=tk.RAISED,
+                bd=2,
+                command=lambda: command() if command else None,
+            )
+
             if width:
                 btn.config(width=width)
-            btn.pack(side=tk.LEFT, padx=5)
+
+            btn.pack(side=tk.LEFT, padx=5, ipadx=5, ipady=2)
+
+            # Сохраняем ссылку на кнопку, если нужно
+            if setting_key:
+                self._save_setting(setting_key, False)
 
         elif widget_type == 'scale':
             var = tk.DoubleVar(value=self.settings.get(setting_key, default))
