@@ -595,29 +595,16 @@ namespace MitaAI.Mita
         }
         static public void setIdleAnimation(string animName)
         {
-
-            
-
-            if (bundle == null)
-            {
-                bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            }
-
-            
+           
             if (!string.IsNullOrEmpty(animName))
             {
                 try
                 {
                     currentIdleAnim = animName;
-                    MelonLogger.Error($"111");
                     AnimationClip anim = FindAnimationClipByName(animName);
                     if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
-                    MelonLogger.Error($"222: {anim.name}");
                     location34_Communication.mitaAnimationIdle = anim;
-                   // if (overrideController == null) overrideController = animator.runtimeAnimatorController as AnimatorOverrideController;
-                   // MelonLogger.Error($"333: {overrideController.name}");
-                   // overrideController.SetClip(idleAnimation, anim, true);
-                   // MelonLogger.Error($"444");
+
                    
                 }
                 catch (Exception e)
@@ -631,38 +618,22 @@ namespace MitaAI.Mita
         }
         static public void setIdleWalk(string animName)
         {
-            MelonLogger.Msg($"Try setIdleWalk {animName}");
-            if (bundle == null)
+
+            if (string.IsNullOrEmpty(animName)) return;
+            
+            AnimationClip anim = FindAnimationClipByName(animName);
+            if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+
+            if (anim == null)
             {
-                bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
+                MelonLogger.Msg($"setIdleWalk {animName} is null");
             }
-
-            if (!string.IsNullOrEmpty(animName) )
+            else
             {
-                AnimationClip anim = FindAnimationClipByName(animName);
-                if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
-
-                if (anim == null) { 
-                    MelonLogger.Msg($"setIdleWalk {animName} is null"); 
-                }
-                else
-                {
-                    AnimationClip curretAnim = location34_Communication.mitaAnimationWalk;
-                    if (curretAnim == null) {
-                        MelonLogger.Msg($"location34_Communication.mitaAnimationWalk is null");
-                        curretAnim = FindAnimationClipByName("Mita Walk_1");
-                        if (curretAnim == null) {
-                            MelonLogger.Msg($"FindAnimationClipByName(\"Mita Walk\"); is null");
-                        }
-
-                    }
-
-                    location34_Communication.mitaAnimationWalk = anim;
-                    mitaAnimatorFunctions.ReAnimationClip("Mita Walk_1", anim);
-                    
-                }
-
-            }
+                location34_Communication.mitaAnimationWalk = anim;
+                mitaAnimatorFunctions.ReAnimationClip("Mita Walk_1", anim);
+                location34_Communication.AnimationReWalk(anim);
+            }       
 
 
         }
