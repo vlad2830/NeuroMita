@@ -42,7 +42,7 @@ def getTranslationVariant(ru_str, en_str=""):
     return ru_str
 
 
-_ = getTranslationVariant  # Временно пока чтобы не падало
+_ = getTranslationVariant  # Временно, мб
 
 
 class ChatGUI:
@@ -496,7 +496,7 @@ class ChatGUI:
 
         self.setup_history_controls(settings_frame)
         self.setup_debug_controls(settings_frame)
-        self.setup_api_controls(settings_frame)
+        #self.setup_api_controls(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
 
@@ -780,13 +780,15 @@ class ChatGUI:
         mita_voice_config = [
             {'label': _('Использовать озвучку', 'Use speech'), 'key': 'SILERO_USE', 'type': 'checkbutton',
              'default': True},
-            {'label': _('Вариант озвучки',"Speech option"), 'key': 'AUDIO_BOT', 'type': 'combobox',
-             'options': ["@silero_voice_bot", "@CrazyMitaAIbot (Без тг)", "@CrazyMitaAIbot"],
-             'default': "@silero_voice_bot"},
-            #{'label': 'Канал тг-бота', 'key': 'TG_BOT', 'type': 'combobox',
-            #'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': '@CrazyMitaAIbot'},
-            {'label': _('Максимальное ожидание','Max awaiting time'), 'key': 'SILERO_TIME', 'type': 'entry', 'default': 7,
+            {'label': _('Вариант озвучки', "Speech option"), 'key': 'LOCAL_OR_NET', 'type': 'combobox',
+             'options': ["TG", "Local"], 'default': "TG"},
+            {'label': _('Канал телеграмм',"Telegram channel"), 'key': 'AUDIO_BOT', 'type': 'combobox',
+             'options': ["@silero_voice_bot","@CrazyMitaAIbot"],'default': "@silero_voice_bot"},
+            {'label': _('Максимальное ожидание','Max awaiting time'), 'key': 'SILERO_TIME', 'type': 'entry', 'default': 12,
              'validation': self.validate_number},
+        ]
+        if False:
+            mita_voice_config.extend([
             {'label': _('Без тг | Движок',"No TG | engine"), 'key': 'MIKUTTS_ENGINE', 'type': 'combobox',
              'options': ["Edge", "Vosk", "Silero"], 'default': "Edge"},
             {'label': _('Без тг | Скорость голоса','No TG | Voice speed'), 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
@@ -795,14 +797,14 @@ class ChatGUI:
              'default': 0},
             {'label': _("Без тг | SILERO | Провайдер",'No TG | SILERO | Provider'), 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox',
              'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
-        ]
+            ])
 
-        # В работе
-        if False:
-            mita_voice_config.extend([
-                {'label': _('Telegram id'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry','default':""},
-                {'label': _('Telegram hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry','default':""},
-                {'label': _('Telegram number'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry','default':""},
+        # ТГ
+        mita_voice_config.extend([
+                {'label': _('Настройки ТГ будут скрыты после перезапуска!','TG Settings will be hidden after restart!'),'type': 'text'},
+                {'label': _('Telegram id'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry','default':"",'hide': bool(self.settings.get("HIDE_PRIVATE"))},
+                {'label': _('Telegram hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry','default':"",'hide':bool(self.settings.get("HIDE_PRIVATE"))},
+                {'label': _('Telegram number'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry','default':"",'hide':bool(self.settings.get("HIDE_PRIVATE"))},
         ])
         self.create_settings_section(parent, _("Настройка озвучки","Speech settings"), mita_voice_config)
 
@@ -821,6 +823,7 @@ class ChatGUI:
             {'label': _('Использовать gpt4free','Use gpt4free'), 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
             {'label': _('gpt4free | Модель gpt4free','gpt4free | model gpt4free'), 'key': 'gpt4free_model', 'type': 'entry', 'default': "gemini-1.5-flash"},
             # gpt-4o-mini тоже подходит
+            {'label': _('Настройки ВСЕХ моделей', 'All models settings'), 'type': 'text'},
             {'label': _('Лимит сообщений','Message limit'), 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40,
              'tooltip':_('Сколько сообщений будет помнить мита','How much messages Mita will remember')},
             {'label': _('Кол-во попыток','Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 'type': 'entry', 'default': 3},
@@ -871,7 +874,7 @@ class ChatGUI:
             {'label': _('Ссылка', 'URL'), 'key': 'NM_API_URL', 'type': 'entry'},
             {'label': _('Модель', 'Model'), 'key': 'NM_API_MODEL', 'type': 'entry'},
             {'label': _('Ключ', 'Key'), 'key': 'NM_API_KEY', 'type': 'entry'},
-            {'label': _('Резервные ключи', 'Reserve keys'), 'key': 'NM_API_KEY_RES', 'type': 'text'},
+            {'label': _('Резервные ключи', 'Reserve keys'), 'key': 'NM_API_KEY_RES', 'type': 'text', 'hide':  bool(self.settings.get("HIDE_PRIVATE")) },
             {'label': _('Через Request', 'Using Request'), 'key': 'NM_API_REQ', 'type': 'checkbutton'},
             {'label': _('Спец Структура Гемини', 'Special Gemini Case'), 'key': 'GEMINI_CASE', 'type': 'checkbutton','default_checkbutton':False}
         ]
@@ -1282,7 +1285,8 @@ class ChatGUI:
                 default=config.get('default', ''),
                 default_checkbutton=config.get('default_checkbutton', False),
                 validation=config.get('validation', None),
-                tooltip=config.get('tooltip', "")
+                tooltip=config.get('tooltip', ""),
+                hide = config.get('hide', False)
             )
             section.add_widget(widget)
 
@@ -1290,7 +1294,7 @@ class ChatGUI:
 
     def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
                               options=None, default='', default_checkbutton=False, validation=None, tooltip=None,
-                              width=None, height=None, command=None):
+                              width=None, height=None, command=None,hide=False):
 
         """
         Создает виджет настройки с различными параметрами.
@@ -1307,6 +1311,7 @@ class ChatGUI:
             width: Ширина виджета
             height: Высота виджета (для текстовых полей)
             command: Функция, вызываемая при изменении значения
+            hide: не выводит при перезагрузке скрытые поля
         """
         # Применяем default при первом запуске
         if not self.settings.get(setting_key):
@@ -1324,7 +1329,9 @@ class ChatGUI:
             entry = tk.Entry(frame, bg="#1e1e1e", fg="#ffffff", insertbackground="white")
             if width:
                 entry.config(width=width)
-            entry.insert(0, self.settings.get(setting_key, default))
+
+            if not hide:
+                entry.insert(0, self.settings.get(setting_key, default))
             entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
             def save_entry():

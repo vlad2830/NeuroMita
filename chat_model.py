@@ -59,7 +59,6 @@ class ChatModel:
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
-
             print("Со старта удалось запустить OpenAi client")
         except:
             print("Со старта не получилось запустить OpenAi client")
@@ -320,25 +319,28 @@ class ChatModel:
             save_combined_messages(combined_messages)
 
             try:
-                # Выбираем провайдера
-                if use_gemini:  #
-                    formatted = self._format_messages_for_gemini(combined_messages)
-                    response = self._generate_gemini_response(formatted)
+                # Через реквест
+                if bool(self.gui.settings.get("NM_API_REQ", False)):  #
+
+                    if bool(self.gui.settings.get("GEMINI_CASE", False)):
+                        combined_messages = self._format_messages_for_gemini(combined_messages)
+
+                    response = self._generate_request_response(combined_messages)
+
+                # Через openapi
                 else:
                     # Переключаем ключи начиная со второй попытки
 
                     if attempt >= max_attempts - 2:
                         print("Пробую gtp4free")
-                        response = self._generate_openai_response(combined_messages, use_gpt4free=True)
+                        response = self._generate_openapi_response(combined_messages, use_gpt4free=True)
                     else:
                         if attempt > 1:
                             key = self.GetOtherKey()
                             print(f"Пробую другой ключ {self.last_key} {key}")
                             self.update_openai_client(reserve_key=key)
 
-                        response = self._generate_openai_response(combined_messages)
-
-
+                        response = self._generate_openapi_response(combined_messages)
 
                 if response:
                     response = self._clean_response(response)
@@ -364,6 +366,8 @@ class ChatModel:
         logger.info(f"API URL: {self.api_url}")
         logger.info(f"API Model: {self.api_model}")
         logger.info(f"Make Request: {self.makeRequest}")
+        logger.info(self.gui.settings.get("NM_API_REQ", False))
+        logger.info(self.gui.settings.get("GEMINI_CASE", False))
 
     def _format_messages_for_gemini(self, combined_messages):
         #TODO Надо кароче первые сообщения сделать системными
@@ -377,16 +381,19 @@ class ChatModel:
         save_combined_messages(formatted_messages, "Gem")
         return formatted_messages
 
-    def _generate_gemini_response(self, formatted_messages):
+    def _generate_request_response(self, formatted_messages):
         try:
-            response = self.generate_responseGemini(formatted_messages)
+            if bool(self.gui.settings.get("GEMINI_CASE", False)):
+                response = self.generate_request_gemini(formatted_messages)
+            else:
+                response = self.generate_request_common(formatted_messages)
             logger.info(f"Ответ Gemini: {response}", )
             return response
         except Exception as e:
             logger.error("Что-то не так при генерации Gemini", str(e))
             return None
 
-    def _generate_openai_response(self, combined_messages,use_gpt4free=False):
+    def _generate_openapi_response(self, combined_messages, use_gpt4free=False):
         if not self.client:
             logger.info("Попытка переподключения клиента")
             self.update_openai_client()
@@ -500,7 +507,7 @@ class ChatModel:
             logger.error(f"Проблема с префиксами или постфиксами: {e}")
         return response
 
-    def generate_responseGemini(self, combined_messages):
+    def generate_request_gemini(self, combined_messages):
         data = {
             "contents": [
                 {"role": msg["role"], "parts": [{"text": msg["content"]}]} for msg in combined_messages
@@ -526,6 +533,36 @@ class ChatModel:
             generated_text = response_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get(
                 "text", "")
             logger.info("Gemini Flash: \n" + generated_text)
+            return generated_text
+        else:
+            logger.error(f"Ошибка: {response.status_code}, {response.text}")
+            return None
+
+    def generate_request_common(self, combined_messages):
+        data = {
+            "model": self.gui.settings.get("NM_API_MODEL"),  # Добавляем указание модели
+            "messages": [
+                {"role": msg["role"], "content": msg["content"]} for msg in combined_messages
+            ],
+            "max_tokens": self.max_response_tokens,  # Изменяем имя параметра
+            "temperature": 1,
+            "presence_penalty": 1.5  # Изменяем формат имени параметра
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
+        }
+
+        logger.info("Отправляю запрос к RequestCommon")
+        save_combined_messages(data, "RequestCommon")
+        response = requests.post(self.api_url, headers=headers, json=data)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            # Формат ответа DeepSeek отличается от Gemini
+            generated_text = response_data.get("choices", [{}])[0].get("message", {}).get("content", "")
+            logger.info("Common request: \n" + generated_text)
             return generated_text
         else:
             logger.error(f"Ошибка: {response.status_code}, {response.text}")
