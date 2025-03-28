@@ -470,23 +470,21 @@ class ChatGUI:
         right_canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux (прокрутка вниз)
 
         self.setup_language_controls(settings_frame)
-        self.setup_microphone_controls(settings_frame)
-        self.setup_tg_controls(settings_frame)
-        self.setup_mita_controls(settings_frame)
-        self.setup_model_controls(settings_frame)
-        self.setup_common_controls(settings_frame)
-        self.setup_game_master_controls(settings_frame)
-
         self.setup_api_controls_new(settings_frame)
+        self.setup_model_controls(settings_frame)
+        self.setup_tg_controls(settings_frame)
 
-        #self.setup_new_game_master_controls(settings_frame)
+        self.setup_mita_controls(settings_frame)
+
+
+
         # Передаем settings_frame как родителя
         self.setup_status_indicators(settings_frame)
 
         # Настройка элементов управления
         # Создаем контейнер для всех элементов управления
-        self.controls_frame = tk.Frame(settings_frame, bg="#2c2c2c")
-        self.controls_frame.pack(fill=tk.X, pady=3)
+        #self.controls_frame = tk.Frame(settings_frame, bg="#2c2c2c")
+        #self.controls_frame.pack(fill=tk.X, pady=3)
 
         # Настройка элементов управления
         #self.setup_control("Отношение к игроку", "attitude", self.model.attitude)
@@ -496,7 +494,10 @@ class ChatGUI:
 
         self.setup_history_controls(settings_frame)
         self.setup_debug_controls(settings_frame)
-        #self.setup_api_controls(settings_frame)
+
+        self.setup_common_controls(settings_frame)
+        self.setup_game_master_controls(settings_frame)
+        self.setup_microphone_controls(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
 
