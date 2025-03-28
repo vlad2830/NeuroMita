@@ -469,17 +469,16 @@ class ChatGUI:
         right_canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux (прокрутка вверх)
         right_canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux (прокрутка вниз)
 
+        self.setup_status_indicators(settings_frame)
         self.setup_language_controls(settings_frame)
         self.setup_api_controls_new(settings_frame)
         self.setup_model_controls(settings_frame)
         self.setup_tg_controls(settings_frame)
-
+        self.setup_microphone_controls(settings_frame)
+        
         self.setup_mita_controls(settings_frame)
 
-
-
         # Передаем settings_frame как родителя
-        self.setup_status_indicators(settings_frame)
 
         # Настройка элементов управления
         # Создаем контейнер для всех элементов управления
@@ -497,7 +496,7 @@ class ChatGUI:
 
         self.setup_common_controls(settings_frame)
         self.setup_game_master_controls(settings_frame)
-        self.setup_microphone_controls(settings_frame)
+
 
         #self.setup_advanced_controls(right_frame)
 
@@ -1169,12 +1168,7 @@ class ChatGUI:
             {
                 'label': _("Обновить список", "Refresh list"),
                 'type': 'button',
-                'command': self.update_mic_list,
-                'widget_attrs': {
-                    'width': 3,
-                    'bg': "#6a5acd",
-                    'text': "↻"
-                }
+                'command': self.update_mic_list
             }
         ]
 
@@ -1208,7 +1202,6 @@ class ChatGUI:
             return []
 
     def update_mic_list(self):
-        print("Test")
         self.mic_combobox['values'] = self.get_microphone_list()
 
     def on_mic_selected(self, event):
@@ -1306,7 +1299,8 @@ class ChatGUI:
                 default_checkbutton=config.get('default_checkbutton', False),
                 validation=config.get('validation', None),
                 tooltip=config.get('tooltip', ""),
-                hide = config.get('hide', False)
+                hide = config.get('hide', False),
+                command = config.get('command', None)
             )
             section.add_widget(widget)
 
@@ -1397,7 +1391,7 @@ class ChatGUI:
                 activeforeground="#ffffff",
                 relief=tk.RAISED,
                 bd=2,
-                command=lambda: command() if command else None,
+                command=command
             )
 
             if width:
