@@ -238,14 +238,7 @@ namespace MitaAI.PlayerControls
             {
                 ChangeMitaButtons();
             }
-            else if (false && Input.GetKeyDown(KeyCode.Insert))
-            {
-               
-            }
-            else if (false && Input.GetKeyDown(KeyCode.Delete))
-            {
-                
-            }
+
 
             // Тест анимок игрока
             if (Input.GetMouseButton(1))
