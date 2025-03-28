@@ -1,5 +1,6 @@
 ﻿using Il2Cpp;
 using MelonLoader;
+using MitaAI.Mita;
 using System;
 using System.Collections;
 using System.Linq;
@@ -7,13 +8,116 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
+
 namespace MitaAI
 {
-    static class MitaGames
+    public static class MitaGames
     {
-        #region HuntingWithKnife
+        #region Hunting
+        public static void beginHunt()
+        {
+            try
+            {
+                MelonLogger.Msg("beginHunt ");
+                MitaCore.Instance.knife.SetActive(true);
+                MitaCore.Instance.mitaState = MitaCore.MitaState.hunt;
 
 
+                if (MitaCore.Instance.currentCharacter == MitaCore.character.Creepy && LogicCharacter.Instance != null)
+                {
+                    LogicCharacter.Instance.StartHunt(MitaCore.Instance);
+                }
+                else
+                {
+                    // Для других персонажей - вызываем внутренний метод охоты
+                    MitaAnimationModded.location34_Communication.ActivationCanWalk(false);
+                    MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
+                    MitaAnimationModded.setIdleWalk("Mita WalkKnife");
+                    MelonCoroutines.Start(hunting());
+                }
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error("beginHunt " + ex);
+            }
+        }
+        static IEnumerator hunting()
+        {
+            if (!MitaCore.isRequiredScene()) yield break;
+
+
+            float startTime = Time.unscaledTime; // Запоминаем время старта корутины
+            float lastMessageTime = -45f; // Чтобы сообщение появилось сразу через 15 секунд
+
+            yield return new WaitForSeconds(1f);
+
+            while (MitaCore.Instance.mitaState == MitaCore.MitaState.hunt)
+            {
+                if (MitaCore.Instance.getDistanceToPlayer() > 1f)
+                {
+                    MitaCore.Instance.Mita.AiWalkToTarget(MitaCore.Instance.playerPerson.transform);
+                }
+                else
+                {
+                    try
+                    {
+                        MelonCoroutines.Start(MitaCore.Instance.ActivateAndDisableKiller(3));
+                    }
+                    catch (Exception ex)
+                    {
+                        MelonLogger.Error(ex);
+                    }
+
+                    yield break;
+                }
+
+                // Вычисляем время с начала корутины
+                float elapsedTime = Time.unscaledTime - startTime;
+
+                // Каждые 15 секунд вызываем функцию (если прошло время)
+                if (elapsedTime - lastMessageTime >= 45f)
+                {
+                    string message = $"Игрок жив уже {elapsedTime.ToString("F2")} секунд. Скажи что-нибудь короткое. ";
+                    if (Mathf.FloorToInt(elapsedTime) % 60 == 0) message += "Может быть, пора усложнять игру... (Менять скорости или спавнить манекенов или применять эффекты)";
+                    MitaCore.Instance.sendSystemMessage(message);
+
+                    lastMessageTime = elapsedTime; // Обновляем время последнего вызова
+                }
+
+                yield return new WaitForSeconds(0.5f);
+            }
+
+        }
+        public static void endHunt()
+        {
+            if (MitaCore.Instance.currentCharacter == MitaCore.character.Creepy && LogicCharacter.Instance != null)
+            {
+                // Для Creepy вызываем логику из LogicCharacter
+                LogicCharacter.Instance.EndHunt();
+            }
+            else
+            {
+                // Для других персонажей используем стандартную логику
+                MitaAnimationModded.setIdleWalk("Mita Walk_1");
+                MitaCore.Instance.knife.SetActive(false);
+                MitaCore.movementStyle = MitaCore.MovementStyles.walkNear;
+                MitaAnimationModded.location34_Communication.ActivationCanWalk(true);
+                MitaCore.Instance.mitaState = MitaCore.MitaState.normal;
+                MitaCore.Instance.MitaSharplyStopTimed(0.5f);
+            }
+        }
+
+        // Метод для вызова из LogicCharacter, чтобы активировать анимацию убийства
+        public static void ActivateKillerAnimation()
+        {
+            MelonCoroutines.Start(MitaCore.Instance.ActivateAndDisableKiller(3));
+        }
+
+        // Метод для LogicCharacter, чтобы установить состояние персонажа
+        public static void SetHuntState(bool isHunting)
+        {
+            MitaCore.Instance.mitaState = isHunting ? MitaCore.MitaState.hunt : MitaCore.MitaState.normal;
+        }
         #endregion
 
         #region Manekens

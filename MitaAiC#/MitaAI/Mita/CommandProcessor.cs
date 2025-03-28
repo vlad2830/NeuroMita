@@ -165,14 +165,14 @@ namespace MitaAI.Mita
                     break;
 
                 case "начать охоту с ножом":
-                    mitaCore.beginHunt();
+                    MitaGames.beginHunt();
                     break;
                 case "закончить охоту с ножом":
-                    mitaCore.endHunt();
+                    MitaGames.endHunt();
                     break;
                 case "вернуться к норме":
                     MitaGames.removeAllMenekens();
-                    mitaCore.endHunt();
+                    MitaGames.endHunt();
                     break;
 
                 case "resethaircolor":

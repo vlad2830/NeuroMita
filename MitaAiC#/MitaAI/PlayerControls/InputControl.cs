@@ -281,6 +281,9 @@ namespace MitaAI.PlayerControls
 
         static void ChangeMitaButtons()
         {
+            // Если J не зажата - выходим
+            if (!Input.GetKey(KeyCode.J))
+                return;
 
             if (DateTime.Now - _lastChangeTime < _cooldown)
                 return;

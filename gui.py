@@ -475,7 +475,7 @@ class ChatGUI:
         self.setup_model_controls(settings_frame)
         self.setup_tg_controls(settings_frame)
         self.setup_microphone_controls(settings_frame)
-        
+
         self.setup_mita_controls(settings_frame)
 
         # Передаем settings_frame как родителя

@@ -1273,111 +1273,9 @@ namespace MitaAI
         // Добавляет диалог в историю
 
 
-        #region Hunting
-        public void beginHunt()
-        {
-            try
-            {
-                MelonLogger.Msg("beginHunt ");
-                knife.SetActive(true);
-                mitaState = MitaState.hunt;
-                
+        
 
-                if (currentCharacter == character.Creepy && LogicCharacter.Instance != null)
-                {
-                    LogicCharacter.Instance.StartHunt(this);
-                }
-                else
-                {
-                    // Для других персонажей - вызываем внутренний метод охоты
-                    Location34_Communication.ActivationCanWalk(false);
-                    MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
-                    MitaAnimationModded.setIdleWalk("Mita WalkKnife");
-                    MelonCoroutines.Start(hunting());
-                }
-            }
-            catch (Exception ex)
-            {
-                MelonLogger.Error("beginHunt " + ex);
-            }
-        }
-        IEnumerator hunting()
-        {
-            float startTime = Time.unscaledTime; // Запоминаем время старта корутины
-            float lastMessageTime = -45f; // Чтобы сообщение появилось сразу через 15 секунд
-
-            yield return new WaitForSeconds(1f);
-
-            while (mitaState == MitaState.hunt)
-            {
-                if (getDistanceToPlayer() > 1f)
-                {
-                    Mita.AiWalkToTarget(playerPerson.transform);
-                }
-                else
-                {
-                    try
-                    {
-                        MelonCoroutines.Start(ActivateAndDisableKiller(3));
-                    }
-                    catch (Exception ex)
-                    {
-                        MelonLogger.Error(ex);
-                    }
-
-                    yield break;
-                }
-
-                // Вычисляем время с начала корутины
-                float elapsedTime = Time.unscaledTime - startTime;
-
-                // Каждые 15 секунд вызываем функцию (если прошло время)
-                if (elapsedTime - lastMessageTime >= 45f)
-                {
-                    string message = $"Игрок жив уже {elapsedTime.ToString("F2")} секунд. Скажи что-нибудь короткое. ";
-                    if (Mathf.FloorToInt(elapsedTime) % 60 == 0) message += "Может быть, пора усложнять игру... (Менять скорости или спавнить манекенов или применять эффекты)";
-                    sendSystemMessage(message);
-
-                    lastMessageTime = elapsedTime; // Обновляем время последнего вызова
-                }
-
-                yield return new WaitForSeconds(0.5f);
-            }
-
-        }
-        public void endHunt()
-        {
-            if (currentCharacter == character.Creepy && LogicCharacter.Instance != null)
-            {
-                // Для Creepy вызываем логику из LogicCharacter
-                LogicCharacter.Instance.EndHunt();
-            }
-            else
-            {
-                // Для других персонажей используем стандартную логику
-                MitaAnimationModded.setIdleWalk("Mita Walk_1");
-                knife.SetActive(false);
-                movementStyle = MovementStyles.walkNear;
-                Location34_Communication.ActivationCanWalk(true);
-                mitaState = MitaState.normal;
-                MitaSharplyStopTimed(0.5f);
-            }
-        }
-
-        // Метод для вызова из LogicCharacter, чтобы активировать анимацию убийства
-        public void ActivateKillerAnimation()
-        {
-            MelonCoroutines.Start(ActivateAndDisableKiller(3));
-        }
-
-        // Метод для LogicCharacter, чтобы установить состояние персонажа
-        public void SetHuntState(bool isHunting)
-        {
-            mitaState = isHunting ? MitaState.hunt : MitaState.normal;
-        }
-        #endregion
-
-        private IEnumerator MitaSharplyStopTimed(float time)
+        public IEnumerator MitaSharplyStopTimed(float time)
         {
             yield return new WaitForSeconds(time);
             Mita.AiShraplyStop();
@@ -1405,7 +1303,7 @@ namespace MitaAI
             try
             {
                 AnimationKiller.GetComponent<Location6_MitaKiller>().Kill(); // Вызываем метод Kill()
-                endHunt();
+                MitaGames.endHunt();
             }
             catch (Exception e)
             {
@@ -1852,12 +1750,6 @@ namespace MitaAI
             }
         }
 
-        private EmotionType GetRandomEmotion()
-        {
-            EmotionType[] emotions = (EmotionType[])Enum.GetValues(typeof(EmotionType));
-            int randomIndex = UnityEngine.Random.Range(0, emotions.Length);
-            return emotions[randomIndex];
-        }
 
        
         public string formCurrentInfo()
@@ -2019,7 +1911,8 @@ namespace MitaAI
                 case character.Cappy:
                     return new Color(1f, 1f, 0.1f); // мягкий оранжевый 
                 case character.Kind:
-                    return new Color(0f, 1f, 0f); //поставил зеленый пока что // Надо белый-лазурный
+                    return new Color(0.80f, 0.9f, 1f); // Бирюзовый
+                    
                 case character.ShortHair:
                     return new Color(1f, 0.9f, 0.4f); // мягкий желтый
                 case character.Mila:
