@@ -99,7 +99,8 @@ namespace MitaAI
             ObjectInteractive objectInteractive = console.GetComponent<ObjectInteractive>();
             console.GetComponent<Animator>().enabled = true;
             console.GetComponent<Outlinable>().enabled = true;
-
+            objectInteractive.eventClick.RemoveAllListeners();
+            objectInteractive.eventClick.AddListener((UnityAction)InteractionCases.caseConsoleStart);
             //GameObject console_res = GameObject.Instantiate(console, console.transform.parent);
             //console_res.name = console.name+"_res";
             //console_res.active = false;
@@ -116,9 +117,8 @@ namespace MitaAI
             //MitaCore.AddAnimationEvent(drop.gameObject, drop.animationStart,"ConsoleEnd");
             //drop.eventStartAnimaiton = null;
             //drop.eventStartLoop = null;
-            drop.eventFinish.RemoveAllListeners();
-            drop.eventFinish.AddListener( (UnityAction) InteractionCases.caseConsoleStart  ) ;
-                //EventsProxy.ChangeAnimationEvent(drop.gameObject, "ConsoleEnd");
+
+            EventsProxy.ChangeAnimationEvent(drop.gameObject, "ConsoleEnd");
             //GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
 
         }
@@ -975,8 +975,19 @@ namespace MitaAI
         
         private static void TestingGround()
         {
+
+
             try
             {
+
+                // GameObject Mita = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundleTestMita, "Mita"));
+                //MitaCore.CrazyObject = Mita;
+                //Mita.name = "MitaTestFromDemo";
+                //MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy);
+
+                //Mita.GetComponentInChildren<Character_Look>().speedRotateBody = 1f;
+
+
 
                 //GameObject MitaPrefab = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "MitaPrefab"));
 

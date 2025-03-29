@@ -4,6 +4,7 @@ using MelonLoader;
 using MitaAI.Mita;
 using Il2Cpp;
 using UnityEngine.Events;
+using UnityEngine.Playables;
 
 namespace MitaAI
 {
@@ -25,18 +26,44 @@ namespace MitaAI
 
         MitaAIMovePoint mitaAIMovePoint;
 
-        public void init()
+        public static ObjectAnimationMita createObjectAnimationMita(GameObject gameObject, Vector3 localPos, Quaternion localRot)
+        {
+            var g = new GameObject($"{gameObject.name} OAM");
+            g.transform.SetParent(gameObject.transform, false);
+            g.transform.SetPositionAndRotation(localPos, localRot);
+            return g.AddComponent<ObjectAnimationMita>();
+        }
+
+
+        public void Start()
         {
             mitaPerson = MitaCore.Instance.MitaPersonObject;
-            AmimatedObject = GameObject.Find("World/House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 2");
+            AmimatedObject = transform.parent.gameObject;
+
+            mitaAIMovePoint = gameObject.AddComponent<MitaAIMovePoint>();
+            mitaAIMovePoint.targetMove = gameObject.transform;
+            
         }
+
+        public void addAction(UnityAction unityAction)
+        {
+            // Что произодет, когда Мита дойдет до цели
+            mitaAIMovePoint.eventFinish.AddListener(unityAction);
+        }
+
+        public void Play()
+        {
+            //Отправляет Миту в Путь
+
+            mitaAIMovePoint.mita = MitaCore.Instance.Mita;
+            mitaAIMovePoint.PlayRotateAndWalk();
+        }
+
+
+
 
         public void test()
         {
-            if (mitaAIMovePoint == null) { mitaAIMovePoint = gameObject.AddComponent<MitaAIMovePoint>();
-
-                mitaAIMovePoint.targetMove = AmimatedObject.transform;
-            }
 
             try
             {

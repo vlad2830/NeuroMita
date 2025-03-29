@@ -10,9 +10,12 @@ namespace MitaAI
     {
 
         public static Il2CppAssetBundle bundle = null;
+        public static Il2CppAssetBundle bundleTestMita = null;
+
         public static Il2CppAssetBundle initBundle()
         {
             bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
+            // bundleTestMita = AssetBundleLoader.LoadAssetBundle("testmita");
             return bundle;
         }
 
