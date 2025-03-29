@@ -49,7 +49,7 @@ namespace MitaAI
             float startTime = Time.unscaledTime; // Запоминаем время старта корутины
             float lastMessageTime = -45f; // Чтобы сообщение появилось сразу через 15 секунд
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSecondsRealtime(1f);
 
             while (MitaCore.Instance.mitaState == MitaCore.MitaState.hunt)
             {
@@ -84,7 +84,7 @@ namespace MitaAI
                     lastMessageTime = elapsedTime; // Обновляем время последнего вызова
                 }
 
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSecondsRealtime(0.5f);
             }
 
         }

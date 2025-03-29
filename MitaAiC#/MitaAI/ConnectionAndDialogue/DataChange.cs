@@ -140,7 +140,7 @@ namespace MitaAI
                 }
             }
 
-            if (dataToSent != "waiting" || dataToSentSystem != "-") MitaCore.Instance.prepareForSend();
+            if (dataToSent != "waiting" || dataToSentSystem != "-") CurrentInfoControl.prepareForSend();
 
 
             Task<Dictionary<string, JsonElement>> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);

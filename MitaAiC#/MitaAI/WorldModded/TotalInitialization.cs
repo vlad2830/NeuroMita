@@ -37,6 +37,7 @@ namespace MitaAI
                 MelonLogger.Msg("Failed to find template object!");
             }
         }
+        
         #region InitObjects
         public static void InitObjects()
         {
@@ -126,7 +127,7 @@ namespace MitaAI
 
 
 
-        #region getObjectsFromOtherScenes
+        #region getObjectsFromScenes
 
         public static List<GameObject> objectsFromMenu = new List<GameObject>();
         public static void GetObjectsFromMenu()
@@ -186,6 +187,54 @@ namespace MitaAI
             MelonLogger.Msg("End GetObjectsFromMenu");
         }
 
+
+        // Постепенно надо будет сюда перенести все
+        public static void initStartSecret2()
+        {
+
+            try
+            {
+                if (MitaCore.worldHouse == null)
+                {
+                    MelonLogger.Msg($"initStartSecret2 World is null");
+                } 
+
+                var chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 1");
+                if (chair == null)
+                {
+                    MelonLogger.Msg($"chair not found");
+                    chair = GameObject.Find("Kitchen Chair 2").transform;
+                }
+                var oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                oam.addEnqueAnimationAction("Mita StartSitChair");
+                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
+
+
+                chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 2");
+                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                oam.addEnqueAnimationAction("Mita StartSitChair");
+
+                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
+                chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 3");
+                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                oam.addEnqueAnimationAction("Mita StartSitChair");
+                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
+
+
+                chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 4");
+                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                oam.addEnqueAnimationAction("Mita StartSitChair");
+                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
+            }
+            catch (Exception ex) 
+            {
+
+                MelonLogger.Error(ex);
+            }
+            
+
+
+        }
         public static IEnumerator AddOtherScenes()
         {
             // Запускаем корутину для ожидания загрузки сцены

@@ -42,8 +42,8 @@ namespace MitaAI
 
 
 
-                string _currentInfo = waitResponse ? mitaCore.currentInfo : "-";
-                if (string.IsNullOrEmpty(mitaCore.currentInfo)) _currentInfo = "-";
+                string _currentInfo = waitResponse ? CurrentInfoControl.currentInfo : "-";
+                if (string.IsNullOrEmpty(CurrentInfoControl.currentInfo)) _currentInfo = "-";
                 if (string.IsNullOrEmpty(systemInfo)) systemInfo = "-";
 
                 var messageData = new

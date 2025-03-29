@@ -225,6 +225,53 @@ namespace MitaAI
 
             MelonLogger.Msg($"Finished HandleIl2CppComponent for {il2cppComponent?.GetType().Name}.");
         }
+
+
+
+
+
+        public static void StartObjectAnimation(GameObject targetObject,
+                                    Vector3 moveOffset,
+                                    Vector3 rotateOffset,
+                                    float duration)
+        {
+            MelonCoroutines.Start(AnimateObject(targetObject.transform,
+                                               moveOffset,
+                                               rotateOffset,
+                                               duration));
+        }
+
+        private static IEnumerator AnimateObject(Transform targetTransform,
+                                        Vector3 positionOffset,
+                                        Vector3 rotationOffset,
+                                        float animationTime)
+        {
+            if (targetTransform == null) yield break;
+
+            Vector3 startPosition = targetTransform.position;
+            Quaternion startRotation = targetTransform.rotation;
+
+            Vector3 targetPosition = startPosition + positionOffset;
+            Quaternion targetRotation = startRotation * Quaternion.Euler(rotationOffset);
+
+            float elapsed = 0f;
+
+            while (elapsed < animationTime)
+            {
+                float t = elapsed / animationTime;
+                targetTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
+                targetTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Finalize position and rotation
+            targetTransform.position = targetPosition;
+            targetTransform.rotation = targetRotation;
+        }
+
+
     }
 
 

@@ -51,8 +51,6 @@ namespace MitaAI.Mita
                
             }
  
-
-            return "";
         }
 
         // Метод для инициализации словаря

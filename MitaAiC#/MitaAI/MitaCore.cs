@@ -413,9 +413,9 @@ namespace MitaAI
         public GameObject cartridgeReader;
 
         public float distance = 0f;
-        public string currentInfo = "";
+        
         Location34_Communication Location34_Communication;
-        Location21_World location21_World;
+        public Location21_World location21_World;
 
         public static Transform worldTogether;
         public static Transform worldHouse;
@@ -439,11 +439,7 @@ namespace MitaAI
         private float timer = 0f;
 
 
-        Vector3 lastPosition;
-
-        //Queue<string> waitForSoundsQ = new Queue<string>();
-        string waitForSounds = "0";
-        //private readonly object waitForSoundsLock = new object();
+        public Vector3 lastPosition;
 
         public string playerMessage = "";
         //static public Queue<string> playerMessages = new Queue<string>();
@@ -452,10 +448,6 @@ namespace MitaAI
 
         public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
         public Queue<(string, character)> systemInfos = new Queue<(string, character)>();
-
-
-        string patch_to_sound_file = "";
-
         
 
         public string hierarchy = "-";
@@ -480,12 +472,6 @@ namespace MitaAI
         {
             return AllLoaded;
         }
-
-
-
-        bool manekenGame = false;
-
-
 
 
         HarmonyLib.Harmony harmony;
@@ -853,8 +839,10 @@ namespace MitaAI
 
                 throw;
             }
-           
-            
+
+
+            TotalInitialization.initStartSecret2();
+
             //MelonLogger.Msg($"Attempt after");
             MelonLogger.Msg($"Attempt Interactions end");
             try
@@ -927,7 +915,6 @@ namespace MitaAI
         }
 
 
-        bool FirstTime = true;
 
         public IEnumerator RealTimer()
         {
@@ -1057,55 +1044,7 @@ namespace MitaAI
         }
 
 
-        public void prepareForSend()
-        {
-
-            if (currentCharacter == character.GameMaster)
-            {
-                currentInfo = formCurrentInfoGameMaster();
-                return;
-            }
-
-            try
-            {
-                if (Vector3.Distance(Mita.transform.GetChild(0).position, lastPosition) > 2f)
-                {
-
-                        lastPosition = Mita.transform.GetChild(0).position;
-                        List<string> excludedNames = new List<string> { "Hips", "Maneken" };
-                        if (roomMita == Rooms.Basement) hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldBasement.Find("House").transform, excludedNames);
-                        else hierarchy = ObjectHierarchyHelper.GetObjectsInRadiusAsTree(Mita.gameObject, 10f, worldHouse.Find("House").transform, excludedNames);
-
-                        //MelonLogger.Msg(hierarchy);
-                    
-
-                }
-                if (string.IsNullOrEmpty(hierarchy)) hierarchy = "-";
-
-                distance = getDistanceToPlayer();
-                roomPlayer = GetRoomID(playerPerson.transform);
-                roomMita = GetRoomID(Mita.transform);
-
-                try
-                {
-                    currentInfo = formCurrentInfo();
-                }
-                catch (Exception ex)
-                {
-
-                    MelonLogger.Error($"formCurrentInfo error {ex}");
-                    currentInfo = "";
-                }
-                
-            }
-            catch (Exception ex)
-            {
-
-                MelonLogger.Error($"prepareForSend {ex}");
-            }
-           
-        }
-
+        
         // Глобальный список для хранения дочерних объектов
         List<GameObject> globalChildObjects = new List<GameObject>();
 
@@ -1752,132 +1691,7 @@ namespace MitaAI
 
 
        
-        public string formCurrentInfo()
-        {
-
-            string info = "-";
-            try
-            {
-
-                if (MitaPersonObject != null) info += $"Your game object name is <{MitaPersonObject.name}>\n";
-                info += $"Current movement type: {movementStyle.ToString()}\n";
-                if (MitaAnimationModded.currentIdleAnim!="") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
-                if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!\n";
-                if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!\n";
-
-                info += $"Current emotion anim: {DialogueControl.currentEmotion}\n";
-
-                try 
-                {
-                    var glasses = MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject;
-                    info += $"Очки: {(glasses.activeSelf ? "надеты" : "сняты")}\n";
-                    // хз что то попробовал ниже но не уверен
-                if (glasses.activeSelf)
-                {
-                    info += "you put on glasses, if you want to take them off use the command remove glasses.\n";
-                }
-                else
-                {
-                    info += "you took off glasses, if you want to put them on use the command put on glasses.\n";
-                }
-                }
-                catch (Exception) { }
-
-                MelonLogger.Msg("CurrentInfo 2");
-
-
-                if (mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
-
-                info += $"Your size: {MitaPersonObject.transform.localScale.x}\n";
-                info += $"Your speed: {MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
-
-                if (getDistanceToPlayer() > 50f) info += $"You are outside game map, player dont hear you, you should teleport somewhere\n";
-
-                info += $"Player size: {playerObject.transform.localScale.x}\n";
-                info += $"Player speed: {playerObject.GetComponent<PlayerMove>().speedPlayer}\n";
-
-                if (false)
-                    {
-                    info += $"Game house time (%): {location21_World.dayNow}\n";
-                    info += $"Current lighing color: {location21_World.timeDay.colorDay}\n";
-                    }
-
-                if (MitaGames.activeMakens.Count>0) info = info + $"Menekens count: {MitaGames.activeMakens.Count}\n";
-                info += AudioControl.MusicInfo();
-                info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
-
-                info += MitaClothesModded.getCurrentHairColor();
-                if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting\n";
-                else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>\n";
-
-                info += PlayerMovement.getPlayerDistance(true);
-
-                try
-                {
-                    info += GetLocations();
-                    info += Interactions.getObservedObjects();
-                }
-                catch (Exception ex)
-                {
-
-                    MelonLogger.Error($"CurrentInfo 6.5 {ex}");
-                }
-
-                
-
-                if (HintText!=null) info += $"Current player's hint text {HintText.text}";
-
-                try
-                {
-                    info += CharacterControl.getSpeakersInfo(currentCharacter);
-                }
-                catch (Exception ex)
-                {
-
-                    MelonLogger.Error($"CurrentInfo getSpeakersInfo{ex}"); 
-                }
-                
-
-
-
-            }
-            catch (Exception ex)
-            {
-
-                MelonLogger.Error($"formCurrentInfo {ex}");
-            }
-            return info;
-        }
-        public string formCurrentInfoGameMaster()
-        {
-
-            string info = "-";
-            try
-            {
-
-
-                try
-                {
-                    info += CharacterControl.getSpeakersInfo(currentCharacter);
-                }
-                catch (Exception ex)
-                {
-
-                    MelonLogger.Error($"CurrentInfo getSpeakersInfo{ex}");
-                }
-
-
-
-
-            }
-            catch (Exception ex)
-            {
-
-                MelonLogger.Error($"formCurrentInfo {ex}");
-            }
-            return info;
-        }
-
+      
         public override void OnUpdate()
         {
             try

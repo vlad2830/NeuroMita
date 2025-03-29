@@ -18,8 +18,8 @@ namespace MitaAI
 
 
         public string mitaAmimatedName;
-        public Vector3 MoveChair;
-        public Vector3 RotateChair;
+        public Vector3 MoveTarget;
+        public Vector3 RotateTarget;
         public float moveDuration = 2.0f;
 
         
@@ -42,13 +42,34 @@ namespace MitaAI
 
             mitaAIMovePoint = gameObject.AddComponent<MitaAIMovePoint>();
             mitaAIMovePoint.targetMove = gameObject.transform;
-            
+            mitaAIMovePoint.eventFinish = new UnityEvent();
+            mitaAIMovePoint.mita = MitaCore.Instance.Mita;
         }
 
-        public void addAction(UnityAction unityAction)
+        public void addSimpleAction(UnityAction unityAction)
         {
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener(unityAction);
+        }
+        public void addEnqueAnimationAction(string animName)
+        {
+            // Что проиграет Мита, когда подойдет
+            mitaAmimatedName = animName;
+            // Что произодет, когда Мита дойдет до цели
+            mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
+        }
+        public void addMoveRotateAction(Vector3 newlocalPos, Quaternion newlocalRot)
+        {
+            // Подвинет повернет что-то, когда мита подойдет.
+            MoveTarget = newlocalPos;
+            RotateTarget = newlocalPos;
+            // Что произодет, когда Мита дойдет до цели
+            mitaAIMovePoint.eventFinish.AddListener((UnityAction)MoveRotateObject);
+        }
+
+        public void clearAllActions()
+        {
+            mitaAIMovePoint.eventFinish.RemoveAllListeners();
         }
 
         public void Play()
@@ -58,70 +79,27 @@ namespace MitaAI
             mitaAIMovePoint.mita = MitaCore.Instance.Mita;
             mitaAIMovePoint.PlayRotateAndWalk();
         }
-
-
-
-
-        public void test()
+        public void Play(MitaPerson mita)
         {
+            //Отправляет Миту в Путь
 
-            try
-            {
-                var e = new UnityEngine.Events.UnityEvent();
-
-                e.AddListener((UnityAction)testEnque);
-                //№e.AddListener((UnityAction)MitaCore.Instance.Mita.AiShraplyStop);
-                // или
-                e.AddListener((UnityAction)StartMovingChair);
-                mitaAIMovePoint.eventFinish = e;
-                mitaAIMovePoint.mita = MitaCore.Instance.Mita;
-            }
-            catch (Exception ex)
-            {
-
-                MelonLogger.Msg(ex);
-            }
-   
-
-        }
-        void testEnque()
-        {
-            MitaAnimationModded.EnqueueAnimation("Mita StartSitChair");
+            mitaAIMovePoint.mita = mita;
+            mitaAIMovePoint.PlayRotateAndWalk();
         }
 
-        void StartMovingChair()
+
+        #region Обертки
+
+        void MoveRotateObject()
         {
-            MelonCoroutines.Start(moveChairTimed());
+            Utils.StartObjectAnimation(AmimatedObject, MoveTarget, RotateTarget, 2);
         }
-        IEnumerator moveChairTimed()
+        void EnqueAnimation()
         {
-            GameObject chair = AmimatedObject; // Находим стул (лучше ссылку в инспекторе)
-            if (chair == null) yield break;
-
-            Vector3 startPosition = chair.transform.position;
-            Quaternion startRotation = chair.transform.rotation;
-
-            Quaternion targetRotation = startRotation * Quaternion.Euler(RotateChair);
-            Vector3 targetPosition = startPosition + MoveChair;
-
-            float elapsedTime = 0f;
-
-            while (elapsedTime < moveDuration)
-            {
-                float progress = elapsedTime / moveDuration;
-
-                // Плавное перемещение и вращение
-                chair.transform.position = Vector3.Lerp(startPosition, targetPosition, progress);
-                chair.transform.rotation = Quaternion.Slerp(startRotation, targetRotation, progress);
-
-                elapsedTime += Time.deltaTime;
-                yield return null;
-            }
-
-            // Гарантируем точное достижение цели
-            chair.transform.position = targetPosition;
-            chair.transform.rotation = targetRotation;
+            MitaAnimationModded.EnqueueAnimation(mitaAmimatedName);
         }
+
+        #endregion
 
     }
 }
