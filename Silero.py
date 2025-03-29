@@ -19,7 +19,7 @@ from utils import SH
 class TelegramBotHandler:
 
     def __init__(
-        self, gui, api_id, api_hash, phone, tg_bot, message_limit_per_minute=20
+            self, gui, api_id, api_hash, phone, tg_bot, message_limit_per_minute=20
     ):
         # Получение параметров из окружения
         self.api_id = api_id
@@ -29,6 +29,8 @@ class TelegramBotHandler:
         self.gui = gui
         self.patch_to_sound_file = ""
         self.last_speaker_command = ""
+
+        self.last_send_time = -1
 
         #Считываем значение настройки SILERO_TIME_LIMIT
         self.silero_time_limit = int(gui.settings.get("SILERO_TIME", "10"))
@@ -92,13 +94,24 @@ class TelegramBotHandler:
             self.message_count = 0
             self.start_time = time.time()
 
-    async def send_and_receive(self, input_message, speaker_command,message_id):
+    async def send_and_receive(self, input_message, speaker_command, message_id):
         """Отправляет сообщение боту и обрабатывает ответ."""
         global message_count
         # start_time = time.time()
 
         if not input_message or not speaker_command:
             return
+
+
+        # Защита от слишком быстрых сообщений
+        current_time = time.time()
+        if self.last_send_time > 0:  # проверяем, что это не первый вызов
+            time_since_last = current_time - self.last_send_time
+            if time_since_last < 0.7:
+                print(f"Слишком быстро пришел некст войс, ждем{0.7 - time_since_last}")
+                await asyncio.sleep(0.7 - time_since_last)
+
+        self.last_send_time = time.time()  # обновляем время после возможной паузы
 
         #При компиляции нужно добавить в строку компилятора --add-data "%USERPROFILE%\AppData\Local\Programs\Python\Python313\Lib\site-packages\emoji\unicode_codes\emoji.json;emoji\unicode_codes"
         #Удаляем эмодзи из озвучки:
