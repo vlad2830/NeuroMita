@@ -1,4 +1,4 @@
-﻿using Il2Cpp;
+using Il2Cpp;
 using MelonLoader;
 using System;
 using System.Collections.Generic;
@@ -233,9 +233,45 @@ namespace MitaAI
         
         static int limit = 1;
         public static float limitMod = 100;
+        
+        // Кеширование последних ответов для каждого персонажа
+        private static string lastResponse = "";
+        private static MitaCore.character lastResponseFrom = MitaCore.character.None;
+        private static DateTime lastResponseTime = DateTime.MinValue;
+        private static TimeSpan responseTimeout = TimeSpan.FromSeconds(30); // Увеличиваем тайм-аут до 30 секунд
+        
         public static void nextAnswer(string response, MitaCore.character from, bool fromPlayer = false)
         {
             MelonLogger.Msg($"nextAnswer: generated to {from} before, limit now {limit} from player {fromPlayer}");
+
+            // Проверка на дублирование сообщений
+            if (response == lastResponse && from == lastResponseFrom && 
+                (DateTime.Now - lastResponseTime) < responseTimeout)
+            {
+                MelonLogger.Warning($"Обнаружено дублирование ответа от {from}, пропускаю");
+                return;
+            }
+            
+            // Специальная логика для режима hunt - пропускаем некоторые виды ответов 
+            if (MitaCore.Instance.mitaState == MitaCore.MitaState.hunt && from == MitaCore.character.Crazy)
+            {
+                // Если это режим охоты и персонаж Crazy, проверяем ответ на наличие типичных фраз режима охоты
+                if (response.Contains("убью") || response.Contains("кровь") || response.Contains("охота") || 
+                    response.Contains("нож") || response.Contains("умрешь"))
+                {
+                    // Рандомная вероятность пропуска повторяющихся "агрессивных" сообщений
+                    if (Utils.Random(7, 10)) // 70% шанс пропуска
+                    {
+                        MelonLogger.Warning("Пропускаю агрессивное сообщение в режиме охоты для уменьшения спама");
+                        return;
+                    }
+                }
+            }
+            
+            // Запоминаем текущий ответ
+            lastResponse = response;
+            lastResponseFrom = from;
+            lastResponseTime = DateTime.Now;
 
             if (GameMasterCase(fromPlayer)) return;
 
