@@ -46,6 +46,7 @@ namespace MitaAI
                 // Устанавливаем параметр скорости для анимаций
                 playerAnimator.SetFloat("Speed", speed);  // Здесь "Speed" — это имя параметра в аниматоре
             }
+
         }
         public static void StopPlayerAnimation()
         {

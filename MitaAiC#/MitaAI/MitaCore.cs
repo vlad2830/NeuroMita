@@ -46,7 +46,7 @@ namespace MitaAI
         public static GameObject ShortHairObject;
         public static GameObject MilaObject; // Объект для нового персонажа
         public static GameObject SleepyObject; // Объект для нового персонажа
-        public static GameObject pipe; // Объект для трубы
+
 
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;

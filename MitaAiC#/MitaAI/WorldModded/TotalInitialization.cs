@@ -200,51 +200,86 @@ namespace MitaAI
                 } 
 
                 var chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 1");
-                var oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(310, 270, 270), new Vector3(0, -0.7f, 0), new Vector3(310, 270, 270));
+                var oam = ObjectAnimationMita.createObjectAnimationMita("Kitchen Chair 1 sit",chair.gameObject, new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
                 
-                oam.setIdleAnimation("Mita SitChair");
+                oam.setIdleAnimation("Mita SitIdle");
                 oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
-  
-                oam.addEnqueAnimationAction("Mita StartSitChair");
+                oam.tip = "Сесть за стул";
 
+                //oam.addEnqueAnimationAction("Mita StartSitChair");
+                oam.addEnqueAnimationAction("Mita SitIdle");
 
                 //Обратно
                 chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 1");
-                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(0, 0, 0), Quaternion.Euler(310, 270, 270), new Vector3(0, 0, 0), new Vector3(310, 270, 270));
-                oam.gameObject.name = "Back";
-                oam.setIdleAnimation("Mita Idle");
-                oam.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
+                var oamBack = ObjectAnimationMita.createObjectAnimationMita("Kitchen Chair 1 stand up", chair.gameObject, Vector3.zero, new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
+                oamBack.setIdleAnimation("Mita Idle_2",false);
+                oamBack.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
 
-                oam.addEnqueAnimationAction("Mita Idle");
-
-
+                oamBack.addEnqueAnimationAction("Mita Idle_2");
+                oamBack.addReturningToNormal();
+                oamBack.tip = "Слезть со стула";
+                
+                oamBack.enabled = false;
+                oam.backAnimation = oamBack;
+                oamBack.backAnimation = oam;
                 //
 
 
-                chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 2");
-                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(310, 270, 270), new Vector3(0, -0.7f, 0), new Vector3(310, 270, 270));
-                
-                oam.setIdleAnimation("Mita SitChair");
-                oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
+                //chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 2");
+                //oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
 
-                oam.addEnqueAnimationAction("Mita StartSitChair");
+                //oam.setIdleAnimation("Mita SitIdle");
+                //oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
 
-                chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 3");
-                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(310, 270, 270), new Vector3(0, -0.7f, 0), new Vector3(310, 270, 270));
-                
-                oam.setIdleAnimation("Mita SitChair");
-                oam.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.Euler(0,0,0));
-
-                oam.addEnqueAnimationAction("Mita StartSitChair");
+                ////oam.addEnqueAnimationAction("Mita StartSitChair");
+                //oam.addEnqueAnimationAction("Mita SitIdle");
 
 
-                chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 4");
-                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(310, 270, 270), new Vector3(0, -0.7f, 0), new Vector3(310, 270, 270));
-               
-                oam.setIdleAnimation("Mita SitChair");
-                oam.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
 
-                oam.addEnqueAnimationAction("Mita StartSitChair");
+                //chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 3");
+                //// oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(310, 270, 270), new Vector3(0, -0.62f, 0), new Vector3(310, 270, 270));
+                //oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
+
+                //oam.setIdleAnimation("Mita SitIdle");
+                //oam.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.Euler(0,0,0));
+
+                ////oam.addEnqueAnimationAction("Mita StartSitChair");
+                //oam.addEnqueAnimationAction("Mita SitIdle");
+                //oam.tip = "Сесть за стул";
+
+                //chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 4");
+                //oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
+
+                //oam.setIdleAnimation("Mita SitIdle");
+                //oam.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
+
+                ////oam.addEnqueAnimationAction("Mita StartSitChair");
+                //oam.addEnqueAnimationAction("Mita SitIdle");
+                //oam.tip = "Сесть за стул";
+
+
+
+                var sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/Sofa");
+                oam = ObjectAnimationMita.createObjectAnimationMita("Hall Sofa sit",sofa.gameObject, new Vector3(-0.85f, 0.65f, 0), new Vector3(270,180,0));
+
+                //Mita StartSit Sofa
+                oam.setIdleAnimation("Mita SitIdle");
+                //oam.addEnqueAnimationAction("Mita StartSitChair");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.tip = "Сесть на диван";
+
+                oamBack = ObjectAnimationMita.createObjectAnimationMita("Hall Sofa stand up", sofa.gameObject, new Vector3(-0.85f, 0.65f, 0), new Vector3(270,180,0));
+
+                //Mita StartSit Sofa
+                oamBack.setIdleAnimation("Mita Idle_2", false);
+                //oam.addEnqueAnimationAction("Mita StartSitChair");
+                oamBack.addEnqueAnimationAction("Mita Idle_2");
+                oamBack.addReturningToNormal();
+                oamBack.tip = "Слезть с дивана за стул";
+                oamBack.enabled = false;
+                oam.backAnimation = oamBack;
+                oamBack.backAnimation = oam;
+
             }
             catch (Exception ex) 
             {
@@ -362,48 +397,10 @@ namespace MitaAI
             try
             {
                 // Инициализация объекта pipe
-                try
-                {
-                    GameObject mitaFuture = Utils.TryfindChild(MitaCore.worldBasement, "Mita Future/MitaPerson Future");
-                    if (mitaFuture != null)
-                    {
-                        try
-                        {
-                            MitaCore.pipe = GameObject.Instantiate(mitaFuture, MitaCore.worldHouse);
-                            MitaAnimationModded.pipe = MitaCore.pipe; // Используем один и тот же объект
+                MitaAnimationModded.pipe = MitaCore.worldBasement.Find("World/Mita Future/MitaPerson Future/RightItem/Tube Basement").gameObject;
+                MitaAnimationModded.pipe.active = true;
                             
-                            Transform parentTransform = MitaCore.Instance.MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item");
-                            
-                            if (parentTransform != null)
-                            {
-                                MitaCore.pipe.transform.SetParent(parentTransform);
-                                MitaCore.pipe.transform.localPosition = Vector3.zero;
-                                MitaCore.pipe.transform.localRotation = Quaternion.identity;
-                                MitaCore.pipe.SetActive(false);
-                                MelonLogger.Msg("Pipe object initialized successfully");
-                            }
-                            else
-                            {
-                                MelonLogger.Error("Failed to find parent transform for pipe object");
-                                // Установим трубу в мировых координатах, если не найден parent
-                                MitaCore.pipe.transform.position = MitaCore.Instance.MitaPersonObject.transform.position;
-                                MitaCore.pipe.SetActive(false);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            MelonLogger.Error($"Error during pipe initialization: {ex}");
-                        }
-                    }
-                    else
-                    {
-                        MelonLogger.Error("Failed to find Mita Future/MitaPerson Future object");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MelonLogger.Error($"Error initializing pipe object: {ex}");
-                }
+                
 
                 Transform door = MitaCore.worldBasement.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame/BasementDoor");
                 door.parent.gameObject.GetComponent<Animator>().enabled = false;

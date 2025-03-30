@@ -12,7 +12,7 @@ namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
     {
-        static private Queue<string> animationQueue = new Queue<string>();
+        static private Queue<(string,float,float)> animationQueue = new Queue<(string,float,float)>();
         static private bool isPlaying = false;
         static private Il2CppAssetBundle bundle;
         public static Animator_FunctionsOverride mitaAnimatorFunctions;
@@ -458,13 +458,13 @@ namespace MitaAI.Mita
 
         }
 
-        static public void EnqueueAnimation(string animName = "",float lenght = 0, float timeAfter = 0)
+        static public void EnqueueAnimation(string animName = "",float crossfade_len = 0.25f, float timeAfter = 0)
         {
 
             try
             {
 
-                animationQueue.Enqueue(animName);
+                animationQueue.Enqueue((animName, crossfade_len,timeAfter));
                 MelonLogger.Msg($"Added to queue: {animName}");
 
                 if (!isPlaying)
@@ -504,8 +504,13 @@ namespace MitaAI.Mita
             location34_Communication.enabled = false;
             while (animationQueue.Count > 0)
             {
-                string animName = animationQueue.Dequeue();
+
+                var animObject = animationQueue.Dequeue();
+                string animName = animObject.Item1;
+                float crossfade_len = animObject.Item2;
+
                 AnimationClip anim = FindAnimationClipByName(animName);
+                
                 if ( anim!=null)
                 {
 
@@ -516,8 +521,8 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Now playing: {animName}");
                     try
                     {
-                        mitaAnimatorFunctions.anim.CrossFade(animName, 0.25f);
-
+                        mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
+                        MitaCore.Instance.Mita.MagnetOff();
                         if (anim.events.Count > 0)
                         {
                             MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);

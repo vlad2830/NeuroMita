@@ -217,6 +217,7 @@ namespace MitaAI
                     modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
                     modifiedPart = AudioControl.ProcessMusic(modifiedPart);
                     modifiedPart = CommandProcessor.ProcesHint(modifiedPart);
+                    modifiedPart = ObjectAnimationMita.processInteraction(modifiedPart);
                     (emotion, modifiedPart) = MitaCore.Instance.SetEmotionBasedOnResponse(modifiedPart);
                     MelonLogger.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
 

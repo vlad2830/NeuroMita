@@ -154,7 +154,15 @@ namespace MitaAI
                 }
 
 
+                try
+                {
+                    info += ObjectAnimationMita.interactionGetCurrentInfo();
+                }
+                catch (Exception ex)
+                {
 
+                    MelonLogger.Error($"interactionGetCurrentInfo {ex}");
+                }
 
             }
             catch (Exception ex)
