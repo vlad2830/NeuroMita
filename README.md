@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/d06cd3b6-f9bd-4cfa-800a-2eeaee239e9e)Мита на питоне (юзает доступ к нейронкам по api) + Мелон Мод на юнити, пока не стабильно работающий.
+Мита на питоне (юзает доступ к нейронкам по api) + Мелон Мод на юнити, пока не стабильно работающий.
 
 Translation (deepseek) [English readme](README_EN.md)
 
