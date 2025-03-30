@@ -13,7 +13,7 @@ namespace MitaAI
 {
     public static class DataChange
     {
-        private const float MitaBoringInterval = 120f;
+        private const float MitaBoringInterval = 180f;
         public static float MitaBoringtimer = 0f;
         
         public static Dictionary<int, string> sound_files = new Dictionary<int, string>();
