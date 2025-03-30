@@ -281,8 +281,8 @@ namespace MitaAI.PlayerControls
 
         static void ChangeMitaButtons()
         {
-            // Если J не зажата - выходим
-            if (!Input.GetKey(KeyCode.J))
+            // Если ctlr не зажата - выходим
+            if (!Input.GetKey(KeyCode.LeftControl))
                 return;
 
             if (DateTime.Now - _lastChangeTime < _cooldown)
@@ -290,7 +290,7 @@ namespace MitaAI.PlayerControls
 
             MelonLogger.Msg("Try change to Mita");
 
-            bool dontrTurnOfOld = Input.GetKeyDown(KeyCode.LeftControl);
+            bool dontrTurnOfOld = Input.GetKeyDown(KeyCode.LeftShift);
 
             // Словарь для хранения соответствия клавиш и параметров изменения
             var keyActions = new Dictionary<KeyCode, (GameObject MitaObject, MitaCore.character Character)>
@@ -309,7 +309,7 @@ namespace MitaAI.PlayerControls
             {
                 if (Input.GetKeyDown(keyAction.Key) )
                 {
-                    MelonLogger.Msg($"INNPUT CONTROL: Try change to {keyAction.Value.Character}");
+                    MelonLogger.Msg($"INPUT CONTROL: Try change to {keyAction.Value.Character}");
                     MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
                     _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
                     CharacterControl.resetOrders(true);

@@ -165,9 +165,10 @@ class ChatModel:
             print(f"update_openai_client не сработал {e}")
 
     def generate_response(self, user_input, system_input=""):
-        # Загрузка истории из файла
+
         self.check_change_current_character()
 
+        # Загрузка истории из файла
         data = self.current_character.load_history()
         messages = data.get("messages", [])
         if len(self.infos) > 0:

@@ -396,6 +396,7 @@ class ChatGUI:
         # Добавляем стили
         self.chat_window.tag_configure("Mita", foreground="hot pink", font=("Arial", 12, "bold"))
         self.chat_window.tag_configure("Player", foreground="gold", font=("Arial", 12, "bold"))
+        self.chat_window.tag_configure("System", foreground="white", font=("Arial", 12, "bold"))
 
         input_frame = tk.Frame(left_frame, bg="#2c2c2c")
         input_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -1074,15 +1075,19 @@ class ChatGUI:
             )
             self.update_debug_info()
 
-    def insertDialog(self, input_text="", response=""):
+    def insertDialog(self, input_text="", response="",system_text=""):
+        MitaName = self.model.current_character.name
+
         if input_text != "":
             self.chat_window.insert(tk.END, "Вы: ", "Player")
             self.chat_window.insert(tk.END, f"{input_text}\n")
+        if system_text != "":
+            self.chat_window.insert(tk.END, f"System to {MitaName}: ", "System")
+            self.chat_window.insert(tk.END, f"{system_text}\n\n")
         if response != "":
-            MitaName = self.model.current_character.name
-
             self.chat_window.insert(tk.END, f"{MitaName}: ", "Mita")
             self.chat_window.insert(tk.END, f"{response}\n\n")
+
 
     def send_message(self, system_input=""):
         user_input = self.user_entry.get("1.0", "end-1c")

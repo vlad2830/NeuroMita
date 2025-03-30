@@ -14,7 +14,8 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class ObjectAnimationMita : MonoBehaviour
     {
-
+        private const float InteractionDistance = 15f;
+        private const float AnimationTransitionDuration = 2f;
 
         static ObjectAnimationMita currentOAMc;
         static Dictionary<string,ObjectAnimationMita> allOAMs = new Dictionary<string, ObjectAnimationMita>();
@@ -30,16 +31,17 @@ namespace MitaAI
             }
             if (allOAMs.Count>0)
             {
-                
 
-                info += $"\n Available interactions (use <{command}>Name</{command}> to interact): ";
+                info += $"\n You have special commands <{command}> for animating your interactions like sitting, lying, taking something.";
+                info += $"\n Current available interactions (use <{command}>Name</{command}> to interact): ";
                 foreach (var oam in allOAMs)
                 {
-                    if (Utils.getDistanceBetweenObjects(oam.Value.AmimatedObject,MitaCore.Instance.MitaPersonObject)>15f) continue;
+                    var distance = Utils.getDistanceBetweenObjects(oam.Value.AmimatedObject, MitaCore.Instance.MitaPersonObject);
+                    if (distance > InteractionDistance) continue;
 
                     if (oam.Value.enabled == false) continue; 
 
-                    info += $"\n Name: '{oam.Key}' - {oam.Value.tip}";
+                    info += $"\n Name: '{oam.Key}' Tip: {oam.Value.tip} distance :{distance.ToString("F2")}";
                 }
             }
 
@@ -48,38 +50,30 @@ namespace MitaAI
             return info;
         }
 
-        public static string processInteraction(string response)
+        public static string ProcessInteraction(string response)
         {
-
-            List<string> commands = new List<string>();
-            string pattern = $@"<{command}>(.*?)</{command}>";
-            MatchCollection matches = Regex.Matches(response, pattern);
-
-            MelonLogger.Msg($"processInteraction finding...");
-            foreach (Match match in matches)
+            try
             {
-                if (match.Success)
+                var matches = Regex.Matches(response, $@"<{command}>(.*?)</{command}>");
+                foreach (Match match in matches.Cast<Match>().Where(m => m.Success))
                 {
-                    string interaction = match.Groups[1].Value;
-                    MelonLogger.Msg($"Interaction {interaction} found response!");
-                    try
+                    var interaction = match.Groups[1].Value;
+                    if (allOAMs.TryGetValue(interaction, out var oam))
                     {
-                        allOAMs[interaction].Play();
+                        oam.Play();
                     }
-                    catch (Exception ex)
-                    {
-
-                        MelonLogger.Error(ex);
-                    }
-
-                    break;
                 }
+                return Regex.Replace(response, $@"<{command}>.*?</{command}>", "");
             }
-
-            pattern = $@"<{command}>.*?</{command}>";
-            string result = Regex.Replace(response, pattern, "");
-
-            return result;
+            catch (KeyNotFoundException ex)
+            {
+                MelonLogger.Error($"Interaction not found: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error($"Critical error: {ex}");
+            }
+            return response;
         }
 
 
@@ -107,58 +101,23 @@ namespace MitaAI
 
         static bool TestWithBalls = false;
 
-        MitaAIMovePoint mitaAIMovePoint;
+        public MitaAIMovePoint mitaAIMovePoint;
 
-        public static ObjectAnimationMita createObjectAnimationMita(string name, GameObject gameObject, Vector3 localPos, Vector3 localRot)
+        string advancedActionName = "";
+
+        public static ObjectAnimationMita Create(string name, GameObject parent,
+            Vector3 pos, Vector3 rot,
+            Vector3? finalPos = null, Vector3? finalRot = null)
         {
-            var g = new GameObject(name);
-            g.transform.SetParent(gameObject.transform, false);
-            g.transform.SetLocalPositionAndRotation(localPos, Quaternion.EulerAngles(localRot));
-            var oam = g.AddComponent<ObjectAnimationMita>();
+            var oam = new GameObject(name).AddComponent<ObjectAnimationMita>();
+            oam.transform.SetParent(parent.transform, false);
 
-            oam.startOAMPosition = localPos;
-            oam.startOAMRotaton = localRot;
-            oam.finalOAMPosition = localPos;
-            oam.finalOAMRotaton = localRot;
+            oam.startOAMPosition = pos;
+            oam.startOAMRotaton = rot;
+            oam.finalOAMPosition = finalPos ?? pos;
+            oam.finalOAMRotaton = finalRot ?? rot;
 
-            oam.Init();
-
-
-            return oam;
-        }
-        public static ObjectAnimationMita createObjectAnimationMita(string name,GameObject gameObject, Vector3 localPos, Vector3 localRot, Vector3 localPosFinal)
-        {
-            var g = new GameObject(name); ;
-            g.transform.SetParent(gameObject.transform, false);
-            g.transform.SetLocalPositionAndRotation(localPos, Quaternion.EulerAngles(localRot));
-            var oam = g.AddComponent<ObjectAnimationMita>();
-
-            oam.startOAMPosition = localPos;
-            oam.startOAMRotaton = localRot;
-            oam.finalOAMPosition = localPosFinal;
-            oam.finalOAMRotaton = localRot;
-
-
-            oam.Init();
-
-            return oam;
-        }
-
-        public static ObjectAnimationMita createObjectAnimationMita(string name, GameObject gameObject, Vector3 localPos, Vector3 localRot, Vector3 localPosFinal, Vector3 localRotFinal)
-        {
-            var g = new GameObject(name);
-            g.transform.SetParent(gameObject.transform, false);
-            g.transform.SetLocalPositionAndRotation(localPos, Quaternion.EulerAngles(localRot));
-            var oam = g.AddComponent<ObjectAnimationMita>();
-
-            oam.startOAMPosition = localPos;
-            oam.startOAMRotaton = localRot;
-            oam.finalOAMPosition = localPosFinal;
-            oam.finalOAMRotaton = localRotFinal;
-
-  
-            oam.Init();
-
+            oam.Initialize();
             return oam;
         }
         public void resetPosition()
@@ -166,7 +125,7 @@ namespace MitaAI
             transform.SetPositionAndRotation(startOAMPosition,Quaternion.EulerAngles(startOAMRotaton));
         }
 
-        void Init()
+        void Initialize()
         {
             allOAMs[name] = this;
 
@@ -206,6 +165,12 @@ namespace MitaAI
         {
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener(unityAction);
+        }
+        public void addAdvancedAction(string name)
+        {
+            advancedActionName = name;
+            // Что произодет, когда Мита дойдет до цели
+            mitaAIMovePoint.eventFinish.AddListener((UnityAction)advancedAction);
         }
         public void addEnqueAnimationAction(string animName)
         {
@@ -292,7 +257,7 @@ namespace MitaAI
         }
         void EnqueAnimation()
         {
-            MitaAnimationModded.EnqueueAnimation(mitaAmimatedName,2f);
+            MitaAnimationModded.EnqueueAnimation(mitaAmimatedName, AnimationTransitionDuration);
             MitaCore.Instance.Mita.MagnetOff();
             MitaCore.Instance.Mita.magnetTarget = null;
         }
@@ -321,6 +286,16 @@ namespace MitaAI
                 backAnimation.enabled = true;
             }
         }
+
+        void advancedAction()
+        {
+            if (advancedActionName == "123")
+            {
+                //
+            }
+        }
+
+
         #endregion
 
     }

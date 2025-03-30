@@ -200,7 +200,7 @@ namespace MitaAI
                 } 
 
                 var chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 1");
-                var oam = ObjectAnimationMita.createObjectAnimationMita("Kitchen Chair 1 sit",chair.gameObject, new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
+                var oam = ObjectAnimationMita.Create("Kitchen Chair 1 sit",chair.gameObject, new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
                 
                 oam.setIdleAnimation("Mita SitIdle");
                 oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
@@ -211,7 +211,7 @@ namespace MitaAI
 
                 //Обратно
                 chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 1");
-                var oamBack = ObjectAnimationMita.createObjectAnimationMita("Kitchen Chair 1 stand up", chair.gameObject, Vector3.zero, new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
+                var oamBack = ObjectAnimationMita.Create("Kitchen Chair 1 stand up", chair.gameObject, Vector3.zero, new Vector3(90, 0, 0), new Vector3(0, 0, 0), new Vector3(90, 0, 0));
                 oamBack.setIdleAnimation("Mita Idle_2",false);
                 oamBack.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
 
@@ -260,7 +260,7 @@ namespace MitaAI
 
 
                 var sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/Sofa");
-                oam = ObjectAnimationMita.createObjectAnimationMita("Hall Sofa sit",sofa.gameObject, new Vector3(-0.85f, 0.65f, 0), new Vector3(270,180,0));
+                oam = ObjectAnimationMita.Create("Hall Sofa sit",sofa.gameObject, new Vector3(-0.85f, 0.65f, 0), new Vector3(270,180,0));
 
                 //Mita StartSit Sofa
                 oam.setIdleAnimation("Mita SitIdle");
@@ -268,15 +268,17 @@ namespace MitaAI
                 oam.addEnqueAnimationAction("Mita SitIdle");
                 oam.tip = "Сесть на диван";
 
-                oamBack = ObjectAnimationMita.createObjectAnimationMita("Hall Sofa stand up", sofa.gameObject, new Vector3(-0.85f, 0.65f, 0), new Vector3(270,180,0));
+                oamBack = ObjectAnimationMita.Create("Hall Sofa stand up", sofa.gameObject, new Vector3(-0.85f, 0.65f, 0), new Vector3(270,180,0));
 
                 //Mita StartSit Sofa
                 oamBack.setIdleAnimation("Mita Idle_2", false);
                 //oam.addEnqueAnimationAction("Mita StartSitChair");
                 oamBack.addEnqueAnimationAction("Mita Idle_2");
                 oamBack.addReturningToNormal();
-                oamBack.tip = "Слезть с дивана за стул";
+                oamBack.tip = "Слезть с дивана";
                 oamBack.enabled = false;
+
+
                 oam.backAnimation = oamBack;
                 oamBack.backAnimation = oam;
 
