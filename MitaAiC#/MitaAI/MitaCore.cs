@@ -437,7 +437,9 @@ namespace MitaAI
 
         private const float Interval = 0.35f;
         private float timer = 0f;
-
+        
+        // Добавляем блокировку для предотвращения одновременных вызовов HandleDialogue
+        private bool isHandleDialogueRunning = false;
 
         Vector3 lastPosition;
 
@@ -493,7 +495,9 @@ namespace MitaAI
         {
             base.OnInitializeMelon();
             characterLogic = LogicCharacter.Instance;
-            harmony = new HarmonyLib.Harmony("1");
+            harmony = new HarmonyLib.Harmony("NeuroMita");
+            harmony.PatchAll(System.Reflection.Assembly.GetExecutingAssembly());
+            MelonLogger.Msg("OnInitializeMelon patch");
             MitaClothesModded.init(harmony);
             NetworkController.Initialize();
         }
@@ -950,11 +954,15 @@ namespace MitaAI
                 timer += Time.deltaTime;
                 DataChange.MitaBoringtimer += Time.deltaTime;
 
-                // Проверяем, достиг ли timer значения Interval
-                if (timer >= Interval)
+                // Проверяем, достиг ли timer значения Interval и не запущен ли уже HandleDialogue
+                if (timer >= Interval && !isHandleDialogueRunning)
                 {
                     timer = 0f; // Сбрасываем таймер
+                    isHandleDialogueRunning = true; // Устанавливаем флаг, что HandleDialogue запущен
+                    
                     yield return DataChange.HandleDialogue(); // Запускаем HandleDialogue и ждем его завершения
+                    
+                    isHandleDialogueRunning = false; // Сбрасываем флаг после завершения
                 }
 
                 yield return null; // Ждем следующего кадра
