@@ -357,6 +357,11 @@ namespace MitaAI
             //Mita.AiWalkToTarget(worldHouse);
         }
 
+        public static Transform getMitaHand(GameObject MitaObject,bool left = false)
+        {
+            if (left) MitaObject.transform.Find("Armature/Hips/Spine/Chest/Left shoulder/Left arm/Left elbow/Left wrist/Left item");
+            return MitaObject.transform.Find("Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item");
+        }
 
         public enum character
         {

@@ -347,18 +347,33 @@ namespace MitaAI.Mita
                         break;
                     case "Удар":
                         // Проверяем, какой персонаж сейчас активен
-                        if (MitaCore.Instance.currentCharacter == MitaCore.character.Kind)
+
+                        try
                         {
-                            // Если активен Kind персонаж, используем трубу
-                            pipe.active = true;
-                            EnqueueAnimation("Mita Kick");
+                            if (MitaCore.Instance.currentCharacter == MitaCore.character.Kind)
+                            {
+                                // Если активен Kind персонаж, используем трубу
+                                pipe.active = true;
+                                pipe.transform.SetParent(MitaCore.getMitaHand(MitaCore.Instance.MitaPersonObject));
+                                pipe.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+                            }
+                            else
+                            {
+                                // Для других персонажей используем биту
+                                bat.active = true;
+                                pipe.transform.SetParent(MitaCore.getMitaHand(MitaCore.Instance.MitaPersonObject));
+                                pipe.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            // Для других персонажей используем биту
-                            bat.active = true;
-                            EnqueueAnimation("Mita Kick");
+
+                            MelonLogger.Error(ex);
                         }
+                       
+                        EnqueueAnimation("Mita Kick");
                         break;
                     case "Помахать перед лицом":
                         EnqueueAnimation("Hey");

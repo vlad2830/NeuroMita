@@ -276,7 +276,7 @@ namespace MitaAI
             MitaAnimationModded.location34_Communication.gameObject.active = true;
             //MitaAnimationModded.location34_Communication.mitaCanWalk = true;
             MitaAnimationModded.checkCanMoveLook();
-            MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = true;
+            MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = false;
         }
         void commonAction()
         {

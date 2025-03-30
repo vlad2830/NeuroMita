@@ -401,8 +401,8 @@ namespace MitaAI
                 // Инициализация объекта pipe
                 MitaAnimationModded.pipe = MitaCore.worldBasement.Find("World/Mita Future/MitaPerson Future/RightItem/Tube Basement").gameObject;
                 MitaAnimationModded.pipe.active = true;
-                            
-                
+
+
 
                 Transform door = MitaCore.worldBasement.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/General/BasementDoorFrame/BasementDoor");
                 door.parent.gameObject.GetComponent<Animator>().enabled = false;

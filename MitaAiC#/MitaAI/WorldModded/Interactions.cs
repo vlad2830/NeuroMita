@@ -41,6 +41,9 @@ namespace MitaAI
 
             }
             objectInteractive.active = true;
+
+            
+
         }
         private static Dictionary<string, float> objectViewTime = new Dictionary<string, float>();
 
