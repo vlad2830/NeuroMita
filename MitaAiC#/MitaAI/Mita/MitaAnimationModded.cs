@@ -326,7 +326,7 @@ namespace MitaAI.Mita
                     case "Сесть и плакать":
                         EnqueueAnimation("Mila CryNo");
                         setIdleAnimation("Mila CryNo");
-                        MitaCore.movementStyle = MitaCore.MovementStyles.sittingAndCrying;
+                        MitaCore.movementStyle = MitaCore.MovementStyles.cryingOnTheFloor;
                         break;
                     case "Дружески ударить":
                         EnqueueAnimation("Mila Kick");
@@ -416,26 +416,47 @@ namespace MitaAI.Mita
             }
 
             // Если запрещено двигаться
-            if (MovementStylesNoMoving.Contains(MitaCore.movementStyle))
-            {
-                MitaCore.Instance.MitaLook.active = false;
-                location34_Communication.ActivationCanWalk(false);
-            }
-            else
-            {
-                MitaCore.Instance.MitaLook.active = true;
-
-            }
+            checkCanMoveLook();
 
 
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
-        private static readonly MitaCore.MovementStyles[] MovementStylesNoMoving =
+        private static readonly MitaCore.MovementStyles[] MovementStylesNoMovingAtAll =
         {
-            MitaCore.MovementStyles.sittingAndCrying,
+            MitaCore.MovementStyles.cryingOnTheFloor,
             MitaCore.MovementStyles.layingOnTheFloorAsDead
+
         };
+        private static readonly MitaCore.MovementStyles[] MovementStylesNoBodyLooking =
+        {
+            MitaCore.MovementStyles.sitting
+        };
+
+        // Отвечает за перемещение и поворот миты.
+        public static void checkCanMoveLook()
+        {     
+        
+            // Если запрещено двигаться
+            if (MovementStylesNoMovingAtAll.Contains(MitaCore.movementStyle))
+            {
+                MitaCore.Instance.MitaLook.active = false;
+                location34_Communication.ActivationCanWalk(false);
+            }
+            else if (MovementStylesNoBodyLooking.Contains(MitaCore.movementStyle))
+            {
+                MitaCore.Instance.MitaLook.active = true;
+                MitaCore.Instance.MitaLook.canRotateBody = false;
+                location34_Communication.ActivationCanWalk(false);
+            }
+            else
+            {
+                MitaCore.Instance.MitaLook.canRotateBody = true;
+                MitaCore.Instance.MitaLook.active = true;
+
+            }
+
+        }
 
         static public void EnqueueAnimation(string animName = "",float lenght = 0, float timeAfter = 0)
         {
@@ -605,7 +626,12 @@ namespace MitaAI.Mita
                     if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                     location34_Communication.mitaAnimationIdle = anim;
 
-                   
+                    if (animName.Contains("sit") || animName.Contains("Sit"))
+                    {
+                        MitaCore.movementStyle = MitaCore.MovementStyles.sitting;
+                    }
+                    checkCanMoveLook();
+
                 }
                 catch (Exception e)
                 {

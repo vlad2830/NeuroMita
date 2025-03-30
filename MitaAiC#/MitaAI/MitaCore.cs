@@ -383,7 +383,8 @@ namespace MitaAI
             stay = 2,
             noclip = 3,
             layingOnTheFloorAsDead = 4,
-            sittingAndCrying
+            sitting,
+            cryingOnTheFloor
 
         }
         public static MovementStyles movementStyle = MovementStyles.walkNear;
@@ -829,6 +830,9 @@ namespace MitaAI
             CustomDialogText.indexString = -1;
             CustomDialogText.showSubtitles = true;
 
+            MelonLogger.Msg($"Attempt initStartSecret2");
+            TotalInitialization.initStartSecret2();
+
             MelonLogger.Msg($"Attempt Interactions before");
             try
             {
@@ -841,7 +845,7 @@ namespace MitaAI
             }
 
 
-            TotalInitialization.initStartSecret2();
+            
 
             //MelonLogger.Msg($"Attempt after");
             MelonLogger.Msg($"Attempt Interactions end");
@@ -865,6 +869,8 @@ namespace MitaAI
             
             //TestBigMita();
         }
+
+        // В случае экстренной ситуации вызвать
         void TestBigMita()
         {
             MelonLogger.Msg("Start TestBigMita");
@@ -948,7 +954,7 @@ namespace MitaAI
             }
         }
 
-        private IEnumerator UpdateLighitng()
+        private IEnumerator UpdateLighting()
         {
             yield return new WaitForSeconds(1f);
             while (true)

@@ -18,11 +18,14 @@ namespace MitaAI
 
 
         public string mitaAmimatedName;
+        public string mitaAmimatedNameIdle;
         public Vector3 MoveTarget;
         public Vector3 RotateTarget;
         public float moveDuration = 2.0f;
 
-        
+        public Vector3 finalOAMPosition;
+        public Quaternion finalOAMRotaton;
+
 
         MitaAIMovePoint mitaAIMovePoint;
 
@@ -30,12 +33,47 @@ namespace MitaAI
         {
             var g = new GameObject($"{gameObject.name} OAM");
             g.transform.SetParent(gameObject.transform, false);
-            g.transform.SetPositionAndRotation(localPos, localRot);
-            return g.AddComponent<ObjectAnimationMita>();
+            g.transform.SetLocalPositionAndRotation(localPos, localRot);
+            var oam = g.AddComponent<ObjectAnimationMita>();
+            oam.Init();
+
+            oam.finalOAMPosition = localPos;
+            oam.finalOAMRotaton = localRot;
+
+            return oam;
+        }
+        public static ObjectAnimationMita createObjectAnimationMita(GameObject gameObject, Vector3 localPos, Quaternion localRot, Vector3 localPosFinal)
+        {
+            var g = new GameObject($"{gameObject.name} OAM");
+            g.transform.SetParent(gameObject.transform, false);
+            g.transform.SetLocalPositionAndRotation(localPos, localRot);
+            var oam = g.AddComponent<ObjectAnimationMita>();
+
+            oam.finalOAMPosition = localPosFinal;
+            oam.finalOAMRotaton = localRot;
+
+            oam.Init();
+
+            return oam;
+        }
+
+        public static ObjectAnimationMita createObjectAnimationMita(GameObject gameObject, Vector3 localPos, Quaternion localRot, Vector3 localPosFinal, Quaternion localRotFinal)
+        {
+            var g = new GameObject($"{gameObject.name} OAM");
+            g.transform.SetParent(gameObject.transform, false);
+            g.transform.SetLocalPositionAndRotation(localPos, localRot);
+            var oam = g.AddComponent<ObjectAnimationMita>();
+
+            oam.finalOAMPosition = localPosFinal;
+            oam.finalOAMRotaton = localRotFinal;
+
+        oam.Init();
+
+            return oam;
         }
 
 
-        public void Start()
+        void Init()
         {
             mitaPerson = MitaCore.Instance.MitaPersonObject;
             AmimatedObject = transform.parent.gameObject;
@@ -44,6 +82,12 @@ namespace MitaAI
             mitaAIMovePoint.targetMove = gameObject.transform;
             mitaAIMovePoint.eventFinish = new UnityEvent();
             mitaAIMovePoint.mita = MitaCore.Instance.Mita;
+            
+            if (finalOAMPosition!=transform.localPosition || finalOAMRotaton != transform.localRotation)
+            {
+                mitaAIMovePoint.eventFinish.AddListener((UnityAction)MoveRotateObjectOAM);
+            }
+
         }
 
         public void addSimpleAction(UnityAction unityAction)
@@ -58,6 +102,14 @@ namespace MitaAI
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
         }
+        public void setIdleAnimation(string animName)
+        {
+            mitaAIMovePoint.magnetAfter = true;
+            // Что проиграет Мита, когда подойдет
+            mitaAmimatedNameIdle = animName;
+            // Что произодет, когда Мита дойдет до цели
+            mitaAIMovePoint.eventFinish.AddListener((UnityAction)SetIdleAnimation);
+        }
         public void addMoveRotateAction(Vector3 newlocalPos, Quaternion newlocalRot)
         {
             // Подвинет повернет что-то, когда мита подойдет.
@@ -66,6 +118,7 @@ namespace MitaAI
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)MoveRotateObject);
         }
+
 
         public void clearAllActions()
         {
@@ -77,14 +130,18 @@ namespace MitaAI
             //Отправляет Миту в Путь
 
             mitaAIMovePoint.mita = MitaCore.Instance.Mita;
+            MitaAnimationModded.location34_Communication.gameObject.active = false;
             mitaAIMovePoint.PlayRotateAndWalk();
+           
         }
         public void Play(MitaPerson mita)
         {
             //Отправляет Миту в Путь
 
             mitaAIMovePoint.mita = mita;
+            MitaAnimationModded.location34_Communication.gameObject.active = false;
             mitaAIMovePoint.PlayRotateAndWalk();
+            
         }
 
 
@@ -92,11 +149,20 @@ namespace MitaAI
 
         void MoveRotateObject()
         {
-            Utils.StartObjectAnimation(AmimatedObject, MoveTarget, RotateTarget, 2);
+            Utils.StartObjectAnimation(AmimatedObject, MoveTarget, RotateTarget, 1);
+        }
+        void MoveRotateObjectOAM()
+        {
+            Utils.StartObjectAnimation(gameObject, finalOAMPosition, finalOAMRotaton, 1);
         }
         void EnqueAnimation()
         {
             MitaAnimationModded.EnqueueAnimation(mitaAmimatedName);
+        }
+        void SetIdleAnimation()
+        {
+            MitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
+            MitaCore.Instance.Mita.MagnetOff();
         }
 
         #endregion

@@ -309,7 +309,7 @@ namespace MitaAI.PlayerControls
             {
                 if (Input.GetKeyDown(keyAction.Key) )
                 {
-                    MelonLogger.Msg($"Try change to {keyAction.Value.MitaObject}");
+                    MelonLogger.Msg($"INNPUT CONTROL: Try change to {keyAction.Value.Character}");
                     MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
                     _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
                     CharacterControl.resetOrders(true);

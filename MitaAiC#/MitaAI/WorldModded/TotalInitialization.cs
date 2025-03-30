@@ -200,31 +200,38 @@ namespace MitaAI
                 } 
 
                 var chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 1");
-                if (chair == null)
-                {
-                    MelonLogger.Msg($"chair not found");
-                    chair = GameObject.Find("Kitchen Chair 2").transform;
-                }
-                var oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                var oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(358.7637f,39.9841f, 1.4737f), new Vector3(0, -0.7f, 0));
+                
+                oam.setIdleAnimation("Mita SitChair");
+                oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.EulerAngles(0, 0, 0));
+  
                 oam.addEnqueAnimationAction("Mita StartSitChair");
-                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
 
 
                 chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 2");
-                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(310, 270, 270), new Vector3(0, -0.7f, 0));
+                
+                oam.setIdleAnimation("Mita SitChair");
+                oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.EulerAngles(0, 0, 0));
+
                 oam.addEnqueAnimationAction("Mita StartSitChair");
 
-                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
                 chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 3");
-                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(310, 270, 270), new Vector3(0, -0.7f, 0));
+                
+                oam.setIdleAnimation("Mita SitChair");
+                oam.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.EulerAngles(0,0,0));
+
                 oam.addEnqueAnimationAction("Mita StartSitChair");
-                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
 
 
                 chair = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 4");
-                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(1, 0, 1), Quaternion.identity);
+                oam = ObjectAnimationMita.createObjectAnimationMita(chair.gameObject, new Vector3(-0.1f, -0.6f, -0.1f), Quaternion.Euler(310, 270, 270), new Vector3(0, -0.7f, 0));
+               
+                oam.setIdleAnimation("Mita SitChair");
+                oam.addMoveRotateAction(new Vector3(-0.4f, 0, 0f), Quaternion.EulerAngles(0, 0, 0));
+
                 oam.addEnqueAnimationAction("Mita StartSitChair");
-                oam.addMoveRotateAction(new Vector3(1, 0, 0), Quaternion.Euler(1, 45, 1));
             }
             catch (Exception ex) 
             {

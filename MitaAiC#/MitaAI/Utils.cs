@@ -230,15 +230,13 @@ namespace MitaAI
 
 
 
-        public static void StartObjectAnimation(GameObject targetObject,
-                                    Vector3 moveOffset,
-                                    Vector3 rotateOffset,
-                                    float duration)
+        public static void StartObjectAnimation(GameObject targetObject,Vector3 moveOffset,Vector3 rotateOffset,float duration)
         {
-            MelonCoroutines.Start(AnimateObject(targetObject.transform,
-                                               moveOffset,
-                                               rotateOffset,
-                                               duration));
+            MelonCoroutines.Start(AnimateObject(targetObject.transform,moveOffset,rotateOffset,duration));
+        }
+        public static void StartObjectAnimation(GameObject targetObject, Vector3 moveOffset, Quaternion rotateOffset, float duration)
+        {
+            MelonCoroutines.Start(AnimateObject(targetObject.transform, moveOffset, Quaternion.ToEulerAngles(rotateOffset), duration));
         }
 
         private static IEnumerator AnimateObject(Transform targetTransform,
@@ -248,8 +246,8 @@ namespace MitaAI
         {
             if (targetTransform == null) yield break;
 
-            Vector3 startPosition = targetTransform.position;
-            Quaternion startRotation = targetTransform.rotation;
+            Vector3 startPosition = targetTransform.localPosition;
+            Quaternion startRotation = targetTransform.localRotation;
 
             Vector3 targetPosition = startPosition + positionOffset;
             Quaternion targetRotation = startRotation * Quaternion.Euler(rotationOffset);
@@ -259,16 +257,16 @@ namespace MitaAI
             while (elapsed < animationTime)
             {
                 float t = elapsed / animationTime;
-                targetTransform.position = Vector3.Lerp(startPosition, targetPosition, t);
-                targetTransform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+                targetTransform.localPosition = Vector3.Lerp(startPosition, targetPosition, t);
+                targetTransform.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
 
                 elapsed += Time.deltaTime;
                 yield return null;
             }
 
             // Finalize position and rotation
-            targetTransform.position = targetPosition;
-            targetTransform.rotation = targetRotation;
+            targetTransform.localPosition = targetPosition;
+            targetTransform.localRotation = targetRotation;
         }
 
 
