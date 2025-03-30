@@ -230,16 +230,13 @@ namespace MitaAI
 
 
 
-        public static void StartObjectAnimation(GameObject targetObject,Vector3 moveOffset,Vector3 rotateOffset,float duration)
+        public static void StartObjectAnimation(GameObject targetObject,Vector3 position,Vector3 rotation,float duration, bool delta = true)
         {
-            MelonCoroutines.Start(AnimateObject(targetObject.transform,moveOffset,rotateOffset,duration));
-        }
-        public static void StartObjectAnimation(GameObject targetObject, Vector3 moveOffset, Quaternion rotateOffset, float duration)
-        {
-            MelonCoroutines.Start(AnimateObject(targetObject.transform, moveOffset, Quaternion.ToEulerAngles(rotateOffset), duration));
+            if (delta) MelonCoroutines.Start(AnimateObjectByDelta(targetObject.transform,position, rotation, duration));
+            else MelonCoroutines.Start(AnimateObjectToFinalPos(targetObject.transform, position, rotation, duration));
         }
 
-        private static IEnumerator AnimateObject(Transform targetTransform,
+        private static IEnumerator AnimateObjectByDelta(Transform targetTransform,
                                         Vector3 positionOffset,
                                         Vector3 rotationOffset,
                                         float animationTime)
@@ -268,7 +265,35 @@ namespace MitaAI
             targetTransform.localPosition = targetPosition;
             targetTransform.localRotation = targetRotation;
         }
+        private static IEnumerator AnimateObjectToFinalPos(Transform targetTransform,
+                                        Vector3 positionFinal,
+                                        Vector3 rotationFinal,
+                                        float animationTime)
+        {
+            if (targetTransform == null) yield break;
 
+            Vector3 startPosition = targetTransform.localPosition;
+            Quaternion startRotation = targetTransform.localRotation;
+
+            Vector3 targetPosition = positionFinal;
+            Quaternion targetRotation = Quaternion.Euler(rotationFinal);
+
+            float elapsed = 0f;
+
+            while (elapsed < animationTime)
+            {
+                float t = elapsed / animationTime;
+                targetTransform.localPosition = Vector3.Lerp(startPosition, targetPosition, t);
+                targetTransform.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Finalize position and rotation
+            targetTransform.localPosition = targetPosition;
+            targetTransform.localRotation = targetRotation;
+        }
 
     }
 
