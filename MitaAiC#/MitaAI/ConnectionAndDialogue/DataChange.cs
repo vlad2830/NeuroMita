@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using MitaAI.Mita;
 using MitaAI.PlayerControls;
 using System;
@@ -20,6 +20,13 @@ namespace MitaAI
 
         static private float lastActionTime = -Mathf.Infinity;  // Для отслеживания времени последнего действия
         private const float actionCooldown = 6f;  // Интервал в секундах, надо сделать умнее для нормальных диалогов
+        
+        // Добавляем переменные для отслеживания последних сообщений, чтобы избежать дублирования
+        private static string lastPlayerMessage = "";
+        // Заменяем старые переменные на словарь для хранения данных по каждому персонажу
+        private static Dictionary<MitaCore.character, (string message, int counter)> lastSystemData = 
+            new Dictionary<MitaCore.character, (string, int)>();
+        private static int maxDuplicates = 0; // Жёсткий лимит: 0 дубликатов (блокировать все дубликаты)
 
         public static IEnumerator HandleDialogue()
         {
@@ -38,11 +45,28 @@ namespace MitaAI
 
 
             float currentTime = Time.unscaledTime;
-            if (currentTime - lastActionTime > actionCooldown - ( CharacterControl.needToIgnoreTimeout() ? 4 : 0 ) )
+            // Проверка на превышение интервала между действиями
+            bool timeoutSatisfied = currentTime - lastActionTime > actionCooldown - (CharacterControl.needToIgnoreTimeout() ? 4 : 0);
+            
+            // Особая логика для режима охоты - принудительно сбрасываем счетчики дубликатов
+            if (MitaCore.Instance.mitaState == MitaCore.MitaState.hunt && timeoutSatisfied)
+            {
+                lastSystemData.Clear(); // Очищаем словарь с данными о сообщениях
+            }
+
+            if (timeoutSatisfied)
             {
                 //MelonLogger.Msg("Ready to send");
                 if (playerText != "")
                 {
+                    // Проверка на дублирование сообщения от игрока
+                    if (playerText == lastPlayerMessage)
+                    {
+                        MelonLogger.Warning("Duplicate player message detected, skipping");
+                        yield break;
+                    }
+                    
+                    lastPlayerMessage = playerText;
                     MelonLogger.Msg("HAS playerMessage");
                     senfPlayerMessage = true;
 
@@ -72,13 +96,40 @@ namespace MitaAI
                     MelonLogger.Msg("HAS SYSTEM MESSAGES");
                     MitaBoringtimer = 0f;
 
-
                     //Отправляю залпом.
                     while (MitaCore.Instance.systemMessages.Count() > 0)
                     {
                         var message = MitaCore.Instance.systemMessages.Dequeue();
                         dataToSentSystem += message.Item1 + "\n";
                         characterToSend = message.Item2;
+
+                        // Проверяем, есть ли запись о последнем сообщении этого персонажа
+                        if (lastSystemData.TryGetValue(characterToSend, out var lastData))
+                        {
+                            // Если сообщение совпадает с предыдущим для этого персонажа
+                            if (message.Item1 == lastData.message)
+                            {
+                                lastData.counter++;
+                                if (lastData.counter >= maxDuplicates)
+                                {
+                                    MelonLogger.Warning($"Слишком много дублей от {characterToSend}, пропускаем");
+                                    lastSystemData[characterToSend] = lastData; // Обновляем счетчик
+                                    continue;
+                                }
+                                lastSystemData[characterToSend] = lastData; // Обновляем счетчик
+                            }
+                            else
+                            {
+                                // Новое уникальное сообщение - устанавливаем счетчик на 1 (первое появление)
+                                lastSystemData[characterToSend] = (message.Item1, 1);
+                            }
+                        }
+                        else
+                        {
+                            // Первое сообщение от этого персонажа - устанавливаем счетчик на 1 (первое появление)
+                            lastSystemData[characterToSend] = (message.Item1, 1);
+                        }
+                        
                         if (characterToWas == MitaCore.character.None || characterToWas == characterToSend)
                         {
                             characterToWas = message.Item2;
@@ -88,12 +139,9 @@ namespace MitaAI
                             MitaCore.Instance.sendSystemMessage(message.Item1, characterToSend);
                             break;
                         }
-
                     }
 
-
                     lastActionTime = Time.unscaledTime;
-
                 }
                 else if (MitaBoringtimer >= MitaBoringInterval && MitaCore.Instance.mitaState == MitaCore.MitaState.normal)
                 {
@@ -102,8 +150,6 @@ namespace MitaAI
                     lastActionTime = Time.unscaledTime;
                 }
             }
-
-
 
             string response = "";
 
@@ -126,8 +172,8 @@ namespace MitaAI
                         break;
                     }
                 }
-
             }
+            
             if (characterToSend != MitaCore.Instance.currentCharacter)
             {
                 if (characterToSend != MitaCore.character.GameMaster)
