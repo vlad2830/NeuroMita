@@ -1269,6 +1269,20 @@ class ChatGUI:
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
 
+
+        elif key == "NM_API_MODEL":
+            self.model.api_model = value
+        elif key == "NM_API_KEY":
+            self.model.api_key = value
+        elif key == "NM_API_URL":
+            self.model.api_url = value
+        elif key == "NM_API_REQ":
+            self.model.makeRequest = bool(value)
+        elif key == "gpt4free_model":
+            self.model.gpt4free_model = value
+
+
+
         elif key == "MODEL_MESSAGE_LIMIT":
             self.model.memory_limit = int(value)
         elif key == "MODEL_MESSAGE_ATTEMPTS_COUNT":
@@ -1276,8 +1290,7 @@ class ChatGUI:
         elif key == "MODEL_MESSAGE_ATTEMPTS_TIME":
             self.model.request_delay = float(value)
 
-        elif key == "gpt4free_model":
-            self.model.gpt4free_model = value
+
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = bool(value)
