@@ -1048,12 +1048,40 @@ namespace MitaAI
             try
             {
 
-                // GameObject Mita = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundleTestMita, "Mita"));
-                //MitaCore.CrazyObject = Mita;
-                //Mita.name = "MitaTestFromDemo";
-                //MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy);
+                GameObject Mita = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundleTestMita, "Mita"));
+                
+                // Чиню поворот
+                Mita.GetComponentInChildren<Character_Look>().speedRotateBody = 1f;
 
-                //Mita.GetComponentInChildren<Character_Look>().speedRotateBody = 1f;
+
+                // Чиню люпсинк
+                var blandshapeOriginal = MitaCore.CrazyObject.transform.Find("MitaPerson Mita/Head").gameObject.GetComponent<Audio_BlendShapeVoice>();
+                var blandshape = Mita.transform.Find("MitaPerson Mita/Head").gameObject.AddComponent<Audio_BlendShapeVoice>();
+
+                blandshape.audioVoice = Mita.transform.Find("MitaPerson Mita/Armature/Hips/Spine/Chest/Neck2/Neck1/Head").GetComponent<AudioSource>();
+                blandshape.mesh = Mita.transform.Find("MitaPerson Mita/Head").GetComponent<SkinnedMeshRenderer>();
+
+                blandshape.animationMouth = blandshapeOriginal.animationMouth;
+                blandshape.animationOffInSpeak = blandshapeOriginal.animationOffInSpeak;
+                blandshape.shapesOffInSpeak = blandshapeOriginal.shapesOffInSpeak;
+                blandshape.animationMouth = blandshapeOriginal.animationMouth;
+                blandshape.intensity = 3;
+
+
+                // Пробую одежку поменять
+
+                try
+                {
+                    var mitaClothes = ComponentCopier.CopyComponent(MitaCore.CrazyObject.GetComponentInChildren<MitaClothes>(), Mita.transform.Find("MitaPerson Mita").gameObject, MitaCore.CrazyObject.transform.Find("MitaPerson Mita"), Mita.transform.Find("MitaPerson Mita"));
+
+                }
+                catch (Exception e) { MelonLogger.Error(e); }
+
+
+                MitaCore.CrazyObject = Mita;
+                Mita.name = "MitaTestFromDemo";
+                MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy);
+
 
 
 
