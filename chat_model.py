@@ -148,7 +148,7 @@ class ChatModel:
         print("Попытка обновить клиент")
         if reserve_key and self.api_key_res != "":
             print("С резервным ключом")
-            key = self.api_key_res
+            key = reserve_key
         else:
             print("С основным ключом")
             key = self.api_key
@@ -308,7 +308,7 @@ class ChatModel:
         retry_delay = self.request_delay  # Задержка между попытками в секундах
 
         # Определяем провайдера для первой попытки
-        use_gemini = self.makeRequest and not bool(self.gui.settings.get("gpt4free"))
+        #use_gemini = self.makeRequest and not bool(self.gui.settings.get("gpt4free"))
 
         self._log_generation_start()
         for attempt in range(1, max_attempts + 1):
