@@ -1,115 +1,301 @@
-﻿using UnityEngine;
+﻿using Il2Cpp;
+using Il2CppInterop.Runtime.InteropTypes;
+using MelonLoader;
 using System;
-using System.Reflection;
-using Il2CppInterop.Runtime;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-
-public static class ComponentCopier
+using System.Collections;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
+using System.Text.RegularExpressions;
+namespace MitaAI
 {
-    public static T CopyComponent<T>(T original, GameObject target, Transform originalRoot, Transform newRoot)
-        where T : Component
+    public static class Utils
     {
-        // Создание компонента на целевом объекте
-        T newComp = target.AddComponent<T>();
 
-        // Копирование полей
-        foreach (FieldInfo field in typeof(T).GetFields(
-            BindingFlags.Public |
-            BindingFlags.NonPublic |
-            BindingFlags.Instance))
+        /// <summary>
+        /// Возвращает true с вероятностью a/b
+        /// </summary>
+        /// <param name="a">Числитель (шанс успеха)</param>
+        /// <param name="b">Знаменатель (общий диапазон)</param>
+        /// <returns>True, если шанс произошел, иначе False</returns>
+        public static bool Random(int a, int b)
         {
-            object value = field.GetValue(original);
-            field.SetValue(newComp, ProcessValue(value, originalRoot, newRoot));
+            // Проверка на корректность входных данных
+            if (a < 0 || b <= 0 || a > b)
+            {
+                Debug.LogError("Некорректные значения a и b. Должно быть: 0 <= a <= b, b > 0");
+                return false;
+            }
+
+            // Генерация случайного числа в диапазоне [0, b)
+            int randomValue = UnityEngine.Random.Range(0, b);
+
+            // Возвращаем true, если randomValue < a
+            return randomValue < a;
         }
 
-        return newComp;
+        public static string CleanFromTags(string text)
+        {
+            string textCleaned = Regex.Replace(text, @"<[^>]+>.*?</[^>]+>", ""); // Очищаем от всех тегов
+            textCleaned = Regex.Replace(textCleaned, @"<[^>]+>", ""); // Очищаем от всех тегов
+
+            return textCleaned;
+        }
+
+        public static void CopyComponentValues(ObjectInteractive source, ObjectInteractive destination)
+        {
+            if (source == null || destination == null)
+            {
+                MelonLogger.Msg("Source or destination is null!");
+                return;
+            }
+
+            // Если нужно скопировать все поля автоматически, можно использовать рефлексию
+            var fields = typeof(ObjectInteractive).GetFields();
+            foreach (var field in fields)
+            {
+                field.SetValue(destination, field.GetValue(source));
+            }
+
+            MelonLogger.Msg("Component values copied!");
+        }
+
+        public static float getDistanceBetweenObjects(GameObject a, GameObject b)
+        {
+            return Vector3.Distance(a.transform.position, b.transform.position);
+        }
+
+        static public IEnumerator DestroyObjecteAfterTime(GameObject obj, float delay)
+        {
+            // Проверяем, не null ли объект
+            if (obj == null)
+            {
+                MelonLogger.Msg("GameObject is null. Cannot toggle.");
+                yield break;
+            }
+
+            // Ждём заданное время
+            yield return new WaitForSeconds(delay);
+
+            GameObject.Destroy(obj);
+        }
+
+
+
+        public static IEnumerator ToggleObjectActiveAfterTime(GameObject obj, float delay)
+        {
+            // Проверяем, не null ли объект
+            if (obj == null)
+            {
+                MelonLogger.Msg("GameObject is null. Cannot toggle.");
+                yield break;
+            }
+
+            // Ждём заданное время
+            yield return new WaitForSeconds(delay);
+
+            // Переключаем активность объекта
+            obj.SetActive(!obj.activeSelf);
+            MelonLogger.Msg($"GameObject {obj.name} is now {(obj.activeSelf ? "active" : "inactive")}");
+        }
+
+
+        public static GameObject TryfindChild(Transform parent, string path)
+        {
+            try
+            {
+                return parent.Find(path).gameObject;
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Msg($"Tried found {path} but {e}");
+                return null;
+            }
+        }
+        public static void TryTurnChild(Transform parent, string path, bool on)
+        {
+            try
+            {
+                TryfindChild(parent, path).gameObject.SetActive(on);
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Msg("Tried turn " + path + " " + e);
+                return;
+            }
+        }
+        public static void DestroyAfterTime(GameObject gameObject, float delay = 5f)
+        {
+            MelonCoroutines.Start(DestroyAfterTimeCorutine(gameObject, delay));
+        }
+
+        public static IEnumerator DestroyAfterTimeCorutine(GameObject gameObject, float delay = 5f)
+        {
+            yield return new WaitForSeconds(delay);
+            GameObject.Destroy(gameObject);
+
+            while (gameObject != null)
+            {
+                yield return new WaitForSeconds(delay);
+                GameObject.Destroy(gameObject);
+            }
+        }
+
+        // Корутинa для переключения активности компоненты
+        public static IEnumerator ToggleComponentAfterTime(Component component, float delay)
+        {
+            MelonLogger.Msg($"Starting ToggleComponentAfterTime for {component?.GetType().Name} with delay {delay}...");
+
+            if (component == null)
+            {
+                MelonLogger.Msg("Component is null. Cannot toggle.");
+                yield break;
+            }
+
+            if (component is MonoBehaviour monoBehaviourComponent)
+            {
+                yield return new WaitForSeconds(delay);
+
+                monoBehaviourComponent.enabled = !monoBehaviourComponent.enabled;
+                MelonLogger.Msg($"{monoBehaviourComponent.GetType().Name} is now {(monoBehaviourComponent.enabled ? "enabled" : "disabled")}");
+            }
+            else if (component is Il2CppObjectBase il2cppComponent)
+            {
+                MelonLogger.Msg($"Detected Il2Cpp component: {il2cppComponent.GetType().Name}");
+
+                // Проверяем, есть ли у компонента свойство enabled
+                var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
+                if (enabledProperty != null && enabledProperty.PropertyType == typeof(bool))
+                {
+                    // Читаем текущее значение свойства
+                    bool isEnabled = (bool)enabledProperty.GetValue(il2cppComponent);
+                    MelonLogger.Msg($"Current enabled state of {il2cppComponent.GetType().Name}: {isEnabled}");
+
+                    yield return new WaitForSeconds(delay);
+
+                    // Переключаем значение
+                    enabledProperty.SetValue(il2cppComponent, !isEnabled);
+                    MelonLogger.Msg($"{il2cppComponent.GetType().Name} is now {(!isEnabled ? "enabled" : "disabled")}");
+                }
+                else
+                {
+                    MelonLogger.Warning($"The component {il2cppComponent.GetType().Name} does not have an 'enabled' property.");
+                }
+            }
+            else
+            {
+                MelonLogger.Warning($"Component {component?.GetType().Name} is not a MonoBehaviour or Il2CppObjectBase. Cannot toggle.");
+            }
+
+            MelonLogger.Msg($"Finished ToggleComponentAfterTime for {component?.GetType().Name}.");
+        }
+
+        public static IEnumerator HandleIl2CppComponent(Il2CppObjectBase il2cppComponent, float delay)
+        {
+            MelonLogger.Msg($"Starting HandleIl2CppComponent for {il2cppComponent?.GetType().Name} with delay {delay}...");
+
+            if (il2cppComponent == null)
+            {
+                MelonLogger.Msg("Il2CppComponent is null. Cannot toggle.");
+                yield break;
+            }
+
+            // Пробуем преобразовать объект в Behaviour
+            var behaviour = il2cppComponent.TryCast<Behaviour>();
+            if (behaviour != null)
+            {
+                MelonLogger.Msg($"Il2Cpp Behaviour detected: {behaviour.GetType().Name}");
+
+                // Читаем текущее состояние и переключаем
+                bool currentState = behaviour.enabled;
+                MelonLogger.Msg($"Current enabled state of {behaviour.GetType().Name}: {currentState}");
+
+                yield return new WaitForSeconds(delay);
+
+                behaviour.enabled = !currentState;
+                MelonLogger.Msg($"{behaviour.GetType().Name} is now {(behaviour.enabled ? "enabled" : "disabled")}");
+            }
+            else
+            {
+                MelonLogger.Warning($"The Il2Cpp component {il2cppComponent.GetType().Name} is not a Behaviour or does not support 'enabled' property.");
+            }
+
+            MelonLogger.Msg($"Finished HandleIl2CppComponent for {il2cppComponent?.GetType().Name}.");
+        }
+
+
+
+
+
+        public static void StartObjectAnimation(GameObject targetObject,Vector3 position,Vector3 rotation,float duration, bool delta = true)
+        {
+            if (delta) MelonCoroutines.Start(AnimateObjectByDelta(targetObject.transform,position, rotation, duration));
+            else MelonCoroutines.Start(AnimateObjectToFinalPos(targetObject.transform, position, rotation, duration));
+        }
+
+        private static IEnumerator AnimateObjectByDelta(Transform targetTransform,
+                                        Vector3 positionOffset,
+                                        Vector3 rotationOffset,
+                                        float animationTime)
+        {
+            if (targetTransform == null) yield break;
+
+            Vector3 startPosition = targetTransform.localPosition;
+            Quaternion startRotation = targetTransform.localRotation;
+
+            Vector3 targetPosition = startPosition + positionOffset;
+            Quaternion targetRotation = startRotation * Quaternion.Euler(rotationOffset);
+
+            float elapsed = 0f;
+
+            while (elapsed < animationTime)
+            {
+                float t = elapsed / animationTime;
+                targetTransform.localPosition = Vector3.Lerp(startPosition, targetPosition, t);
+                targetTransform.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Finalize position and rotation
+            targetTransform.localPosition = targetPosition;
+            targetTransform.localRotation = targetRotation;
+        }
+        private static IEnumerator AnimateObjectToFinalPos(Transform targetTransform,
+                                        Vector3 positionFinal,
+                                        Vector3 rotationFinal,
+                                        float animationTime)
+        {
+            if (targetTransform == null) yield break;
+
+            Vector3 startPosition = targetTransform.localPosition;
+            Quaternion startRotation = targetTransform.localRotation;
+
+            Vector3 targetPosition = positionFinal;
+            Quaternion targetRotation = Quaternion.Euler(rotationFinal);
+
+            float elapsed = 0f;
+
+            while (elapsed < animationTime)
+            {
+                float t = elapsed / animationTime;
+                targetTransform.localPosition = Vector3.Lerp(startPosition, targetPosition, t);
+                targetTransform.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Finalize position and rotation
+            targetTransform.localPosition = targetPosition;
+            targetTransform.localRotation = targetRotation;
+        }
+
     }
 
-    private static object ProcessValue(object value, Transform oldRoot, Transform newRoot)
-    {
-        if (value is UnityEngine.Object unityObj)
-        {
-            return HandleUnityObject(unityObj, oldRoot, newRoot);
-        }
-        else if (value is Il2CppReferenceArray<UnityEngine.Object> arr)
-        {
-            return ProcessArray(arr, oldRoot, newRoot);
-        }
-        return value;
-    }
 
-    private static object ProcessArray(Il2CppReferenceArray<UnityEngine.Object> arr, Transform oldRoot, Transform newRoot)
-    {
-        UnityEngine.Object[] newArr = new UnityEngine.Object[arr.Length];
-        for (int i = 0; i < arr.Length; i++)
-        {
-            newArr[i] = HandleUnityObject(arr[i], oldRoot, newRoot);
-        }
-        return newArr;
-    }
-
-    private static UnityEngine.Object HandleUnityObject(UnityEngine.Object obj, Transform oldRoot, Transform newRoot)
-    {
-        if (obj == null) return null;
-
-        // Для компонентов получаем Transform
-        Transform objTransform = (obj is Component comp) ? comp.transform : null;
-
-        if (objTransform != null && IsChildOfRoot(objTransform, oldRoot))
-        {
-            string relativePath = GetRelativePath(objTransform, oldRoot);
-            return FindInNewHierarchy(newRoot, relativePath, obj.GetType());
-        }
-
-        return obj; // Возвращаем оригинал, если не в иерархии
-    }
-
-    private static bool IsChildOfRoot(Transform obj, Transform root)
-    {
-        while (obj != null)
-        {
-            if (obj == root) return true;
-            obj = obj.parent;
-        }
-        return false;
-    }
-
-    private static string GetRelativePath(Transform target, Transform root)
-    {
-        if (target == root) return "";
-
-        System.Collections.Generic.List<string> path = new();
-        Transform current = target;
-        while (current != null && current != root)
-        {
-            path.Add(current.name);
-            current = current.parent;
-        }
-        path.Reverse();
-        return string.Join("/", path);
-    }
-
-    private static UnityEngine.Object FindInNewHierarchy(Transform newRoot, string relativePath, Type type)
-    {
-        // Конвертируем System.Type в Il2CppSystem.Type
-        Il2CppSystem.Type il2cppType = Il2CppType.From(type);
-
-        if (string.IsNullOrEmpty(relativePath))
-            return il2cppType == Il2CppType.Of<Transform>()
-                ? newRoot
-                : newRoot.GetComponent(il2cppType);
-
-        Transform current = newRoot;
-        foreach (string part in relativePath.Split('/'))
-        {
-            current = current.Find(part);
-            if (current == null) break;
-        }
-
-        if (current == null) return null;
-
-        return il2cppType == Il2CppType.Of<Transform>()
-            ? current
-            : current.GetComponent(il2cppType);
-    }
 }
