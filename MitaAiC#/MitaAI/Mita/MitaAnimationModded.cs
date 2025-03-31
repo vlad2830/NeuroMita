@@ -12,7 +12,9 @@ namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
     {
-        static private Queue<(string,float,float)> animationQueue = new Queue<(string,float,float)>();
+        //static private Queue<(string,float,float)> animationQueue = new Queue<(string,float,float)>();
+        static private Queue<MitaActionAnimation> animationQueue = new Queue<MitaActionAnimation>();
+
         static private bool isPlaying = false;
         static private Il2CppAssetBundle bundle;
         public static Animator_FunctionsOverride mitaAnimatorFunctions;
@@ -479,7 +481,8 @@ namespace MitaAI.Mita
             try
             {
 
-                animationQueue.Enqueue((animName, crossfade_len,timeAfter));
+                //animationQueue.Enqueue((animName, crossfade_len,timeAfter
+                animationQueue.Enqueue(new MitaActionAnimation(animName,crossfade_len, crossfade_len,timeAfter));
                 MelonLogger.Msg($"Added to queue: {animName}");
 
                 if (!isPlaying)
@@ -520,9 +523,9 @@ namespace MitaAI.Mita
             while (animationQueue.Count > 0)
             {
 
-                var animObject = animationQueue.Dequeue();
-                string animName = animObject.Item1;
-                float crossfade_len = animObject.Item2;
+                MitaActionAnimation animObject = animationQueue.Dequeue();
+                string animName = animObject.animName;
+                float crossfade_len = animObject.begin_crossfade;
 
                 AnimationClip anim = FindAnimationClipByName(animName);
                 
