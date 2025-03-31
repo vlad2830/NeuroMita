@@ -355,6 +355,9 @@ namespace MitaAI.Mita
                             if (MitaCore.Instance.currentCharacter == MitaCore.character.Kind)
                             {
                                 // Если активен Kind персонаж, используем трубу
+                                if (pipe == null){
+                                    pipe = MitaCore.worldBasement.Find("Mita Future/MitaPerson Future/RightItem/Tube Basement").gameObject;
+                                }
                                 pipe.active = true;
                                 pipe.transform.SetParent(MitaCore.getMitaHand(MitaCore.Instance.MitaPersonObject));
                                 pipe.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
