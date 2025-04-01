@@ -499,6 +499,28 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("Animation error: " + e);
             }
         }
+        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita, float crossfade_len = 0.25f, float timeAfter = 0)
+        {
+
+            try
+            {
+
+                //animationQueue.Enqueue((animName, crossfade_len,timeAfter
+                animationQueue.Enqueue(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita));
+                MelonLogger.Msg($"Added objectAnimationMita to queue: {objectAnimationMita.mitaAmimatedName}");
+
+                if (!isPlaying)
+                {
+                    MelonCoroutines.Start(ProcessQueue());
+                }
+
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Msg("Animation error: " + e);
+            }
+        }
+
         static AnimationClip FindAnimationClipByName(string animationName)
         {
             if (runtimeAnimatorController == null) return null;
@@ -518,6 +540,8 @@ namespace MitaAI.Mita
             return null;
         }
 
+
+
         // Корутина для последовательного проигрывания
         static private IEnumerator ProcessQueue()
         {
@@ -529,65 +553,77 @@ namespace MitaAI.Mita
                 MitaActionAnimation animObject = animationQueue.Dequeue();
                 string animName = animObject.animName;
                 float crossfade_len = animObject.begin_crossfade;
-
+                ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
                 AnimationClip anim = FindAnimationClipByName(animName);
                 
-                if ( anim!=null)
+                if (animObject.animationType == MitaActionAnimation.ActionAnimationType.ObjectAnimation)
                 {
-
-                    // while (isMitaWalking()) yield return null;
-
-                    //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
-                    MelonLogger.Msg($"Crossfade");
-                    MelonLogger.Msg($"Now playing: {animName}");
-                    try
-                    {
-                        mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
-                        MitaCore.Instance.Mita.MagnetOff();
-                        if (anim.events.Count > 0)
-                        {
-                            MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
-                        }
-
-                        MelonLogger.Msg($"Finded animation event");
-                    }
-                    catch (Exception ex) 
-                    {
-
-                        MelonLogger.Msg(ex);
-                    }
-
-
-                    MelonLogger.Msg($"zzz2");
+                    objectAnimationMita.Play();
                     
-                    yield return WaitForAnimationCompletion(anim, false, 0.25f);
+                    while (objectAnimationMita.isWalking) yield return null;
 
-                    if (animName == "Mita Kick")
-                    {
-                        // После завершения анимации удара деактивируем оба объекта
-                        bat.active = false;
-                        pipe.active = false;
-                    }
                 }
-
-                else 
+                else
                 {
-                    anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                     if (anim != null)
                     {
-                        MelonLogger.Msg($"Usual case");
-                        mitaAnimatorFunctions.AnimationClipSimpleNext(anim);
+
+                        // while (isMitaWalking()) yield return null;
+
+                        //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
+                        MelonLogger.Msg($"Crossfade");
+                        MelonLogger.Msg($"Now playing: {animName}");
+                        try
+                        {
+                            mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
+                            MitaCore.Instance.Mita.MagnetOff();
+                            if (anim.events.Count > 0)
+                            {
+                                MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
+                            }
+
+                            MelonLogger.Msg($"Finded animation event");
+                        }
+                        catch (Exception ex)
+                        {
+
+                            MelonLogger.Msg(ex);
+                        }
+
+
+                        MelonLogger.Msg($"zzz2");
+
                         yield return WaitForAnimationCompletion(anim, false, 0.25f);
+
+                        if (animName == "Mita Kick")
+                        {
+                            // После завершения анимации удара деактивируем оба объекта
+                            bat.active = false;
+                            pipe.active = false;
+                        }
                     }
                     else
                     {
-                        MelonLogger.Msg($"Not found state or clip");
-                    }
+                        anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+                        if (anim != null)
+                        {
+                            MelonLogger.Msg($"Usual case");
+                            mitaAnimatorFunctions.AnimationClipSimpleNext(anim);
+                            yield return WaitForAnimationCompletion(anim, false, 0.25f);
+                        }
+                        else
+                        {
+                            MelonLogger.Msg($"Not found state or clip");
+                        }
 
+                    }
+                    // Ждем завершения анимации
                 }
-                // Ждем завершения анимации
-                
-                
+
+
+
+
+
             }
             MelonLogger.Msg($"Ended quque currentIdleAnim {currentIdleAnim}");
             animator.CrossFade(currentIdleAnim,0.25f);

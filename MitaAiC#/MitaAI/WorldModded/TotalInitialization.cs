@@ -1049,7 +1049,7 @@ namespace MitaAI
             {
 
                 //GameObject Mita = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundleTestMita, "Mita"));
-                
+
                 //// Чиню поворот
                 //Mita.GetComponentInChildren<Character_Look>().speedRotateBody = 1f;
 
@@ -1081,6 +1081,13 @@ namespace MitaAI
                 //MitaCore.CrazyObject = Mita;
                 //Mita.name = "MitaTestFromDemo";
                 //MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy);
+
+
+
+
+
+
+
 
 
 

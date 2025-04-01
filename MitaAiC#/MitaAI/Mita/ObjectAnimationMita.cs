@@ -7,6 +7,7 @@ using UnityEngine.Events;
 using UnityEngine.Playables;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using static Il2CppRootMotion.FinalIK.AimPoser;
 
 namespace MitaAI
 {
@@ -15,8 +16,9 @@ namespace MitaAI
     public class ObjectAnimationMita : MonoBehaviour
     {
         private const float InteractionDistance = 15f;
-        private const float AnimationTransitionDuration = 2f;
 
+        public float AnimationTransitionDuration = 2f;
+        public bool isWalking = false;
         static ObjectAnimationMita currentOAMc;
         static Dictionary<string,ObjectAnimationMita> allOAMs = new Dictionary<string, ObjectAnimationMita>();
 
@@ -60,7 +62,7 @@ namespace MitaAI
                     var interaction = match.Groups[1].Value;
                     if (allOAMs.TryGetValue(interaction, out var oam))
                     {
-                        oam.Play();
+                        MitaAnimationModded.EnqueueAnimation(oam);
                     }
                 }
                 return Regex.Replace(response, $@"<{command}>.*?</{command}>", "");
@@ -99,11 +101,23 @@ namespace MitaAI
         public Vector3 finalOAMPosition;
         public Vector3 finalOAMRotaton;
 
-        static bool TestWithBalls = false;
+        static bool TestWithBalls = true;
 
         public MitaAIMovePoint mitaAIMovePoint;
 
         string advancedActionName = "";
+
+
+        void testInit(string name, GameObject parent,string AnimName,string idleAnim="")
+        {
+            this.name = name;
+            startOAMPosition = parent.transform.position;
+            startOAMRotaton = parent.transform.position;
+            mitaAmimatedName = AnimName;
+            Initialize();
+            addEnqueAnimationAction(AnimName);
+            if (!string.IsNullOrEmpty(idleAnim)) setIdleAnimation(idleAnim);
+        }
 
         public static ObjectAnimationMita Create(string name, GameObject parent,
             Vector3 pos, Vector3 rot,
@@ -179,6 +193,15 @@ namespace MitaAI
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
         }
+        public void addEnqueAnimationAction(string animName, float transition_time)
+        {
+            // Что проиграет Мита, когда подойдет
+            mitaAmimatedName = animName;
+            AnimationTransitionDuration = transition_time;
+            // Что произодет, когда Мита дойдет до цели
+            mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
+        }
+
         public void setIdleAnimation(string animName,bool magnetAfter = true)
         {
             mitaAIMovePoint.magnetAfter = magnetAfter;
@@ -210,6 +233,7 @@ namespace MitaAI
         {
             try
             {
+                isWalking = true;
                 currentOAMc = this;
                 //Отправляет Миту в Путь
                 MelonLogger.Msg("Start Play Anim Object Mita");
@@ -285,6 +309,7 @@ namespace MitaAI
             {
                 backAnimation.enabled = true;
             }
+            isWalking = false;
         }
 
         void advancedAction()
