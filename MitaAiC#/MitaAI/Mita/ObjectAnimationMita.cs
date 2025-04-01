@@ -8,6 +8,7 @@ using UnityEngine.Playables;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static Il2CppRootMotion.FinalIK.AimPoser;
+using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
 
 namespace MitaAI
 {
@@ -90,18 +91,29 @@ namespace MitaAI
 
         public string mitaAmimatedName;
         public string mitaAmimatedNameIdle;
-        public Vector3 MoveTarget;
-        public Vector3 RotateTarget;
+
         public float moveDuration = 2.0f;
 
+
+        // Куда нужно подойти
+        GameObject aiMovePoint;
+        public Vector3 aiMovePosition;
+        public Vector3 aiMoveRotation;
+
+        // Где в начале Мита
+
         public Vector3 startOAMPosition;
-        public Vector3 startOAMRotaton;
+        public Vector3 startOAMRotation;
 
+        // Что происходит с анимируемым объектом
+        public Vector3 MoveTarget;
+        public Vector3 RotateTarget;
 
+        // Где в итоге будет Мита
         public Vector3 finalOAMPosition;
-        public Vector3 finalOAMRotaton;
+        public Vector3 finalOAMRotation;
 
-        static bool TestWithBalls = true;
+        bool TestWithBalls = false;
 
         public MitaAIMovePoint mitaAIMovePoint;
 
@@ -112,68 +124,86 @@ namespace MitaAI
         {
             this.name = name;
             startOAMPosition = parent.transform.position;
-            startOAMRotaton = parent.transform.position;
+            startOAMRotation = parent.transform.position;
             mitaAmimatedName = AnimName;
             Initialize();
             addEnqueAnimationAction(AnimName);
             if (!string.IsNullOrEmpty(idleAnim)) setIdleAnimation(idleAnim);
         }
 
-        public static ObjectAnimationMita Create(string name, GameObject parent,
-            Vector3 pos, Vector3 rot,
-            Vector3? finalPos = null, Vector3? finalRot = null)
+
+        public static ObjectAnimationMita Create(string name, GameObject parent,bool testBalls = false)
+
         {
-            var oam = new GameObject(name).AddComponent<ObjectAnimationMita>();
+            ObjectAnimationMita oam = new GameObject(name).AddComponent<ObjectAnimationMita>();
             oam.transform.SetParent(parent.transform, false);
+            oam.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-            oam.startOAMPosition = pos;
-            oam.startOAMRotaton = rot;
-            oam.finalOAMPosition = finalPos ?? pos;
-            oam.finalOAMRotaton = finalRot ?? rot;
-
+            oam.TestWithBalls = testBalls;
             oam.Initialize();
+
+            
+
             return oam;
         }
-        public void resetPosition()
-        {
-            transform.SetPositionAndRotation(startOAMPosition,Quaternion.EulerAngles(startOAMRotaton));
-        }
+
 
         void Initialize()
         {
             allOAMs[name] = this;
 
             // Дебаг, так проще вернуть
-            if (TestWithBalls)
-            {
-                // Добавляем сферу для визуализации (только для отладки)
-                var debugSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                debugSphere.transform.SetParent(transform, false);
-                debugSphere.transform.localScale = Vector3.one * 0.5f; // Масштабируем до небольшого размера
-                debugSphere.GetComponent<Collider>().enabled = false; // Отключаем коллизию
-                debugSphere.GetComponent<Renderer>().material.color = Color.red; // Делаем красным для заметности
-
-
-            }
-
+            if (TestWithBalls) Testing.makeTestingSphere(this.gameObject, Color.green);
+   
             mitaPerson = MitaCore.Instance.MitaPersonObject;
             AmimatedObject = transform.parent.gameObject;
 
             mitaAIMovePoint = gameObject.AddComponent<MitaAIMovePoint>();
-            mitaAIMovePoint.targetMove = gameObject.transform;
+            mitaAIMovePoint.targetMove = transform;
+            mitaAIMovePoint.magnetAfter = true;
             mitaAIMovePoint.eventFinish = new UnityEvent();
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)commonAction);
 
             mitaAIMovePoint.mita = MitaCore.Instance.Mita;
             
-            if (finalOAMPosition!=transform.localPosition || Quaternion.Euler(finalOAMRotaton) !=  transform.localRotation)
-            {
-                MelonLogger.Msg("Add MoveRotateObjectOAM");
-                mitaAIMovePoint.eventFinish.AddListener((UnityAction)MoveRotateObjectOAM);
+        }
 
+        #region ЗаданиеПараметров
+
+        // Относительно главного объекта!
+        public void setAiMovePoint(Vector3 pos, Vector3 rot)
+        {   
+            if (aiMovePoint == null) {
+                aiMovePoint = new GameObject();
+                if (TestWithBalls) Testing.makeTestingSphere(aiMovePoint, Color.red);
             }
 
+            aiMovePoint.transform.SetParent(transform);
+            aiMovePoint.transform.SetLocalPositionAndRotation(pos,Quaternion.Euler(rot));
+            mitaAIMovePoint.targetMove = aiMovePoint.transform;
+
         }
+
+        public void setStartPos(Vector3 pos, Vector3 rot)
+        {
+            startOAMPosition = pos;
+            startOAMRotation = rot;
+            transform.SetLocalPositionAndRotation(pos, Quaternion.Euler(rot));
+
+        }
+        public void setFinalPos(Vector3 pos, Vector3 rot)
+        {
+            finalOAMPosition = pos;
+            finalOAMRotation = rot;
+            mitaAIMovePoint.eventFinish.AddListener((UnityAction)MoveRotateObjectOAM);
+        }
+
+
+        #endregion
+
+
+
+        #region ДействияПоПриходуКТочке
 
         public void addSimpleAction(UnityAction unityAction)
         {
@@ -201,7 +231,6 @@ namespace MitaAI
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
         }
-
         public void setIdleAnimation(string animName,bool magnetAfter = true)
         {
             mitaAIMovePoint.magnetAfter = magnetAfter;
@@ -223,7 +252,13 @@ namespace MitaAI
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)returnToNormalState);
         }
 
+        #endregion
 
+        public void resetPosition()
+        {
+            transform.SetLocalPositionAndRotation(startOAMPosition, Quaternion.Euler(startOAMRotation));
+            mitaAIMovePoint.transform.SetLocalPositionAndRotation(aiMovePosition, Quaternion.Euler(aiMoveRotation));
+        }
         public void clearAllActions()
         {
             mitaAIMovePoint.eventFinish.RemoveAllListeners();
@@ -270,25 +305,26 @@ namespace MitaAI
 
         void MoveRotateObject()
         {
+            MelonLogger.Msg($"MoveRotateObjectOAM {gameObject.name}");
             Utils.StartObjectAnimation(AmimatedObject, MoveTarget, RotateTarget, 1);
         }
         void MoveRotateObjectOAM()
         {
+            MelonLogger.Msg($"MoveRotateObjectOAM {gameObject.name}");
+            Utils.StartObjectAnimation(gameObject, finalOAMPosition, finalOAMRotation, 1,false);
+
             
-            Utils.StartObjectAnimation(gameObject, finalOAMPosition, finalOAMRotaton, 1,false);
-            MitaCore.Instance.Mita.MagnetOff();
-            MitaCore.Instance.Mita.magnetTarget = null;
         }
         void EnqueAnimation()
         {
             MitaAnimationModded.EnqueueAnimation(mitaAmimatedName, AnimationTransitionDuration);
-            MitaCore.Instance.Mita.MagnetOff();
-            MitaCore.Instance.Mita.magnetTarget = null;
+
+            
         }
         void SetIdleAnimation()
         {
-            MitaCore.Instance.Mita.MagnetOff();
-            MitaCore.Instance.Mita.magnetTarget = null;
+
+            
             //MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = false;
             MitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
             
@@ -310,6 +346,12 @@ namespace MitaAI
                 backAnimation.enabled = true;
             }
             isWalking = false;
+
+            
+            // Для магнита где надо
+            aiMovePoint.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+
         }
 
         void advancedAction()

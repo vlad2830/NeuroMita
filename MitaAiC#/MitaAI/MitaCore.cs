@@ -840,7 +840,8 @@ namespace MitaAI
             CustomDialogText.showSubtitles = true;
 
             MelonLogger.Msg($"Attempt initStartSecret2");
-            TotalInitialization.initStartSecret2();
+            
+            //TotalInitialization.initStartSecret2();
 
             MelonLogger.Msg($"Attempt Interactions before");
             try

@@ -334,6 +334,7 @@
 		<Compile Include="UINeuroMita.cs" />
 		<Compile Include="Settings.cs" />
 		<Compile Include="PlayerControls\InputControl.cs" />
+		<Compile Include="Utils\Testing.cs" />
 		<Compile Include="Utils\Utils.cs" />
 		<Compile Include="Utils\ComponentCopier.cs" />
 		<Compile Include="WorldModded\Events\WardrobeFix.cs" />

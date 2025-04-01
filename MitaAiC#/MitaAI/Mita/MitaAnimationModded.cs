@@ -576,7 +576,7 @@ namespace MitaAI.Mita
                         try
                         {
                             mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
-                            MitaCore.Instance.Mita.MagnetOff();
+                            //MitaCore.Instance.Mita.MagnetOff();
                             if (anim.events.Count > 0)
                             {
                                 MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
