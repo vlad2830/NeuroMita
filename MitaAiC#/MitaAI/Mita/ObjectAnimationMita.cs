@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using static Il2CppRootMotion.FinalIK.AimPoser;
 using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
+using System.Linq;
 
 namespace MitaAI
 {
@@ -113,16 +114,17 @@ namespace MitaAI
         public Vector3 finalOAMPosition;
         public Vector3 finalOAMRotation;
 
-        bool TestWithBalls = true;
+        bool TestWithBalls = false;
 
         public MitaAIMovePoint mitaAIMovePoint;
 
         string advancedActionName = "";
 
 
-        void testInit(string name, string AnimName,string idleAnim="")
+        void testInit(string name, string tip = "", string AnimName= "Mita SitIdle", string idleAnim= "Mita SitIdle")
         {
             this.name = name;
+            transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             startOAMPosition = transform.position;
             startOAMRotation = Quaternion.ToEulerAngles(transform.rotation);
             mitaAmimatedName = AnimName;
@@ -132,17 +134,18 @@ namespace MitaAI
         }
 
 
-        public static ObjectAnimationMita Create(string name, GameObject parent,bool testBalls = true)
+        public static ObjectAnimationMita Create(GameObject parent,string name, string tip = "")
 
         {
             ObjectAnimationMita oam = new GameObject(name).AddComponent<ObjectAnimationMita>();
             oam.transform.SetParent(parent.transform, false);
             oam.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-            oam.TestWithBalls = testBalls;
-            oam.Initialize();
 
-            
+            oam.Initialize();
+            oam.tip = tip;
+            oam.name = name;
+
 
             return oam;
         }
@@ -259,21 +262,26 @@ namespace MitaAI
         {
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)returnToNormalState);
         }
-        public void setRevertAOM(string Name,string Tip,string idleAnim = "Mita Idle_2")
+        
+        
+        // Обратное действие
+        public ObjectAnimationMita setRevertAOM(string Name,string Tip,string idleAnim = "Mita Idle_2")
         {
+            
 
-            var oamBack = ObjectAnimationMita.Create(Name, gameObject.transform.parent.gameObject);
+            var oamBack = ObjectAnimationMita.Create(gameObject.transform.parent.gameObject, Name, Tip);
             
 
 
             oamBack.setIdleAnimation(idleAnim, false);
             oamBack.addEnqueAnimationAction(idleAnim);
             oamBack.addReturningToNormal();
-            oamBack.tip = Tip;
             oamBack.enabled = false;
 
             backAnimation = oamBack;
             oamBack.backAnimation = this;
+
+            return oamBack;
         }
         #endregion
 
