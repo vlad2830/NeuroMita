@@ -111,6 +111,7 @@ namespace MitaAI
         public Vector3 RotateTarget;
 
         // Где в итоге будет Мита
+        bool hasObjectMoving = false;
         public Vector3 finalOAMPosition;
         public Vector3 finalOAMRotation;
 
@@ -174,7 +175,10 @@ namespace MitaAI
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)commonAction);
 
             mitaAIMovePoint.mita = MitaCore.Instance.Mita;
-            
+
+
+            MoveTarget = transform.parent.localPosition;
+            RotateTarget = Quaternion.ToEulerAngles(transform.parent.localRotation);
         }
 
         #region ЗаданиеПараметров
@@ -257,6 +261,7 @@ namespace MitaAI
             RotateTarget = newlocalPos;
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)MoveRotateObject);
+            hasObjectMoving = true;
         }
         public void addReturningToNormal()
         {
@@ -299,6 +304,25 @@ namespace MitaAI
         {
             try
             {
+                try
+                {
+                    if (currentOAMc != null)
+                    {
+                        if (currentOAMc.backAnimation != null && currentOAMc.hasObjectMoving)
+                        {
+                            currentOAMc.backAnimation.MoveRotateObject();
+                        }
+
+
+                    }
+                }
+                catch (Exception ex1)
+                {
+
+                    MelonLogger.Error($"Error Play Anim Object Mita {ex1}"); 
+                }
+               
+
                 isWalking = true;
                 currentOAMc = this;
                 //Отправляет Миту в Путь
