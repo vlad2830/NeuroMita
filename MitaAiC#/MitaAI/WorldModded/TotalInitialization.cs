@@ -288,6 +288,33 @@ namespace MitaAI
                 oam.backAnimation = oamBack;
                 oamBack.backAnimation = oam;
 
+
+
+
+                var TrashBox = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/TrashBox");
+                oam = ObjectAnimationMita.Create("Kitchen TrashBox sit", TrashBox.gameObject);
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setStartPos(new Vector3(-0.1f, 0.0f, -0.1f), new Vector3(90, 0, 0));
+                oam.setRevertAOM("TrashBox stend up", "Встать c мусорки");
+
+                //var Taburetka = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/TrashBox");
+                //oam = ObjectAnimationMita.Create("Kitchen TrashBox sit", Taburetka.gameObject);
+                //oam.setIdleAnimation("Mita SitIdle");
+                //oam.addEnqueAnimationAction("Mita SitIdle");
+                //oam.setStartPos(new Vector3(-0.1f, 0.0f, -0.1f), new Vector3(90, 0, 0));
+                //oam.setRevertAOM("TrashBox stend up", "Встать c мусорки");
+
+
+                var CornerSofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa");
+                oam = ObjectAnimationMita.Create("CornerSofa Hall sit", CornerSofa.gameObject);
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
+                oam.setStartPos(new Vector3(0f, 0.2f, 0f), new Vector3(270, 180, 0));
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setRevertAOM("CornerSofa stend up", "Встать с углового дивана");
+
+
             }
             catch (Exception ex) 
             {

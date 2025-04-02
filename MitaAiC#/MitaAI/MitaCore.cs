@@ -841,7 +841,7 @@ namespace MitaAI
 
             MelonLogger.Msg($"Attempt initStartSecret2");
             
-            //TotalInitialization.initStartSecret2();
+            TotalInitialization.initStartSecret2();
 
             MelonLogger.Msg($"Attempt Interactions before");
             try

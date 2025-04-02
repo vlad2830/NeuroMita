@@ -18,7 +18,7 @@ namespace MitaAI
             var debugSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             debugSphere.transform.SetParent(parent.transform, false);
             debugSphere.transform.SetLocalPositionAndRotation(new Vector3(0,0.5f,0),Quaternion.identity);
-            debugSphere.transform.localScale = Vector3.one * 0.50f; // Масштабируем до небольшого размера
+            debugSphere.transform.localScale = Vector3.one * 0.4f; // Масштабируем до небольшого размера
             debugSphere.GetComponent<Collider>().enabled = false; // Отключаем коллизию
             debugSphere.GetComponent<Renderer>().material.color = color; // Делаем красным для заметности
         }

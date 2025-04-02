@@ -113,18 +113,18 @@ namespace MitaAI
         public Vector3 finalOAMPosition;
         public Vector3 finalOAMRotation;
 
-        bool TestWithBalls = false;
+        bool TestWithBalls = true;
 
         public MitaAIMovePoint mitaAIMovePoint;
 
         string advancedActionName = "";
 
 
-        void testInit(string name, GameObject parent,string AnimName,string idleAnim="")
+        void testInit(string name, string AnimName,string idleAnim="")
         {
             this.name = name;
-            startOAMPosition = parent.transform.position;
-            startOAMRotation = parent.transform.position;
+            startOAMPosition = transform.position;
+            startOAMRotation = Quaternion.ToEulerAngles(transform.rotation);
             mitaAmimatedName = AnimName;
             Initialize();
             addEnqueAnimationAction(AnimName);
@@ -132,7 +132,7 @@ namespace MitaAI
         }
 
 
-        public static ObjectAnimationMita Create(string name, GameObject parent,bool testBalls = false)
+        public static ObjectAnimationMita Create(string name, GameObject parent,bool testBalls = true)
 
         {
             ObjectAnimationMita oam = new GameObject(name).AddComponent<ObjectAnimationMita>();
@@ -158,8 +158,14 @@ namespace MitaAI
             mitaPerson = MitaCore.Instance.MitaPersonObject;
             AmimatedObject = transform.parent.gameObject;
 
-            mitaAIMovePoint = gameObject.AddComponent<MitaAIMovePoint>();
-            mitaAIMovePoint.targetMove = transform;
+            aiMovePoint = new GameObject();
+            aiMovePoint.transform.SetParent(transform);
+            aiMovePoint.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+            if (TestWithBalls) Testing.makeTestingSphere(aiMovePoint, Color.red);
+
+            mitaAIMovePoint = aiMovePoint.AddComponent<MitaAIMovePoint>();
+            mitaAIMovePoint.targetMove = aiMovePoint.transform;
             mitaAIMovePoint.magnetAfter = true;
             mitaAIMovePoint.eventFinish = new UnityEvent();
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)commonAction);
@@ -173,14 +179,16 @@ namespace MitaAI
         // Относительно главного объекта!
         public void setAiMovePoint(Vector3 pos, Vector3 rot)
         {   
-            if (aiMovePoint == null) {
-                aiMovePoint = new GameObject();
-                if (TestWithBalls) Testing.makeTestingSphere(aiMovePoint, Color.red);
-            }
-
             aiMovePoint.transform.SetParent(transform);
             aiMovePoint.transform.SetLocalPositionAndRotation(pos,Quaternion.Euler(rot));
-            mitaAIMovePoint.targetMove = aiMovePoint.transform;
+            //mitaAIMovePoint.targetMove = aiMovePoint.transform;
+
+        }
+        public void setAiMovePoint(Vector3 pos)
+        {
+            aiMovePoint.transform.SetParent(transform);
+            aiMovePoint.transform.SetLocalPositionAndRotation(pos,Quaternion.identity);
+            //mitaAIMovePoint.targetMove = aiMovePoint.transform;
 
         }
 
@@ -251,7 +259,22 @@ namespace MitaAI
         {
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)returnToNormalState);
         }
+        public void setRevertAOM(string Name,string Tip,string idleAnim = "Mita Idle_2")
+        {
 
+            var oamBack = ObjectAnimationMita.Create(Name, gameObject.transform.parent.gameObject);
+            
+
+
+            oamBack.setIdleAnimation(idleAnim, false);
+            oamBack.addEnqueAnimationAction(idleAnim);
+            oamBack.addReturningToNormal();
+            oamBack.tip = Tip;
+            oamBack.enabled = false;
+
+            backAnimation = oamBack;
+            oamBack.backAnimation = this;
+        }
         #endregion
 
         public void resetPosition()
