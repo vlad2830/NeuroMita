@@ -45,9 +45,8 @@ namespace MitaAI
         {
             if (!MitaCore.isRequiredScene()) yield break;
 
-
-            float startTime = Time.unscaledTime; // Запоминаем время старта корутины
-            float lastMessageTime = -45f; // Чтобы сообщение появилось сразу через 15 секунд
+            float startTime = Time.unscaledTime;
+            float lastMessageTime = -30f; // Изменено с -45f на -30f для первого сообщения через 15 секунд
 
             yield return new WaitForSecondsRealtime(1f);
 
@@ -71,22 +70,21 @@ namespace MitaAI
                     yield break;
                 }
 
-                // Вычисляем время с начала корутины
                 float elapsedTime = Time.unscaledTime - startTime;
 
-                // Каждые 15 секунд вызываем функцию (если прошло время)
+                // Проверяем, прошло ли 45 секунд с последнего сообщения
                 if (elapsedTime - lastMessageTime >= 45f)
                 {
                     string message = $"Игрок жив уже {elapsedTime.ToString("F2")} секунд. Скажи что-нибудь короткое. ";
-                    if (Mathf.FloorToInt(elapsedTime) % 60 == 0) message += "Может быть, пора усложнять игру... (Менять скорости или спавнить манекенов или применять эффекты)";
-                    MitaCore.Instance.sendSystemMessage(message);
+                    if (Mathf.FloorToInt(elapsedTime) % 60 == 0)
+                        message += "Может быть, пора усложнять игру...";
 
-                    lastMessageTime = elapsedTime; // Обновляем время последнего вызова
+                    MitaCore.Instance.sendSystemMessage(message);
+                    lastMessageTime = elapsedTime; // Обновляем время последнего сообщения
                 }
 
                 yield return new WaitForSecondsRealtime(0.5f);
             }
-
         }
         public static void endHunt()
         {
