@@ -64,7 +64,7 @@ namespace MitaAI
                     var interaction = match.Groups[1].Value;
                     if (allOAMs.TryGetValue(interaction, out var oam))
                     {
-                        MitaAnimationModded.EnqueueAnimation(oam);
+                        MitaAnimationModded.EnqueueAnimation(oam,delay_after:0.5f);
                     }
                 }
                 return Regex.Replace(response, $@"<{command}>.*?</{command}>", "");
@@ -335,7 +335,9 @@ namespace MitaAI
 
                 try
                 {
-                    mitaAIMovePoint.PlayRotateAndWalk();
+                    //mitaAIMovePoint.Play();
+                    //MitaCore.Instance.Mita.AiWalkToTarget(aiMovePoint.transform);
+                    MitaCore.Instance.Mita.AiWalkToTargetTranform(aiMovePoint.transform,mitaAIMovePoint.eventFinish);
                 }
                 catch (Exception ex2)
                 {
@@ -382,6 +384,7 @@ namespace MitaAI
             
             //MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = false;
             MitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
+            Utils.StartObjectAnimation(MitaCore.Instance.MitaPersonObject, transform.position, Quaternion.ToEulerAngles(transform.rotation),2f, false);
             
         }
         void returnToNormalState()
@@ -405,7 +408,8 @@ namespace MitaAI
             
             // Для магнита где надо
             aiMovePoint.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-
+            //MitaCore.Instance.Mita.MagnetToTarget(transform);
+           
 
         }
 

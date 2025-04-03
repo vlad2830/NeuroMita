@@ -563,7 +563,7 @@ namespace MitaAI.Mita
                 {
                     objectAnimationMita.Play();
                     
-                    while (objectAnimationMita.isWalking) yield return null;
+                    while (objectAnimationMita.isWalking) yield return new WaitForSeconds(0.25f);
 
                     
                 }
