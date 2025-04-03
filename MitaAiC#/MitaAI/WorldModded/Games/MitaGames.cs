@@ -46,7 +46,7 @@ namespace MitaAI
             if (!MitaCore.isRequiredScene()) yield break;
 
             float startTime = Time.unscaledTime;
-            float lastMessageTime = -30f; // Изменено с -45f на -30f для первого сообщения через 15 секунд
+            float lastMessageTime = 0f;
 
             yield return new WaitForSecondsRealtime(1f);
 

@@ -565,7 +565,7 @@ namespace MitaAI.Mita
         static private IEnumerator ProcessQueue()
         {
             isPlaying = true;
-            location34_Communication.enabled = false;
+            location34_Communication.ActivationCanWalk(false);
             while (animationQueue.Count > 0)
             {
 
@@ -579,8 +579,9 @@ namespace MitaAI.Mita
                 if (animObject.animationType == MitaActionAnimation.ActionAnimationType.ObjectAnimation)
                 {
                     objectAnimationMita.Play();
-
+                    //checkCanMoveRotateLook();
                     float beforeWalk = Time.unscaledDeltaTime;
+
                     while (objectAnimationMita.isWalking && Time.unscaledDeltaTime-beforeWalk<30f) yield return new WaitForSeconds(0.25f);
 
                     
