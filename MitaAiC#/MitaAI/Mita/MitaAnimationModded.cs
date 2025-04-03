@@ -113,7 +113,9 @@ namespace MitaAI.Mita
                     animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
                     animator.runtimeAnimatorController = runtimeAnimatorController;
                     animator.SetTrigger("NextLerp");
-                    
+                    animator.Rebind();
+
+
                 }
                 else
                 {

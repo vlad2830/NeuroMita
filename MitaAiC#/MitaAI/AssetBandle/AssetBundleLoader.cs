@@ -15,7 +15,7 @@ namespace MitaAI
         public static Il2CppAssetBundle initBundle()
         {
             bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            //bundleTestMita = AssetBundleLoader.LoadAssetBundle("testmita");
+            bundleTestMita = AssetBundleLoader.LoadAssetBundle("testmita");
             return bundle;
         }
 

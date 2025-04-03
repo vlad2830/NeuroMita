@@ -324,6 +324,7 @@
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
 		<Compile Include="Characters\CharacterControl.cs" />
 		<Compile Include="Characters\Character.cs" />
+		<Compile Include="Characters\CharacterLookOld.cs" />
 		<Compile Include="Characters\LogicCharacter.cs" />
 		<Compile Include="ConnectionAndDialogue\DataChange.cs" />
 		<Compile Include="ConnectionAndDialogue\DialogueControl.cs" />

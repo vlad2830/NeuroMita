@@ -1098,39 +1098,52 @@ namespace MitaAI
             try
             {
 
-                //GameObject Mita = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundleTestMita, "Mita"));
+                GameObject Mita = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundleTestMita, "Mita"));
 
-                //// Чиню поворот
-                //Mita.GetComponentInChildren<Character_Look>().speedRotateBody = 1f;
+                // Чиню поворот
+                var Old = Mita.GetComponentInChildren<Character_Look>(); //.speedRotateBody = 1f;
+                var New = Old.gameObject.AddComponent<Character_Look_Old>();
+                
+                try
+                {
+                    Character_Look_Old.CopyCharacterLookToOld(Old, New);
+                }
+                catch (Exception ex)
+                {
+                    MelonLogger.Error("CopyCharacterLookToOld",ex);
+                }
+                Old.enabled = false;
+                New.speedRotateBody = 1f;
+                New.legRight = New.pivotLegs.Find("LegRight").transform;
+                New.legLeft = New.pivotLegs.Find("LegLeft").transform;
+                New.activeBodyIK = true;
+                // Чиню люпсинк
+                var blandshapeOriginal = MitaCore.CrazyObject.transform.Find("MitaPerson Mita/Head").gameObject.GetComponent<Audio_BlendShapeVoice>();
+                var blandshape = Mita.transform.Find("MitaPerson Mita/Head").gameObject.AddComponent<Audio_BlendShapeVoice>();
+
+                blandshape.audioVoice = Mita.transform.Find("MitaPerson Mita/Armature/Hips/Spine/Chest/Neck2/Neck1/Head").GetComponent<AudioSource>();
+                blandshape.mesh = Mita.transform.Find("MitaPerson Mita/Head").GetComponent<SkinnedMeshRenderer>();
+
+                blandshape.animationMouth = blandshapeOriginal.animationMouth;
+                blandshape.animationOffInSpeak = blandshapeOriginal.animationOffInSpeak;
+                blandshape.shapesOffInSpeak = blandshapeOriginal.shapesOffInSpeak;
+                blandshape.animationMouth = blandshapeOriginal.animationMouth;
+                blandshape.intensity = 3;
 
 
-                //// Чиню люпсинк
-                //var blandshapeOriginal = MitaCore.CrazyObject.transform.Find("MitaPerson Mita/Head").gameObject.GetComponent<Audio_BlendShapeVoice>();
-                //var blandshape = Mita.transform.Find("MitaPerson Mita/Head").gameObject.AddComponent<Audio_BlendShapeVoice>();
+                // Пробую одежку поменять
 
-                //blandshape.audioVoice = Mita.transform.Find("MitaPerson Mita/Armature/Hips/Spine/Chest/Neck2/Neck1/Head").GetComponent<AudioSource>();
-                //blandshape.mesh = Mita.transform.Find("MitaPerson Mita/Head").GetComponent<SkinnedMeshRenderer>();
+                try
+                {
+                    var mitaClothes = ComponentCopier.CopyComponent(MitaCore.CrazyObject.GetComponentInChildren<MitaClothes>(), Mita.transform.Find("MitaPerson Mita").gameObject, MitaCore.CrazyObject.transform.Find("MitaPerson Mita"), Mita.transform.Find("MitaPerson Mita"));
 
-                //blandshape.animationMouth = blandshapeOriginal.animationMouth;
-                //blandshape.animationOffInSpeak = blandshapeOriginal.animationOffInSpeak;
-                //blandshape.shapesOffInSpeak = blandshapeOriginal.shapesOffInSpeak;
-                //blandshape.animationMouth = blandshapeOriginal.animationMouth;
-                //blandshape.intensity = 3;
+                }
+                catch (Exception e) { MelonLogger.Error(e); }
 
 
-                //// Пробую одежку поменять
-
-                //try
-                //{
-                //    var mitaClothes = ComponentCopier.CopyComponent(MitaCore.CrazyObject.GetComponentInChildren<MitaClothes>(), Mita.transform.Find("MitaPerson Mita").gameObject, MitaCore.CrazyObject.transform.Find("MitaPerson Mita"), Mita.transform.Find("MitaPerson Mita"));
-
-                //}
-                //catch (Exception e) { MelonLogger.Error(e); }
-
-
-                //MitaCore.CrazyObject = Mita;
-                //Mita.name = "MitaTestFromDemo";
-                //MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy);
+                MitaCore.CrazyObject = Mita;
+                Mita.name = "MitaTestFromDemo";
+                MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy);
 
 
 
