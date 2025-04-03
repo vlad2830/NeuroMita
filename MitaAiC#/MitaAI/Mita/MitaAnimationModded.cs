@@ -444,15 +444,25 @@ namespace MitaAI.Mita
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
+        
+        // Даже головой не крутит
         private static readonly MitaCore.MovementStyles[] MovementStylesNoMovingAtAll =
         {
             MitaCore.MovementStyles.cryingOnTheFloor,
             MitaCore.MovementStyles.layingOnTheFloorAsDead
 
         };
+        
+        // Крутит головой
         private static readonly MitaCore.MovementStyles[] MovementStylesNoBodyLooking =
         {
             MitaCore.MovementStyles.sitting
+        };
+
+        // Крутит головой и телом, но не ходит
+        private static readonly MitaCore.MovementStyles[] MovementStylesNoWalking =
+        {
+            //MitaCore.MovementStyles.sitting
         };
 
         // Отвечает за перемещение и поворот миты.
@@ -462,19 +472,26 @@ namespace MitaAI.Mita
             // Если запрещено двигаться
             if (MovementStylesNoMovingAtAll.Contains(MitaCore.movementStyle))
             {
-                MitaCore.Instance.MitaLook.active = false;
+                MitaCore.Instance.MitaLook.enabled = false;
                 location34_Communication.ActivationCanWalk(false);
             }
             else if (MovementStylesNoBodyLooking.Contains(MitaCore.movementStyle))
             {
-                MitaCore.Instance.MitaLook.active = true;
+                MitaCore.Instance.MitaLook.enabled = true;
                 MitaCore.Instance.MitaLook.canRotateBody = false;
+                location34_Communication.ActivationCanWalk(false);
+            }
+            else if (MovementStylesNoWalking.Contains(MitaCore.movementStyle))
+            {
+                MitaCore.Instance.MitaLook.enabled = true;
+                MitaCore.Instance.MitaLook.canRotateBody = true;
                 location34_Communication.ActivationCanWalk(false);
             }
             else
             {
                 MitaCore.Instance.MitaLook.canRotateBody = true;
-                MitaCore.Instance.MitaLook.active = true;
+                MitaCore.Instance.MitaLook.enabled = true;
+                location34_Communication.ActivationCanWalk(true);
 
             }
 
@@ -562,8 +579,9 @@ namespace MitaAI.Mita
                 if (animObject.animationType == MitaActionAnimation.ActionAnimationType.ObjectAnimation)
                 {
                     objectAnimationMita.Play();
-                    
-                    while (objectAnimationMita.isWalking) yield return new WaitForSeconds(0.25f);
+
+                    float beforeWalk = Time.unscaledDeltaTime;
+                    while (objectAnimationMita.isWalking && Time.unscaledDeltaTime-beforeWalk<30f) yield return new WaitForSeconds(0.25f);
 
                     
                 }
