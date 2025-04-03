@@ -1088,7 +1088,9 @@ namespace MitaAI
             EventsModded.sceneEnter(MitaToStart);
 
             MitaCore.AllLoaded = true;
-            TestingGround();
+            
+            // Тест Миты Кастомной
+            //TestingGround();
         }
         
         private static void TestingGround()

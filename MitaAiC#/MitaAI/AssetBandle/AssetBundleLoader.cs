@@ -15,7 +15,16 @@ namespace MitaAI
         public static Il2CppAssetBundle initBundle()
         {
             bundle = AssetBundleLoader.LoadAssetBundle("assetbundle");
-            bundleTestMita = AssetBundleLoader.LoadAssetBundle("testmita");
+            try
+            {
+                bundleTestMita = AssetBundleLoader.LoadAssetBundle("testmita");
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Second asset bundle error {ex}");
+            }
+            
             return bundle;
         }
 

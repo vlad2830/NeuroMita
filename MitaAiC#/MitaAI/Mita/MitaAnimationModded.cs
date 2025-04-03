@@ -438,7 +438,7 @@ namespace MitaAI.Mita
             }
 
             // Если запрещено двигаться
-            checkCanMoveLook();
+            checkCanMoveRotateLook();
 
 
             // Возвращаем кортеж: лицо и очищенный текст
@@ -456,7 +456,7 @@ namespace MitaAI.Mita
         };
 
         // Отвечает за перемещение и поворот миты.
-        public static void checkCanMoveLook()
+        public static void checkCanMoveRotateLook()
         {     
         
             // Если запрещено двигаться
@@ -501,14 +501,14 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("Animation error: " + e);
             }
         }
-        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita, float crossfade_len = 0.25f, float timeAfter = 0)
+        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita, float crossfade_len = 0.25f, float timeAfter = 0,float delay_after = 0)
         {
 
             try
             {
 
                 //animationQueue.Enqueue((animName, crossfade_len,timeAfter
-                animationQueue.Enqueue(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita));
+                animationQueue.Enqueue(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita,delay_after));
                 MelonLogger.Msg($"Added objectAnimationMita to queue: {objectAnimationMita.mitaAmimatedName}");
 
                 if (!isPlaying)
@@ -555,6 +555,7 @@ namespace MitaAI.Mita
                 MitaActionAnimation animObject = animationQueue.Dequeue();
                 string animName = animObject.animName;
                 float crossfade_len = animObject.begin_crossfade;
+                float delay_after = animObject.delay_after;
                 ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
                 AnimationClip anim = FindAnimationClipByName(animName);
                 
@@ -564,6 +565,7 @@ namespace MitaAI.Mita
                     
                     while (objectAnimationMita.isWalking) yield return null;
 
+                    
                 }
                 else
                 {
@@ -621,15 +623,17 @@ namespace MitaAI.Mita
                     }
                     // Ждем завершения анимации
                 }
-
+                checkCanMoveRotateLook();
+                yield return new WaitForSeconds(delay_after);
 
 
 
 
             }
+            checkCanMoveRotateLook();
             MelonLogger.Msg($"Ended quque currentIdleAnim {currentIdleAnim}");
             animator.CrossFade(currentIdleAnim,0.25f);
-            location34_Communication.enabled = true;
+            //location34_Communication.enabled = true;
             isPlaying = false;
         }
         static private bool isMitaWalking()
@@ -694,7 +698,7 @@ namespace MitaAI.Mita
                     {
                         MitaCore.movementStyle = MitaCore.MovementStyles.sitting;
                     }
-                    checkCanMoveLook();
+                    checkCanMoveRotateLook();
 
                 }
                 catch (Exception e)
