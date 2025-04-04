@@ -1276,15 +1276,15 @@ class ChatGUI:
 
 
         elif key == "NM_API_MODEL":
-            self.model.api_model = value
+            self.model.api_model = value.trim()
         elif key == "NM_API_KEY":
-            self.model.api_key = value
+            self.model.api_key = value.trim()
         elif key == "NM_API_URL":
-            self.model.api_url = value
+            self.model.api_url = value.trim()
         elif key == "NM_API_REQ":
             self.model.makeRequest = bool(value)
         elif key == "gpt4free_model":
-            self.model.gpt4free_model = value
+            self.model.gpt4free_model = value.trim()
 
 
 
