@@ -38,7 +38,7 @@ namespace MitaAI
         }
 
     }
-    // Не наследуется(((
+
     [RegisterTypeInIl2Cpp]
     public class GameMaster : Character
     {

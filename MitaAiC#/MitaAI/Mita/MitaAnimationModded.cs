@@ -657,7 +657,7 @@ namespace MitaAI.Mita
         }
         static private bool isMitaWalking()
         {
-            if (mitaAnimatorFunctions != null) return mitaNavMeshAgent.enabled;
+            if (mitaNavMeshAgent != null) return mitaNavMeshAgent.enabled;
             return false;
         }
         static private IEnumerator WaitForAnimationCompletion(AnimationClip animation, bool isCustomAnimation, float fadeDuration)
