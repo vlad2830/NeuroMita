@@ -41,6 +41,7 @@ https://github.com/VinerX/NeuroMita/releases - тут релизы, то ест�
       - модель gpt-4o
       - модель gemini-2.0-flash
       - модель deepseek-chat
+      - Тут смотрим другие https://github.com/xtekky/gpt4free/blob/main/docs/providers-and-models.md#providers-no-auth-required
         
       Модели OpenRouter, ключи тут получаем https://openrouter.ai/settings/keys
       - ссылка https://openrouter.ai/api/v1 модель google/gemini-2.0-pro-exp-02-05:free (обычный режим)
