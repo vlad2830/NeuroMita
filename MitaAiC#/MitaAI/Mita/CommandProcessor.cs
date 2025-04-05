@@ -127,7 +127,7 @@ namespace MitaAI.Mita
                     ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.Mita.AiWalkToTargetTranform(loc, null);
                     location34_Communication.indexSwitchAnimation = 1;
-                    MitaCore.Instance.MitaSetStaing();
+                    MitaMovement.MitaSetStaing();
                     break;
 
                 case "телепортироваться к случайной точке":
@@ -136,7 +136,7 @@ namespace MitaAI.Mita
                     mitaCore.sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
                     mitaCore.Mita.MitaTeleport(loc);
                     location34_Communication.indexSwitchAnimation = 1;
-                    MitaCore.Instance.MitaSetStaing();
+                    MitaMovement.MitaSetStaing();
                     break;
 
                 case "телепортироваться к игроку":
@@ -262,13 +262,13 @@ namespace MitaAI.Mita
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.AiWalkToTarget(newPosition);
                         mitaCore.sendSystemInfo($"Ты пошла к {secondCommand}");
-                        MitaCore.Instance.MitaSetStaing();
+                        MitaMovement.MitaSetStaing();
                     }
                     catch (Exception ex)
                     {
                         MelonLogger.Error($"Tried to go to point {secondCommand} {ex}");
                         MitaCore.Instance.sendSystemInfo($"точки {secondCommand} не нашлось");
-                        MitaCore.Instance.MitaSetStaing();
+                        MitaMovement.MitaSetStaing();
                     }
 
                     break;

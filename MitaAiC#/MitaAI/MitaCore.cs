@@ -267,12 +267,12 @@ namespace MitaAI
                 //location21_World.
                 try
                 { 
-                    Location34_Communication = MitaObject.GetComponentInChildren<Location34_Communication>();
+                    location34_Communication = MitaObject.GetComponentInChildren<Location34_Communication>();
                     
 
-                    if (Location34_Communication == null ) Location34_Communication = GameObject.Instantiate(Loc34_Template, MitaObject.transform).GetComponent< Location34_Communication>();
+                    if (location34_Communication == null ) location34_Communication = GameObject.Instantiate(Loc34_Template, MitaObject.transform).GetComponent< Location34_Communication>();
 
-                    Location34_Communication.gameObject.GetComponentInChildren<CapsuleCollider>().transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+                    location34_Communication.gameObject.GetComponentInChildren<CapsuleCollider>().transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
                 }
                 catch (Exception ex)
                 {
@@ -283,11 +283,11 @@ namespace MitaAI
 
                 try
                 {
-                    Location34_Communication.play = true;
-                    Location34_Communication.mitaAnimator = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
-                    Location34_Communication.mita = Mita;
+                    location34_Communication.play = true;
+                    location34_Communication.mitaAnimator = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
+                    location34_Communication.mita = Mita;
 
-                    MitaAnimationModded.location34_Communication = Location34_Communication;
+                    MitaAnimationModded.location34_Communication = location34_Communication;
                     MitaAnimationModded.location34_Communication.mita = Mita;
                     MitaAnimationModded.location34_Communication.mitaCanWalk = true;
                 }
@@ -305,7 +305,7 @@ namespace MitaAI
                 if (!changeAnimation) MelonCoroutines.Start(walkingFix());
 
                
-                MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication, ChangeAnimationControler, changeAnimation);
+                MitaAnimationModded.init(MitaAnimatorFunctions, location34_Communication, ChangeAnimationControler, changeAnimation);
 
 
                 
@@ -414,7 +414,7 @@ namespace MitaAI
 
         public float distance = 0f;
         
-        Location34_Communication Location34_Communication;
+        public Location34_Communication location34_Communication;
         public Location21_World location21_World;
 
         public static Transform worldTogether;
@@ -674,15 +674,15 @@ namespace MitaAI
 
 
             GameObject Location34_CommunicationObject = GameObject.Find("World/Quests/Quest 1/Addon");
-            Location34_Communication = GameObject.Find("World/Quests/Quest 1/Addon").GetComponent<Location34_Communication>();
+            location34_Communication = GameObject.Find("World/Quests/Quest 1/Addon").GetComponent<Location34_Communication>();
 
-            Location34_Communication.mitaCanWalk = true;
-            Location34_Communication.indexSwitchAnimation = 1;
-            Location34_Communication.play = true;
+            location34_Communication.mitaCanWalk = true;
+            location34_Communication.indexSwitchAnimation = 1;
+            location34_Communication.play = true;
 
             CollectChildObjects(Location34_CommunicationObject);
 
-            Loc34_Template = Location34_Communication.gameObject;
+            Loc34_Template = location34_Communication.gameObject;
 
             Mita = GameObject.Find("Mita")?.GetComponent<MitaPerson>();
             MitaObject = GameObject.Find("Mita").gameObject;
@@ -690,7 +690,7 @@ namespace MitaAI
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             CrazyObject = MitaObject;
 
-            Location34_Communication.transform.SetParent(CrazyObject.transform);
+            location34_Communication.transform.SetParent(CrazyObject.transform);
 
 
             var comp = MitaPersonObject.AddComponent<Character>();
@@ -700,7 +700,7 @@ namespace MitaAI
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
-            MitaAnimationModded.init(MitaAnimatorFunctions, Location34_Communication);
+            MitaAnimationModded.init(MitaAnimatorFunctions, location34_Communication);
             Mita.AiShraplyStop();
 
             //GameObject eyeObject = Utils.TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");
@@ -752,7 +752,7 @@ namespace MitaAI
             if (Mita == null || playerPerson == null) return;
 
 
-            CommandProcessor.Initialize(this, playerObject.transform,MitaObject.transform,Location34_Communication);
+            CommandProcessor.Initialize(this, playerObject.transform,MitaObject.transform,location34_Communication);
 
                 
             worldHouse = GameObject.Find("World")?.transform;
@@ -1090,33 +1090,33 @@ namespace MitaAI
                         GameObject newPoint = GameObject.Instantiate(childTransform.gameObject,new Vector3(12.8382f,-2.9941f,-16.8005f),Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement 1";
                         globalChildObjects.Add(newPoint);
-                        remakeArrayl34(Location34_Communication, newPoint, "b");
+                        remakeArrayl34(location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(17.0068f, -2.9941f, -13.2256f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement 2";
                         globalChildObjects.Add(newPoint);
-                        remakeArrayl34(Location34_Communication, newPoint, "b");
+                        remakeArrayl34(location34_Communication, newPoint, "b");
 
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(10.9679f, -2.9941f, -19.5763f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement Camera";
                         globalChildObjects.Add(newPoint);
-                        remakeArrayl34(Location34_Communication, newPoint, "b");
+                        remakeArrayl34(location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(19.6421f, -2.9941f, -14.9584f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement Safe";
                         globalChildObjects.Add(newPoint);
-                        remakeArrayl34(Location34_Communication, newPoint, "b");
+                        remakeArrayl34(location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.2978f, 0, -7.3997f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Enter_Basement";
                         globalChildObjects.Add(newPoint);
-                        remakeArrayl34(Location34_Communication, newPoint, "b");
+                        remakeArrayl34(location34_Communication, newPoint, "b");
                         
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.1936f, 0, -8.9503f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Leave_Basement";
                         globalChildObjects.Add(newPoint);
-                        remakeArrayl34(Location34_Communication, newPoint, "b");
+                        remakeArrayl34(location34_Communication, newPoint, "b");
 
 
 
@@ -1407,151 +1407,6 @@ namespace MitaAI
 
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
-        }
-
-        public string SetMovementStyle(string response)
-        {
-            // Регулярное выражение для извлечения эмоций
-            string pattern = @"<m>(.*?)</m>";
-            Match match = Regex.Match(response, pattern);
-
-            string MovementStyle = string.Empty;
-            string cleanedResponse = Regex.Replace(response, @"<m>.*?</m>", ""); // Очищаем от всех тегов
-
-            if (match.Success)
-            {
-                // Если эмоция найдена, устанавливаем её в переменную faceStyle
-                MovementStyle = match.Groups[1].Value;
-            }
-            try
-            {
-                // Проверка на наличие объекта Mita перед применением эмоции
-                if (Mita == null || Mita.gameObject == null)
-                {
-                    MelonLogger.Error("Mita object is null or Mita.gameObject is not active.");
-                    return cleanedResponse; // Возвращаем faceStyle и очищенный текст
-                }
-                // Устанавливаем лицо, если оно найдено
-                switch (MovementStyle)
-                {
-                    case "Следовать рядом с игроком":
-                        movementStyle = MovementStyles.walkNear;
-                        Location34_Communication.ActivationCanWalk(true);
-                        break;
-                    case "Следовать за игроком":
-                        movementStyle = MovementStyles.follow;
-                        Location34_Communication.ActivationCanWalk(false);
-                        MelonCoroutines.Start(FollowPlayer());
-                        MelonCoroutines.Start(LookOnPlayer());
-                        break;
-                    case "Стоять на месте":
-                        MitaSetStaing();
-                        break;
-                    case "NoClip":
-                        movementStyle = MovementStyles.noclip;
-                        Location34_Communication.ActivationCanWalk(false);
-                        MelonCoroutines.Start(FollowPlayerNoclip());
-                        break;
-                    default:
-                        //Mita.FaceColorUpdate();
-                        //Mita.FaceLayer(0);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                MelonLogger.Error($"Problem with SetMovementStyle: {ex.Message}");
-            }
-
-            // Возвращаем кортеж: лицо и очищенный текст
-            return cleanedResponse;
-        }
-        public void MitaSetStaing()
-        {
-            movementStyle = MovementStyles.stay;
-            Location34_Communication.ActivationCanWalk(false);
-            MelonCoroutines.Start(LookOnPlayer());
-        }
-
-
-        public IEnumerator LookOnPlayer()
-        {
-            while (movementStyle != MovementStyles.walkNear)
-            {
-                if (!Mita.GetComponent<NavMeshAgent>().enabled) 
-                {
-                    try
-                    {
-                        MitaLook.LookOnPlayerAndRotate();
-                    }
-                    catch (Exception e)
-                    {
-
-                        MelonLogger.Msg(e);
-                    }
-                    //if (Utils.Random(6, 10))
-                   
-                    //else MitaLook.LookRandom();
-                
-                }
-                yield return new WaitForSecondsRealtime(1);
-            }
-        }
-
-
-        public IEnumerator FollowPlayer(float distance = 1f)
-        {
-
-            while (movementStyle == MovementStyles.follow)
-            {
-                if (getDistanceToPlayer() > distance)
-                {
-                    Mita.AiWalkToTarget(playerPersonObject.transform);
-                    
-                }
-                else
-                {
-                    Mita.AiShraplyStop();
-                    yield return new WaitForSeconds(2f);
-                }
-
-                yield return new WaitForSeconds(0.55f);
-            }
-
-
-        }
-        public IEnumerator FollowPlayerNoclip(float distance = 1.1f)
-        {
-            MelonLogger.Msg("Begin noClip");
-            MitaPersonObject.GetComponent<CapsuleCollider>().enabled = false;
-            while (movementStyle == MovementStyles.noclip && getDistanceToPlayer() > distance)
-            {
-
-                yield return MelonCoroutines.Start(MoveToPositionNoClip(25));
-
-                yield return new WaitForSeconds(1f);
-            }
-            MitaPersonObject.GetComponent<CapsuleCollider>().enabled = true;
-
-        }
-        private IEnumerator MoveToPositionNoClip(float speed)
-        {
-            while (movementStyle == MovementStyles.noclip && getDistanceToPlayer() > 0.9f)
-            {
-                Vector3 targetPosition = playerPerson.gameObject.transform.position;
-                // Двигаем персонажа напрямую к цели (без учета препятствий)
-                MitaPersonObject.transform.position = Vector3.MoveTowards(MitaPersonObject.transform.position, targetPosition, speed * Time.deltaTime);
-
-                // Можно добавить поворот персонажа в направлении движения (опционально)
-                Vector3 direction = (targetPosition - MitaPersonObject.transform.position).normalized;
-                if (direction != Vector3.zero)
-                    MitaPersonObject.transform.rotation = Quaternion.LookRotation(direction);
-
-                yield return null; // Ждем следующий кадр
-            }
-
-            // Когда достигли цели
-            Debug.Log("NoClip movement completed!");
         }
 
         
