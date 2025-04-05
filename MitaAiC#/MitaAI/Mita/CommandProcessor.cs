@@ -284,7 +284,7 @@ namespace MitaAI.Mita
                     catch (Exception ex)
                     {
                         MelonLogger.Error($"Tried to teleport to point {secondCommand} {ex}");
-                        MitaCore.Instance.sendSystemInfo($"точки {secondCommand} не нашлось");
+                        CharacterMessages.sendSystemInfo($"точки {secondCommand} не нашлось");
                     }
 
                     break;
@@ -342,7 +342,7 @@ namespace MitaAI.Mita
                     if (Enum.TryParse<character>(secondCommand, true, out var characterToSend)) 
                         CharacterControl.SetNextSpeaker(characterToSend);
                     else
-                        MitaCore.Instance.sendSystemInfo($"Failed to chose next speaker {secondCommand}, not found");
+                        CharacterMessages.sendSystemInfo($"Failed to chose next speaker {secondCommand}, not found");
                     
                     //MitaCore.Instance.sendSystemMessage(characterToSend);
                     break;
@@ -364,7 +364,7 @@ namespace MitaAI.Mita
 
                     MelonLogger.Msg($"GameMaster Try {command} Send {thrirdCommand} To {secondCommand}");
                     Enum.TryParse<character>(secondCommand, true, out var characterToSend);
-                    MitaCore.Instance.sendSystemInfo(thrirdCommand, characterToSend);
+                    CharacterMessages.sendSystemInfo(thrirdCommand, characterToSend);
                     break;
 
                 #endregion

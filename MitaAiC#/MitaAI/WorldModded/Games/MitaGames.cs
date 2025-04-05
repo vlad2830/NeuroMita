@@ -79,7 +79,7 @@ namespace MitaAI
                     if (Mathf.FloorToInt(elapsedTime) % 60 == 0)
                         message += "Может быть, пора усложнять игру...";
 
-                    MitaCore.Instance.sendSystemMessage(message);
+                    CharacterMessages.sendSystemMessage(message);
                     lastMessageTime = elapsedTime; // Обновляем время последнего сообщения
                 }
 

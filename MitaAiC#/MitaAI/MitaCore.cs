@@ -17,40 +17,7 @@ using UnityEngine.UI;
 
 namespace MitaAI
 {
-    public enum character
-    {
-        Player = -2,
-        None = -1,// Добавляем нового персонажа
-        Crazy = 0,
-        Cappy = 1,
-        Kind = 2,
-        Cart_portal = 3,
-        ShortHair = 4,
-        Cart_divan,
-        Mila,
-        Sleepy,
-        Creepy,
-        GameMaster
-
-    }
-    public enum MovementStyles
-    {
-        walkNear = 0,
-        follow = 1,
-        stay = 2,
-        noclip = 3,
-        layingOnTheFloorAsDead = 4,
-        sitting,
-        cryingOnTheFloor
-
-    }
-
-    public enum MitaState
-    {
-        normal = 0,
-        hunt = 1
-
-    }
+    
     public class MitaCore : MelonMod
     {
         // Ссылка на экземпляр MitaCore, если он нужен
@@ -517,7 +484,7 @@ namespace MitaAI
        
         public void playerClickSafe()
         {
-            sendSystemMessage("Игрок кликает на кнопку сейфа");
+            CharacterMessages.sendSystemMessage("Игрок кликает на кнопку сейфа");
         }
 
 
@@ -526,7 +493,7 @@ namespace MitaAI
         {
             if (sceneName == requiredSceneName)
             {
-                sendSystemInfo("Игрок покинул уровень");
+                CharacterMessages.sendSystemInfo("Игрок покинул уровень");
                 MitaCore.AllLoaded = false;
             }
             base.OnSceneWasUnloaded(buildIndex, sceneName);
@@ -568,15 +535,7 @@ namespace MitaAI
 
 
 
-        public enum Rooms
-        {
-            Kitchen = 0,
-            MainHall = 1,
-            Bedroom = 2,
-            Toilet = 3,
-            Basement = 4,
-            Unknown = -1
-        }
+
 
         public Rooms roomPlayer = Rooms.Unknown;
         public Rooms roomMita = Rooms.Unknown;
@@ -1137,7 +1096,7 @@ namespace MitaAI
             
             yield return new WaitForSecondsRealtime(delay);
 
-            sendSystemMessage("You successfully killed the player using knife, and he respawned somewhere.");
+            CharacterMessages.sendSystemMessage("You successfully killed the player using knife, and he respawned somewhere.");
 
             AnimationKiller.SetActive(false); // Включаем объект
             // Возвращаем Миту в исходное положение
@@ -1344,7 +1303,7 @@ namespace MitaAI
             {
                 var glasses = MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject;
                 glasses.SetActive(state);
-                sendSystemInfo(state ? "Очки надеты" : "Очки сняты");
+                CharacterMessages.sendSystemInfo(state ? "Очки надеты" : "Очки сняты");
             }
             catch (Exception ex)
             {

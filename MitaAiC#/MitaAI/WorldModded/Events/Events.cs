@@ -149,17 +149,17 @@ namespace MitaAI
         }
 
         // Зашел в комнату
-        public static void roomEnter(MitaCore.Rooms room, MitaCore.Rooms lastRoom)
+        public static void roomEnter(Rooms room, Rooms lastRoom)
         {
             if (DisableEvents) return;
 
             MelonLogger.Msg($"Event roomEnter {room}");
 
-            if (room == MitaCore.Rooms.Unknown) return;
+            if (room == Rooms.Unknown) return;
 
             bool isInfo = TimeBlock("roomEnter", 15f);
 
-            MitaCore.Rooms mitaRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.MitaPersonObject.transform);
+            Rooms mitaRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.MitaPersonObject.transform);
             string message = $"Игрок только что перешел комнаты в {room} из комнаты {lastRoom}, а ты сейчас находишься в комнате {mitaRoom}. " +
                 $"Реагируй резко, только если это обоснованно, в общем случае можешь это не заметить или продолжить по теме разговора";
             
