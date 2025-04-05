@@ -11,20 +11,28 @@ namespace MitaAI
     public class RadialMenu : MonoBehaviour
     {
         public Canvas radialCanvas;
-        public GameObject itemPrefab = RadialMenuItem.CreatePrefab();
+        public GameObject itemPrefab;
         public float radius = 250f;
+        public float selectionThreshold = 200f; // Макс. расстояние для выбора
         public System.Collections.Generic.List<string> items = new System.Collections.Generic.List<string> { "Удар", "Обнять", "Что" };
         public System.Collections.Generic.List<string> descriptions = new System.Collections.Generic.List<string> { "Нанести удар", "Обнять персонажа", "Спросить что-то" };
 
         private Vector2 center;
-        private bool isActive;
+        private bool Showed = false;
         private string selectedItem;
-        private System.Collections.Generic.List<RectTransform> itemTransforms = new System.Collections.Generic.List<RectTransform>();
+        private System.Collections.Generic.List<GameObject> menuItems = new System.Collections.Generic.List<GameObject>();
+        private int lastSelectedIndex = -1;
 
-        void Start()
+        private void Start()
         {
+            // Создаем префаб если он не задан
+            if (itemPrefab == null)
+            {
+                itemPrefab = RadialMenuItem.CreatePrefab();
+                DontDestroyOnLoad(itemPrefab); // Сохраняем префаб между сценами
+            }
+
             center = new Vector2(Screen.width / 2, Screen.height / 2);
-            radialCanvas.enabled = false;
             GenerateItems();
         }
 
@@ -32,60 +40,132 @@ namespace MitaAI
         {
             if (Input.GetMouseButtonDown(1))
             {
-                isActive = true;
-                radialCanvas.enabled = true;
-                Cursor.lockState = CursorLockMode.None;
-                MitaCore.Instance.gameController.ShowCursor(true);
-                PlayerAnimationModded.playerMove.stopMouseMove = true;
+                if (!Showed) ShowMenu();
+            }
+            else if (Showed)
+            {
+                HideMenu();
             }
 
-            if (isActive)
+            if (Showed)
             {
-                // Простая проверка ближайшего элемента
-                selectedItem = GetNearestItem(Input.mousePosition);
+                UpdateSelection();
 
-                // Подсветка выбранного элемента
-                for (int i = 0; i < items.Count; i++)
+                if (Input.GetMouseButtonUp(1))
                 {
-                    bool isSelected = (items[i] == selectedItem);
-                    itemTransforms[i].GetComponent<Image>().color = isSelected ?
-                        new Color(0.3f, 0.5f, 0.8f, 1f) :
-                        new Color(0.2f, 0.2f, 0.2f, 0.8f);
+
+                    
+                    ExecuteSelectedAction();
+                }
+            }
+        }
+
+        void ShowMenu()
+        {
+            Showed = true;
+            gameObject.active = true;
+            //radialCanvas.enabled = true;
+            //Cursor.lockState = CursorLockMode.None;
+            //MitaCore.Instance.gameController.ShowCursor(true);
+            //PlayerAnimationModded.playerMove.stopMouseMove = true;
+            center = new Vector2(Screen.width / 2, Screen.height / 2);
+        }
+
+        void HideMenu()
+        {
+            Showed = false;
+            gameObject.active = false;
+
+            //radialCanvas.enabled = false;
+            //Cursor.lockState = CursorLockMode.Locked;
+            //MitaCore.Instance.gameController.ShowCursor(false);
+            //PlayerAnimationModded.playerMove.stopMouseMove = false;
+
+            // Сброс выделения
+            //if (lastSelectedIndex != -1)
+            //{
+            //    menuItems[lastSelectedIndex].GetComponent<Image>().color = normalColor;
+              //  lastSelectedIndex = -1;
+            //}
+        }
+
+        void UpdateSelection()
+        {
+            Vector2 mousePos = Input.mousePosition;
+            int closestIndex = -1;
+            float minDistance = float.MaxValue;
+
+            // Находим ближайший элемент
+            for (int i = 0; i < menuItems.Count; i++)
+            {
+                float dist = Vector2.Distance(mousePos, menuItems[i].transform.position);
+                if (dist < minDistance && dist < selectionThreshold)
+                {
+                    minDistance = dist;
+                    closestIndex = i;
                 }
             }
 
-            if (Input.GetMouseButtonUp(1))
+            // Обновляем выделение
+            if (closestIndex != lastSelectedIndex)
             {
-                isActive = false;
-                radialCanvas.enabled = false;
-                Cursor.lockState = CursorLockMode.Locked;
-                MitaCore.Instance.gameController.ShowCursor(false);
-                PlayerAnimationModded.playerMove.stopMouseMove = false;
-
-                if (!string.IsNullOrEmpty(selectedItem))
+                // Снимаем выделение с предыдущего
+                if (lastSelectedIndex != -1)
                 {
-                    Debug.Log($"Selected: {selectedItem}");
-                    // Здесь вызывайте нужную функцию в зависимости от выбранного элемента
+                    menuItems[lastSelectedIndex].GetComponent<Image>().color = normalColor;
+                }
+
+                // Выделяем новый
+                if (closestIndex != -1)
+                {
+                    menuItems[closestIndex].GetComponent<Image>().color = hoverColor;
+                    selectedItem = items[closestIndex];
+                }
+
+                lastSelectedIndex = closestIndex;
+            }
+        }
+
+        void ExecuteSelectedAction()
+        {
+            if (!string.IsNullOrEmpty(selectedItem))
+            {
+                MelonLogger.Msg($"!!! CHOSE: {selectedItem}");
+
+                // Здесь добавьте обработку выбранного действия
+                switch (selectedItem)
+                {
+                    case "Удар":
+                        // Код для удара
+                        break;
+                    case "Обнять":
+                        // Код для объятия
+                        break;
+                    case "Что":
+                        // Код для вопроса
+                        break;
                 }
             }
         }
 
         void GenerateItems()
         {
-            itemTransforms.Clear();
-
-            // Удаляем старые элементы если есть
-            foreach (Transform child in radialCanvas.transform)
-                Destroy(child.gameObject);
+            // Очистка старых элементов
+            foreach (var item in menuItems)
+            {
+                Destroy(item);
+            }
+            menuItems.Clear();
 
             float angleStep = 360f / items.Count;
 
             for (int i = 0; i < items.Count; i++)
             {
+                // Создаем элемент меню
                 GameObject item = Instantiate(itemPrefab, radialCanvas.transform);
-                itemTransforms.Add(item.GetComponent<RectTransform>());
+                menuItems.Add(item);
 
-                // Настройка позиции
+                // Позиционирование по кругу
                 float angle = angleStep * i * Mathf.Deg2Rad;
                 Vector2 pos = new Vector2(
                     Mathf.Cos(angle) * radius,
@@ -93,140 +173,70 @@ namespace MitaAI
                 );
                 item.GetComponent<RectTransform>().anchoredPosition = pos;
 
-                // Настройка текста
+                // Настройка внешнего вида
                 var menuItem = item.GetComponent<RadialMenuItem>();
                 if (menuItem != null)
                 {
-                    menuItem.Setup(items[i], descriptions.Count > i ? descriptions[i] : "");
+                    menuItem.Setup(items[i], i < descriptions.Count ? descriptions[i] : "");
                 }
             }
         }
 
-        string GetNearestItem(Vector2 mousePos)
-        {
-            string nearestItem = "";
-            float minDistance = float.MaxValue;
-
-            for (int i = 0; i < itemTransforms.Count; i++)
-            {
-                float dist = Vector2.Distance(mousePos, itemTransforms[i].position);
-                if (dist < minDistance)
-                {
-                    minDistance = dist;
-                    nearestItem = items[i];
-                }
-            }
-
-            return nearestItem;
-        }
-    
-
- 
+        // Цвета для удобства
+        private Color normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+        private Color hoverColor = new Color(0.3f, 0.5f, 0.8f, 1f);
     }
 
     [RegisterTypeInIl2Cpp]
-
-
     public class RadialMenuItem : MonoBehaviour
     {
-
         public static GameObject CreatePrefab()
         {
-            // Создаём основной объект
-            GameObject item = new GameObject("RadialMenuItem");
+            // Создаем корневой объект
+            var item = new GameObject("RadialMenuItem");
+            var rectTransform = item.AddComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(100, 100);
 
-            // Добавляем компонент Image (фон)
-            Image bg = item.AddComponent<Image>();
-            bg.color = new Color(0.2f, 0.2f, 0.2f, 0.8f); // Темно-серый с прозрачностью
+            // Добавляем компоненты
+            var image = item.AddComponent<Image>();
+            image.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
 
-            // Создаём дочерний объект для текста
-            GameObject textObj = new GameObject("Text");
+            // Создаем дочерний объект для текста
+            var textObj = new GameObject("Text");
             textObj.transform.SetParent(item.transform);
 
-            // Настраиваем Text
-            Text text = textObj.AddComponent<Text>();
+            var text = textObj.AddComponent<Text>();
             text.text = "Item";
             text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             text.fontSize = 20;
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
 
-            // Центрируем текст
-            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            // Настраиваем RectTransform для текста
+            var textRect = textObj.GetComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            return item;
-          }
-        
+            // Добавляем компонент RadialMenuItem
+            var menuItem = item.AddComponent<RadialMenuItem>();
+            menuItem.label = text;
+            menuItem.background = image;
 
-        // [Header("References")]
+            return item;
+        }
+
         public Image background;
         public Text label;
         public GameObject descriptionPanel;
         public Text descriptionText;
 
-        //[Header("Colors")]
-        public Color normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
-        public Color hoverColor = new Color(0.3f, 0.5f, 0.8f, 1f);
-
-        private bool isHovered;
-
-        private void Update()
+        public void Setup(string itemName, string description)
         {
-            // Ручная проверка hover через Raycast (на случай проблем с EventSystem)
-            if (IsMouseOver())
-            {
-                if (!isHovered) OnHoverEnter();
-            }
-            else
-            {
-                if (isHovered) OnHoverExit();
-            }
+            if (label != null) label.text = itemName;
+            if (descriptionText != null) descriptionText.text = description;
+            if (descriptionPanel != null) descriptionPanel.SetActive(false);
         }
-
-        //private bool IsMouseOver()
-        //{
-        //    if (EventSystem.current == null) return false;
-
-        //    PointerEventData pointerData = new PointerEventData(EventSystem.current)
-        //    {
-        //        position = Input.mousePosition
-        //    };
-
-        //    // Используем Il2CppList вместо System.Collections.Generic.List
-        //    var results = new Il2CppSystem.Collections.Generic.List<RaycastResult>();
-        //    EventSystem.current.RaycastAll(pointerData, results);
-
-        //    foreach (var result in results)
-        //    {
-        //        if (result.gameObject == gameObject) return true;
-        //    }
-        //    return false;
-        //}
-
-        private void OnHoverEnter()
-        {
-            isHovered = true;
-            background.color = hoverColor;
-            if (descriptionPanel != null)
-                descriptionPanel.SetActive(true);
-        }
-
-        private void OnHoverExit()
-        {
-            isHovered = false;
-            background.color = normalColor;
-            if (descriptionPanel != null)
-                descriptionPanel.SetActive(false);
-        }
-
-        //public void Setup(string itemName, string description)
-        //{
-        //    label.text = itemName;
-        //    descriptionText.text = description;
-        //}
     }
 }

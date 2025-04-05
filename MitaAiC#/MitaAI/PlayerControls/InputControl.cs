@@ -380,9 +380,9 @@ namespace MitaAI.PlayerControls
 
 
             // Меню действий игрока
-            var radMenu = new GameObject("RadialMenu").AddComponent<RadialMenu>();
-            radMenu.transform.SetParent(MitaCore.Instance.playerController.gameObject.transform);
-            radMenu.radialCanvas = MitaCore.Instance.playerController.GetComponentInChildren<Canvas>();
+            //var radMenu = new GameObject("RadialMenu").AddComponent<RadialMenu>();
+            //radMenu.transform.SetParent(MitaCore.Instance.playerController.transform.Find("Interface"));
+            //radMenu.radialCanvas = MitaCore.Instance.playerController.GetComponentInChildren<Canvas>();
 
         }
 

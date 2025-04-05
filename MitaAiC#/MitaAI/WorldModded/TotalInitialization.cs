@@ -1096,7 +1096,7 @@ namespace MitaAI
         private static void TestingGround()
         {
             // Тест Миты Кастомной
-            //TestMitaFroDemo();
+            TestMitaFroDemo();
         }
         private static void TestMitaFroDemo()
         {

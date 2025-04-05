@@ -673,6 +673,7 @@ namespace MitaAI
             PlayerAnimationModded.Init(playerObject, worldHouse, playerObject.GetComponent<PlayerMove>());
             PlayerEffectsModded.Init(playerPersonObject);
             LightingAndDaytime.Init(location21_World, worldHouse);
+            
             ShaderReplacer.init();
 
 
