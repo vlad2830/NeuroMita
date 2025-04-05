@@ -94,25 +94,29 @@ namespace MitaAI.Mita
             {
                 case "подойти к игроку":
                     newPosition.transform.position = playerPerson.position + direction * 0.85f; // closeDistance — ваше значение
-                    mitaCore.Mita.AiWalkToTarget(newPosition);
+                    ObjectAnimationMita.finishWorkingOAM();
+                    mitaCore.Mita.AiWalkToTargetTranform(newPosition,null);
                     location34_Communication.indexSwitchAnimation = 1;
                     Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку вплотную":
                     newPosition.transform.position = playerPerson.position + direction * 0.4f; // closeDistance — ваше значение
-                    mitaCore.Mita.AiWalkToTarget(newPosition);
+                    ObjectAnimationMita.finishWorkingOAM();
+                    mitaCore.Mita.AiWalkToTargetTranform(newPosition, null);
                     location34_Communication.indexSwitchAnimation = 1;
                     Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку близко":
                     newPosition.transform.position = playerPerson.position + direction * 0.85f; // closeDistance — ваше значение
-                    mitaCore.Mita.AiWalkToTarget(newPosition);
+                    ObjectAnimationMita.finishWorkingOAM();
+                    mitaCore.Mita.AiWalkToTargetTranform(newPosition, null);
                     location34_Communication.indexSwitchAnimation = 1;
                     Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку далеко":
                     newPosition.transform.position = playerPerson.position + direction * 2f; // farDistance — ваше значение
-                    mitaCore.Mita.AiWalkToTarget(newPosition);
+                    ObjectAnimationMita.finishWorkingOAM();
+                    mitaCore.Mita.AiWalkToTargetTranform(newPosition, null);
                     location34_Communication.indexSwitchAnimation = 1;
                     Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
@@ -120,13 +124,15 @@ namespace MitaAI.Mita
                 case "подойти к случайной точке":
                     loc = mitaCore.GetRandomLoc();
                     mitaCore.sendSystemInfo($"Ты пошла к {loc.name}");
-                    mitaCore.Mita.AiWalkToTarget(loc);
+                    ObjectAnimationMita.finishWorkingOAM();
+                    mitaCore.Mita.AiWalkToTargetTranform(loc, null);
                     location34_Communication.indexSwitchAnimation = 1;
                     MitaCore.Instance.MitaSetStaing();
                     break;
 
                 case "телепортироваться к случайной точке":
                     loc = mitaCore.GetRandomLoc();
+                    ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
                     mitaCore.Mita.MitaTeleport(loc);
                     location34_Communication.indexSwitchAnimation = 1;
@@ -134,6 +140,7 @@ namespace MitaAI.Mita
                     break;
 
                 case "телепортироваться к игроку":
+                    ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.Mita.MitaTeleport(playerPerson);
                     location34_Communication.indexSwitchAnimation = 1;
                     break;

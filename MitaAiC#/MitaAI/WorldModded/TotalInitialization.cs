@@ -1089,36 +1089,56 @@ namespace MitaAI
 
             MitaCore.AllLoaded = true;
             
-            // Тест Миты Кастомной
-            //TestingGround();
+            
+            TestingGround();
         }
-        
+
         private static void TestingGround()
         {
+            // Тест Миты Кастомной
+            //TestMitaFroDemo();
+        }
+        private static void TestMitaFroDemo()
+        {
 
-
-            try
-            {
+                try
+                {
 
                 GameObject Mita = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundleTestMita, "Mita"));
 
                 // Чиню поворот
-                var Old = Mita.GetComponentInChildren<Character_Look>(); //.speedRotateBody = 1f;
-                var New = Old.gameObject.AddComponent<Character_Look_Old>();
+
+
+                // Пока не принял решение, искать как починить текущий или брать из демо
+                bool LookFromDemo = true;
                 
+                var Old = Mita.GetComponentInChildren<Character_Look>(); //
+
+                Old.speedRotateBody = 1f;
+                var New = Old.gameObject.AddComponent<Character_Look_Old>();
+
                 try
                 {
                     Character_Look_Old.CopyCharacterLookToOld(Old, New);
                 }
                 catch (Exception ex)
                 {
-                    MelonLogger.Error("CopyCharacterLookToOld",ex);
+                    MelonLogger.Error("CopyCharacterLookToOld", ex);
                 }
-                Old.enabled = false;
-                New.speedRotateBody = 1f;
+                
+                New.speedRotateFactor = 0.5f;
                 New.legRight = New.pivotLegs.Find("LegRight").transform;
                 New.legLeft = New.pivotLegs.Find("LegLeft").transform;
                 New.activeBodyIK = true;
+
+
+                if (LookFromDemo) Old.enabled = false;
+                else New.enabled = false;
+
+
+
+
+
                 // Чиню люпсинк
                 var blandshapeOriginal = MitaCore.CrazyObject.transform.Find("MitaPerson Mita/Head").gameObject.GetComponent<Audio_BlendShapeVoice>();
                 var blandshape = Mita.transform.Find("MitaPerson Mita/Head").gameObject.AddComponent<Audio_BlendShapeVoice>();
@@ -1145,7 +1165,7 @@ namespace MitaAI
 
                 MitaCore.CrazyObject = Mita;
                 Mita.name = "MitaTestFromDemo";
-                MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy);
+                MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy, turnOfOld:false);
 
 
 
@@ -1156,15 +1176,6 @@ namespace MitaAI
 
 
 
-
-                //GameObject MitaPrefab = GameObject.Instantiate(AssetBundleLoader.LoadAssetByName<GameObject>(AssetBundleLoader.bundle, "MitaPrefab"));
-
-
-                //MitaPrefab.name = "Mita Prefab 2003";
-                //MitaCore.Instance.changeMita(MitaPrefab, MitaCore.character.Mita);
-
-                //ShaderReplacer.ReplaceShaders(MitaCore.worldHouse.gameObject);
-                //ShaderReplacer.ReplaceShaders(MitaCore.worldBasement.gameObject);
 
                 // Звук
                 //GameObject testSound = new GameObject("TestSound");

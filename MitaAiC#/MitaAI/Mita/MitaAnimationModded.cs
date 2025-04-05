@@ -8,6 +8,7 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.Playables;
 using UnityEngine.AI;
 using Il2CppRootMotion.FinalIK;
+using UnityEngine.Events;
 namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
@@ -147,6 +148,8 @@ namespace MitaAI.Mita
             }
             
         }
+
+        public class FloatEvent : UnityEvent<float> { } //empty class; just needs to exist
 
         static private void setCustomAnimatiomEvents(AnimationClip anim)
         { 
@@ -580,19 +583,23 @@ namespace MitaAI.Mita
                 {
                     objectAnimationMita.Play();
                     //checkCanMoveRotateLook();
+
                     float beforeWalk = Time.unscaledDeltaTime;
 
-                    while (objectAnimationMita.isWalking && Time.unscaledDeltaTime-beforeWalk<30f) yield return new WaitForSeconds(0.25f);
+                    yield return new WaitForSeconds(0.25f);
+                    //while (objectAnimationMita.isWalking && Time.unscaledDeltaTime-beforeWalk<30f) yield return new WaitForSeconds(0.25f);
+                    while (isMitaWalking() && Time.unscaledDeltaTime - beforeWalk < 30f) yield return new WaitForSeconds(0.25f);
 
-                    
+
                 }
                 else
                 {
                     if (anim != null)
                     {
+                        //if (ObjectAnimationMita.CurrentOAMc?.backAnimation != null) { }
 
                         // while (isMitaWalking()) yield return null;
-
+                        //ObjectAnimationMita.finishWorkingOAM();
                         //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
                         MelonLogger.Msg($"Crossfade");
                         MelonLogger.Msg($"Now playing: {animName}");
@@ -762,18 +769,7 @@ namespace MitaAI.Mita
     
     
     
-    
-        public static void animateMitaObject(string anim)
-        {
-
-
-
-
-        }
-    
-    
-    
-    
+ 
     
     
     

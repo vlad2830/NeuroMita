@@ -5,7 +5,7 @@ using MitaAI;
 
 public class MitaActionAnimation
 {
-    // Служит контейренром для анимации или интеракции
+    // Служит контейнером для анимации или интеракции
     public enum ActionAnimationType
     {
         Animation,

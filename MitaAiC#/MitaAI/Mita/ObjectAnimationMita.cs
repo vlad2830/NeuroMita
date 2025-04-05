@@ -17,7 +17,7 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class ObjectAnimationMita : MonoBehaviour
     {
-        private const float InteractionDistance = 15f;
+        private const float InteractionDistanceVisible = 15f;
 
         public float AnimationTransitionDuration = 2f;
         public bool isWalking = false;
@@ -41,7 +41,7 @@ namespace MitaAI
                 foreach (var oam in allOAMs)
                 {
                     var distance = Utils.getDistanceBetweenObjects(oam.Value.AmimatedObject, MitaCore.Instance.MitaPersonObject);
-                    if (distance > InteractionDistance) continue;
+                    if (distance > InteractionDistanceVisible) continue;
 
                     if (oam.Value.enabled == false) continue; 
 
@@ -58,6 +58,7 @@ namespace MitaAI
         {
             try
             {
+                MelonLogger.Msg($"Inside ProcessInteraction");
                 var matches = Regex.Matches(response, $@"<{command}>(.*?)</{command}>");
                 foreach (Match match in matches.Cast<Match>().Where(m => m.Success))
                 {
@@ -80,12 +81,22 @@ namespace MitaAI
             return response;
         }
 
+        public static void finishWorkingOAM()
+        {
+            if (currentOAMc == null) return;
+
+            if (currentOAMc.backAnimation != null)
+            {
+                if (currentOAMc.backAnimation.isEndingObject) currentOAMc.backAnimation.Play();
+            }
+        }
 
 
         public GameObject AmimatedObject;
         public GameObject mitaPerson;
 
         public ObjectAnimationMita backAnimation;
+        public bool isEndingObject = false;
 
         public string text = "";
         public string tip = "";
@@ -121,6 +132,7 @@ namespace MitaAI
 
         string advancedActionName = "";
 
+        public static ObjectAnimationMita CurrentOAMc { get => currentOAMc; set => currentOAMc = value; }
 
         void testInit(string name, string tip = "", string AnimName= "Mita SitIdle", string idleAnim= "Mita SitIdle")
         {
@@ -282,9 +294,10 @@ namespace MitaAI
             oamBack.addEnqueAnimationAction(idleAnim);
             oamBack.addReturningToNormal();
             oamBack.enabled = false;
-
+           
             backAnimation = oamBack;
             oamBack.backAnimation = this;
+            oamBack.isEndingObject = true;
 
             return oamBack;
         }
@@ -341,7 +354,7 @@ namespace MitaAI
                 }
                 catch (Exception ex2)
                 {
-                    MelonLogger.Error($"Error PlayRotateAndWalk {ex2}");
+                    MelonLogger.Error($"Error AiWalkToTargetTranform {ex2}");
                 }
 
                 
