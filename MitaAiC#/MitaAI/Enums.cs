@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MitaAI
+﻿namespace MitaAI
 {
     public enum character
     {
+        // НПС должны строго соотвествовать эквивалентам в питоне!
+
         Player = -2,
-        None = -1,// Добавляем нового персонажа
+        None = -1,
         Crazy = 0,
         Cappy = 1,
         Kind = 2,
@@ -33,6 +29,13 @@ namespace MitaAI
         cryingOnTheFloor
 
     }
+    public enum MitaState
+    {
+        normal = 0,
+        hunt = 1
+
+    }
+
     public enum Rooms
     {
         Kitchen = 0,
@@ -42,10 +45,5 @@ namespace MitaAI
         Basement = 4,
         Unknown = -1
     }
-    public enum MitaState
-    {
-        normal = 0,
-        hunt = 1
 
-    }
 }
