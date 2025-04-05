@@ -19,7 +19,7 @@ namespace MitaAI
     {
         private const float InteractionDistanceVisible = 15f;
 
-        public float AnimationTransitionDuration = 2f;
+        public float AnimationTransitionDuration = 1f;
         public bool isWalking = false;
         static ObjectAnimationMita currentOAMc;
         static Dictionary<string,ObjectAnimationMita> allOAMs = new Dictionary<string, ObjectAnimationMita>();
@@ -38,6 +38,7 @@ namespace MitaAI
 
                 info += $"\n You have special commands <{command}> for animating your interactions like sitting, lying, taking something.";
                 info += $"\n Current available interactions (use <{command}>Name</{command}> to interact): ";
+                info += $"Attention: all non-face animation or move commands will end current/potential interaction";
                 foreach (var oam in allOAMs)
                 {
                     var distance = Utils.getDistanceBetweenObjects(oam.Value.AmimatedObject, MitaCore.Instance.MitaPersonObject);
@@ -397,7 +398,7 @@ namespace MitaAI
             
             //MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = false;
             MitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
-            Utils.StartObjectAnimation(MitaCore.Instance.MitaPersonObject, transform.position, Quaternion.ToEulerAngles(transform.localRotation), AnimationTransitionDuration, false);
+            Utils.StartObjectAnimation(MitaCore.Instance.MitaPersonObject, transform.position, Quaternion.ToEulerAngles(transform.localRotation), AnimationTransitionDuration+0.5f, false);
             //MitaCore.Instance.Mita.MagnetToTarget(transform);
 
         }

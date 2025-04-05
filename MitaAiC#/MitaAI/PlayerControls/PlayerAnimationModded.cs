@@ -147,6 +147,8 @@ namespace MitaAI
             }
         }
 
+
+        // Для теста всех анимок
         public static void playObjectAnimationOnPlayerRandom()
         {
             if (ObjectsAnimationPlayer == null || ObjectsAnimationPlayer.Count == 0)
@@ -192,7 +194,7 @@ namespace MitaAI
 
         // -0,4194 0,3125 -0,0256  60,0001 91,5637 89,5765 Кресло
 
-        public static void playObjectAnimation(String objectAnimationName, Transform Object, Vector3 localCoords,Quaternion localRotate)
+        public static void playObjectAnimation(string objectAnimationName, Transform Object, Vector3 localCoords,Quaternion localRotate)
         {
 
             if (ObjectsAnimationPlayer.ContainsKey(objectAnimationName))

@@ -9,6 +9,7 @@ using UnityEngine.Playables;
 using UnityEngine.AI;
 using Il2CppRootMotion.FinalIK;
 using UnityEngine.Events;
+using Harmony;
 namespace MitaAI.Mita
 {
     public static class MitaAnimationModded
@@ -612,14 +613,17 @@ namespace MitaAI.Mita
                         {
                             mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
                             MitaCore.Instance.Mita.MagnetOff();
+                            
+                            // Вот это надо донастроить
                             if (anim.events.Count > 0)
                             {
-                                MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0]);
+                                MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0].stringParameter);
                             }
 
                             MelonLogger.Msg($"Finded animation event");
                         }
                         catch (Exception ex)
+
                         {
 
                             MelonLogger.Msg(ex);

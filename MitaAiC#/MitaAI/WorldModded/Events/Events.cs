@@ -27,9 +27,9 @@ namespace MitaAI
         }
 
 
-        public static void HandleAnimationEvent(UnityEngine.AnimationEvent evt)
+        public static void HandleAnimationEvent(string eventName)
         {
-            switch (evt.stringParameter)
+            switch (eventName)
             {
                 case "TakePlayer":
                     MelonCoroutines.Start(playerTaken());
@@ -41,7 +41,7 @@ namespace MitaAI
                     AudioControl.playFingerClick();
                     break;
             }
-            MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
+            //MelonLogger.Msg($"AnimationEvent triggered! Time: {evt.time}, String: {evt.stringParameter}, Int: {evt.intParameter}, Float: {evt.floatParameter}");
         }
         static IEnumerator playerTaken()
         {

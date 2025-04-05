@@ -19,11 +19,13 @@ namespace MitaAI
 
 
         // Функция, которая будет вызываться через AnimationEvent
-        public void OnAnimationEvent(UnityEngine.AnimationEvent evt)
+        // В этом же классе (или на GameObject с анимацией):
+        public void OnAnimationEvent(string eventName)
         {
-            MelonLogger.Msg("Proxi worked");
-            EventsModded.HandleAnimationEvent(evt);
+            MelonLogger.Msg($"Animation event triggered: {eventName}");
+            EventsModded.HandleAnimationEvent(eventName); // Передаём только имя
         }
+
         private void OnEventTriggered()
         {
             MelonLogger.Msg($"UnityEvent triggered! Event Name: {_eventName}");
@@ -47,7 +49,7 @@ namespace MitaAI
             var animationEvent = new UnityEngine.AnimationEvent
             {
                 functionName = "OnAnimationEvent", // Имя функции в прокси-классе
-                time = 0.05f, // Время срабатывания
+                //time = 0.05f, // Время срабатывания
                 stringParameter = Name,
                 //intParameter = 123,
                 //floatParameter = 1.0f,

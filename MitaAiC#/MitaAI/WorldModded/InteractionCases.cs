@@ -38,9 +38,9 @@ namespace MitaAI.WorldModded
 
             gameObject.GetComponent<ObjectInteractive>().enabled = false;
 
-            if (PlayerAnimationModded.currentPlayerMovement != PlayerAnimationModded.PlayerMovementType.sit)
+            if (PlayerAnimationModded.currentPlayerMovement != PlayerMovementType.sit)
             {
-                PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovementType.sit;
+                PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.sit;
                 PlayerAnimationModded.playAnimObject(gameObject);
             }         
            
