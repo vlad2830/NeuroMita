@@ -362,13 +362,17 @@ class ChatModel:
 
     def _log_generation_start(self):
         logger.info("Перед отправкой на генерацию")
-        logger.info(f"API Key: {SH(self.api_key)}")
-        logger.info(f"API Key res: {SH(self.api_key_res)}")
-        logger.info(f"API URL: {self.api_url}")
-        logger.info(f"API Model: {self.api_model}")
-        logger.info(f"Make Request: {self.makeRequest}")
-        logger.info(self.gui.settings.get("NM_API_REQ", False))
-        logger.info(self.gui.settings.get("GEMINI_CASE", False))
+
+        if bool(self.gui.settings.get("gpt4free")):
+            logger.info(f"gpt4free model {self.gpt4free_model}")
+        else:
+            logger.info(f"API Key: {SH(self.api_key)}")
+            logger.info(f"API Key res: {SH(self.api_key_res)}")
+            logger.info(f"API URL: {self.api_url}")
+            logger.info(f"API Model: {self.api_model}")
+            logger.info(f"Make Request: {self.makeRequest}")
+            logger.info(self.gui.settings.get("NM_API_REQ", False))
+            logger.info(self.gui.settings.get("GEMINI_CASE", False))
 
     def _format_messages_for_gemini(self, combined_messages):
         #TODO Надо кароче первые сообщения сделать системными
