@@ -313,8 +313,8 @@ namespace MitaAI.PlayerControls
                     MitaCore.Instance.addChangeMita(keyAction.Value.MitaObject, keyAction.Value.Character,true,dontrTurnOfOld);
                     _lastChangeTime = DateTime.Now; // Обновляем время последнего изменения
                     CharacterControl.resetOrders(true);
-                    MitaCore.Instance.sendSystemMessage("Ты только что прогрузилась на уровень.", keyAction.Value.Character);
-                    MitaCore.Instance.sendInfoListeners($"{keyAction.Value.Character} только что прогрузилась на уровень",null, keyAction.Value.Character,"Nobody");
+                    CharacterMessages.sendSystemMessage("Ты только что прогрузилась на уровень.", keyAction.Value.Character);
+                    CharacterMessages.sendInfoListeners($"{keyAction.Value.Character} только что прогрузилась на уровень",null, keyAction.Value.Character,"Nobody");
                     break; // Выходим из цикла после первого совпадения
                     
                 }

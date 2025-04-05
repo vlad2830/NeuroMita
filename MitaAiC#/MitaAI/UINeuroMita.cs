@@ -94,7 +94,7 @@ namespace MitaAI
             // Цвет фона
             uI_Colors.SetColorImage(0, new Color(0.5f, 1f, 0.5f, 0.5f));
 
-            MitaCore.Instance.sendSystemInfo("Игрок в меню");
+            CharacterMessages.sendSystemInfo("Игрок в меню");
 
             try
             {

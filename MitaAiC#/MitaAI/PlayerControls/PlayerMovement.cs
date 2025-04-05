@@ -56,11 +56,11 @@ namespace MitaAI
         }
 
 
-        static MitaCore.Rooms lastRoom = MitaCore.Rooms.Unknown;
+        static Rooms lastRoom = Rooms.Unknown;
         private static void checkRoomChange()
         {
 
-            MitaCore.Rooms currentRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.playerPersonObject.transform);
+            Rooms currentRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.playerPersonObject.transform);
 
             if (currentRoom != lastRoom)
             {

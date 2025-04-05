@@ -43,13 +43,13 @@ namespace MitaAI
 
         private LogicCharacter() { } //пока-что нечего
 
-        public void Initialize(GameObject character, character type)
+        public void Initialize(GameObject characterObject, character type)
         {
-            SetCharacterObject(character);
+            SetCharacterObject(characterObject);
             characterType = type;
             //Получаем компоненты
-            navMeshAgent = character.GetComponent<NavMeshAgent>();
-            animator = character.GetComponent<Animator>();
+            navMeshAgent = characterObject.GetComponent<NavMeshAgent>();
+            animator = characterObject.GetComponent<Animator>();
             AdjustCharacterSettings(); // Настройка параметров в зависимости от типа
             isInitialized = true;
 
@@ -63,7 +63,7 @@ namespace MitaAI
                 fatigueDuration = 5f * 60f; // 5 minutes to full fatigue
 
                 // Locate the Particle Sleep GameObject
-                particleSleep = Utils.TryfindChild(characterObject.transform, "Mita Dream/Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Particle Sleep");
+                particleSleep = Utils.TryfindChild(this.characterObject.transform, "Mita Dream/Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Particle Sleep");
                 if (particleSleep != null)
                 {
                     particleSleep.SetActive(false); // Initially off
@@ -83,7 +83,7 @@ namespace MitaAI
             // Инициализация ножа для Creepy
             if (characterType == character.Creepy)
             {
-                Transform knifeTransform = characterObject.transform.Find("Knife");
+                Transform knifeTransform = this.characterObject.transform.Find("Knife");
                 if (knifeTransform != null)
                 {
                     creepyKnife = knifeTransform.gameObject;
@@ -325,7 +325,7 @@ namespace MitaAI
                     {
                         message += "Может быть, пора усложнять игру... (Менять скорости или применять эффекты)";
                     }
-                    MitaCore.Instance.sendSystemMessage(message);
+                    CharacterMessages.sendSystemMessage(message);
                     lastMessageTime = elapsedTime;
                 }
 

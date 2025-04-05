@@ -92,7 +92,7 @@ namespace MitaAI
             MelonLogger.Msg("DisplayResponseAndEmotion");
 
 
-            string modifiedResponse = MitaCore.Instance.SetMovementStyle(response);
+            string modifiedResponse = MitaMovement.SetMovementStyle(response);
 
             AudioClip audioClip = null;
 
@@ -213,7 +213,7 @@ namespace MitaAI
                     MelonLogger.Msg("Begin try:" + modifiedPart);
                     modifiedPart = MitaCore.Instance.SetFaceStyle(modifiedPart);
                     modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
-                    modifiedPart = MitaCore.Instance.ProcessPlayerEffects(modifiedPart);
+                    modifiedPart = PlayerEffectsModded.ProcessPlayerEffects(modifiedPart);
                     modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
                     modifiedPart = AudioControl.ProcessMusic(modifiedPart);
                     modifiedPart = CommandProcessor.ProcesHint(modifiedPart);

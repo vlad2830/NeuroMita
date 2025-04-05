@@ -82,7 +82,7 @@ namespace MitaAI
                         }
 
 
-                        MitaCore.Instance.sendInfoListeners(playerText, Characters, characterToSend, null);
+                        CharacterMessages.sendInfoListeners(playerText, Characters, characterToSend, null);
 
                     }
 
@@ -91,15 +91,15 @@ namespace MitaAI
 
                     lastActionTime = Time.unscaledTime;
                 }
-                else if (MitaCore.Instance.systemMessages.Count > 0)
+                else if (CharacterMessages.systemMessages.Count > 0)
                 {
                     MelonLogger.Msg("HAS SYSTEM MESSAGES");
                     MitaBoringtimer = 0f;
 
                     //Отправляю залпом.
-                    while (MitaCore.Instance.systemMessages.Count() > 0)
+                    while (CharacterMessages.systemMessages.Count() > 0)
                     {
-                        var message = MitaCore.Instance.systemMessages.Dequeue();
+                        var message = CharacterMessages.systemMessages.Dequeue();
                         dataToSentSystem += message.Item1 + "\n";
                         characterToSend = message.Item2;
 
@@ -136,7 +136,7 @@ namespace MitaAI
                         }
                         else
                         {
-                            MitaCore.Instance.sendSystemMessage(message.Item1, characterToSend);
+                            CharacterMessages.sendSystemMessage(message.Item1, characterToSend);
                             break;
                         }
                     }
@@ -153,13 +153,13 @@ namespace MitaAI
 
             string response = "";
 
-            if (MitaCore.Instance.systemInfos.Count > 0)
+            if (CharacterMessages.systemInfos.Count > 0)
             {
                 //MelonLogger.Msg("HAS SYSTEM INFOS");
                 //Отправляю залпом.
-                while (MitaCore.Instance.systemInfos.Count() > 0)
+                while (CharacterMessages.systemInfos.Count() > 0)
                 {
-                    var message = MitaCore.Instance.systemInfos.Dequeue();
+                    var message = CharacterMessages.systemInfos.Dequeue();
                     character ch = message.Item2;
 
                     if (ch == characterToSend)
@@ -168,7 +168,7 @@ namespace MitaAI
                     }
                     else
                     {
-                        MitaCore.Instance.sendSystemInfo(message.Item1, ch);
+                        CharacterMessages.sendSystemInfo(message.Item1, ch);
                         break;
                     }
                 }
@@ -316,8 +316,8 @@ namespace MitaAI
                 }
                 else MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend,response));
 
-                if (characterToSend != character.GameMaster) MitaCore.Instance.sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
-                else MitaCore.Instance.sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
+                if (characterToSend != character.GameMaster) CharacterMessages.sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
+                else CharacterMessages.sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
 
 
                 //Тестово - хочешь чтобы было без лишнего отрубай это

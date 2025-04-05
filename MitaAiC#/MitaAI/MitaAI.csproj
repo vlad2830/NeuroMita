@@ -322,15 +322,20 @@
 
 	<ItemGroup>
 		<Compile Include="AssetBandle\AssetBundleLoader.cs" />
+		<Compile Include="Characters\CharacterChanger.cs" />
+		<Compile Include="Characters\CharacterMessages.cs" />
 		<Compile Include="Characters\CharacterControl.cs" />
 		<Compile Include="Characters\Character.cs" />
-		<Compile Include="Characters\CharacterLookOld.cs" />
+		<Compile Include="Enums.cs" />
+		<Compile Include="Mita\CharacterLookOld.cs" />
 		<Compile Include="Characters\LogicCharacter.cs" />
 		<Compile Include="ConnectionAndDialogue\DataChange.cs" />
 		<Compile Include="ConnectionAndDialogue\DialogueControl.cs" />
 		<Compile Include="ConnectionAndDialogue\CurrentInfoControl.cs" />
+		<Compile Include="Mita\MitaMovement.cs" />
 		<Compile Include="Mita\ObjectAnimationMita.cs" />
 		<Compile Include="Mita\MitaActionAnimation.cs" />
+		<Compile Include="PlayerControls\PlayerEffects.cs" />
 		<Compile Include="PlayerControls\PlayerMovement.cs" />
 		<Compile Include="UINeuroMita.cs" />
 		<Compile Include="Settings.cs" />

@@ -344,7 +344,7 @@ namespace MitaAI.Mita
                     else
                         CharacterMessages.sendSystemInfo($"Failed to chose next speaker {secondCommand}, not found");
                     
-                    //MitaCore.Instance.sendSystemMessage(characterToSend);
+                    //CharacterMessages.sendSystemMessage(characterToSend);
                     break;
                 #endregion
 

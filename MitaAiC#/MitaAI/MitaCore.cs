@@ -671,7 +671,7 @@ namespace MitaAI
             location21_World = worldHouse.gameObject.AddComponent<Location21_World>();
 
             PlayerAnimationModded.Init(playerObject, worldHouse, playerObject.GetComponent<PlayerMove>());
-            PlayerEffectsModded.Init(playerObject);
+            PlayerEffectsModded.Init(playerPersonObject);
             LightingAndDaytime.Init(location21_World, worldHouse);
             ShaderReplacer.init();
 
