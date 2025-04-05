@@ -617,6 +617,7 @@ namespace MitaAI.Mita
                             // Вот это надо донастроить
                             if (anim.events.Count > 0)
                             {
+                                // yield return new WaitForSeconds(anim.events[0].floatParameter);
                                 MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0].stringParameter);
                             }
 

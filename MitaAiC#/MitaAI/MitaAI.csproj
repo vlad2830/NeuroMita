@@ -337,6 +337,7 @@
 		<Compile Include="Mita\MitaActionAnimation.cs" />
 		<Compile Include="PlayerControls\PlayerEffects.cs" />
 		<Compile Include="PlayerControls\PlayerMovement.cs" />
+		<Compile Include="PlayerControls\RadialMenu.cs" />
 		<Compile Include="UINeuroMita.cs" />
 		<Compile Include="Settings.cs" />
 		<Compile Include="PlayerControls\InputControl.cs" />

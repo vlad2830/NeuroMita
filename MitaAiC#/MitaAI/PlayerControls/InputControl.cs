@@ -240,12 +240,6 @@ namespace MitaAI.PlayerControls
             }
 
 
-            // Тест анимок игрока
-            if (Input.GetMouseButton(1))
-            {
-                PlayerAnimationModded.playObjectAnimationOnPlayerRandom(); ;
-            }
-
             // Постоянно возвращаем фокус на поле ввода, если оно активно
             if (isInputActive && inputField != null)
             {
@@ -382,6 +376,14 @@ namespace MitaAI.PlayerControls
             rectText.sizeDelta = rect.sizeDelta;
             inputField.Select();
             inputField.ActivateInputField();
+
+
+
+            // Меню действий игрока
+            var radMenu = new GameObject("RadialMenu").AddComponent<RadialMenu>();
+            radMenu.transform.SetParent(MitaCore.Instance.playerController.gameObject.transform);
+            radMenu.radialCanvas = MitaCore.Instance.playerController.GetComponentInChildren<Canvas>();
+
         }
 
         public static void sendMessagePlayer()
