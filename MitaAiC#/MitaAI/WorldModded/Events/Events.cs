@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using System.Collections;
 using MitaAI.Mita;
+using Il2CppInterop.Runtime.InteropTypes;
 
 namespace MitaAI
 {
@@ -63,7 +64,7 @@ namespace MitaAI
         }
         static IEnumerator MitaKickEnd()
         {
-            MelonCoroutines.Start( MitaCore.Instance.AddRemoveBloodEffect(5));
+            MelonCoroutines.Start( PlayerEffectsModded.AddRemoveBloodEffect(5));
             yield return new WaitForSeconds(1.5667f);
             
             MitaAnimationModded.bat.active = false;
@@ -191,7 +192,41 @@ namespace MitaAI
             MitaCore.Instance.sendSystemMessage(HelloMessage,character);
         }
 
+        public static void playerKilled()
+        {
 
+            MitaCore.Instance.sendSystemMessage("Игрок был укушен манекеном. Манекен выключился (его можно перезапустить)");
+            //playerPerson.transform.parent.position = GetRandomLoc().position;
+
+            try
+            {
+                Component effectComponent = PlayerEffectsModded.playerEffectsObject.GetComponentByName("Glitch");
+                if (effectComponent is Il2CppObjectBase il2cppComponent)
+                {
+                    // Если это Il2CppObjectBase
+                    MelonLogger.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
+
+                    // Проверяем, имеет ли компонент свойство enabled
+                    var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
+                    var behaviour = il2cppComponent.TryCast<Behaviour>();
+                    behaviour.enabled = true;
+
+                    // Запускаем корутину, передавая Il2Cpp-компонент
+                    MelonCoroutines.Start(Utils.HandleIl2CppComponent(il2cppComponent, 5f));
+
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error(ex);
+            }
+
+
+
+        }
 
 
 
@@ -219,7 +254,7 @@ namespace MitaAI
             if (MitaCore.Instance != null)
             {
                 MelonLogger.Msg("MitaCore.Instance is NOT  null.))");
-                MitaCore.Instance.playerKilled(); // Вызов метода playerKilled из экземпляра MitaCore
+                EventsModded.playerKilled(); // Вызов метода playerKilled из экземпляра MitaCore
             }
             else
             {

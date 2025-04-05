@@ -513,6 +513,31 @@ namespace MitaAI.Mita
            
         }
 
+
+        // В случае экстренной ситуации вызвать
+        static void TestBigMita()
+        {
+            MelonLogger.Msg("Start TestBigMita");
+            MitaCore.Instance.MitaObject.transform.FindChild("MitaPerson Mita").localScale = new Vector3(15f, 15f, 15f);
+
+            Vector3 direction = (MitaCore.Instance.MitaObject.transform.position - MitaCore.Instance.playerObject.transform.position).normalized;
+
+            MitaCore.Instance.MitaObject.transform.SetPositionAndRotation(new Vector3(15f, 0f, 15f), Quaternion.LookRotation(direction));
+
+            try
+            {
+                GameObject floor = GameObject.Instantiate(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/FloorBedroom").gameObject);
+                floor.transform.localScale = new Vector3(30f, 1, 30f);
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Msg("TestBigMita end " + ex);
+            }
+
+            MitaCore.worldHouse.Find("House").gameObject.SetActive(false);
+            MitaCore.worldBasement.Find("House").gameObject.SetActive(false);
+
+        }
     }
 
 }

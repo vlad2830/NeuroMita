@@ -529,41 +529,7 @@ namespace MitaAI
             systemInfos.Enqueue((m, character));
         }
 
-        public void playerKilled()
-        {
-          
-            sendSystemMessage("Игрок был укушен манекеном. Манекен выключился (его можно перезапустить)");
-            //playerPerson.transform.parent.position = GetRandomLoc().position;
-
-            try
-            {
-                Component effectComponent = PlayerEffectsModded.playerEffectsObject.GetComponentByName("Glitch");
-                if (effectComponent is Il2CppObjectBase il2cppComponent)
-                {
-                    // Если это Il2CppObjectBase
-                    MelonLogger.Msg($"Il2Cpp component detected: {il2cppComponent.GetType().Name}");
-
-                    // Проверяем, имеет ли компонент свойство enabled
-                    var enabledProperty = il2cppComponent.GetType().GetProperty("enabled");
-                    var behaviour = il2cppComponent.TryCast<Behaviour>();
-                    behaviour.enabled = true;
-
-                    // Запускаем корутину, передавая Il2Cpp-компонент
-                    MelonCoroutines.Start(Utils.HandleIl2CppComponent(il2cppComponent, 5f));
-
-                }
-
-
-            }
-            catch (Exception ex)
-            {
-
-                MelonLogger.Error(ex);
-            }
-
-
-
-        }
+       
         public void playerClickSafe()
         {
             sendSystemMessage("Игрок кликает на кнопку сейфа");
@@ -865,7 +831,7 @@ namespace MitaAI
       
 
             //Interactions.Test(GameObject.Find("Table"));
-            MelonCoroutines.Start(RealTimer());
+            MelonCoroutines.Start(ConnectionTimer());
 
 
 
@@ -874,30 +840,7 @@ namespace MitaAI
             //TestBigMita();
         }
 
-        // В случае экстренной ситуации вызвать
-        void TestBigMita()
-        {
-            MelonLogger.Msg("Start TestBigMita");
-            MitaObject.transform.FindChild("MitaPerson Mita").localScale = new Vector3(15f,15f,15f);
-            
-            Vector3 direction = (MitaObject.transform.position - playerObject.transform.position).normalized;
 
-            MitaObject.transform.SetPositionAndRotation(new Vector3(15f, 0f, 15f), Quaternion.LookRotation(direction));
-
-            try
-            {
-                GameObject floor = GameObject.Instantiate(Utils.TryfindChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/FloorBedroom").gameObject);
-                floor.transform.localScale = new Vector3(30f, 1, 30f);
-            }
-            catch (Exception ex)
-            {
-                MelonLogger.Msg("TestBigMita end " + ex);
-            }
-            
-            worldHouse.Find("House").gameObject.SetActive(false);
-            worldBasement.Find("House").gameObject.SetActive(false);
-
-        }
 
 
         public static void DeleteChildren(GameObject parent)
@@ -926,7 +869,7 @@ namespace MitaAI
 
 
 
-        public IEnumerator RealTimer()
+        public IEnumerator ConnectionTimer()
         {
             while (true)
             {
