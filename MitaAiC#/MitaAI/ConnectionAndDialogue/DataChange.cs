@@ -24,8 +24,8 @@ namespace MitaAI
         // Добавляем переменные для отслеживания последних сообщений, чтобы избежать дублирования
         private static string lastPlayerMessage = "";
         // Заменяем старые переменные на словарь для хранения данных по каждому персонажу
-        private static Dictionary<MitaCore.character, (string message, int counter)> lastSystemData = 
-            new Dictionary<MitaCore.character, (string, int)>();
+        private static Dictionary<character, (string message, int counter)> lastSystemData = 
+            new Dictionary<character, (string, int)>();
         private static int maxDuplicates = 0; // Жёсткий лимит: 0 дубликатов (блокировать все дубликаты)
 
         public static IEnumerator HandleDialogue()
@@ -39,9 +39,9 @@ namespace MitaAI
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
             string info = "-";
-            MitaCore.character characterToWas = MitaCore.character.None;
-            MitaCore.character characterToSend = MitaCore.Instance.currentCharacter;
-            List<MitaCore.character> Characters = MitaCore.Instance.playerMessageCharacters;
+            character characterToWas = character.None;
+            character characterToSend = MitaCore.Instance.currentCharacter;
+            List<character> Characters = MitaCore.Instance.playerMessageCharacters;
 
 
             float currentTime = Time.unscaledTime;
@@ -49,7 +49,7 @@ namespace MitaAI
             bool timeoutSatisfied = currentTime - lastActionTime > actionCooldown - (CharacterControl.needToIgnoreTimeout() ? 4 : 0);
             
             // Особая логика для режима охоты - принудительно сбрасываем счетчики дубликатов
-            if (MitaCore.Instance.mitaState == MitaCore.MitaState.hunt && timeoutSatisfied)
+            if (MitaCore.Instance.mitaState == MitaState.hunt && timeoutSatisfied)
             {
                 lastSystemData.Clear(); // Очищаем словарь с данными о сообщениях
             }
@@ -130,7 +130,7 @@ namespace MitaAI
                             lastSystemData[characterToSend] = (message.Item1, 1);
                         }
                         
-                        if (characterToWas == MitaCore.character.None || characterToWas == characterToSend)
+                        if (characterToWas == character.None || characterToWas == characterToSend)
                         {
                             characterToWas = message.Item2;
                         }
@@ -143,7 +143,7 @@ namespace MitaAI
 
                     lastActionTime = Time.unscaledTime;
                 }
-                else if (MitaBoringtimer >= MitaBoringInterval && MitaCore.Instance.mitaState == MitaCore.MitaState.normal)
+                else if (MitaBoringtimer >= MitaBoringInterval && MitaCore.Instance.mitaState == MitaState.normal)
                 {
                     MitaBoringtimer = 0f;
                     dataToSentSystem = "Player did nothing for 90 seconds";
@@ -160,7 +160,7 @@ namespace MitaAI
                 while (MitaCore.Instance.systemInfos.Count() > 0)
                 {
                     var message = MitaCore.Instance.systemInfos.Dequeue();
-                    MitaCore.character ch = message.Item2;
+                    character ch = message.Item2;
 
                     if (ch == characterToSend)
                     {
@@ -176,7 +176,7 @@ namespace MitaAI
             
             if (characterToSend != MitaCore.Instance.currentCharacter)
             {
-                if (characterToSend != MitaCore.character.GameMaster)
+                if (characterToSend != character.GameMaster)
                 {
                     MitaCore.Instance.addChangeMita(MitaCore.getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
                 }
@@ -306,7 +306,7 @@ namespace MitaAI
                 MelonLogger.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
 
                 if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend, response, AudioControl.cartAudioSource));
-                else if (characterToSend == MitaCore.character.GameMaster)
+                else if (characterToSend == character.GameMaster)
                 {
 
 
@@ -316,7 +316,7 @@ namespace MitaAI
                 }
                 else MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend,response));
 
-                if (characterToSend != MitaCore.character.GameMaster) MitaCore.Instance.sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
+                if (characterToSend != character.GameMaster) MitaCore.Instance.sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
                 else MitaCore.Instance.sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
 
 
@@ -328,7 +328,7 @@ namespace MitaAI
 
             }
 
-            static IEnumerator testNextAswer(string response, MitaCore.character currentCharacter, bool fromPlayer)
+            static IEnumerator testNextAswer(string response, character currentCharacter, bool fromPlayer)
             {
                 yield return new WaitForSeconds(0.25f);
                 while (DialogueControl.dialogActive)

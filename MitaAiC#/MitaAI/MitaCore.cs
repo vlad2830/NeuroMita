@@ -17,6 +17,40 @@ using UnityEngine.UI;
 
 namespace MitaAI
 {
+    public enum character
+    {
+        Player = -2,
+        None = -1,// Добавляем нового персонажа
+        Crazy = 0,
+        Cappy = 1,
+        Kind = 2,
+        Cart_portal = 3,
+        ShortHair = 4,
+        Cart_divan,
+        Mila,
+        Sleepy,
+        Creepy,
+        GameMaster
+
+    }
+    public enum MovementStyles
+    {
+        walkNear = 0,
+        follow = 1,
+        stay = 2,
+        noclip = 3,
+        layingOnTheFloorAsDead = 4,
+        sitting,
+        cryingOnTheFloor
+
+    }
+
+    public enum MitaState
+    {
+        normal = 0,
+        hunt = 1
+
+    }
     public class MitaCore : MelonMod
     {
         // Ссылка на экземпляр MitaCore, если он нужен
@@ -172,11 +206,11 @@ namespace MitaAI
                 {
                     MitaLook.forwardPerson = MitaPersonObject.transform;
                 }
-                if (character == MitaCore.character.Creepy)
+                if (character == character.Creepy)
                 {
                     LogicCharacter.Instance.Initialize(MitaPersonObject, character);
                 }
-                if (character == MitaCore.character.Creepy)
+                if (character == character.Creepy)
                 {
                     LogicCharacter.Instance.Initialize(MitaPersonObject, character);
                 }
@@ -358,42 +392,12 @@ namespace MitaAI
             return MitaObject.transform.Find("Armature/Hips/Spine/Chest/Right shoulder/Right arm/Right elbow/Right wrist/Right item");
         }
 
-        public enum character
-        {
-            Player = -2,
-            None = -1,// Добавляем нового персонажа
-            Crazy = 0,
-            Cappy = 1,
-            Kind = 2,
-            Cart_portal = 3,
-            ShortHair = 4,
-            Cart_divan,
-            Mila,
-            Sleepy,
-            Creepy,
-            GameMaster
-
-        }
+        
 
         public character currentCharacter = character.Crazy;
-        public enum MovementStyles
-        {
-            walkNear = 0,
-            follow = 1,
-            stay = 2,
-            noclip = 3,
-            layingOnTheFloorAsDead = 4,
-            sitting,
-            cryingOnTheFloor
 
-        }
         public static MovementStyles movementStyle = MovementStyles.walkNear;
-        public enum MitaState
-        {
-            normal = 0,
-            hunt = 1
 
-        }
         public MitaState mitaState = MitaState.normal;
 
         
@@ -448,8 +452,7 @@ namespace MitaAI
 
         public List<character> playerMessageCharacters = new List<character>();
 
-        public Queue<(string,character)> systemMessages = new Queue<(string, character)>();
-        public Queue<(string, character)> systemInfos = new Queue<(string, character)>();
+
         
 
         public string hierarchy = "-";
@@ -509,25 +512,7 @@ namespace MitaAI
         }
 
 
-        public void sendSystem(string m,bool info, character character = character.None)
-        {
-            if (info) sendSystemInfo(m,character);
-            else sendSystemMessage(m,character);
 
-        }
-        public void sendSystemMessage(string m,character character = character.None)
-        {
-            if (character == character.None) character = currentCharacter;
-            systemMessages.Enqueue( (m, character) );
-
-            EventsModded.regEvent();
-        }
-        public void sendSystemInfo(string m, character character = character.None)
-        {
-
-            if (character == character.None) character = currentCharacter;
-            systemInfos.Enqueue((m, character));
-        }
 
        
         public void playerClickSafe()
@@ -660,7 +645,7 @@ namespace MitaAI
 
 
             var comp = MitaPersonObject.AddComponent<Character>();
-            comp.init(MitaCore.character.Crazy);
+            comp.init(character.Crazy);
 
             currentCharacter = character.Crazy;
 
@@ -941,64 +926,7 @@ namespace MitaAI
         }
 
 
-        public void sendInfoListeners(string message,List<character> characters = null, character exluding = character.None, string from = "Игрок")
-        {
-            MelonLogger.Msg($"sendInfoListeners char {characters} exl {exluding} from {from}");
-
-            if ( characters == null ) characters = CharacterControl.GetCharactersToAnswer();
-
-            if ( exluding == character.None ) exluding = currentCharacter;
-
-
-            string charName = CharacterControl.extendCharsString(exluding);
-
-            if (CharacterControl.gameMaster != null) characters.Add(character.GameMaster);
-            //characters.Remove(exluding);
-
-            foreach (character character in characters)
-            {
-                string speakersText = CharacterControl.getSpeakersInfo(character);
-
-                if (character != exluding)
-                {
-                    string messageToListener = "";
-                    messageToListener += speakersText;
-
-                    messageToListener += $"[SPEAKER] : {from} said: {message} and was answered by {charName}";
-                    sendSystemInfo(messageToListener, character );
-                }
-            }
- 
-
-        }
-        public void sendInfoListenersFromGm(string message, List<character> characters = null, character exluding = character.None)
-        {
-            if (characters == null) characters = CharacterControl.GetCharactersToAnswer();
-
-            if (exluding == character.None) exluding = currentCharacter;
-            character from = character.GameMaster;
-
-            string charName = CharacterControl.extendCharsString(exluding);
-
-
-
-
-            foreach (character character in characters)
-            {
-                string speakersText = CharacterControl.getSpeakersInfo(character);
-
-                if (character != exluding)
-                {
-                    string messageToListener = "";
-                    messageToListener += speakersText;
-
-                    messageToListener += $"[GAME_MASTER] : {from} said: {message}";
-
-
-                    sendSystemInfo(messageToListener, character);
-                }
-            }
-        }
+      
 
 
         

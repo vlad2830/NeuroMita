@@ -1078,7 +1078,7 @@ namespace MitaAI
             
 
             MelonLogger.Msg("After all loaded");
-            MitaCore.character MitaToStart = Settings.Get<MitaCore.character>("MitaType");
+            character MitaToStart = Settings.Get<character>("MitaType");
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
             
             MitaCore.Instance.addChangeMita(null, character: MitaToStart, true,true);
@@ -1165,7 +1165,7 @@ namespace MitaAI
 
                 MitaCore.CrazyObject = Mita;
                 Mita.name = "MitaTestFromDemo";
-                MitaCore.Instance.addChangeMita(Mita, MitaCore.character.Crazy, turnOfOld:false);
+                MitaCore.Instance.addChangeMita(Mita, character.Crazy, turnOfOld:false);
 
 
 

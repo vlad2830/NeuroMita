@@ -17,7 +17,7 @@ namespace MitaAI
     {
 
         // Сюда перенести все сharacter и changeMita
-        static MitaCore.character cart = MitaCore.character.None;
+        static character cart = character.None;
         static public GameMaster gameMaster = null;
         private static Text OrderText;
 
@@ -34,16 +34,16 @@ namespace MitaAI
         }
 
 
-        public static MitaCore.character get_cart()
+        public static character get_cart()
         {
-            if (cart == MitaCore.character.None) init_cart();
+            if (cart == character.None) init_cart();
             return cart;
         }
 
         public static void init_cart()
         {
-            if (Utils.Random(1, 2)) cart = MitaCore.character.Cart_portal;
-            else cart = MitaCore.character.Cart_divan;
+            if (Utils.Random(1, 2)) cart = character.Cart_portal;
+            else cart = character.Cart_divan;
         }
 
 
@@ -92,7 +92,7 @@ namespace MitaAI
 
             return objectName;
         }
-        public static string getObjectName(MitaCore.character character)
+        public static string getObjectName(character character)
         {
             GameObject Mita = MitaCore.getMitaByEnum(character, true);
             string objectName = "";
@@ -102,7 +102,7 @@ namespace MitaAI
         }
 
         // Назначает максимальный приоритет персонажу
-        public static void SetNextSpeaker(MitaCore.character nextCharacter)
+        public static void SetNextSpeaker(character nextCharacter)
         {
             List<Character> activeCharacters = getActiveCharacters();
             activeCharacters = activeCharacters.OrderByDescending(character => character.PointsOrder).ToList();
@@ -119,7 +119,7 @@ namespace MitaAI
         }
         
         // Дает информацию о собеседниках
-        public static string getSpeakersInfo(MitaCore.character toWhom)
+        public static string getSpeakersInfo(character toWhom)
         {
             List<Character> activeCharacters =  getActiveCharacters();
 
@@ -159,7 +159,7 @@ namespace MitaAI
         }
 
         // Передает достпных для разговора персонажей, притом снижает приоритет первого чтобы очередь перемещалась
-        public static List<MitaCore.character> GetCharactersToAnswer(bool changePrioty = true)
+        public static List<character> GetCharactersToAnswer(bool changePrioty = true)
         {
             List<Character> activeCharacters = getActiveCharacters();
 
@@ -171,7 +171,7 @@ namespace MitaAI
                 DecreaseOrderPoints(activeCharacters.First());
             }
             
-            List<MitaCore.character> characters = new List<MitaCore.character>();
+            List<character> characters = new List<character>();
             foreach (var character in activeCharacters)
             {
                 //MelonLogger.Msg($"{character.character} found in activeCharacters");
@@ -201,7 +201,7 @@ namespace MitaAI
                         MelonLogger.Msg("nextAnswer Success Attempt GameMaster");
                         string m = "Проследи за диалогом (если он уже начался, то уже реагируй на текущий), выполняя инструкции и основываясь на текущих данных разговора.";
                         needIgnoreTimeout = true;
-                        MitaCore.Instance.sendSystemMessage(m, MitaCore.character.GameMaster);
+                        MitaCore.Instance.sendSystemMessage(m, character.GameMaster);
                         
                         return true;
                     }
@@ -236,11 +236,11 @@ namespace MitaAI
         
         // Кеширование последних ответов для каждого персонажа
         private static string lastResponse = "";
-        private static MitaCore.character lastResponseFrom = MitaCore.character.None;
+        private static character lastResponseFrom = character.None;
         private static DateTime lastResponseTime = DateTime.MinValue;
         private static TimeSpan responseTimeout = TimeSpan.FromSeconds(30); // Увеличиваем тайм-аут до 30 секунд
         
-        public static void nextAnswer(string response, MitaCore.character from, bool fromPlayer = false)
+        public static void nextAnswer(string response, character from, bool fromPlayer = false)
         {
             MelonLogger.Msg($"nextAnswer: generated to {from} before, limit now {limit} from player {fromPlayer}");
 
@@ -253,7 +253,7 @@ namespace MitaAI
             }
             
             // Специальная логика для режима hunt - оставляю на будующее если проблемы с охотой случатся
-            if (MitaCore.Instance.mitaState == MitaCore.MitaState.hunt && from == MitaCore.character.Crazy)
+            if (MitaCore.Instance.mitaState == MitaState.hunt && from == character.Crazy)
             {
                 //можно будет например спам убрать, слишком много во время охоты говорит
             }
@@ -268,7 +268,7 @@ namespace MitaAI
             //if (fromPlayer) return;
             
             // Получаем список персонажей
-            List<MitaCore.character> characters = GetCharactersToAnswer();
+            List<character> characters = GetCharactersToAnswer();
             if (characters == null) return;
 
 
@@ -276,7 +276,7 @@ namespace MitaAI
             int CharCount = characters.Count;
             int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
 
-            if (from == MitaCore.character.GameMaster) TotalLimit += 5;
+            if (from == character.GameMaster) TotalLimit += 5;
 
             UpdateOrderTest(characters, false);
 
@@ -295,7 +295,7 @@ namespace MitaAI
             // Логика для сообщений от ИИ
             if ( limit < TotalLimit)
             {
-                MitaCore.character character = characters.First();
+                character character = characters.First();
 
 
                 MelonLogger.Msg($"nextAnswer to {character}");
@@ -345,14 +345,14 @@ namespace MitaAI
             }
         }
 
-        public static string extendCharsString(MitaCore.character character)
+        public static string extendCharsString(character character)
         {
             if (character.ToString().Contains("Cart")) return $"{character} (cartridge)";
             else return $"{character} (Mita)";
         }
 
         // Выводит в текст справа сверху порядок элементов
-        static void UpdateOrderTest(List<MitaCore.character> characters,bool changePrioty = true)
+        static void UpdateOrderTest(List<character> characters,bool changePrioty = true)
         {
             if (characters == null) characters = GetCharactersToAnswer(changePrioty);
 
@@ -372,7 +372,7 @@ namespace MitaAI
                 int charOrder = limit;
 
                 OrderText.text = $"{limit}/{TotalLimit}\n";
-                foreach (MitaCore.character character in characters)
+                foreach (character character in characters)
                 {
                     if (gameMaster.enabled && gameMaster.isTimeToCorrect(charOrder))
                     {

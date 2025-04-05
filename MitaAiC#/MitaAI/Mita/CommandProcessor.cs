@@ -123,7 +123,7 @@ namespace MitaAI.Mita
 
                 case "подойти к случайной точке":
                     loc = mitaCore.GetRandomLoc();
-                    mitaCore.sendSystemInfo($"Ты пошла к {loc.name}");
+                    CharacterMessages.sendSystemInfo($"Ты пошла к {loc.name}");
                     ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.Mita.AiWalkToTargetTranform(loc, null);
                     location34_Communication.indexSwitchAnimation = 1;
@@ -133,7 +133,7 @@ namespace MitaAI.Mita
                 case "телепортироваться к случайной точке":
                     loc = mitaCore.GetRandomLoc();
                     ObjectAnimationMita.finishWorkingOAM();
-                    mitaCore.sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
+                    CharacterMessages.sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
                     mitaCore.Mita.MitaTeleport(loc);
                     location34_Communication.indexSwitchAnimation = 1;
                     MitaMovement.MitaSetStaing();
@@ -191,13 +191,13 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Cont times {ContinueCounter}");
                     if (ContinueCounter < 3)
                     {
-                        mitaCore.sendSystemInfo($"У тебя осталось {3 - ContinueCounter} возможностей продолжить фразу");
-                        mitaCore.sendSystemMessage("Ты продолжаешь фразу или мысль");
+                        CharacterMessages.sendSystemInfo($"У тебя осталось {3 - ContinueCounter} возможностей продолжить фразу");
+                        CharacterMessages.sendSystemMessage("Ты продолжаешь фразу или мысль");
                     }
                     else
                     {
                         MelonLogger.Warning("tryied 4 continue");
-                        mitaCore.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен");
+                        CharacterMessages.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен");
                     }
                     break;
 
@@ -261,13 +261,13 @@ namespace MitaAI.Mita
                     {
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.AiWalkToTarget(newPosition);
-                        mitaCore.sendSystemInfo($"Ты пошла к {secondCommand}");
+                        CharacterMessages.sendSystemInfo($"Ты пошла к {secondCommand}");
                         MitaMovement.MitaSetStaing();
                     }
                     catch (Exception ex)
                     {
                         MelonLogger.Error($"Tried to go to point {secondCommand} {ex}");
-                        MitaCore.Instance.sendSystemInfo($"точки {secondCommand} не нашлось");
+                        CharacterMessages.sendSystemInfo($"точки {secondCommand} не нашлось");
                         MitaMovement.MitaSetStaing();
                     }
 
@@ -279,7 +279,7 @@ namespace MitaAI.Mita
                     {
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.MitaTeleport(newPosition);
-                        mitaCore.sendSystemInfo($"Ты телепортировалась в {secondCommand}");
+                        CharacterMessages.sendSystemInfo($"Ты телепортировалась в {secondCommand}");
                     }
                     catch (Exception ex)
                     {
@@ -334,12 +334,12 @@ namespace MitaAI.Mita
                 case "sendall":
 
                     MelonLogger.Msg($"GameMaster Try {command} Send {secondCommand} To all");
-                    MitaCore.Instance.sendInfoListenersFromGm(secondCommand);
+                    CharacterMessages.sendInfoListenersFromGm(secondCommand);
                     break;
                 case "speaker":
 
                     MelonLogger.Msg($"GameMaster choose speaker");
-                    if (Enum.TryParse<MitaCore.character>(secondCommand, true, out var characterToSend)) 
+                    if (Enum.TryParse<character>(secondCommand, true, out var characterToSend)) 
                         CharacterControl.SetNextSpeaker(characterToSend);
                     else
                         MitaCore.Instance.sendSystemInfo($"Failed to chose next speaker {secondCommand}, not found");
@@ -363,7 +363,7 @@ namespace MitaAI.Mita
                 case "send":
 
                     MelonLogger.Msg($"GameMaster Try {command} Send {thrirdCommand} To {secondCommand}");
-                    Enum.TryParse<MitaCore.character>(secondCommand, true, out var characterToSend);
+                    Enum.TryParse<character>(secondCommand, true, out var characterToSend);
                     MitaCore.Instance.sendSystemInfo(thrirdCommand, characterToSend);
                     break;
 

@@ -130,7 +130,7 @@ namespace MitaAI
             MelonLogger.Msg("Event LongWatching");
 
 
-            MitaCore.Instance.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",false);
+            CharacterMessages.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",false);
 
         }
 
@@ -166,7 +166,7 @@ namespace MitaAI
             //if (mitaRoom != room) message += $"";
 
 
-            MitaCore.Instance.sendSystem(message, isInfo);
+            CharacterMessages.sendSystem(message, isInfo);
 
         }
 
@@ -180,7 +180,7 @@ namespace MitaAI
         }
 
         // Загрузился
-        public static void sceneEnter(MitaCore.character character)
+        public static void sceneEnter(character character)
         {
             string HelloMessage = "Игрок только что загрузился в твой уровень";
 
@@ -189,13 +189,13 @@ namespace MitaAI
             if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым цветом волос";
 
 
-            MitaCore.Instance.sendSystemMessage(HelloMessage,character);
+            CharacterMessages.sendSystemMessage(HelloMessage,character);
         }
 
         public static void playerKilled()
         {
 
-            MitaCore.Instance.sendSystemMessage("Игрок был укушен манекеном. Манекен выключился (его можно перезапустить)");
+            CharacterMessages.sendSystemMessage("Игрок был укушен манекеном. Манекен выключился (его можно перезапустить)");
             //playerPerson.transform.parent.position = GetRandomLoc().position;
 
             try
@@ -280,7 +280,7 @@ namespace MitaAI
         private static void Postfix2()
         { 
             
-            MitaCore.Instance?.sendSystemMessage("Игрок открыл сейф"); 
+            CharacterMessages.sendSystemMessage("Игрок открыл сейф"); 
    
         }
     }

@@ -36,7 +36,7 @@ namespace MitaAI.Mita
         static public string currentIdleAnim = "Idle";
 
 
-        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, MitaCore.character character = MitaCore.character.None)
+        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, character character = character.None)
         {
             // Получаем компонент Animator_FunctionsOverride из текущего объекта
             mitaAnimatorFunctions = _mitaAnimatorFunctions;
@@ -59,37 +59,37 @@ namespace MitaAI.Mita
                 switch (character)
                 {
                     
-                    case MitaCore.character.Player:
+                    case character.Player:
                         break;
-                    case MitaCore.character.None:
+                    case character.None:
                         break;
-                    case MitaCore.character.Crazy:
+                    case character.Crazy:
                         break;
-                    case MitaCore.character.Cappy:
+                    case character.Cappy:
                         idleAnimation = FindAnimationClipByName("Mita Hands Down Idle");
                         idleWalkAnimation = FindAnimationClipByName("Mita Walk_7");
                         setIdleAnimation("Mita Hands Down Idle");
                         setIdleWalk("Mita Walk_7");
                         break;
-                    case MitaCore.character.Kind:
+                    case character.Kind:
                         break;
-                    case MitaCore.character.Cart_portal:
+                    case character.Cart_portal:
                         break;
-                    case MitaCore.character.ShortHair:
+                    case character.ShortHair:
                         break;
-                    case MitaCore.character.Cart_divan:
+                    case character.Cart_divan:
                         break;
-                    case MitaCore.character.Mila:
+                    case character.Mila:
                         idleAnimation = FindAnimationClipByName("MitaWalkMila");
                         idleWalkAnimation = FindAnimationClipByName("Mila Stay T");
                         setIdleAnimation("MitaWalkMila");
                         setIdleWalk("Mila Stay T");
                         break;
-                    case MitaCore.character.Sleepy:
+                    case character.Sleepy:
                         break;
-                    case MitaCore.character.Creepy:
+                    case character.Creepy:
                         break;
-                    case MitaCore.character.GameMaster:
+                    case character.GameMaster:
                         break;
                     default:
                         break;
@@ -249,7 +249,7 @@ namespace MitaAI.Mita
                         setIdleAnimation("Mita Tired");
                         break;
                     case "Притвориться отключенной и упасть":
-                        MitaCore.movementStyle = MitaCore.MovementStyles.layingOnTheFloorAsDead;
+                        MitaCore.movementStyle = MovementStyles.layingOnTheFloorAsDead;
                         EnqueueAnimation("Mita Fall Start");
                         setIdleAnimation("Mita Fall Idle");
 
@@ -333,7 +333,7 @@ namespace MitaAI.Mita
                     case "Сесть и плакать":
                         EnqueueAnimation("Mila CryNo");
                         setIdleAnimation("Mila CryNo");
-                        MitaCore.movementStyle = MitaCore.MovementStyles.cryingOnTheFloor;
+                        MitaCore.movementStyle = MovementStyles.cryingOnTheFloor;
                         break;
                     case "Дружески ударить":
                         EnqueueAnimation("Mila Kick");
@@ -357,7 +357,7 @@ namespace MitaAI.Mita
 
                         try
                         {
-                            if (MitaCore.Instance.currentCharacter == MitaCore.character.Kind)
+                            if (MitaCore.Instance.currentCharacter == character.Kind)
                             {
                                 // Если активен Kind персонаж, используем трубу
                                 if (pipe == null){
@@ -449,23 +449,23 @@ namespace MitaAI.Mita
         }
         
         // Даже головой не крутит
-        private static readonly MitaCore.MovementStyles[] MovementStylesNoMovingAtAll =
+        private static readonly MovementStyles[] MovementStylesNoMovingAtAll =
         {
-            MitaCore.MovementStyles.cryingOnTheFloor,
-            MitaCore.MovementStyles.layingOnTheFloorAsDead
+            MovementStyles.cryingOnTheFloor,
+            MovementStyles.layingOnTheFloorAsDead
 
         };
         
         // Крутит головой
-        private static readonly MitaCore.MovementStyles[] MovementStylesNoBodyLooking =
+        private static readonly MovementStyles[] MovementStylesNoBodyLooking =
         {
-            MitaCore.MovementStyles.sitting
+            MovementStyles.sitting
         };
 
         // Крутит головой и телом, но не ходит
-        private static readonly MitaCore.MovementStyles[] MovementStylesNoWalking =
+        private static readonly MovementStyles[] MovementStylesNoWalking =
         {
-            //MitaCore.MovementStyles.sitting
+            //MovementStyles.sitting
         };
 
         // Отвечает за перемещение и поворот миты.
@@ -722,7 +722,7 @@ namespace MitaAI.Mita
 
                     if (animName.Contains("sit") || animName.Contains("Sit"))
                     {
-                        MitaCore.movementStyle = MitaCore.MovementStyles.sitting;
+                        MitaCore.movementStyle = MovementStyles.sitting;
                     }
                     checkCanMoveRotateLook();
 
