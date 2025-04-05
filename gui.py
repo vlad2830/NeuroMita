@@ -336,7 +336,7 @@ class ChatGUI:
 
             #self.user_entry.delete("1.0", tk.END)
             #self.user_entry.insert(tk.END, text)
-            if self.game_connected:
+            if self.ConnectedToGame:
                 self.instant_send = True
             else:
                 self.send_message()
