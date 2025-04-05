@@ -182,6 +182,10 @@ namespace MitaAI.Mita
 
         public static string setAnimation(string response)
         {
+            // Если запрещено двигаться
+            ObjectAnimationMita.finishWorkingOAM();
+            resetToIdleAnimation();
+
             // Регулярное выражение для извлечения эмоций
             string pattern = @"<a>(.*?)</a>";
             Match match = Regex.Match(response, pattern);
@@ -440,7 +444,8 @@ namespace MitaAI.Mita
                 MelonLogger.Error($"Problem with Animation: {ex.Message}");
             }
 
-            // Если запрещено двигаться
+
+            
             checkCanMoveRotateLook();
 
 
