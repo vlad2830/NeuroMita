@@ -86,7 +86,7 @@ namespace MitaAI.PlayerControls
                         PlayerAnimationModded.playerMove.dontMove = false;
                         Animator playerAnimator = PlayerAnimationModded.playerMove.GetComponent<Animator>();
                         if (playerAnimator != null) playerAnimator.SetFloat("Speed", savedPlayerSpeed);
-                        PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+                        PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.normal;
                     }
                 }
                 wasInputActive = isInputActive; // Обновляем флаг предыдущего состояния
@@ -193,7 +193,7 @@ namespace MitaAI.PlayerControls
                     MelonLogger.Msg("Space pressed");
                     if (PlayerAnimationModded.playerMove != null)
                     {
-                        PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+                        PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.normal;
                     }
                 }
                 catch (Exception e)
@@ -386,6 +386,7 @@ namespace MitaAI.PlayerControls
 
         public static void sendMessagePlayer()
         {
+
             ProcessInput(inputField.text); // Обрабатываем введенный текст
             inputField.text = "";
             InputFieldComponent.SetActive(false);
@@ -398,6 +399,7 @@ namespace MitaAI.PlayerControls
         {
             if (string.IsNullOrEmpty(inputText)) return;
 
+            EventsModded.registerLastEvent();
             MelonLogger.Msg("Input received: " + inputText);
             MelonCoroutines.Start(DialogueControl.PlayerTalk(inputText));
             MitaCore.Instance.playerMessage += $"{inputText}\n";

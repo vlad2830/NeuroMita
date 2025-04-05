@@ -308,7 +308,7 @@ namespace MitaAI.Mita
                         //EnqueueAnimation("Mita ThrowPlayer");
                         break;
                     case "Скинуть игрока":
-                        PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.normal;
+                        PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.normal;
                         EnqueueAnimation("Mita ThrowPlayer");
                         //EnqueueAnimation("Mita TakeMita Idle");
 

@@ -19,7 +19,9 @@ namespace MitaAI
         static float lastEventTime = 0f;
         static float timeBeetweenEvents = 30f;
 
-        public static void regEvent()
+
+        // Фиксирует, что что-то произошло, чтобы ивенты не наслаивались
+        public static void registerLastEvent()
         {
             lastEventTime = Time.unscaledTime;
         }
@@ -44,13 +46,13 @@ namespace MitaAI
         static IEnumerator playerTaken()
         {
             MelonLogger.Msg("Player taken!");
-            PlayerAnimationModded.currentPlayerMovement = PlayerAnimationModded.PlayerMovement.taken;
+            PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.taken;
             PlayerAnimationModded.playerMove.dontMove = true;
             MitaCore.Instance.playerObject.GetComponent<Rigidbody>().useGravity = false;
             MitaCore.Instance.playerObject.transform.SetParent(MitaCore.Instance.Mita.boneRightItem.transform, true);
 
 
-            while (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken)
+            while (PlayerAnimationModded.currentPlayerMovement == PlayerMovementType.taken)
             {
                 float playerSize = MitaCore.Instance.playerObject.transform.localScale.x;
                 MitaCore.Instance.playerObject.transform.localPosition = new UnityEngine.Vector3(-0.7f,-1.2f,-0.7f)*playerSize; //-0,7 -1,2 -0,7

@@ -123,8 +123,8 @@ namespace MitaAI
                 info += $"Your clothes: {MitaClothesModded.currentClothes}\n";
 
                 info += MitaClothesModded.getCurrentHairColor();
-                if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit) info += $"Player is sitting\n";
-                else if (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>\n";
+                if (PlayerAnimationModded.currentPlayerMovement == PlayerMovementType.sit) info += $"Player is sitting\n";
+                else if (PlayerAnimationModded.currentPlayerMovement == PlayerMovementType.taken) info += $"Player is in your hand. you can throw him using <a>Скинуть игрока</a>\n";
 
                 info += PlayerMovement.getPlayerDistance(true);
 

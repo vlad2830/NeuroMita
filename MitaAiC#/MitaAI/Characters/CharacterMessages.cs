@@ -31,7 +31,7 @@ namespace MitaAI
             if (character == character.None) character = MitaCore.Instance.currentCharacter;
             systemMessages.Enqueue((m, character));
 
-            EventsModded.regEvent();
+            EventsModded.registerLastEvent();
         }
         public static void sendSystemInfo(string m, character character = character.None)
         {

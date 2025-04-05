@@ -7,18 +7,18 @@ using UnityEngine.Events;
 
 namespace MitaAI
 {
-
+    public enum PlayerMovementType
+    {
+        normal,
+        sit,
+        taken
+    }
 
 
     public static class PlayerAnimationModded
     {
-        public enum PlayerMovement
-        {
-            normal,
-            sit,
-            taken
-        }
-        public static PlayerMovement currentPlayerMovement = PlayerMovement.normal;
+
+        public static PlayerMovementType currentPlayerMovement = PlayerMovementType.normal;
 
         static ObjectAnimationPlayer objectAnimationPlayer;
         static private Queue<AnimationClip> animationQueue = new Queue<AnimationClip>();
@@ -391,7 +391,7 @@ namespace MitaAI
         public static IEnumerator endWhenAnotherState(ObjectAnimationPlayer objectAnimationPlayer)
         {
             MelonLogger.Msg("Begin endWhenAnotherState");
-            while (PlayerAnimationModded.currentPlayerMovement == PlayerAnimationModded.PlayerMovement.sit)
+            while (PlayerAnimationModded.currentPlayerMovement == PlayerMovementType.sit)
             {
 
                 yield return new WaitForSeconds(0.25f);
