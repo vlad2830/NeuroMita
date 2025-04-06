@@ -802,8 +802,12 @@ namespace MitaAI
                 dayFrame.gameObject.name = "Day Frame";
                 dayFrame.SetParent(GameObject.Find("Interface").transform);
                 PlayerEffectsModded.DayEffect = dayFrame.gameObject;
+
                 dayFrame.GetComponentInChildren<Localization_UIText>().deactiveTextTranslate = true;// .enabled = false;
                 
+
+
+
                 // Добавление музыкальных объектов
                 AudioControl.addMusicObject(world.Find("Sounds/Audio Ambient RealRoom 1").gameObject, "Music Daily calm rutine");
                 AudioControl.addMusicObject(world.Find("Sounds/Audio MitaAttack").gameObject, "Music some Tension");
@@ -1094,10 +1098,12 @@ namespace MitaAI
             character MitaToStart = Settings.Get<character>("MitaType");
 
             int DaysInGame = Settings.Get<int>("DaysInGame");
+
             DaysInGame+=1;
             
             Settings.DaysInGame.Value = DaysInGame;
             Settings.Save();
+
 
             PlayerEffectsModded.turnBlackScreen(false);
             PlayerEffectsModded.ShowDayFromNumber(DaysInGame, "Сеанс");
