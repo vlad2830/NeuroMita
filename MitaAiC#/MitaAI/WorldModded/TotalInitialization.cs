@@ -805,7 +805,8 @@ namespace MitaAI
                 AudioControl.addMusicObject(world.Find("Sounds/Audio MitaAttack").gameObject, "Music some Tension");
                 AudioControl.addMusicObject(world.Find("Sounds/Audio Ambient RealRoom 2").gameObject, "Music Daily calm rutine 2");
 
-            }dayFrame
+            }
+
 
             catch (Exception ex)
             {
