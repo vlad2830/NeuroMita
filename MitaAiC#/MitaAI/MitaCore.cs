@@ -384,8 +384,9 @@ namespace MitaAI
         public GameObject playerControllerObject;
         public GameController playerController;
 
-        public GameController gameController;
+
         public static Text HintText;
+
 
         public GameObject cartridgeReader;
 

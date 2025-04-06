@@ -222,9 +222,9 @@ namespace MitaAI.PlayerControls
             {
                 try
                 {
-                    MelonLogger.Msg("Teleport player to 0 0 0");
-                    PlayerAnimationModded.stopAnim();
-                    MitaCore.Instance.playerObject.transform.position = Vector3.zero;
+
+                    PlayerAnimationModded.UnstackPlayer();
+
 
                 }
                 catch (Exception e)
@@ -380,11 +380,13 @@ namespace MitaAI.PlayerControls
 
 
             // Меню действий игрока
-            //var radMenu = new GameObject("RadialMenu").AddComponent<RadialMenu>();
-            //radMenu.transform.SetParent(MitaCore.Instance.playerController.transform.Find("Interface"));
-            //radMenu.radialCanvas = MitaCore.Instance.playerController.GetComponentInChildren<Canvas>();
+            var radMenu = new GameObject("RadialMenu").AddComponent<RadialMenu>();
+            radMenu.transform.SetParent(MitaCore.Instance.playerController.transform.Find("Interface"));
+            radMenu.radialCanvas = MitaCore.Instance.playerController.GetComponentInChildren<Canvas>();
+            radMenu.transform.localPosition = Vector3.zero;
 
         }
+
 
         public static void sendMessagePlayer()
         {

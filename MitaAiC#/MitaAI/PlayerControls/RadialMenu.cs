@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Il2CppSystem.Collections.Generic; // Добавляем Il2Cpp-коллекции
+
 
 namespace MitaAI
 {
@@ -14,14 +14,26 @@ namespace MitaAI
         public GameObject itemPrefab;
         public float radius = 250f;
         public float selectionThreshold = 200f; // Макс. расстояние для выбора
-        public System.Collections.Generic.List<string> items = new System.Collections.Generic.List<string> { "Удар", "Обнять", "Что" };
-        public System.Collections.Generic.List<string> descriptions = new System.Collections.Generic.List<string> { "Нанести удар", "Обнять персонажа", "Спросить что-то" };
+
+
+        // Название функций барть из DontDestroyOnLoad ObjectAnimationContainer
+        // Описание надо доделать
+        public List<MenuItemData> menuItemsData = new List<MenuItemData>
+        {
+            new MenuItemData("Удар", "Нанести удар", "AnimationPlayer Kick 1"),
+            new MenuItemData("Обнять", "Обнять персонажа","AnimationPlayer Hug"),
+            new MenuItemData("Отказ", "Спросить что-то", "AnimationPlayer Nope Juice"),
+            new MenuItemData("Остановить анимацию")
+        };
+        private List<GameObject> menuItems = new List<GameObject>();
 
         private Vector2 center;
         private bool Showed = false;
-        private string selectedItem;
-        private System.Collections.Generic.List<GameObject> menuItems = new System.Collections.Generic.List<GameObject>();
+        private MenuItemData selectedItem;
+        
         private int lastSelectedIndex = -1;
+
+        public GameObject Container = new GameObject("Container");
 
         private void Start()
         {
@@ -33,60 +45,83 @@ namespace MitaAI
             }
 
             center = new Vector2(Screen.width / 2, Screen.height / 2);
+
+            Container.transform.SetParent(transform, false);
+            Container.transform.localPosition = Vector3.zero;
+            Container.active = false;
+
             GenerateItems();
         }
 
         void Update()
         {
+            if (!MitaCore.isRequiredScene()) return;
+
+            // Если правая кнопка мыши только что нажата
             if (Input.GetMouseButtonDown(1))
             {
-                if (!Showed) ShowMenu();
+                if (!Showed)
+                {
+                    ShowMenu();
+                    Showed = true;
+                }
             }
-            else if (Showed)
+            // Если правая кнопка мыши отпущена и меню было показано
+            else if (Input.GetMouseButtonUp(1) && Showed)
             {
+                ExecuteSelectedAction();
                 HideMenu();
+                Showed = false;
             }
 
+            // Если меню показано, обновляем выбор
             if (Showed)
             {
                 UpdateSelection();
 
-                if (Input.GetMouseButtonUp(1))
-                {
 
-                    
-                    ExecuteSelectedAction();
-                }
             }
         }
 
         void ShowMenu()
         {
             Showed = true;
-            gameObject.active = true;
+            Container.active = true;
             //radialCanvas.enabled = true;
             //Cursor.lockState = CursorLockMode.None;
-            //MitaCore.Instance.gameController.ShowCursor(true);
-            //PlayerAnimationModded.playerMove.stopMouseMove = true;
             center = new Vector2(Screen.width / 2, Screen.height / 2);
+            try
+            {
+                PlayerAnimationModded.playerMove.stopMouseMove = true;
+                MitaCore.Instance.playerController.ShowCursor(true);
+               
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error(ex);
+            }
+
+            
         }
 
         void HideMenu()
         {
             Showed = false;
-            gameObject.active = false;
+            Container.active = false;
 
-            //radialCanvas.enabled = false;
-            //Cursor.lockState = CursorLockMode.Locked;
-            //MitaCore.Instance.gameController.ShowCursor(false);
-            //PlayerAnimationModded.playerMove.stopMouseMove = false;
+            try
+            {
+                PlayerAnimationModded.playerMove.stopMouseMove = false;
+                MitaCore.Instance.playerController.ShowCursor(false);
+                
+            }
+            catch (Exception ex)
+            {
 
-            // Сброс выделения
-            //if (lastSelectedIndex != -1)
-            //{
-            //    menuItems[lastSelectedIndex].GetComponent<Image>().color = normalColor;
-              //  lastSelectedIndex = -1;
-            //}
+                MelonLogger.Error(ex);
+            }
+
         }
 
         void UpdateSelection()
@@ -119,7 +154,10 @@ namespace MitaAI
                 if (closestIndex != -1)
                 {
                     menuItems[closestIndex].GetComponent<Image>().color = hoverColor;
-                    selectedItem = items[closestIndex];
+                    selectedItem = menuItemsData[closestIndex];
+                }
+                else { 
+                    selectedItem = null;
                 }
 
                 lastSelectedIndex = closestIndex;
@@ -128,21 +166,20 @@ namespace MitaAI
 
         void ExecuteSelectedAction()
         {
-            if (!string.IsNullOrEmpty(selectedItem))
+            if (selectedItem != null )
             {
-                MelonLogger.Msg($"!!! CHOSE: {selectedItem}");
-
-                // Здесь добавьте обработку выбранного действия
-                switch (selectedItem)
+                MelonLogger.Msg($"!!! CHOSE: {selectedItem.title}");
+                switch (selectedItem.title)
                 {
-                    case "Удар":
-                        // Код для удара
+                    //Если нужна кастомная логика то тут можно что-то поменять
+                    case "Отказ":
+                        PlayerAnimationModded.playObjectAnimationOnPlayer("AnimationPlayer Nope Juice");
                         break;
-                    case "Обнять":
-                        // Код для объятия
+                    case "Остановить анимацию":
+                        PlayerAnimationModded.stopAnim();
                         break;
-                    case "Что":
-                        // Код для вопроса
+                    default:
+                        PlayerAnimationModded.playObjectAnimationOnPlayer(selectedItem.animationName);
                         break;
                 }
             }
@@ -157,13 +194,14 @@ namespace MitaAI
             }
             menuItems.Clear();
 
-            float angleStep = 360f / items.Count;
+            float angleStep = 360f / menuItemsData.Count;
 
-            for (int i = 0; i < items.Count; i++)
+            for (int i = 0; i < menuItemsData.Count; i++)
             {
                 // Создаем элемент меню
-                GameObject item = Instantiate(itemPrefab, radialCanvas.transform);
+                GameObject item = Instantiate(itemPrefab, Container.transform);
                 menuItems.Add(item);
+
 
                 // Позиционирование по кругу
                 float angle = angleStep * i * Mathf.Deg2Rad;
@@ -177,7 +215,7 @@ namespace MitaAI
                 var menuItem = item.GetComponent<RadialMenuItem>();
                 if (menuItem != null)
                 {
-                    menuItem.Setup(items[i], i < descriptions.Count ? descriptions[i] : "");
+                    menuItem.Setup(menuItemsData[i].title, i < menuItemsData.Count ? menuItemsData[i].description : "");
                 }
             }
         }
@@ -234,9 +272,39 @@ namespace MitaAI
 
         public void Setup(string itemName, string description)
         {
-            if (label != null) label.text = itemName;
-            if (descriptionText != null) descriptionText.text = description;
-            if (descriptionPanel != null) descriptionPanel.SetActive(false);
+            // Гарантируем, что компоненты найдены
+            if (label == null) label = GetComponentInChildren<Text>();
+
+            label.text = itemName;
+
+            // Опционально для описания
+            if (descriptionText == null && descriptionPanel != null)
+                descriptionText = descriptionPanel.GetComponentInChildren<Text>();
+
+            if (descriptionText != null)
+                descriptionText.text = description;
+        }
+
+        private void Awake()
+        {
+            if (label == null) label = GetComponentInChildren<Text>();
+            if (background == null) background = GetComponent<Image>();
+        }
+    }
+
+    [System.Serializable]
+    public class MenuItemData
+    {
+        public string title;
+        public string description;
+        public string animationName; // Дополнительные параметры можно легко добавлять
+        public Color highlightColor = new Color(0.3f, 0.5f, 0.8f, 1f);
+
+        public MenuItemData(string title, string description = null, string animationName = null)
+        {
+            this.title = title;
+            this.description = description;
+            this.animationName = animationName;
         }
     }
 }

@@ -370,9 +370,9 @@ namespace MitaAI
 
             // Это загрузит Ядро!!
 
-            //sceneToLoad = "Scene 15 - BasementAndDeath";
-            //additiveLoadedScenes.Add(sceneToLoad);
-            //yield return MelonCoroutines.Start(WaitForSceneAndInstantiateBasementAndDeath(sceneToLoad));
+            sceneToLoad = "Scene 15 - BasementAndDeath";
+            additiveLoadedScenes.Add(sceneToLoad);
+            yield return MelonCoroutines.Start(WaitForSceneAndInstantiateBasementAndDeath(sceneToLoad));
 
 
             sceneToLoad = "Scene 7 - Backrooms";
@@ -958,8 +958,8 @@ namespace MitaAI
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
             }
-            //world.gameObject.SetActive(false);
-
+            world.gameObject.SetActive(false);
+            
             MelonLogger.Msg($"Object found: {world.name}");
             try
             {
@@ -970,16 +970,22 @@ namespace MitaAI
                 world.Find("EventDay").gameObject.active = false;
                 world.Find("Sounds").gameObject.active = false;
                 world.Find("Acts").gameObject.active = false;
-                
-                world.Find("House/CoreRoom").SetParent(world);
-                world.Find("CoreRoom").gameObject.active = true;
-                world.Find("CoreRoom").position = new Vector3(1.013f, 0f,10.242f);
-                world.Find("CoreRoom").SetParent(MitaCore.world.Find("House"));
+
+                var CoreRoom = world.Find("House/CoreRoom");
+                CoreRoom.SetParent(MitaCore.worldHouse);
+                CoreRoom.gameObject.active = true;
+                CoreRoom.position = new Vector3(1.013f, 0f,10.242f);
 
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 2").gameObject, "Embient horrific waiting");
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 3").gameObject, "Embient horrific tension large");
 
-               
+                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+
+                world.Find("Quest/Quest 1 В подвале").GetComponentInChildren<ObjectAnimationPlayer>().AnimationStop();
+                PlayerAnimationModded.UnstackPlayer();
+                //world.
+
+
             }
             catch (Exception ex)
             {
