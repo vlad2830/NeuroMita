@@ -63,6 +63,11 @@ namespace MitaAI
                 yOffset = ProcessCharacterToggle("Добрая", character.Kind, yOffset, mousePosition);
                 yOffset = ProcessCharacterToggle("Коротковолосая", character.ShortHair, yOffset, mousePosition);
                 yOffset = ProcessCharacterToggle("Кепка", character.Cappy, yOffset, mousePosition);
+
+                yOffset = ProcessCharacterToggle("Сонная", character.Sleepy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Мила", character.Mila, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Страшная", character.Creepy, yOffset, mousePosition);
+
             }
 
             int drawYOffset = 30;
@@ -70,6 +75,10 @@ namespace MitaAI
             drawYOffset = DrawToggle("Добрая", character.Kind, drawYOffset);
             drawYOffset = DrawToggle("Коротковолосая", character.ShortHair, drawYOffset);
             drawYOffset = DrawToggle("Кепка", character.Cappy, drawYOffset);
+
+            drawYOffset = DrawToggle("Сонная", character.Sleepy, drawYOffset);
+            drawYOffset = DrawToggle("Мила", character.Mila, drawYOffset);
+            drawYOffset = DrawToggle("Страшная", character.Creepy, drawYOffset);
         }
 
         private int ProcessCharacterToggle(string label, character character, int yOffset, Vector2 mousePosition)

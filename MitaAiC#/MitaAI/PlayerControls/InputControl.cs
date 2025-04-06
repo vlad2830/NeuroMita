@@ -234,10 +234,10 @@ namespace MitaAI.PlayerControls
                 }
 
             }
-            else if (Input.GetKeyDown(KeyCode.J) )
-            {
-                ChangeMitaButtons();
-            }
+            //else if (Input.GetKeyDown(KeyCode.J) )
+            //{
+              //  ChangeMitaButtons();
+            //}
 
 
             // Постоянно возвращаем фокус на поле ввода, если оно активно
