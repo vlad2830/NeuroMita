@@ -342,7 +342,7 @@ namespace MitaAI
                     rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
                 }
 ;
-
+                MitaPersonObject.GetComponent<CapsuleCollider>().radius = 0.09f;
             }
             catch (Exception ex)
             {
@@ -386,7 +386,6 @@ namespace MitaAI
 
 
         public static Text HintText;
-
 
         public GameObject cartridgeReader;
 

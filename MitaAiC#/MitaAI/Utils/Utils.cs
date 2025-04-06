@@ -83,7 +83,7 @@ namespace MitaAI
 
 
 
-        public static IEnumerator ToggleObjectActiveAfterTime(GameObject obj, float delay)
+        public static IEnumerator ToggleObjectActiveAfterTime(GameObject obj, float delay = 5f)
         {
             // Проверяем, не null ли объект
             if (obj == null)
