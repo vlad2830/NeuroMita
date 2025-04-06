@@ -111,9 +111,12 @@ namespace MitaAI
         }
 
         #region objectAnimationPlayer
-
+        
         private static GameObject ObjectAnimationContainer;
-        public static void copyObjectAnimationPlayer(Transform parent)
+
+        static ObjectAnimationPlayer lastOAP;
+
+        public static void copyAllObjectAnimationPlayerFromParent(Transform parent)
         {
             if (parent == null) return;
 
@@ -122,7 +125,7 @@ namespace MitaAI
                 Transform child = parent.GetChild(i);
                 if (child == null) continue;
 
-                copyObjectAnimationPlayer(child); // Рекурсивный вызов для вложенных объектов
+                copyAllObjectAnimationPlayerFromParent(child); // Рекурсивный вызов для вложенных объектов
 
                 ObjectAnimationPlayer oap = child.GetComponent<ObjectAnimationPlayer>();
                 if (oap == null) continue;
@@ -147,6 +150,24 @@ namespace MitaAI
             }
         }
 
+        public static GameObject CopyObjectInteractivePlayerTo(Transform parent,string name)
+        {
+
+            if (ObjectsAnimationPlayer.ContainsKey(name))
+            {
+                var OAPobj = GameObject.Instantiate(ObjectsAnimationPlayer[name].gameObject, parent);
+                var OAP = OAPobj.GetComponent<ObjectInteractive>();
+                OAPobj.transform.localPosition = Vector3.zero;
+                OAP.objectInteractive = parent.gameObject;
+                OAP.active = true;
+                OAPobj.active = true;
+                CommonInteractableObject.CheckCreate(OAPobj);
+                return OAPobj;
+            }
+
+
+            return null;
+        }
 
         // Для теста всех анимок
         public static void playObjectAnimationOnPlayerRandom()
@@ -176,11 +197,24 @@ namespace MitaAI
             if (ObjectsAnimationPlayer.ContainsKey(objectAnimationName)){
                 try
                 {
-                    var obj = ObjectsAnimationPlayer[objectAnimationName];
+                    try
+                    {
+                        endLastOAP();
+                    }
+                    catch (Exception Ex2)
+                    {
 
+                        MelonLogger.Error(Ex2); 
+                    }
+                    
+
+                    var obj = ObjectsAnimationPlayer[objectAnimationName];
+                    lastOAP = obj;
                     obj.eventFinish = new UnityEngine.Events.UnityEvent();
                     obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
                     obj.AnimationPlayOnPlayer();
+
+                    
 
                 }
                 catch (Exception Ex)
@@ -190,6 +224,16 @@ namespace MitaAI
                 }
                 
             }
+        }
+
+        private static void endLastOAP()
+        {
+            if (lastOAP==null) return;
+
+            lastOAP?.GetComponent<CommonInteractableObject>().free();
+
+            var obj = lastOAP.GetComponent<ObjectInteractive>();
+            if (obj!=null) obj.active = true;
         }
 
         // -0,4194 0,3125 -0,0256  60,0001 91,5637 89,5765 Кресло

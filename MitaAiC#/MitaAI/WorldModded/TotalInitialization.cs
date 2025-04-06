@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Il2Cpp.Event_CreateResource;
@@ -332,6 +333,9 @@ namespace MitaAI
 
 
 
+
+
+
             }
             catch (Exception ex) 
             {
@@ -461,7 +465,7 @@ namespace MitaAI
                 door.localRotation = Quaternion.EulerAngles(0, 0, 270);
                 door.gameObject.active = true;
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(MitaCore.worldBasement);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(MitaCore.worldBasement);
             }
             catch (Exception ex)
             {
@@ -505,7 +509,7 @@ namespace MitaAI
 
                 AudioControl.addMusicObject(MitaCore.worldBackrooms2.Find("Sounds/Music Backrooms").gameObject, "Music puzzle 2");
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(MitaCore.worldBackrooms2);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(MitaCore.worldBackrooms2);
 
             }
             catch (Exception ex)
@@ -542,7 +546,7 @@ namespace MitaAI
                 yield break; // Прерываем выполнение, если объект не найден
             }
             MitaCore.worldTogether.gameObject.SetActive(false);
-            PlayerAnimationModded.copyObjectAnimationPlayer(MitaCore.worldTogether);
+            PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(MitaCore.worldTogether);
             PlayerAnimationModded.FindPlayerAnimationsRecursive(MitaCore.worldTogether);
             //PlayerAnimationModded.Check();
 
@@ -585,7 +589,7 @@ namespace MitaAI
                 AudioControl.addMusicObject(world.Find("Audio/Ambient Music").gameObject, "Morning music");
                 AudioControl.addMusicObject(world.Find("Audio/Ambient Horror 1").gameObject);
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(world);
             }
 
             catch (Exception ex)
@@ -642,7 +646,7 @@ namespace MitaAI
                 AudioControl.addMusicObject(world.Find("Sounds/Music Cap").gameObject, "Music cappy playful");
                 AudioControl.addMusicObject(world.Find("Sounds/Music Ambient Start").gameObject, "Music cappy playful 2");
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(world);
 
             }
        
@@ -691,7 +695,7 @@ namespace MitaAI
                 AudioControl.addMusicObject(world.transform.Find("Sounds/Music").gameObject, "Music calm");
                 AudioControl.addMusicObject(world.transform.Find("Sounds/Music Alternative").gameObject, "Music for concentration");
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(world.transform);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(world.transform);
             }
 
             catch (Exception ex)
@@ -790,7 +794,7 @@ namespace MitaAI
                 room.SetPositionAndRotation(new Vector3(1.0871f,0, 5.0743f), Quaternion.EulerAngles(0,180,0));
                 room.Find("Door").gameObject.SetActive(false);
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(world);
 
 
                 var dayFrame = GameObject.Instantiate(world.Find("Quest/Quest 3 RealRoom/Canvas RealRoom/FrameDay"));
@@ -798,8 +802,8 @@ namespace MitaAI
                 dayFrame.gameObject.name = "Day Frame";
                 dayFrame.SetParent(GameObject.Find("Interface").transform);
                 PlayerEffectsModded.DayEffect = dayFrame.gameObject;
-                dayFrame.GetComponentInChildren<Localization_UIText>().enabled = false;
-
+                dayFrame.GetComponentInChildren<Localization_UIText>().deactiveTextTranslate = true;// .enabled = false;
+                
                 // Добавление музыкальных объектов
                 AudioControl.addMusicObject(world.Find("Sounds/Audio Ambient RealRoom 1").gameObject, "Music Daily calm rutine");
                 AudioControl.addMusicObject(world.Find("Sounds/Audio MitaAttack").gameObject, "Music some Tension");
@@ -965,7 +969,7 @@ namespace MitaAI
             MelonLogger.Msg($"Object found: {world.name}");
             try
             {
-                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(world);
 
                 world.Find("Quest").gameObject.active = false;
                 world.Find("House").gameObject.active = false;
@@ -981,7 +985,7 @@ namespace MitaAI
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 2").gameObject, "Embient horrific waiting");
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 3").gameObject, "Embient horrific tension large");
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(world);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(world);
 
                 world.Find("Quest/Quest 1 В подвале").GetComponentInChildren<ObjectAnimationPlayer>().AnimationStop();
                 PlayerAnimationModded.UnstackPlayer();
@@ -1070,7 +1074,7 @@ namespace MitaAI
 
                 MitaCore.SleepyObject.SetActive(false);
 
-                PlayerAnimationModded.copyObjectAnimationPlayer(worldDreamer);
+                PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(worldDreamer);
             }
             catch (Exception ex)
             {
@@ -1090,9 +1094,11 @@ namespace MitaAI
             character MitaToStart = Settings.Get<character>("MitaType");
 
             int DaysInGame = Settings.Get<int>("DaysInGame");
-            DaysInGame++;
-            Settings.Set("DaysInGame", DaysInGame);
+            DaysInGame+=1;
             
+            Settings.DaysInGame.Value = DaysInGame;
+            Settings.Save();
+
             PlayerEffectsModded.turnBlackScreen(false);
             PlayerEffectsModded.ShowDayFromNumber(DaysInGame, "Сеанс");
 
@@ -1112,6 +1118,15 @@ namespace MitaAI
 
         private static void TestingGround()
         {
+
+
+            MelonLogger.Msg("Try TestingGround");
+            var ChairRoom4 = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Chair 4");
+            var ChairRoom4OIP = PlayerAnimationModded.CopyObjectInteractivePlayerTo(ChairRoom4, "Interactive SitOnChair");
+            ChairRoom4OIP.transform.localEulerAngles = new Vector3(0, 270, 270);
+            ChairRoom4OIP.transform.localPosition = new Vector3(0.5f, 0.2f, 0);
+            
+            MelonLogger.Msg("End TestingGround");
             // Тест Миты Кастомной
             //TestMitaFroDemo();
         }

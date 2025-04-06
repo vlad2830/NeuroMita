@@ -15,7 +15,7 @@ namespace MitaAI.Mita
     public static class MitaAnimationModded
     {
         //static private Queue<(string,float,float)> animationQueue = new Queue<(string,float,float)>();
-        static private Queue<MitaActionAnimation> animationQueue = new Queue<MitaActionAnimation>();
+        static private LinkedList<MitaActionAnimation> animationList = new LinkedList<MitaActionAnimation>();
 
         static private bool isPlaying = false;
         static private Il2CppAssetBundle bundle;
@@ -185,7 +185,7 @@ namespace MitaAI.Mita
         {
             // Если запрещено двигаться
             ObjectAnimationMita.finishWorkingOAM();
-            resetToIdleAnimation();
+            //resetToIdleAnimation(false);
 
             // Регулярное выражение для извлечения эмоций
             string pattern = @"<a>(.*?)</a>";
@@ -434,6 +434,7 @@ namespace MitaAI.Mita
                     default:
                         if (animName != "")
                         {
+                            MelonLogger.Warning($"Added to que defult case {animName}");
                             EnqueueAnimation(animName);
                         }
 
@@ -447,7 +448,7 @@ namespace MitaAI.Mita
 
 
             
-            checkCanMoveRotateLook();
+            //checkCanMoveRotateLook();
 
 
             // Возвращаем кортеж: лицо и очищенный текст
@@ -506,18 +507,30 @@ namespace MitaAI.Mita
 
         }
 
-        static public void EnqueueAnimation(string animName = "",float crossfade_len = 0.25f, float timeAfter = 0)
+        static public void EnqueueAnimation(string animName = "",float crossfade_len = 0.25f, float timeAfter = 0, bool makeFirst = false, bool avoidStateSettings = false)
         {
 
             try
             {
 
                 //animationQueue.Enqueue((animName, crossfade_len,timeAfter
-                animationQueue.Enqueue(new MitaActionAnimation(animName,crossfade_len, crossfade_len,timeAfter));
+
+                if (makeFirst)
+                {
+                    animationList.AddFirst(new MitaActionAnimation(animName, crossfade_len, crossfade_len, timeAfter, timeAfter, avoidStateSettings));
+                }
+
+                else
+                {
+                    animationList.AddLast(new MitaActionAnimation(animName, crossfade_len, crossfade_len, timeAfter, timeAfter, avoidStateSettings));
+                }
+                    
+
                 MelonLogger.Msg($"Added to queue: {animName}");
 
                 if (!isPlaying)
                 {
+                    MelonLogger.Msg($"Start Que cor from {animName}");
                     MelonCoroutines.Start(ProcessQueue());
                 }
 
@@ -527,18 +540,30 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("Animation error: " + e);
             }
         }
-        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita, float crossfade_len = 0.25f, float timeAfter = 0,float delay_after = 0)
+        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita, float crossfade_len = 0.25f, float timeAfter = 0,float delay_after = 0, bool makeFirst = false)
         {
 
             try
             {
 
                 //animationQueue.Enqueue((animName, crossfade_len,timeAfter
-                animationQueue.Enqueue(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita,delay_after));
+
+                if (makeFirst)
+                {
+                    animationList.AddFirst(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita, delay_after));
+                }
+
+                else
+                {
+                    animationList.AddLast(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita, delay_after));
+                }
+                    
+
                 MelonLogger.Msg($"Added objectAnimationMita to queue: {objectAnimationMita.mitaAmimatedName}");
 
                 if (!isPlaying)
                 {
+                    MelonLogger.Msg($"Start Que cor from OAM {objectAnimationMita.mitaAmimatedName}");
                     MelonCoroutines.Start(ProcessQueue());
                 }
 
@@ -569,37 +594,50 @@ namespace MitaAI.Mita
         }
 
 
-
+        static int testIndex = 0;
         // Корутина для последовательного проигрывания
         static private IEnumerator ProcessQueue()
         {
+            //if (isPlaying) yield break; // Already processing
+            int testIndexLocal = testIndex;
+            testIndex++;
+
             isPlaying = true;
             location34_Communication.ActivationCanWalk(false);
-            while (animationQueue.Count > 0)
+            while (animationList.Count > 0)
             {
 
-                MitaActionAnimation animObject = animationQueue.Dequeue();
+                MitaActionAnimation animObject = animationList.First();
+                
+
+
                 string animName = animObject.animName;
                 float crossfade_len = animObject.begin_crossfade;
                 float delay_after = animObject.delay_after;
-                ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
-                AnimationClip anim = FindAnimationClipByName(animName);
-                
-                if (animObject.animationType == MitaActionAnimation.ActionAnimationType.ObjectAnimation)
+                bool avoidStateSettings = animObject.avoidStateSettings;
+                var ObjectAnimationMita = animObject.ObjectAnimationMita;
+                animationList.RemoveFirst();
+
+                MelonLogger.Msg($"QUE {testIndexLocal}, ANIM LIST: count {animationList.Count} Now playing: {animObject.animName} {animObject.animationType} {ObjectAnimationMita}");
+
+                if (ObjectAnimationMita != null)
                 {
+                    ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
+                    MelonLogger.Msg($"Now playing OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
                     objectAnimationMita.Play();
                     //checkCanMoveRotateLook();
 
-                    float beforeWalk = Time.unscaledDeltaTime;
+                    float beforeWalk = Time.unscaledTime;
 
                     yield return new WaitForSeconds(0.25f);
-                    //while (objectAnimationMita.isWalking && Time.unscaledDeltaTime-beforeWalk<30f) yield return new WaitForSeconds(0.25f);
-                    while (isMitaWalking() && Time.unscaledDeltaTime - beforeWalk < 30f) yield return new WaitForSeconds(0.25f);
+                    while (objectAnimationMita.isWalking && Time.unscaledTime - beforeWalk<20f) yield return new WaitForSeconds(0.25f);
+                    //while (isMitaWalking() && Time.unscaledDeltaTime - beforeWalk < 30f) yield return new WaitForSeconds(0.25f);
 
-
+                    MelonLogger.Msg($"Now ended walking OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
                 }
                 else
                 {
+                    AnimationClip anim = FindAnimationClipByName(animName);
                     if (anim != null)
                     {
                         //if (ObjectAnimationMita.CurrentOAMc?.backAnimation != null) { }
@@ -659,7 +697,8 @@ namespace MitaAI.Mita
                     }
                     // Ждем завершения анимации
                 }
-                checkCanMoveRotateLook();
+                if (!avoidStateSettings) checkCanMoveRotateLook();
+                
                 yield return new WaitForSeconds(delay_after);
 
 
@@ -712,11 +751,16 @@ namespace MitaAI.Mita
                 yield return new WaitForSeconds(animation.length + fadeDuration);
             }
         }
-        static public void resetToIdleAnimation()
+        static public void resetToIdleAnimation(bool total_clear = false)
         {
-            ClearQueue();
-            EnqueueAnimation("Mita Idle_2");
             setIdleAnimation("Mita Idle_2");
+            if (total_clear)
+            {
+                ClearQueue();
+                EnqueueAnimation("Mita Idle_2");
+            }
+           
+            
         }
         static public void setIdleAnimation(string animName)
         {
@@ -771,7 +815,7 @@ namespace MitaAI.Mita
         // Очистка очереди (опционально)
         static public void ClearQueue()
         {
-            animationQueue.Clear();
+            animationList.Clear();
             isPlaying = false;
         }
     
