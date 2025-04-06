@@ -14,11 +14,11 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class Character : MonoBehaviour
     {
-        public character character;
+        public characterType character;
         public bool isCartdige;
         public int PointsOrder = 0;
 
-        public void init(character character)
+        public void init(characterType character)
         {
             this.character = character;
             CharacterControl.Characters.Add(this);
@@ -44,7 +44,7 @@ namespace MitaAI
     {
         public void init_GameMaster()
         {
-            character = character.GameMaster;
+            character = characterType.GameMaster;
             //CharacterControl.Characters.Add(this);
             CharacterControl.gameMaster = this;
         }

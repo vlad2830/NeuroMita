@@ -24,8 +24,8 @@ namespace MitaAI
         // Добавляем переменные для отслеживания последних сообщений, чтобы избежать дублирования
         private static string lastPlayerMessage = "";
         // Заменяем старые переменные на словарь для хранения данных по каждому персонажу
-        private static Dictionary<character, (string message, int counter)> lastSystemData = 
-            new Dictionary<character, (string, int)>();
+        private static Dictionary<characterType, (string message, int counter)> lastSystemData = 
+            new Dictionary<characterType, (string, int)>();
         private static int maxDuplicates = 0; // Жёсткий лимит: 0 дубликатов (блокировать все дубликаты)
 
         public static IEnumerator HandleDialogue()
@@ -39,9 +39,9 @@ namespace MitaAI
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
             string info = "-";
-            character characterToWas = character.None;
-            character characterToSend = MitaCore.Instance.currentCharacter;
-            List<character> Characters = MitaCore.Instance.playerMessageCharacters;
+            characterType characterToWas = characterType.None;
+            characterType characterToSend = MitaCore.Instance.currentCharacter;
+            List<characterType> Characters = MitaCore.Instance.playerMessageCharacters;
 
 
             float currentTime = Time.unscaledTime;
@@ -130,7 +130,7 @@ namespace MitaAI
                             lastSystemData[characterToSend] = (message.Item1, 1);
                         }
                         
-                        if (characterToWas == character.None || characterToWas == characterToSend)
+                        if (characterToWas == characterType.None || characterToWas == characterToSend)
                         {
                             characterToWas = message.Item2;
                         }
@@ -160,7 +160,7 @@ namespace MitaAI
                 while (CharacterMessages.systemInfos.Count() > 0)
                 {
                     var message = CharacterMessages.systemInfos.Dequeue();
-                    character ch = message.Item2;
+                    characterType ch = message.Item2;
 
                     if (ch == characterToSend)
                     {
@@ -176,7 +176,7 @@ namespace MitaAI
             
             if (characterToSend != MitaCore.Instance.currentCharacter)
             {
-                if (characterToSend != character.GameMaster)
+                if (characterToSend != characterType.GameMaster)
                 {
                     var MitaObj = MitaCore.getMitaByEnum(characterToSend);
                     if (MitaObj.GetComponentInChildren<Character>().enabled) MitaCore.Instance.addChangeMita(MitaObj,characterToSend, false, false, false, false);
@@ -307,7 +307,7 @@ namespace MitaAI
                 MelonLogger.Msg($"after GetResponseFromPythonSocketAsync char {characterToSend} {GM_READ} {GM_VOICE}");
 
                 if (characterToSend.ToString().Contains("Cart")) MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend, response, AudioControl.cartAudioSource));
-                else if (characterToSend == character.GameMaster)
+                else if (characterToSend == characterType.GameMaster)
                 {
 
 
@@ -317,7 +317,7 @@ namespace MitaAI
                 }
                 else MelonCoroutines.Start(DialogueControl.DisplayResponseAndEmotionCoroutine(id, characterToSend,response));
 
-                if (characterToSend != character.GameMaster) CharacterMessages.sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
+                if (characterToSend != characterType.GameMaster) CharacterMessages.sendInfoListeners(Utils.CleanFromTags(response), Characters, characterToSend, CharacterControl.extendCharsString(characterToSend));
                 else CharacterMessages.sendInfoListenersFromGm(Utils.CleanFromTags(response), Characters, characterToSend);
 
 
@@ -329,7 +329,7 @@ namespace MitaAI
 
             }
 
-            static IEnumerator testNextAswer(string response, character currentCharacter, bool fromPlayer)
+            static IEnumerator testNextAswer(string response, characterType currentCharacter, bool fromPlayer)
             {
                 yield return new WaitForSeconds(0.25f);
                 while (DialogueControl.dialogActive)

@@ -52,38 +52,38 @@ namespace MitaAI
         Animator_FunctionsOverride MitaAnimatorFunctions;
         public Character_Look MitaLook;
         public static GameObject Console;
-        static public GameObject getMitaByEnum(MitaAI.character character, bool getMitaPersonObject = false)
+        static public GameObject getMitaByEnum(characterType character, bool getMitaPersonObject = false)
         {
             GameObject mitaObject;
             switch (character)
             {
-                case MitaAI.character.Crazy:
+                case characterType.Crazy:
                     mitaObject = CrazyObject;
                     break;
-                case MitaAI.character.Kind:
+                case characterType.Kind:
                     mitaObject = KindObject;
                     break;
-                case MitaAI.character.ShortHair:
+                case characterType.ShortHair:
                     mitaObject = ShortHairObject;
                     break;
-                case MitaAI.character.Cappy:
+                case characterType.Cappy:
                     mitaObject = CappyObject;
                     break;
-                case MitaAI.character.Mila:
+                case characterType.Mila:
                     mitaObject = MilaObject;
                     break;
-                case MitaAI.character.Sleepy:
+                case characterType.Sleepy:
                     mitaObject = SleepyObject;
                     break;
-                case MitaAI.character.Creepy:
+                case characterType.Creepy:
                     mitaObject = CreepyObject;
                     break;
 
                 // Cartdiges
-                case MitaAI.character.Cart_divan:
+                case characterType.Cart_divan:
                     mitaObject = Console;
                     break;
-                case MitaAI.character.Cart_portal:
+                case characterType.Cart_portal:
                     mitaObject = Console;
                     break;
 
@@ -117,7 +117,7 @@ namespace MitaAI
             return MitaPersonObject;
         }
 
-        public void addChangeMita(GameObject NewMitaObject = null,MitaAI.character character = MitaAI.character.Crazy, bool ChangeAnimationControler = true, bool turnOfOld = true,bool changePosition = true,bool changeAnimation = true)
+        public void addChangeMita(GameObject NewMitaObject = null,characterType character = characterType.Crazy, bool ChangeAnimationControler = true, bool turnOfOld = true,bool changePosition = true,bool changeAnimation = true)
         {
             if (NewMitaObject == null)
             {
@@ -179,11 +179,11 @@ namespace MitaAI
                 {
                     MitaLook.forwardPerson = MitaPersonObject.transform;
                 }
-                if (character == MitaAI.character.Creepy)
+                if (character == characterType.Creepy)
                 {
                     LogicCharacter.Instance.Initialize(MitaPersonObject, character);
                 }
-                if (character == MitaAI.character.Creepy)
+                if (character == characterType.Creepy)
                 {
                     LogicCharacter.Instance.Initialize(MitaPersonObject, character);
                 }
@@ -367,7 +367,7 @@ namespace MitaAI
 
         
 
-        public MitaAI.character currentCharacter = MitaAI.character.Crazy;
+        public MitaAI.characterType currentCharacter = characterType.Crazy;
 
         public static MovementStyles movementStyle = MovementStyles.walkNear;
 
@@ -423,7 +423,7 @@ namespace MitaAI
         public string playerMessage = "";
         //static public Queue<string> playerMessages = new Queue<string>();
 
-        public List<MitaAI.character> playerMessageCharacters = new List<MitaAI.character>();
+        public List<MitaAI.characterType> playerMessageCharacters = new List<MitaAI.characterType>();
 
 
         
@@ -611,9 +611,9 @@ namespace MitaAI
 
 
             var comp = MitaPersonObject.AddComponent<Character>();
-            comp.init(MitaAI.character.Crazy);
+            comp.init(characterType.Crazy);
 
-            currentCharacter = MitaAI.character.Crazy;
+            currentCharacter = characterType.Crazy;
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
@@ -1214,10 +1214,18 @@ namespace MitaAI
 
             try
             {
-                // Проверка на наличие объекта Mita перед применением эмоции
-                if (Mita == null || Mita.gameObject == null || currentCharacter!=MitaAI.character.Crazy)
+
+                if (currentCharacter != characterType.Crazy)
                 {
-                    MelonLogger.Error("Mita object is null or Mita.gameObject is not active.");
+                    MelonLogger.Error("SetFaceStyleMita Not crazy");
+                    return cleanedResponse; 
+                }
+
+
+                // Проверка на наличие объекта Mita перед применением эмоции
+                if (Mita == null || Mita.gameObject == null)
+                {
+                    MelonLogger.Error("SetFaceStyle Mita object is null or Mita.gameObject is not active.");
                     return cleanedResponse; // Возвращаем faceStyle и очищенный текст
                 }
 
@@ -1247,53 +1255,54 @@ namespace MitaAI
             return cleanedResponse;
         }
 
-        
-       
-      
+
+
+
         public override void OnUpdate()
+        {
+            if (!isAllLoadeed())
+                return;
+
+            TryExecute(Interactions.Update);
+            TryExecute(InputControl.processInpute);
+            TryExecute(PlayerMovement.onUpdate);
+            TryExecute(CharacterControl.Update);
+            TryExecute(() => characterLogic?.Update());
+            TryExecute(UINeuroMita.CheckPauseMenu);
+        }
+
+        private void TryExecute(Action action)
         {
             try
             {
-                if (isAllLoadeed()){
-                    Interactions.Update();
-                    InputControl.processInpute();
-                    PlayerMovement.onUpdate();
-                    CharacterControl.Update();
-                    characterLogic?.Update(); // добавляем для метода update в characterlogic
-                    UINeuroMita.CheckPauseMenu(); // Добавляем проверку состояния меню паузы
-                }
-
-
-
+                action?.Invoke();
             }
             catch (Exception e)
             {
-
-                MelonLogger.Msg(e);
+                MelonLogger.Msg($"Error in {action?.Method.Name}: {e}");
             }
-            
         }
 
-        public static Color GetCharacterTextColor(MitaAI.character character)
+        public static Color GetCharacterTextColor(characterType character)
         {
             switch (character)
             {
-                case MitaAI.character.Crazy:
+                case characterType.Crazy:
                     return new Color(1f, 0.4f, 0.8f); // розовый
-                case MitaAI.character.Cappy:
+                case characterType.Cappy:
                     return new Color(1f, 1f, 0.1f); // мягкий оранжевый 
-                case MitaAI.character.Kind:
+                case characterType.Kind:
                     return new Color(0.80f, 0.9f, 1f); // Бирюзовый
                     
-                case MitaAI.character.ShortHair:
+                case characterType.ShortHair:
                     return new Color(1f, 0.9f, 0.4f); // мягкий желтый
-                case MitaAI.character.Mila:
+                case characterType.Mila:
                     return new Color(0.4f, 0.6f, 1f); // голубой
-                case MitaAI.character.Sleepy:
+                case characterType.Sleepy:
                     return new Color(1f, 1f, 1f); // мягкий розовый
-                case MitaAI.character.Creepy:
+                case characterType.Creepy:
                     return new Color(1f, 0f, 0f); // красный
-                case MitaAI.character.GameMaster:
+                case characterType.GameMaster:
                     return Color.black;
                 default:
                     return Color.white;
@@ -1320,11 +1329,11 @@ namespace MitaAI
         }
 
 
-        public void setCharacterState(MitaAI.character targetChar, MitaAI.character newState) // не доделано, будет отрубать персонажа
+        public void setCharacterState(MitaAI.characterType targetChar, MitaAI.characterType newState) // не доделано, будет отрубать персонажа
                 {
             try
             {
-                if (targetChar == MitaAI.character.None) return;
+                if (targetChar == MitaAI.characterType.None) return;
                 
                 GameObject charObj = getMitaByEnum(targetChar);
                 if (charObj == null) return;
@@ -1337,10 +1346,10 @@ namespace MitaAI
                 
                 charObj.SetActive(false);
                 
-                if (newState == MitaAI.character.None)
+                if (newState == MitaAI.characterType.None)
                 {
                     MelonLogger.Msg($"Fully deactivated character: {targetChar}");
-                    currentCharacter = MitaAI.character.None;
+                    currentCharacter = MitaAI.characterType.None;
                 }
             }
             catch (Exception ex)
@@ -1349,7 +1358,7 @@ namespace MitaAI
             }
         }
 
-        public void removeMita(GameObject mitaObject, MitaAI.character character)
+        public void removeMita(GameObject mitaObject, MitaAI.characterType character)
         {
             try
             {
@@ -1365,7 +1374,7 @@ namespace MitaAI
 
                     MelonLogger.Msg($"Character {character} removed");
                 }
-                if (character == currentCharacter) currentCharacter = MitaAI.character.None;
+                if (character == currentCharacter) currentCharacter = MitaAI.characterType.None;
 
             }
             catch (Exception ex)

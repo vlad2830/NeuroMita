@@ -12,7 +12,7 @@ namespace MitaAI
         public static MelonPreferences_Entry<string> AiModelVersion;
         */
 
-        public static MelonPreferences_Entry<character> MitaType;
+        public static MelonPreferences_Entry<characterType> MitaType;
 
         public static MelonPreferences_Entry<int> DaysInGame;
         public static void Initialize()
@@ -21,7 +21,7 @@ namespace MitaAI
             // Создаем категорию настроек
             category = MelonPreferences.CreateCategory("NeuroMita", "NeuroMita Settings");
 
-            MitaType = category.CreateEntry("MitaType", character.Crazy);
+            MitaType = category.CreateEntry("MitaType", characterType.Crazy);
             DaysInGame = category.CreateEntry("DaysInGame", 0);
             // Добавляем нового персонажа как опцию
             // category.CreateEntry("MilaType", character.Mila);

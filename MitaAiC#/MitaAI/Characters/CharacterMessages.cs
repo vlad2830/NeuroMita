@@ -17,44 +17,44 @@ namespace MitaAI
     
     public static class CharacterMessages
     {
-        public static Queue<(string, character)> systemMessages = new Queue<(string, character)>();
-        public static Queue<(string, character)> systemInfos = new Queue<(string, character)>();
+        public static Queue<(string, characterType)> systemMessages = new Queue<(string, characterType)>();
+        public static Queue<(string, characterType)> systemInfos = new Queue<(string, characterType)>();
 
-        public static void sendSystem(string m, bool info, character character = character.None)
+        public static void sendSystem(string m, bool info, characterType character = characterType.None)
         {
             if (info) sendSystemInfo(m, character);
             else sendSystemMessage(m, character);
 
         }
-        public static void sendSystemMessage(string m, character character = character.None)
+        public static void sendSystemMessage(string m, characterType character = characterType.None)
         {
-            if (character == character.None) character = MitaCore.Instance.currentCharacter;
+            if (character == characterType.None) character = MitaCore.Instance.currentCharacter;
             systemMessages.Enqueue((m, character));
 
             EventsModded.registerLastEvent();
         }
-        public static void sendSystemInfo(string m, character character = character.None)
+        public static void sendSystemInfo(string m, characterType character = characterType.None)
         {
 
-            if (character == character.None) character = MitaCore.Instance.currentCharacter;
+            if (character == characterType.None) character = MitaCore.Instance.currentCharacter;
             systemInfos.Enqueue((m, character));
         }
 
-        public static void sendInfoListeners(string message, List<character> characters = null, character exluding = character.None, string from = "Игрок")
+        public static void sendInfoListeners(string message, List<characterType> characters = null, characterType exluding = characterType.None, string from = "Игрок")
         {
             MelonLogger.Msg($"sendInfoListeners char {characters} exl {exluding} from {from}");
 
             if (characters == null) characters = CharacterControl.GetCharactersToAnswer();
 
-            if (exluding == character.None) exluding = MitaCore.Instance.currentCharacter;
+            if (exluding == characterType.None) exluding = MitaCore.Instance.currentCharacter;
 
 
             string charName = CharacterControl.extendCharsString(exluding);
 
-            if (CharacterControl.gameMaster != null) characters.Add(character.GameMaster);
+            if (CharacterControl.gameMaster != null) characters.Add(characterType.GameMaster);
             //characters.Remove(exluding);
 
-            foreach (character character in characters)
+            foreach (characterType character in characters)
             {
                 string speakersText = CharacterControl.getSpeakersInfo(character);
 
@@ -70,19 +70,19 @@ namespace MitaAI
 
 
         }
-        public static void sendInfoListenersFromGm(string message, List<character> characters = null, character exluding = character.None)
+        public static void sendInfoListenersFromGm(string message, List<characterType> characters = null, characterType exluding = characterType.None)
         {
             if (characters == null) characters = CharacterControl.GetCharactersToAnswer();
 
-            if (exluding == character.None) exluding = MitaCore.Instance.currentCharacter;
-            character from = character.GameMaster;
+            if (exluding == characterType.None) exluding = MitaCore.Instance.currentCharacter;
+            characterType from = characterType.GameMaster;
 
             string charName = CharacterControl.extendCharsString(exluding);
 
 
 
 
-            foreach (character character in characters)
+            foreach (characterType character in characters)
             {
                 string speakersText = CharacterControl.getSpeakersInfo(character);
 

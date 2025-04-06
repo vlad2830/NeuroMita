@@ -339,7 +339,7 @@ namespace MitaAI.Mita
                 case "speaker":
 
                     MelonLogger.Msg($"GameMaster choose speaker");
-                    if (Enum.TryParse<character>(secondCommand, true, out var characterToSend)) 
+                    if (Enum.TryParse<characterType>(secondCommand, true, out var characterToSend)) 
                         CharacterControl.SetNextSpeaker(characterToSend);
                     else
                         CharacterMessages.sendSystemInfo($"Failed to chose next speaker {secondCommand}, not found");
@@ -363,7 +363,7 @@ namespace MitaAI.Mita
                 case "send":
 
                     MelonLogger.Msg($"GameMaster Try {command} Send {thrirdCommand} To {secondCommand}");
-                    Enum.TryParse<character>(secondCommand, true, out var characterToSend);
+                    Enum.TryParse<characterType>(secondCommand, true, out var characterToSend);
                     CharacterMessages.sendSystemInfo(thrirdCommand, characterToSend);
                     break;
 

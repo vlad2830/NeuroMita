@@ -21,7 +21,7 @@ namespace MitaAI
         private float lastCheckTime;
         private NavMeshAgent navMeshAgent;
         private Animator animator;
-        private character characterType; // Тип персонажа (Creepy, Sleepy и т.д.)
+        private characterType characterType; // Тип персонажа (Creepy, Sleepy и т.д.)
 
         // Состояние персонажа для охоты
         private enum CharacterState { normal, hunt }
@@ -43,7 +43,7 @@ namespace MitaAI
 
         private LogicCharacter() { } //пока-что нечего
 
-        public void Initialize(GameObject characterObject, character type)
+        public void Initialize(GameObject characterObject, characterType type)
         {
             SetCharacterObject(characterObject);
             characterType = type;
@@ -54,7 +54,7 @@ namespace MitaAI
             isInitialized = true;
 
             // Инициализация переменных усталости для Sleepy
-            if (characterType == character.Sleepy)
+            if (characterType == characterType.Sleepy)
             {
                 initializationTime = Time.time;
                 fatigueStartTime = UnityEngine.Random.Range(5f * 60f, 20f * 60f); // 5 to 20 minutes in seconds
@@ -81,7 +81,7 @@ namespace MitaAI
             }
 
             // Инициализация ножа для Creepy
-            if (characterType == character.Creepy)
+            if (characterType == characterType.Creepy)
             {
                 Transform knifeTransform = this.characterObject.transform.Find("Knife");
                 if (knifeTransform != null)
@@ -110,10 +110,10 @@ namespace MitaAI
             if (navMeshAgent == null) return;
             switch (characterType)
             {
-                case character.Creepy:
+                case characterType.Creepy:
                     // Сюда будет прописывать логика в зависимости от персонажа
                     break;
-                case character.Sleepy:
+                case characterType.Sleepy:
                     // ...
                     break; //позже для других персонажей
                 default:
@@ -133,7 +133,7 @@ namespace MitaAI
                 MonitorCharacterState();
             }
             // Обновление усталости только для Sleepy
-            if (characterType == character.Sleepy)
+            if (characterType == characterType.Sleepy)
             {
                 UpdateFatigue();
                 SleepyLogic();
@@ -162,7 +162,7 @@ namespace MitaAI
         // Публичный метод для получения уровня усталости
         public float GetFatigueLevel()
         {
-            return characterType == character.Sleepy ? fatigueLevel : 0f;
+            return characterType == characterType.Sleepy ? fatigueLevel : 0f;
         }
 
         // Остановка движения например для логики с сонной
@@ -205,7 +205,7 @@ namespace MitaAI
         public void StartHunt(MitaCore mitaCore)
         {
             this.mitaCore = mitaCore;
-            if (characterType != character.Creepy) return;
+            if (characterType != characterType.Creepy) return;
 
             try
             {
@@ -244,7 +244,7 @@ namespace MitaAI
         // Завершение охоты для Creepy
         public void EndHunt()
         {
-            if (characterType != character.Creepy) return;
+            if (characterType != characterType.Creepy) return;
 
             try
             {
@@ -278,7 +278,7 @@ namespace MitaAI
         // Корутина преследования для Creepy
         private IEnumerator Hunting()
         {
-            if (characterType != character.Creepy) yield break;
+            if (characterType != characterType.Creepy) yield break;
 
             float startTime = Time.unscaledTime;
             float lastMessageTime = -45f;
@@ -335,7 +335,7 @@ namespace MitaAI
 
         public void SleepyLogic()
         {
-            if (characterType != character.Sleepy || particleSleep == null) return;
+            if (characterType != characterType.Sleepy || particleSleep == null) return;
 
             // определяет спит ли сонная
             bool isAsleep = fatigueLevel >= 1f;

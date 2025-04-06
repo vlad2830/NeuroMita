@@ -19,7 +19,7 @@ namespace MitaAI
     public class CustomUI
     {
         public static CustomUI Instance;
-        private Dictionary<character, bool> characterStates = new Dictionary<character, bool>();
+        private Dictionary<characterType, bool> characterStates = new Dictionary<characterType, bool>();
         private bool isManualControl = false;
         private const int menuWidth = 400;
         private const int menuHeight = 600;
@@ -29,7 +29,7 @@ namespace MitaAI
         public CustomUI()
         {
             Instance = this;
-            foreach (character character in Enum.GetValues(typeof(character)))
+            foreach (characterType character in Enum.GetValues(typeof(characterType)))
             {
                 characterStates[character] = false;
             }
@@ -59,29 +59,29 @@ namespace MitaAI
                 Vector2 mousePosition = new Vector2(currentEvent.mousePosition.x, currentEvent.mousePosition.y);
 
                 int yOffset = 30;
-                yOffset = ProcessCharacterToggle("Безумная", character.Crazy, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Добрая", character.Kind, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Коротковолосая", character.ShortHair, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Кепка", character.Cappy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Безумная", characterType.Crazy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Добрая", characterType.Kind, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Коротковолосая", characterType.ShortHair, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Кепка", characterType.Cappy, yOffset, mousePosition);
 
-                yOffset = ProcessCharacterToggle("Сонная", character.Sleepy, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Мила", character.Mila, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Страшная", character.Creepy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Сонная", characterType.Sleepy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Мила", characterType.Mila, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle("Страшная", characterType.Creepy, yOffset, mousePosition);
 
             }
 
             int drawYOffset = 30;
-            drawYOffset = DrawToggle("Безумная", character.Crazy, drawYOffset);
-            drawYOffset = DrawToggle("Добрая", character.Kind, drawYOffset);
-            drawYOffset = DrawToggle("Коротковолосая", character.ShortHair, drawYOffset);
-            drawYOffset = DrawToggle("Кепка", character.Cappy, drawYOffset);
+            drawYOffset = DrawToggle("Безумная", characterType.Crazy, drawYOffset);
+            drawYOffset = DrawToggle("Добрая", characterType.Kind, drawYOffset);
+            drawYOffset = DrawToggle("Коротковолосая", characterType.ShortHair, drawYOffset);
+            drawYOffset = DrawToggle("Кепка", characterType.Cappy, drawYOffset);
 
-            drawYOffset = DrawToggle("Сонная", character.Sleepy, drawYOffset);
-            drawYOffset = DrawToggle("Мила", character.Mila, drawYOffset);
-            drawYOffset = DrawToggle("Страшная", character.Creepy, drawYOffset);
+            drawYOffset = DrawToggle("Сонная", characterType.Sleepy, drawYOffset);
+            drawYOffset = DrawToggle("Мила", characterType.Mila, drawYOffset);
+            drawYOffset = DrawToggle("Страшная", characterType.Creepy, drawYOffset);
         }
 
-        private int ProcessCharacterToggle(string label, character character, int yOffset, Vector2 mousePosition)
+        private int ProcessCharacterToggle(string label, characterType character, int yOffset, Vector2 mousePosition)
         {
             Rect toggleRect = new Rect(padding, yOffset, 200, buttonHeight);
             if (toggleRect.Contains(mousePosition))
@@ -104,14 +104,14 @@ namespace MitaAI
                 {
                     if (newState)
                     {
-                        if (character == character.Crazy)
+                        if (character == characterType.Crazy)
                         {
                             MelonLogger.Msg($"Attempting to activate {label} character");
-                            GameObject crazyChar = MitaCore.getMitaByEnum(character.Crazy);
+                            GameObject crazyChar = MitaCore.getMitaByEnum(characterType.Crazy);
                             if (crazyChar != null)
                             {
                                 MelonLogger.Msg($"Found Crazy character object: {crazyChar.name}");
-                                MitaCore.Instance?.addChangeMita(crazyChar, character.Crazy, true, false);
+                                MitaCore.Instance?.addChangeMita(crazyChar, characterType.Crazy, true, false);
                                 crazyChar.SetActive(true);
                                 MelonLogger.Msg($"{label} activation complete");
                             }
@@ -147,7 +147,7 @@ namespace MitaAI
             return yOffset + buttonHeight + padding;
         }
 
-        private int DrawToggle(string label, character character, int yOffset)
+        private int DrawToggle(string label, characterType character, int yOffset)
         {
             bool state = characterStates[character];
             bool newState = GUI.Toggle(new Rect(padding, yOffset, 200, buttonHeight), state, label);

@@ -23,7 +23,7 @@ namespace MitaAI
                 MitaCore.Instance.mitaState = MitaState.hunt;
 
 
-                if (MitaCore.Instance.currentCharacter == character.Creepy && LogicCharacter.Instance != null)
+                if (MitaCore.Instance.currentCharacter == characterType.Creepy && LogicCharacter.Instance != null)
                 {
                     LogicCharacter.Instance.StartHunt(MitaCore.Instance);
                 }
@@ -88,7 +88,7 @@ namespace MitaAI
         }
         public static void endHunt()
         {
-            if (MitaCore.Instance.currentCharacter == character.Creepy && LogicCharacter.Instance != null)
+            if (MitaCore.Instance.currentCharacter == characterType.Creepy && LogicCharacter.Instance != null)
             {
                 // Для Creepy вызываем логику из LogicCharacter
                 LogicCharacter.Instance.EndHunt();

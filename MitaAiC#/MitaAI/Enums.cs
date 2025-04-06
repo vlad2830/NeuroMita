@@ -1,6 +1,6 @@
 ﻿namespace MitaAI
 {
-    public enum character
+    public enum characterType
     {
         // НПС должны строго соотвествовать эквивалентам в питоне!
 

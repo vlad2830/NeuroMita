@@ -1095,7 +1095,7 @@ namespace MitaAI
             
 
             MelonLogger.Msg("After all loaded");
-            character MitaToStart = Settings.Get<character>("MitaType");
+            characterType MitaToStart = Settings.Get<characterType>("MitaType");
 
             int DaysInGame = Settings.Get<int>("DaysInGame");
 
@@ -1203,7 +1203,7 @@ namespace MitaAI
 
                 MitaCore.CrazyObject = Mita;
                 Mita.name = "MitaTestFromDemo";
-                MitaCore.Instance.addChangeMita(Mita, character.Crazy, turnOfOld:false);
+                MitaCore.Instance.addChangeMita(Mita, characterType.Crazy, turnOfOld:false);
 
 
 

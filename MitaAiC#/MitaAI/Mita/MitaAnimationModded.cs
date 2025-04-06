@@ -37,7 +37,7 @@ namespace MitaAI.Mita
         static public string currentIdleAnim = "Idle";
 
 
-        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, character character = character.None)
+        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, characterType character = characterType.None)
         {
             // Получаем компонент Animator_FunctionsOverride из текущего объекта
             mitaAnimatorFunctions = _mitaAnimatorFunctions;
@@ -60,37 +60,37 @@ namespace MitaAI.Mita
                 switch (character)
                 {
                     
-                    case character.Player:
+                    case characterType.Player:
                         break;
-                    case character.None:
+                    case characterType.None:
                         break;
-                    case character.Crazy:
+                    case characterType.Crazy:
                         break;
-                    case character.Cappy:
+                    case characterType.Cappy:
                         idleAnimation = FindAnimationClipByName("Mita Hands Down Idle");
                         idleWalkAnimation = FindAnimationClipByName("Mita Walk_7");
                         setIdleAnimation("Mita Hands Down Idle");
                         setIdleWalk("Mita Walk_7");
                         break;
-                    case character.Kind:
+                    case characterType.Kind:
                         break;
-                    case character.Cart_portal:
+                    case characterType.Cart_portal:
                         break;
-                    case character.ShortHair:
+                    case characterType.ShortHair:
                         break;
-                    case character.Cart_divan:
+                    case characterType.Cart_divan:
                         break;
-                    case character.Mila:
+                    case characterType.Mila:
                         idleAnimation = FindAnimationClipByName("MitaWalkMila");
                         idleWalkAnimation = FindAnimationClipByName("Mila Stay T");
                         setIdleAnimation("MitaWalkMila");
                         setIdleWalk("Mila Stay T");
                         break;
-                    case character.Sleepy:
+                    case characterType.Sleepy:
                         break;
-                    case character.Creepy:
+                    case characterType.Creepy:
                         break;
-                    case character.GameMaster:
+                    case characterType.GameMaster:
                         break;
                     default:
                         break;
@@ -362,7 +362,7 @@ namespace MitaAI.Mita
 
                         try
                         {
-                            if (MitaCore.Instance.currentCharacter == character.Kind)
+                            if (MitaCore.Instance.currentCharacter == characterType.Kind)
                             {
                                 // Если активен Kind персонаж, используем трубу
                                 if (pipe == null){

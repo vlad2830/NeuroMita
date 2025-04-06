@@ -21,7 +21,7 @@ namespace MitaAI
         public static void prepareForSend()
         {
 
-            if (MitaCore.Instance.currentCharacter == character.GameMaster)
+            if (MitaCore.Instance.currentCharacter == characterType.GameMaster)
             {
                 currentInfo = formCurrentInfoGameMaster();
                 return;

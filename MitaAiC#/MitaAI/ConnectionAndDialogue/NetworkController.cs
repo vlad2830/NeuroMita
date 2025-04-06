@@ -25,7 +25,7 @@ namespace MitaAI
             lastId += 1;
             return sendId;
         }
-        static public async Task<Dictionary<string, JsonElement>> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, character characterSend = character.Crazy)
+        static public async Task<Dictionary<string, JsonElement>> GetResponseFromPythonSocketAsync(string input, string dataToSentSystem, string systemInfo, characterType characterSend = characterType.Crazy)
         {
             // Ожидаем, чтобы получить доступ к ресурсу (сокету)
 

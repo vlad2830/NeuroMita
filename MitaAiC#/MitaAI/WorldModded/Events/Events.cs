@@ -182,7 +182,7 @@ namespace MitaAI
         }
 
         // Загрузился
-        public static void sceneEnter(character character)
+        public static void sceneEnter(characterType character)
         {
             string HelloMessage = "Игрок только что загрузился в твой уровень";
 

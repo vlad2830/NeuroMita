@@ -339,31 +339,31 @@ namespace MitaAI
                     //MitaCore.MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaShortButton":
-                    Settings.MitaType.Value = character.ShortHair;
+                    Settings.MitaType.Value = characterType.ShortHair;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCrazyButton":
-                    Settings.MitaType.Value = character.Crazy;
+                    Settings.MitaType.Value = characterType.Crazy;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaKindButton":
-                    Settings.MitaType.Value = character.Kind;
+                    Settings.MitaType.Value = characterType.Kind;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MitaCappyButton":
-                    Settings.MitaType.Value = character.Cappy;
+                    Settings.MitaType.Value = characterType.Cappy;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "MilaButton":
-                    Settings.MitaType.Value = character.Mila;
+                    Settings.MitaType.Value = characterType.Mila;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
@@ -373,13 +373,13 @@ namespace MitaAI
                     MainMenuLocation.Active(true);
                     break;
                 case "SleepyMitaButton":
-                    Settings.MitaType.Value = character.Sleepy;
+                    Settings.MitaType.Value = characterType.Sleepy;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);
                     break;
                 case "CreepyMitaButton":
-                    Settings.MitaType.Value = character.Creepy;
+                    Settings.MitaType.Value = characterType.Creepy;
                     Settings.Save();
                     StartMenu.Active(false);
                     MainMenu.ButtonLoadScene(MitaCore.Instance.requiredSave);

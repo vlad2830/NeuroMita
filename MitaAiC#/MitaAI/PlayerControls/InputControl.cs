@@ -287,15 +287,15 @@ namespace MitaAI.PlayerControls
             bool dontrTurnOfOld = Input.GetKeyDown(KeyCode.LeftShift);
 
             // Словарь для хранения соответствия клавиш и параметров изменения
-            var keyActions = new Dictionary<KeyCode, (GameObject MitaObject, character Character)>
+            var keyActions = new Dictionary<KeyCode, (GameObject MitaObject, characterType Character)>
             {
-                { KeyCode.I, (MitaCore.KindObject, character.Kind) },
-                { KeyCode.K, (MitaCore.CappyObject, character.Cappy) },
-                { KeyCode.M, (MitaCore.CrazyObject, character.Crazy) },
-                { KeyCode.U, (MitaCore.ShortHairObject, character.ShortHair) },
-                { KeyCode.H, (MitaCore.MilaObject, character.Mila) },
-                { KeyCode.N, (MitaCore.SleepyObject, character.Sleepy) },
-                { KeyCode.B, (MitaCore.CreepyObject, character.Creepy) }
+                { KeyCode.I, (MitaCore.KindObject, characterType.Kind) },
+                { KeyCode.K, (MitaCore.CappyObject, characterType.Cappy) },
+                { KeyCode.M, (MitaCore.CrazyObject, characterType.Crazy) },
+                { KeyCode.U, (MitaCore.ShortHairObject, characterType.ShortHair) },
+                { KeyCode.H, (MitaCore.MilaObject, characterType.Mila) },
+                { KeyCode.N, (MitaCore.SleepyObject, characterType.Sleepy) },
+                { KeyCode.B, (MitaCore.CreepyObject, characterType.Creepy) }
             };
 
             // Проверяем нажатие клавиш
