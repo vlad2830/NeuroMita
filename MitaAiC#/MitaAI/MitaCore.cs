@@ -342,7 +342,7 @@ namespace MitaAI
                     rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
                 }
 ;
-                MitaPersonObject.GetComponent<CapsuleCollider>().radius = 0.09f;
+                MitaPersonObject.GetComponent<CapsuleCollider>().radius = 0.13f;
             }
             catch (Exception ex)
             {
@@ -367,7 +367,7 @@ namespace MitaAI
 
         
 
-        public MitaAI.characterType currentCharacter = characterType.Crazy;
+        public characterType currentCharacter = characterType.Crazy;
 
         public static MovementStyles movementStyle = MovementStyles.walkNear;
 
