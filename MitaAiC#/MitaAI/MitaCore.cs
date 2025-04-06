@@ -171,6 +171,7 @@ namespace MitaAI
                 {
                     characterComponent.init(character); // Предполагается, что init инициализирует персонажа
                 }
+                characterComponent.enabled = true;
 
                 MitaLook = MitaPersonObject.transform.Find("IKLifeCharacter").GetComponent<Character_Look>();
 
@@ -1319,7 +1320,7 @@ namespace MitaAI
         }
 
 
-                public void setCharacterState(MitaAI.character targetChar, MitaAI.character newState) // не доделано, будет отрубать персонажа
+        public void setCharacterState(MitaAI.character targetChar, MitaAI.character newState) // не доделано, будет отрубать персонажа
                 {
             try
             {
@@ -1355,16 +1356,17 @@ namespace MitaAI
                 if (mitaObject != null)
                 {
                     mitaObject.SetActive(false);
-                    
-                    var navMesh = mitaObject.GetComponent<NavMeshAgent>();
-                    if (navMesh != null) navMesh.enabled = false;
-                    
-                    var animator = mitaObject.GetComponent<Animator>();
-                    if (animator != null) animator.enabled = false;
-                    
+                    mitaObject.GetComponentInChildren<Character>().enabled = false;
+                    //var navMesh = mitaObject.GetComponent<NavMeshAgent>();
+                    //if (navMesh != null) navMesh.enabled = false;
+
+                    //var animator = mitaObject.GetComponent<Animator>();
+                    //if (animator != null) animator.enabled = false;
+
                     MelonLogger.Msg($"Character {character} removed");
                 }
-                currentCharacter = MitaAI.character.None;
+                if (character == currentCharacter) currentCharacter = MitaAI.character.None;
+
             }
             catch (Exception ex)
             {
@@ -1372,14 +1374,6 @@ namespace MitaAI
             }
         }
 
-        public void sendSystemMessage(string message, MitaAI.character character)
-        {
-            MelonLogger.Msg($"[System] {message} for {character}");
-        }
 
-        public void sendInfoListeners(string message, GameObject sender, MitaAI.character character, string listener)
-        {
-            MelonLogger.Msg($"[Info] {message} from {sender?.name} to {listener} for {character}");
-        }
     }
 }

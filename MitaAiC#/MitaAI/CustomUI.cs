@@ -114,17 +114,17 @@ namespace MitaAI
                         else
                         {
                             MitaCore.Instance?.addChangeMita(mitaObject, character, true, false);
-                            MitaCore.Instance?.sendSystemMessage($"{label} активирована", character);
-                            MitaCore.Instance?.sendInfoListeners($"{label} появилась на уровне", null, character, "Nobody");
+                            CharacterMessages.sendSystemMessage($"{label} активирована", character);
+                            CharacterMessages.sendInfoListeners($"{label} появилась на уровне", null, character, "Nobody");
                             MelonLogger.Msg($"{label} successfully activated");
                         }
                     }
                     else
                     {
-                        MitaCore.Instance?.setCharacterState(character, character.None);
+                        //MitaCore.Instance?.setCharacterState(character, character.None);
                         MitaCore.Instance?.removeMita(mitaObject, character);
-                        MitaCore.Instance?.sendSystemMessage($"{label} полностью деактивирована", character);
-                        MitaCore.Instance?.sendInfoListeners($"{label} удалена с уровня", null, character, "Nobody");
+                        CharacterMessages.sendSystemMessage($"{label} полностью деактивирована", character);
+                        CharacterMessages.sendInfoListeners($"{label} удалена с уровня", null, character, "Nobody");
                         MelonLogger.Msg($"{label} fully deactivated");
                     }
                 }

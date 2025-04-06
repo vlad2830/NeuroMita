@@ -178,7 +178,8 @@ namespace MitaAI
             {
                 if (characterToSend != character.GameMaster)
                 {
-                    MitaCore.Instance.addChangeMita(MitaCore.getMitaByEnum(characterToSend), characterToSend, false, false, false, false);
+                    var MitaObj = MitaCore.getMitaByEnum(characterToSend);
+                    if (MitaObj.GetComponentInChildren<Character>().enabled) MitaCore.Instance.addChangeMita(MitaObj,characterToSend, false, false, false, false);
                 }
                 else
                 {
