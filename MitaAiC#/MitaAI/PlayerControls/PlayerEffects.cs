@@ -1,6 +1,7 @@
 ﻿using Il2Cpp;
 using MelonLoader;
 using UnityEngine;
+using UnityEngine.UI;
 using System.Text.RegularExpressions;
 using System.Collections;
 using Il2CppInterop.Runtime.InteropTypes;
@@ -13,11 +14,15 @@ namespace MitaAI
     {
         static PlayerCameraEffects playerEffects;
         public static GameObject playerEffectsObject;
-
+        public static BlackScreen blackScreen;
+        public static GameObject DayEffect;
         public static void Init(GameObject playerPerson)
         {
             playerEffects = playerPerson.transform.parent.Find("HeadPlayer/MainCamera").gameObject.GetComponent<PlayerCameraEffects>();
             playerEffectsObject = playerPerson.transform.parent.Find("HeadPlayer/MainCamera/CameraPersons").gameObject;
+            blackScreen= GameObject.Find("Game/Interface/BlackScreen").GetComponent<BlackScreen>();
+            blackScreen.timeOff = 0.25f;
+            turnBlackScreen(true, false);
         }
 
         public static string ProcessPlayerEffects(string response)
@@ -168,8 +173,61 @@ namespace MitaAI
                 MelonLogger.Warning($"Effect method {effectMethodName} not found on Il2Cpp component.");
             }
         }
-
+        public static void turnBlackScreen(bool on,bool sharply = true)
+        {
+            blackScreen.HoldBlack(on,sharply);
+            
         }
+
+        public static void ShowDayFromNumber(int number, string title = null)
+        {
+            string numStr = number.ToString();
+            string n1 = "", n2 = "", n3 = "";
+
+            switch (numStr.Length)
+            {
+                case 1:
+                    n2 = numStr; // Однозначное → в центр (n2)
+                    break;
+                case 2:
+                    n2 = numStr[0].ToString(); // Двузначное → n2 и n3
+                    n3 = numStr[1].ToString();
+                    break;
+                case 3:
+                    n1 = numStr[0].ToString(); // Трёхзначное → n1, n2, n3
+                    n2 = numStr[1].ToString();
+                    n3 = numStr[2].ToString();
+                    break;
+                default:
+                    Debug.LogError("Число должно быть от 0 до 999!");
+                    return;
+            }
+
+            showDay(title,n1: n1, n2: n2, n3: n3);
+        }
+
+        public static void showDay(string name=null, string n1 = null, string n2 = null, string n3 = null)
+        {
+            DayEffect.active = true;
+            
+            
+            if (name != null)
+                DayEffect.transform.Find("TextDay").GetComponent<Text>().text = name;
+  
+            if (n1 != null)
+                DayEffect.transform.Find("Number 1").GetComponent<Text>().text = n1;
+
+            if (n2 != null)
+                DayEffect.transform.Find("Number 2").GetComponent<Text>().text = n2;
+
+            if (n3 != null) 
+                DayEffect.transform.Find("Number 3").GetComponent<Text>().text = n3;
+
+            Utils.ToggleObjectActiveAfterTime(DayEffect);
+        }
+
+    }
+
 
 
 

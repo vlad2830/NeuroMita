@@ -797,14 +797,15 @@ namespace MitaAI
                 dayFrame.gameObject.SetActive(false);
                 dayFrame.gameObject.name = "Day Frame";
                 dayFrame.SetParent(GameObject.Find("Interface").transform);
-
+                PlayerEffectsModded.DayEffect = dayFrame.gameObject;
+                dayFrame.GetComponentInChildren<Localization_UIText>().enabled = false;
 
                 // Добавление музыкальных объектов
                 AudioControl.addMusicObject(world.Find("Sounds/Audio Ambient RealRoom 1").gameObject, "Music Daily calm rutine");
                 AudioControl.addMusicObject(world.Find("Sounds/Audio MitaAttack").gameObject, "Music some Tension");
                 AudioControl.addMusicObject(world.Find("Sounds/Audio Ambient RealRoom 2").gameObject, "Music Daily calm rutine 2");
 
-            }
+            }dayFrame
 
             catch (Exception ex)
             {
@@ -1081,10 +1082,19 @@ namespace MitaAI
 
         private static IEnumerator AfterAllLoadded()
         {
+
             
 
             MelonLogger.Msg("After all loaded");
             character MitaToStart = Settings.Get<character>("MitaType");
+
+            int DaysInGame = Settings.Get<int>("DaysInGame");
+            DaysInGame++;
+            Settings.Set("DaysInGame", DaysInGame);
+            
+            PlayerEffectsModded.turnBlackScreen(false);
+            PlayerEffectsModded.ShowDayFromNumber(DaysInGame, "Сеанс");
+
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
             
             MitaCore.Instance.addChangeMita(null, character: MitaToStart, true,true);

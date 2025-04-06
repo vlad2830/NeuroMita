@@ -14,6 +14,7 @@ namespace MitaAI
 
         public static MelonPreferences_Entry<character> MitaType;
 
+        public static MelonPreferences_Entry<int> DaysInGame;
         public static void Initialize()
         {
             MelonLogger.Msg($"Init settings");
@@ -21,28 +22,28 @@ namespace MitaAI
             category = MelonPreferences.CreateCategory("NeuroMita", "NeuroMita Settings");
 
             MitaType = category.CreateEntry("MitaType", character.Crazy);
-
+            DaysInGame = category.CreateEntry("DaysInGame", 0);
             // Добавляем нового персонажа как опцию
-           // category.CreateEntry("MilaType", character.Mila);
+            // category.CreateEntry("MilaType", character.Mila);
 
-           /* // Инициализируем настройки со значениями по умолчанию
-            AutoResponseEnabled = category.CreateEntry(
-                "AutoResponseEnabled",
-                true,
-                "Enable Automatic Responses",
-                "Whether the AI should respond automatically");
+            /* // Инициализируем настройки со значениями по умолчанию
+             AutoResponseEnabled = category.CreateEntry(
+                 "AutoResponseEnabled",
+                 true,
+                 "Enable Automatic Responses",
+                 "Whether the AI should respond automatically");
 
-            ResponseDelay = category.CreateEntry(
-                "ResponseDelay",
-                0.5f,
-                "Response Delay (seconds)",
-                "Delay before sending AI response");
+             ResponseDelay = category.CreateEntry(
+                 "ResponseDelay",
+                 0.5f,
+                 "Response Delay (seconds)",
+                 "Delay before sending AI response");
 
-            AiModelVersion = category.CreateEntry(
-                "AiModelVersion",
-                "v2.1.5",
-                "AI Model Version",
-                "Version of the AI model to use");*/
+             AiModelVersion = category.CreateEntry(
+                 "AiModelVersion",
+                 "v2.1.5",
+                 "AI Model Version",
+                 "Version of the AI model to use");*/
         }
 
         // Метод для быстрого получения значения
