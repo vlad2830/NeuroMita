@@ -466,11 +466,10 @@ namespace MitaAI
         {
             playerMove.AnimationStop();
         }
-        public static void UnstackPlayer()
+        public static void UnstackPlayer(bool teleportToZero = true)
         {
-            MelonLogger.Msg("Teleport player to 0 0 0");
             stopAnim();
-            MitaCore.Instance.playerObject.transform.position = Vector3.zero;
+            if (teleportToZero) MitaCore.Instance.playerObject.transform.position = Vector3.zero;
         }
 
     }

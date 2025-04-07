@@ -309,7 +309,7 @@ namespace MitaAI
                 Settings.Save();
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
                 
-                if (!changeAnimation) MelonCoroutines.Start(walkingFix());
+               
 
                
                 MitaAnimationModded.init(MitaAnimatorFunctions, location34_Communication, ChangeAnimationControler, changeAnimation);
@@ -352,12 +352,7 @@ namespace MitaAI
 
             MelonLogger.Msg("Change Mita Final");
         }
-        IEnumerator walkingFix()
-        {
-            yield return new WaitForSeconds(7f);
-            Mita.AiShraplyStop();
-            //Mita.AiWalkToTarget(worldHouse);
-        }
+
 
         public static Transform getMitaHand(GameObject MitaObject,bool left = false)
         {
