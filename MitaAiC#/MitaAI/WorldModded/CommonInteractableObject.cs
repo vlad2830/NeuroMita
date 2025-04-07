@@ -11,9 +11,8 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class CommonInteractableObject : MonoBehaviour
     {
-        bool isTakenByMita = false;
-        bool isTakenByPlayer = false;
 
+        public characterType taker = characterType.None;        
 
         public static CommonInteractableObject CheckCreate(GameObject gameObject)
         {
@@ -29,18 +28,17 @@ namespace MitaAI
         public bool isTaken()
         {
 
-            return isTakenByMita || isTakenByPlayer;
-            
+            return taker != characterType.None;
+
+
         }
-        public void setTaken(bool byMita = true)
+        public void setTaken(characterType character = characterType.Player)
         {
-            if (byMita) isTakenByMita = true;
-            else isTakenByPlayer = true;
+            taker = character;
         }
         public void free()
         {
-            isTakenByMita = false;
-            isTakenByPlayer = false;
+            taker = characterType.None;
         }
 
     }

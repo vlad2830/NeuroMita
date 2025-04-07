@@ -49,7 +49,7 @@ namespace MitaAI
                     if (oam.Value.commonInteractableObject.isTaken())
                     {
                         // TODO сделать лучше
-                        info += $"\n Name: '{oam.Key}' distance :{distance.ToString("F2")} is taken by somebody";
+                        info += $"\n Name: '{oam.Key}' distance :{distance.ToString("F2")} is taken by {oam.Value.commonInteractableObject.taker}";
                         continue;
                     }
 
@@ -371,7 +371,7 @@ namespace MitaAI
                     MelonLogger.Error($"Error AiWalkToTargetTranform {ex2}");
                 }
                 
-                if (!isEndingObject) commonInteractableObject.setTaken();
+                if (!isEndingObject) commonInteractableObject.setTaken(MitaCore.Instance.currentCharacter);
 
 
                 MelonLogger.Msg("Ended Play Anim Object Mita");
@@ -420,7 +420,7 @@ namespace MitaAI
         void returnToNormalState()
         {
 
-            backAnimation.commonInteractableObject.setTaken();
+            backAnimation.commonInteractableObject.free();
 
             MitaCore.Instance.Mita.MagnetOff();
             

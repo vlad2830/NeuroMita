@@ -254,6 +254,11 @@ namespace MitaAI
                     obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
                     obj.AnimationPlay();
 
+                    var COI = obj.GetComponent<CommonInteractableObject>();
+                    if (COI  != null)
+                    {
+                        COI.setTaken(characterType.Player);
+                    }
                     
                 }
                 catch (Exception Ex)

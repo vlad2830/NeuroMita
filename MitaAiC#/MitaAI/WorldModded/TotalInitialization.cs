@@ -24,6 +24,28 @@ namespace MitaAI
         static ObjectInteractive exampleComponent;
         public static HashSet<string> additiveLoadedScenes = new HashSet<string>();
 
+
+        #region ОбъектыКРаспределению
+
+        // Прям на глаза ставить
+        // 0 0,025 0
+        // 90 0 0
+        public static GameObject HeartNeonTemplate;
+
+        // Перед заменой сохрани Face текстуру
+        // Это на Head компоненту скопировать
+        public static GameObject ScaryFaceTemplate;
+
+
+        // Надо вместо градиента что-то путное
+        public static GameObject InterfaseStatsTemplate;
+        #endregion
+
+
+
+
+
+
         // Инициализация шаблонного компонента
         public static void InitExampleComponent(Transform world)
         {
@@ -550,6 +572,17 @@ namespace MitaAI
             PlayerAnimationModded.FindPlayerAnimationsRecursive(MitaCore.worldTogether);
             //PlayerAnimationModded.Check();
 
+            try
+            {
+                HeartNeonTemplate = GameObject.Instantiate(MitaCore.worldTogether.Find("Acts/Mita/MitaPerson Mita/Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye/HeartNeon").gameObject);
+
+
+            }
+            finally
+            {
+
+            }
+
             InitObjects();
 
 
@@ -590,6 +623,10 @@ namespace MitaAI
                 AudioControl.addMusicObject(world.Find("Audio/Ambient Horror 1").gameObject);
 
                 PlayerAnimationModded.copyAllObjectAnimationPlayerFromParent(world);
+
+
+                InterfaseStatsTemplate =  GameObject.Instantiate(world.Find("Tamagotchi/InterfaceTamagotchi/Life/PersonageBack").gameObject);
+                InterfaseStatsTemplate.active = false;
             }
 
             catch (Exception ex)
@@ -707,7 +744,7 @@ namespace MitaAI
             SceneManager.UnloadScene(sceneToLoad);
         }
         
-        private static IEnumerator WaitForSceneAndInstantiateWorldManekenWorld(string sceneToLoad)
+        private static IEnumerator WaitForSceneAndInstantiateWorldStartHorror(string sceneToLoad)
         {
             // Загружаем сцену
             MelonLogger.Msg($"Loading scene: {sceneToLoad}");
@@ -750,6 +787,56 @@ namespace MitaAI
             SceneManager.UnloadScene(sceneToLoad);
 
         }
+
+        private static IEnumerator WaitForSceneAndInstantiateWorldManekenWorld(string sceneToLoad)
+        {
+            // Загружаем сцену
+            MelonLogger.Msg($"Loading scene: {sceneToLoad}");
+            additiveLoadedScenes.Add(sceneToLoad);
+            SceneManager.LoadScene(sceneToLoad, LoadSceneMode.Additive);
+
+            // Ожидание завершения загрузки сцены
+            Scene scene;
+            do
+            {
+                scene = SceneManager.GetSceneByName(sceneToLoad);
+                yield return null; // Ждем следующий кадр
+            } while (!scene.isLoaded);
+
+            MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
+
+            // Находим объект в загруженной сцене
+            Transform world = FindObjectInScene(scene.name, "World");
+            if (world == null)
+            {
+                MelonLogger.Msg("World object not found.");
+                yield break; // Прерываем выполнение, если объект не найден
+            }
+            world.gameObject.SetActive(false);
+
+            MelonLogger.Msg($"Object found: {world.name}");
+            try
+            {
+                ScaryFaceTemplate = new GameObject("ScaryFaceTemplate");
+                GameObject.DontDestroyOnLoad(ScaryFaceTemplate);
+                var MatTexture = world.Find("Acts/Mita/MitaPerson Mita/Head").GetComponent<Material_Texture>();
+                var MatTextureCopy = ScaryFaceTemplate.AddComponent<Material_Texture>();
+                MatTextureCopy.indexMaterial = MatTexture.indexMaterial;
+                MatTextureCopy.startIndex = MatTexture.startIndex;
+                MatTextureCopy.textures = MatTexture.textures;
+                MatTextureCopy.valueMaterial = MatTexture.valueMaterial;
+            }
+
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error($"Start horro founding error: {ex}");
+            }
+            //yield return new WaitForSeconds(1f);
+            SceneManager.UnloadScene(sceneToLoad);
+
+        }
+
         private static IEnumerator WaitForSceneAndInstantiateMobilePlayer(string sceneToLoad)
         {
             // Загружаем сцену
