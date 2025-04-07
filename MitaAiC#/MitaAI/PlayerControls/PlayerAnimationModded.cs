@@ -315,6 +315,8 @@ namespace MitaAI
                         if (!PlayerAnimations.ContainsKey(oap.animationStop.name)) PlayerAnimations[oap.animationStop.name] = oap.animationStop;
                         else if (oap.animationStop != PlayerAnimations[oap.animationStop.name]) PlayerAnimations[oap.animationStop.name + "1"] = oap.animationStop;
                     }
+
+                    
                 }
 
                 FindPlayerAnimationsRecursive(child); // Рекурсивный вызов для вложенных объектов

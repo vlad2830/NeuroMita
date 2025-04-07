@@ -1184,16 +1184,14 @@ namespace MitaAI
             MelonLogger.Msg("After all loaded");
             characterType MitaToStart = Settings.Get<characterType>("MitaType");
 
-            int DaysInGame = Settings.Get<int>("DaysInGame");
-
-            DaysInGame+=1;
-            
-            Settings.DaysInGame.Value = DaysInGame;
-            Settings.Save();
+            int currentDays = Settings.Get<int>("DaysInGame");
+            currentDays = currentDays + 1;
+            Settings.Set("DaysInGame", currentDays);
+            MelonLogger.Msg($"Дней в игре: {Settings.Get<int>("DaysInGame")}"); // Проверяем
 
 
             PlayerEffectsModded.turnBlackScreen(false);
-            PlayerEffectsModded.ShowDayFromNumber(DaysInGame, "Сеанс");
+            PlayerEffectsModded.ShowDayFromNumber(currentDays, "Сеанс");
 
             MelonLogger.Msg($"Mita from settings {MitaToStart}");
             
@@ -1218,7 +1216,7 @@ namespace MitaAI
             var ChairRoom4OIP = PlayerAnimationModded.CopyObjectInteractivePlayerTo(ChairRoom4, "Interactive SitOnChair");
             ChairRoom4OIP.transform.localEulerAngles = new Vector3(0, 270, 270);
             ChairRoom4OIP.transform.localPosition = new Vector3(0.5f, 0.2f, 0);
-            
+            //ChairRoom4OIP.GetComponent<ObjectAnimationPlayer>().eventStartAnimaiton.AddListener()
             MelonLogger.Msg("End TestingGround");
             // Тест Миты Кастомной
             //TestMitaFroDemo();

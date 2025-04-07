@@ -88,7 +88,7 @@ namespace MitaAI.Mita
             Transform loc;
 
             Transform MitaTransform = MitaCore.Instance.MitaPersonObject.transform;
-            Transform newPosition = new GameObject().transform;
+            Transform newPosition = getMovePosition();
             Vector3 direction = (MitaTransform.position - playerPerson.position).normalized;
             switch (command.ToLower())
             {
@@ -202,10 +202,10 @@ namespace MitaAI.Mita
                     break;
 
                 case "Надеть очки":
-                    mitaCore.GlassesObj(true);
+                    GlassesObj(true);
                     break;
                 case "Снять очки":
-                    mitaCore.GlassesObj(false);
+                    GlassesObj(false);
                     break;
 
 
@@ -441,6 +441,28 @@ namespace MitaAI.Mita
         }
 
 
+
+        // TODO СДЕЛАТЬ НЕ ТАКИМ ПРИВЯЗАННЫМ
+        public static void GlassesObj()
+        {
+            MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject.SetActive(true);
+        }
+
+        public static void GlassesObj(bool state)
+        {
+            try
+            {
+                var glasses = MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject;
+                glasses.SetActive(state);
+                CharacterMessages.sendSystemInfo(state ? "Очки надеты" : "Очки сняты");
+            }
+            catch (Exception ex)
+            {
+                MelonLogger.Error($"Ошибка при работе с очками: {ex.Message}");
+            }
+        }
+
+
         // TODO дать доброй мите в промпте
         public static void Jail(bool Enter)
         {
@@ -512,7 +534,13 @@ namespace MitaAI.Mita
 
            
         }
-
+        static Transform movePos;
+        static Transform getMovePosition()
+        {
+            if (movePos == null)
+                movePos = new GameObject().transform;
+            return movePos;
+        }
 
         // В случае экстренной ситуации вызвать
         static void TestBigMita()
