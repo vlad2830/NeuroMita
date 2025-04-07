@@ -443,11 +443,6 @@ namespace MitaAI.Mita
 
 
         // TODO СДЕЛАТЬ НЕ ТАКИМ ПРИВЯЗАННЫМ
-        public static void GlassesObj()
-        {
-            MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject.SetActive(true);
-        }
-
         public static void GlassesObj(bool state)
         {
             try

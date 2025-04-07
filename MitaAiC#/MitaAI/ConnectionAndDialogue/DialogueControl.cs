@@ -211,14 +211,14 @@ namespace MitaAI
                 {
 
                     MelonLogger.Msg("Begin try:" + modifiedPart);
-                    modifiedPart = MitaCore.Instance.SetFaceStyle(modifiedPart);
+                    modifiedPart = MitaFaceAnimationModded.SetFaceStyle(modifiedPart);
                     modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
                     modifiedPart = PlayerEffectsModded.ProcessPlayerEffects(modifiedPart);
                     modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
                     modifiedPart = AudioControl.ProcessMusic(modifiedPart);
                     modifiedPart = CommandProcessor.ProcesHint(modifiedPart);
                     modifiedPart = ObjectAnimationMita.ProcessInteraction(modifiedPart);
-                    (emotion, modifiedPart) = MitaCore.Instance.SetEmotionBasedOnResponse(modifiedPart);
+                    (emotion, modifiedPart) = MitaFaceAnimationModded.SetEmotionBasedOnResponse(modifiedPart);
                     MelonLogger.Msg("After SetEmotionBasedOnResponse " + modifiedPart);
 
                     (commands, modifiedPart) = CommandProcessor.ExtractCommands(modifiedPart);
@@ -264,7 +264,7 @@ namespace MitaAI
         {
             if (characterToSend == characterType.Crazy) return;
 
-            Color characterColor = MitaCore.GetCharacterTextColor(characterToSend);
+            Color characterColor = CharacterControl.GetCharacterTextColor(characterToSend);
             var textMesh = currentDialog.GetComponentInChildren<Text>();
             if (textMesh != null)
             {
@@ -336,7 +336,7 @@ namespace MitaAI
             textDialogueMemory.text = dialogue_3DText.textPrint;
             if (dialogue_3DText.themeDialogue == Dialogue_3DText.Dialogue3DTheme.Mita)
             {
-                Color characterColor = MitaCore.GetCharacterTextColor(speaker);
+                Color characterColor = CharacterControl.GetCharacterTextColor(speaker);
                 textDialogueMemory.clr = Color.white;
                 textDialogueMemory.clr2 = characterColor;
                 textDialogueMemory.clr1 = Color.white;

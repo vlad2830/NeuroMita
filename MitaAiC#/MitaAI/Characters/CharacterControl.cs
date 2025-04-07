@@ -468,5 +468,32 @@ namespace MitaAI
             float parentWidth = parentRect.rect.width;
             rectTransform.sizeDelta = new Vector2(parentWidth * 0.7f, OrderText.fontSize * 5); // Высота = 5 строк
         }
+
+
+        public static Color GetCharacterTextColor(characterType character)
+        {
+            switch (character)
+            {
+                case characterType.Crazy:
+                    return new Color(1f, 0.4f, 0.8f); // розовый
+                case characterType.Cappy:
+                    return new Color(1f, 1f, 0.1f); // мягкий оранжевый 
+                case characterType.Kind:
+                    return new Color(0.80f, 0.9f, 1f); // Бирюзовый
+
+                case characterType.ShortHair:
+                    return new Color(1f, 0.9f, 0.4f); // мягкий желтый
+                case characterType.Mila:
+                    return new Color(0.4f, 0.6f, 1f); // голубой
+                case characterType.Sleepy:
+                    return new Color(1f, 1f, 1f); // мягкий розовый
+                case characterType.Creepy:
+                    return new Color(1f, 0f, 0f); // красный
+                case characterType.GameMaster:
+                    return Color.black;
+                default:
+                    return Color.white;
+            }
+        }
     }
 }

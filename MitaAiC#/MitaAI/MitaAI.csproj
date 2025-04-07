@@ -333,6 +333,7 @@
 		<Compile Include="ConnectionAndDialogue\DataChange.cs" />
 		<Compile Include="ConnectionAndDialogue\DialogueControl.cs" />
 		<Compile Include="ConnectionAndDialogue\CurrentInfoControl.cs" />
+		<Compile Include="Mita\MitaFaceAnimationModded.cs" />
 		<Compile Include="Mita\MitaMovement.cs" />
 		<Compile Include="Mita\ObjectAnimationMita.cs" />
 		<Compile Include="Mita\MitaActionAnimation.cs" />
