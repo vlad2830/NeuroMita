@@ -73,6 +73,7 @@ namespace MitaAI
             #region ButtonLoading
 
             MelonLogger.Msg("Start SceneMenu");
+            CustomUI.Instance.SetMenuVisible(false);
             // Кнопки мода
             GameObject Menu = GameObject.Find("MenuGame/Canvas/FrameMenu/Location Menu").gameObject;
             MainMenuLocation = Menu.GetComponent<MenuLocation>();
