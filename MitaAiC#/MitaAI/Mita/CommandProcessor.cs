@@ -3,7 +3,7 @@ using Il2CppSystem.Threading;
 using MelonLoader;
 using MitaAI.WorldModded;
 using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Transactions;
@@ -147,7 +147,7 @@ namespace MitaAI.Mita
 
                 // Начало агрессии
                 case "зарезать игрока":
-                    MelonCoroutines.Start(mitaCore.ActivateAndDisableKiller(3f));
+                    MelonCoroutines.Start(ActivateAndDisableKiller(3f));
                     break;
 
                 case "выключить игрока":
@@ -456,7 +456,67 @@ namespace MitaAI.Mita
                 MelonLogger.Error($"Ошибка при работе с очками: {ex.Message}");
             }
         }
+        public static IEnumerator ActivateAndDisableKiller(float delay)
+        {
+            MelonLogger.Msg("Player killed");
 
+            if (MitaCore.Instance.AnimationKiller.transform.Find("PositionsKill").childCount > 0)
+            {
+                MitaCore.Instance.AnimationKiller.transform.Find("PositionsKill").GetChild(0).SetPositionAndRotation(playerPerson.transform.position, playerPerson.transform.rotation);
+            }
+            MitaCore.Instance.AnimationKiller.SetActive(true); // Включаем объект
+
+
+            // Сохраняем исходную позицию и ориентацию Миты
+            Vector3 originalPosition = MitaPersonObject.transform.position;
+            Quaternion originalRotation = MitaPersonObject.transform.rotation;
+            MitaPersonObject.transform.SetPositionAndRotation(new Vector3(500, 500, 500), Quaternion.identity);
+            yield return new WaitForSeconds(0.1f);
+            try
+            {
+                MitaCore.Instance.AnimationKiller.GetComponent<Location6_MitaKiller>().Kill(); // Вызываем метод Kill()
+                MitaGames.endHunt();
+            }
+            catch (Exception e)
+            {
+
+                MelonLogger.Msg(e);
+            }
+
+            yield return new WaitForSecondsRealtime(delay);
+
+            CharacterMessages.sendSystemMessage("You successfully killed the player using knife, and he respawned somewhere.");
+
+            MitaCore.Instance.AnimationKiller.SetActive(false); // Включаем объект
+            // Возвращаем Миту в исходное положение
+            Utils.TryTurnChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);
+
+            try
+            {
+                MitaPersonObject.transform.SetPositionAndRotation(originalPosition, originalRotation);
+                MitaCore.Instance.Mita.AiShraplyStop();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+            PlayerAnimationModded.TurnHandAnim();
+
+            if (AudioControl.getCurrrentMusic() != "Music 4 Tension")
+            {
+                MelonLogger.Msg("Need to turn of Tension");
+                AudioControl.TurnAudio("Music 4 Tension", false);
+
+                yield return new WaitForSecondsRealtime(2f);
+
+                AudioControl.TurnAudio("Music 4 Tension", false);
+            }
+
+
+
+        }
 
         // TODO дать доброй мите в промпте
         public static void Jail(bool Enter)

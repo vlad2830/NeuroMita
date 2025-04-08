@@ -75,7 +75,7 @@ namespace MitaAI
                     if (allOAMs.TryGetValue(interaction, out var oam))
                     {
                         MelonLogger.Msg($"Found Interaction {oam.text} {oam.tip}");
-                        MitaAnimationModded.EnqueueAnimation(oam,delay_after:0.5f);
+                        MitaAnimationModded.EnqueueAnimation(oam,delayAfter:0.5f);
                     }
                 }
                 return Regex.Replace(response, $@"<{command}>.*?</{command}>", "");

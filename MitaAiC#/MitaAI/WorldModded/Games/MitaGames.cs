@@ -60,7 +60,7 @@ namespace MitaAI
                 {
                     try
                     {
-                        MelonCoroutines.Start(MitaCore.Instance.ActivateAndDisableKiller(3));
+                        MelonCoroutines.Start(CommandProcessor.ActivateAndDisableKiller(3));
                     }
                     catch (Exception ex)
                     {
@@ -108,7 +108,7 @@ namespace MitaAI
         // Метод для вызова из LogicCharacter, чтобы активировать анимацию убийства
         public static void ActivateKillerAnimation()
         {
-            MelonCoroutines.Start(MitaCore.Instance.ActivateAndDisableKiller(3));
+            MelonCoroutines.Start(CommandProcessor.ActivateAndDisableKiller(3));
         }
 
         // Метод для LogicCharacter, чтобы установить состояние персонажа

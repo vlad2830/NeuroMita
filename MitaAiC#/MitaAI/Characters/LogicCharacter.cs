@@ -2,7 +2,8 @@ using MelonLoader;
 using Il2Cpp;
 using UnityEngine;
 using UnityEngine.AI;
-using System.Collections; // Добавлено для IEnumerator
+using System.Collections;
+using MitaAI.Mita; // Добавлено для IEnumerator
 
 namespace MitaAI
 {
@@ -307,7 +308,7 @@ namespace MitaAI
                 {
                     try
                     {
-                        MelonCoroutines.Start(MitaCore.Instance.ActivateAndDisableKiller(3));
+                        MelonCoroutines.Start(CommandProcessor.ActivateAndDisableKiller(3));
                         EndHunt(); // Завершаем охоту после убийства
                     }
                     catch (Exception ex)

@@ -57,7 +57,7 @@ namespace MitaAI.Mita
 
             if (changeAnimation)
             {
-                idleAnimation = FindAnimationClipByName("Idle");
+                idleAnimation = FindAnimationClipInControllerByName("Idle");
                 // Пока что так))
                 switch (character)
                 {
@@ -69,8 +69,8 @@ namespace MitaAI.Mita
                     case characterType.Crazy:
                         break;
                     case characterType.Cappy:
-                        idleAnimation = FindAnimationClipByName("Mita Hands Down Idle");
-                        idleWalkAnimation = FindAnimationClipByName("Mita Walk_7");
+                        idleAnimation = FindAnimationClipInControllerByName("Mita Hands Down Idle");
+                        idleWalkAnimation = FindAnimationClipInControllerByName("Mita Walk_7");
                         setIdleAnimation("Mita Hands Down Idle");
                         setIdleWalk("Mita Walk_7");
                         break;
@@ -83,8 +83,8 @@ namespace MitaAI.Mita
                     case characterType.Cart_divan:
                         break;
                     case characterType.Mila:
-                        idleAnimation = FindAnimationClipByName("MitaWalkMila");
-                        idleWalkAnimation = FindAnimationClipByName("Mila Stay T");
+                        idleAnimation = FindAnimationClipInControllerByName("MitaWalkMila");
+                        idleWalkAnimation = FindAnimationClipInControllerByName("Mila Stay T");
                         setIdleAnimation("MitaWalkMila");
                         setIdleWalk("Mila Stay T");
                         break;
@@ -504,80 +504,89 @@ namespace MitaAI.Mita
 
         }
 
-        static public void EnqueueAnimation(string animName = "",float crossfade_len = 0.25f, float timeAfter = 0, bool makeFirst = false, bool avoidStateSettings = false)
+        static public void EnqueueAnimation(string animName = "", float crossfadeLen = 0.25f,
+                                           float timeAfter = 0, bool makeFirst = false,
+                                           bool avoidStateSettings = false)
         {
+            HandleAnimationEnqueue(() =>
+                new MitaActionAnimation(
+                    animName,
+                    crossfadeLen,
+                    crossfadeLen,
+                    timeAfter,
+                    timeAfter,
+                    avoidStateSettings
+                ),
+                animName,
+                makeFirst,
+                $"Start Que cor from {animName}"
+            );
+        }
 
+        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita,
+                                           float crossfadeLen = 0.25f, float timeAfter = 0,
+                                           float delayAfter = 0, bool makeFirst = false)
+        {
+            HandleAnimationEnqueue(() =>
+                new MitaActionAnimation(
+                    objectAnimationMita.mitaAmimatedName,
+                    objectAnimationMita.AnimationTransitionDuration,
+                    crossfadeLen,
+                    timeAfter,
+                    objectAnimationMita,
+                    delayAfter
+                ),
+                objectAnimationMita.mitaAmimatedName,
+                makeFirst,
+                $"Start Que cor from OAM {objectAnimationMita.mitaAmimatedName}",
+                "objectAnimationMita "
+            );
+        }
+
+        private static void HandleAnimationEnqueue(Func<MitaActionAnimation> animationFactory,
+                                                  string animationName,
+                                                  bool makeFirst,
+                                                  string startMessage,
+                                                  string logPrefix = "")
+        {
             try
             {
+                var animation = animationFactory();
+                AddAnimationToList(animation, makeFirst);
 
-                //animationQueue.Enqueue((animName, crossfade_len,timeAfter
+                MelonLogger.Msg($"Added {logPrefix}to queue: {animationName}");
 
-                if (makeFirst)
-                {
-                    animationList.AddFirst(new MitaActionAnimation(animName, crossfade_len, crossfade_len, timeAfter, timeAfter, avoidStateSettings));
-                }
-
-                else
-                {
-                    animationList.AddLast(new MitaActionAnimation(animName, crossfade_len, crossfade_len, timeAfter, timeAfter, avoidStateSettings));
-                }
-                    
-
-                MelonLogger.Msg($"Added to queue: {animName}");
-
-                if (!isPlaying)
-                {
-                    MelonLogger.Msg($"Start Que cor from {animName}");
-                    MelonCoroutines.Start(ProcessQueue());
-                }
-
+                StartQueueProcessingIfNeeded(startMessage);
             }
             catch (Exception e)
             {
-                MelonLogger.Msg("Animation error: " + e);
+                MelonLogger.Msg($"Animation error: {e}");
             }
         }
-        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita, float crossfade_len = 0.25f, float timeAfter = 0,float delay_after = 0, bool makeFirst = false)
+
+        private static void AddAnimationToList(MitaActionAnimation animation, bool makeFirst)
         {
-
-            try
-            {
-
-                //animationQueue.Enqueue((animName, crossfade_len,timeAfter
-
-                if (makeFirst)
-                {
-                    animationList.AddFirst(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita, delay_after));
-                }
-
-                else
-                {
-                    animationList.AddLast(new MitaActionAnimation(objectAnimationMita.mitaAmimatedName, objectAnimationMita.AnimationTransitionDuration, crossfade_len, timeAfter, objectAnimationMita, delay_after));
-                }
-                    
-
-                MelonLogger.Msg($"Added objectAnimationMita to queue: {objectAnimationMita.mitaAmimatedName}");
-
-                if (!isPlaying)
-                {
-                    MelonLogger.Msg($"Start Que cor from OAM {objectAnimationMita.mitaAmimatedName}");
-                    MelonCoroutines.Start(ProcessQueue());
-                }
-
-            }
-            catch (Exception e)
-            {
-                MelonLogger.Msg("Animation error: " + e);
-            }
+            if (makeFirst)
+                animationList.AddFirst(animation);
+            else
+                animationList.AddLast(animation);
         }
 
-        static AnimationClip FindAnimationClipByName(string animationName)
+        private static void StartQueueProcessingIfNeeded(string startMessage)
+        {
+            if (isPlaying) return;
+
+            MelonLogger.Msg(startMessage);
+            MelonCoroutines.Start(ProcessQueue());
+        }
+
+
+        static AnimationClip FindAnimationClipInControllerByName(string animationName)
         {
             if (runtimeAnimatorController == null) return null;
-            // Получаем все анимации из Animator Controller
-            // AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+
             AnimationClip[] clips = runtimeAnimatorController.animationClips;
-            // Проверяем, есть ли анимация с указанным именем
+
             foreach (AnimationClip clip in clips)
             {
                 if (clip.name == animationName)
@@ -589,9 +598,6 @@ namespace MitaAI.Mita
 
             return null;
         }
-
-
-        static int testIndex = 0;
         
         
         // Корутина для последовательного проигрывания
@@ -665,7 +671,7 @@ namespace MitaAI.Mita
             bool avoidStateSettings = animObject.avoidStateSettings;
             var ObjectAnimationMita = animObject.ObjectAnimationMita;
 
-            AnimationClip anim = FindAnimationClipByName(animName);
+            AnimationClip anim = FindAnimationClipInControllerByName(animName);
             if (anim != null)
             {
                 //if (ObjectAnimationMita.CurrentOAMc?.backAnimation != null) { }
@@ -790,7 +796,7 @@ namespace MitaAI.Mita
                 try
                 {
                     currentIdleAnim = animName;
-                    AnimationClip anim = FindAnimationClipByName(animName);
+                    AnimationClip anim = FindAnimationClipInControllerByName(animName);
                     if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                     location34_Communication.mitaAnimationIdle = anim;
 
@@ -815,7 +821,7 @@ namespace MitaAI.Mita
 
             if (string.IsNullOrEmpty(animName)) return;
             
-            AnimationClip anim = FindAnimationClipByName(animName);
+            AnimationClip anim = FindAnimationClipInControllerByName(animName);
             if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
 
             if (anim == null)

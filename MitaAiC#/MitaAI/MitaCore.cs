@@ -1051,85 +1051,11 @@ namespace MitaAI
             }
 
         }
-        
-
-
-
-
-        // Добавляет диалог в историю
-
-
-        
 
         public IEnumerator MitaSharplyStopTimed(float time)
         {
             yield return new WaitForSeconds(time);
             Mita.AiShraplyStop();
-        }
-
-
-
-        // Корутин для активации и деактивации объекта
-        public IEnumerator ActivateAndDisableKiller(float delay)
-        {
-            MelonLogger.Msg("Player killed");
-
-            if (AnimationKiller.transform.Find("PositionsKill").childCount > 0)
-            {
-                AnimationKiller.transform.Find("PositionsKill").GetChild(0).SetPositionAndRotation(playerPerson.transform.position, playerPerson.transform.rotation);
-            }
-            AnimationKiller.SetActive(true); // Включаем объект
-
-
-            // Сохраняем исходную позицию и ориентацию Миты
-            Vector3 originalPosition = MitaPersonObject.transform.position;
-            Quaternion originalRotation = MitaPersonObject.transform.rotation;
-            MitaPersonObject.transform.SetPositionAndRotation(new Vector3(500, 500, 500), Quaternion.identity);
-            yield return new WaitForSeconds(0.1f);
-            try
-            {
-                AnimationKiller.GetComponent<Location6_MitaKiller>().Kill(); // Вызываем метод Kill()
-                MitaGames.endHunt();
-            }
-            catch (Exception e)
-            {
-
-                MelonLogger.Msg(e);
-            }
-            
-            yield return new WaitForSecondsRealtime(delay);
-
-            CharacterMessages.sendSystemMessage("You successfully killed the player using knife, and he respawned somewhere.");
-
-            AnimationKiller.SetActive(false); // Включаем объект
-            // Возвращаем Миту в исходное положение
-            Utils.TryTurnChild(worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom", true);
-
-            try
-            {
-                MitaPersonObject.transform.SetPositionAndRotation(originalPosition, originalRotation);
-                Mita.AiShraplyStop();
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
-            PlayerAnimationModded.TurnHandAnim();
-
-            if (AudioControl.getCurrrentMusic() != "Music 4 Tension")
-            {
-                MelonLogger.Msg("Need to turn of Tension");
-                AudioControl.TurnAudio("Music 4 Tension", false);
-                
-                yield return new WaitForSecondsRealtime(2f);
-
-                AudioControl.TurnAudio("Music 4 Tension", false);
-            }
-
-            
-
         }
 
         public override void OnUpdate()
