@@ -1,7 +1,6 @@
 import asyncio
 
 from Events.PlayerEvents import PlayerEvents
-from Stages.CrazyMitaStages import WelcomeStage
 from FiniteStateMachine import FiniteStateMachine
 from FSM.Characters.Crazy.MitaStates import MitaDefaultState, MitaMurderState, MitaHelloState
 
@@ -16,7 +15,7 @@ async def main():
 
     fsm = FiniteStateMachine(
         initial_state=MitaDefaultState(["Сейчас ты в обычном состоянии", "Ты хочешь мирно существовать"]),
-        initial_stage=WelcomeStage(available_states)
+
     )
 
     fsm.handle_event(PlayerEvents.TOUCH_LAPTOP)  # MitaHelloState => MitaMurderState

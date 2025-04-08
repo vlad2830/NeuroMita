@@ -3,6 +3,8 @@ import os
 
 import pygame
 
+from Logger import logger
+
 
 class AudioHandler:
 
@@ -10,17 +12,17 @@ class AudioHandler:
     async def handle_voice_file(cls, file_path):
         """Проигрывает звуковой файл (MP3 или OGG)."""
         try:
-            print(f"Проигрываю файл: {file_path}")
+            logger.info(f"Проигрываю файл: {file_path}")
             await cls.play_audio_with_pygame(file_path)
             if os.path.exists(file_path):
                 try:
                     await asyncio.sleep(0.02)
                     os.remove(file_path)
-                    print(f"Файл {file_path} удалён.")
+                    logger.info(f"Файл {file_path} удалён.")
                 except Exception as e:
-                    print(f"Файл {file_path} НЕ удалён. Ошибка: {e}")
+                    logger.info(f"Файл {file_path} НЕ удалён. Ошибка: {e}")
         except Exception as e:
-            print(f"Ошибка при воспроизведении файла: {e}")
+            logger.info(f"Ошибка при воспроизведении файла: {e}")
 
     @classmethod
     async def play_audio_with_pygame(self, file_path):

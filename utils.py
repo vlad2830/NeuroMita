@@ -6,6 +6,8 @@ import re
 
 from num2words import num2words
 
+from Logger import logger
+
 
 def clamp(value, min_value, max_value):
     return max(min_value, min(value, max_value))
@@ -19,7 +21,7 @@ def load_text_from_file(filename):
     :return: Содержимое файла в виде строки. Если файл не найден, возвращает пустую строку.
     """
 
-    print(f"Загружаю {filename}")
+    logger.info(f"Загружаю {filename}")
     try:
         # Получаем полный путь к файлу
         filepath = get_resource_path(filename)
@@ -33,14 +35,14 @@ def load_text_from_file(filename):
 
         # Проверяем, существует ли файл
         if not os.path.exists(filepath):
-            print(f"Файл не найден: {filepath}")
+            logger.info(f"Файл не найден: {filepath}")
             return ""
 
         # Читаем файл
         with open(filepath, 'r', encoding='utf-8') as file:
             return file.read()
     except Exception as e:
-        print(f"Ошибка при чтении файла {filename}: {e}")
+        logger.info(f"Ошибка при чтении файла {filename}: {e}")
         return ""
 
 
@@ -64,7 +66,7 @@ def get_resource_path(filename):
 
     # Проверяем, существует ли папка 'Crazy'
     if not os.path.isdir(promts_path):
-        print(f"Ошибка: Папка не найдена по пути: {promts_path}")
+        logger.info(f"Ошибка: Папка не найдена по пути: {promts_path}")
         return None
 
     # Возвращаем полный путь к файлу
@@ -76,7 +78,7 @@ def load_json_file(filepath):
         with open(filepath, "r", encoding="utf-8") as file:
             return json.load(file)
     except FileNotFoundError:
-        print(f"Файл {filepath} не найден.")
+        logger.info(f"Файл {filepath} не найден.")
         return {}
 
 
@@ -86,7 +88,7 @@ def save_combined_messages(combined_messages, output_folder="SavedMessages"):
     file_path = os.path.join(output_folder, file_name)
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(combined_messages, file, ensure_ascii=False, indent=4)
-    print(f"Сообщения сохранены в файл: {file_path}")
+    logger.info(f"Сообщения сохранены в файл: {file_path}")
 
 
 def calculate_cost_for_combined_messages(self, combined_messages, cost_input_per_1000):
@@ -149,9 +151,9 @@ def shift_chars(s, shift):
 
 
 # text = load_text_from_file("Prompts/Common/None.txt")
-# print(text)
+# logger.info(text)
 # textEncoded = shift_chars(text,1)
-# print(textEncoded)
+# logger.info(textEncoded)
 # textDecoded = shift_chars(textEncoded,-1)
-# print(textDecoded)
+# logger.info(textDecoded)
 #

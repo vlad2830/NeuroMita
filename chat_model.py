@@ -8,29 +8,13 @@ from g4f.client import Client as g4fClient
 
 import re
 
+from Logger import logger
 from character import *
 from characters import *
 
 from utils import *
-# Настройка логирования
-import logging
-import colorlog
 
-# Настройка цветного логирования
-handler = colorlog.StreamHandler()
-handler.setFormatter(colorlog.ColoredFormatter(
-    '%(log_color)s%(asctime)s - %(levelname)s - %(message)s',
-    log_colors={
-        'INFO': 'white',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'red,bg_white',
-    }
-))
 
-logger = colorlog.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(handler)
 
 
 class ChatModel:
@@ -59,15 +43,15 @@ class ChatModel:
 
             self.client = OpenAI(api_key=self.api_key, base_url=self.api_url)
 
-            print("Со старта удалось запустить OpenAi client")
+            logger.info("Со старта удалось запустить OpenAi client")
         except:
-            print("Со старта не получилось запустить OpenAi client")
+            logger.info("Со старта не получилось запустить OpenAi client")
 
         try:
             self.tokenizer = tiktoken.encoding_for_model("gpt-4o-mini")
             self.hasTokenizer = True
         except:
-            print("Тиктокен не сработал( Ну и пофиг, на билдах он никогда и не работал")
+            logger.info("Тиктокен не сработал( Ну и пофиг, на билдах он никогда и не работал")
             self.hasTokenizer = False
 
         self.max_response_tokens = 3200
@@ -141,28 +125,28 @@ class ChatModel:
         self.current_character = self.crazy_mita_character
 
     def get_all_mitas(self):
-        print(f"Characters {self.characters.keys()}")
+        logger.info(f"Characters {self.characters.keys()}")
         return list(self.characters.keys())
 
     def update_openai_client(self, reserve_key=False):
-        print("Попытка обновить клиент")
+        logger.info("Попытка обновить клиент")
         if reserve_key and self.api_key_res != "":
-            print("С резервным ключом")
+            logger.info("С резервным ключом")
             key = reserve_key
         else:
-            print("С основным ключом")
+            logger.info("С основным ключом")
             key = self.api_key
 
         try:
             if self.api_url != "":
-                print("И ключ и ссылка")
+                logger.info("И ключ и ссылка")
                 self.client = OpenAI(api_key=key,
                                      base_url=self.api_url)
             else:
-                print("Только ключ")
+                logger.info("Только ключ")
                 self.client = OpenAI(api_key=key)
         except Exception as e:
-            print(f"update_openai_client не сработал {e}")
+            logger.info(f"update_openai_client не сработал {e}")
 
     def generate_response(self, user_input, system_input=""):
 
@@ -172,7 +156,7 @@ class ChatModel:
         data = self.current_character.load_history()
         messages = data.get("messages", [])
         if len(self.infos) > 0:
-            print("Попытался расширить messages")
+            logger.info("Попытался расширить messages")
             messages.extend(self.infos)
             self.infos.clear()
         self.current_character.process_logic(messages)
@@ -197,10 +181,10 @@ class ChatModel:
             response, success = self._generate_chat_response(combined_messages)
 
             if not success:
-                print("Неудачная генерация")
+                logger.info("Неудачная генерация")
                 return response
             elif response == "":
-                print("Пустая генерация")
+                logger.info("Пустая генерация")
                 return response
 
             response_message = {
@@ -212,7 +196,7 @@ class ChatModel:
             # Процессинг ответа: изменяем показатели и сохраняем историю
             response = self.current_character.process_response(response)
 
-            print(f"До фразы {response}")
+            logger.info(f"До фразы {response}")
 
             if self.current_character == self.GameMaster and not bool(self.gui.settings.get("GM_VOICE")):
                 pass
@@ -220,8 +204,8 @@ class ChatModel:
                 self.gui.textToTalk = self.process_text_to_voice(response)
                 self.gui.textSpeaker = self.current_character.silero_command
                 self.gui.silero_turn_off_video = self.current_character.silero_turn_off_video
-                print("self.gui.textToTalk: " + self.gui.textToTalk)
-                print("self.gui.textSpeaker: " + self.gui.textSpeaker)
+                logger.info("self.gui.textToTalk: " + self.gui.textToTalk)
+                logger.info("self.gui.textSpeaker: " + self.gui.textSpeaker)
 
             self.current_character.safe_history(messages, timed_system_message)
 
@@ -246,7 +230,7 @@ class ChatModel:
 
         # Проверяем, есть ли имя в словаре
         if self.current_character_to_change in self.characters:
-            print(f"Меняю персонажа на {self.current_character_to_change}")
+            logger.info(f"Меняю персонажа на {self.current_character_to_change}")
             self.current_character = self.characters[self.current_character_to_change]
             self.current_character_to_change = ""  # Сбрасываем значение
 
@@ -281,7 +265,7 @@ class ChatModel:
         # Добавляем timed_system_message, если это словарь
         if isinstance(timed_system_message, dict) and timed_system_message["content"] != "":
             combined_messages.append(timed_system_message)
-            print("timed_system_message успешно добавлено.")
+            logger.info("timed_system_message успешно добавлено.")
 
         if self.nearObjects != "" and self.nearObjects != "-":
             text = f"В радиусе от тебя следующие объекты (object tree) {self.nearObjects}"
@@ -295,7 +279,7 @@ class ChatModel:
         # Добавляем messages, если они не пустые
         if messages:
             combined_messages.extend(messages)
-            print("messages успешно добавлены. Количество:", len(messages))
+            logger.info(f"messages успешно добавлены. Количество: {len(messages)}")
         messages = character.prepare_float_messages(messages)
 
         #combined_messages = character.add_context(combined_messages)
@@ -312,7 +296,7 @@ class ChatModel:
 
         self._log_generation_start()
         for attempt in range(1, max_attempts + 1):
-            print(f"Попытка генерации {attempt}/{max_attempts}")
+            logger.info(f"Попытка генерации {attempt}/{max_attempts}")
             response = None
 
             # Логируем начало генерации
@@ -333,12 +317,12 @@ class ChatModel:
                     # Переключаем ключи начиная со второй попытки
 
                     if attempt >= max_attempts - 2:
-                        print("Пробую gtp4free")
+                        logger.info("Пробую gtp4free")
                         response = self._generate_openapi_response(combined_messages, use_gpt4free=True)
                     else:
                         if attempt > 1:
                             key = self.GetOtherKey()
-                            print(f"Пробую другой ключ {self.last_key} {key}")
+                            logger.info(f"Пробую другой ключ {self.last_key} {key}")
                             self.update_openai_client(reserve_key=key)
 
                         response = self._generate_openapi_response(combined_messages)
@@ -354,10 +338,10 @@ class ChatModel:
 
             # Если ответа нет - ждем перед следующей попыткой
             if attempt < max_attempts:
-                print(f"Ожидание {retry_delay} сек. перед повторной попыткой...")
+                logger.info(f"Ожидание {retry_delay} сек. перед повторной попыткой...")
                 time.sleep(retry_delay)
 
-        print("Все попытки исчерпаны")
+        logger.info("Все попытки исчерпаны")
         return None, False
 
     def _log_generation_start(self):
@@ -405,14 +389,14 @@ class ChatModel:
 
         try:
             if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
-                print("gemini последнее системное сообщение на юзерское")
+                logger.info("gemini последнее системное сообщение на юзерское")
                 combined_messages[-1]["role"] = "user"
                 combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]
 
-            print(f"Перед запросом  {len(combined_messages)}", )
+            logger.info(f"Перед запросом  {len(combined_messages)}", )
 
             if bool(self.gui.settings.get("gpt4free")) or use_gpt4free:
-                print("gpt4free case")
+                logger.info("gpt4free case")
 
                 completion = self.g4fClient.chat.completions.create(
                     model=self.gpt4free_model,
@@ -429,15 +413,15 @@ class ChatModel:
                     #presence_penalty=1.5,
                     temperature=0.5
                 )
-            print(f"after completion{completion}")
+            logger.info(f"after completion{completion}")
 
             if completion:
                 if completion.choices:
                     response = completion.choices[0].message.content
-                    print(f"response {response}")
+                    logger.info(f"response {response}")
                     return response.lstrip("\n")
                 else:
-                    print("completion.choices пусто")
+                    logger.warning("completion.choices пусто")
                     logger.warning(completion)
                     self.try_print_error(completion)
                     return None
@@ -446,7 +430,7 @@ class ChatModel:
                 return None
 
         except Exception as e:
-            logger.error("Что-то не так при генерации OpenAI", str(e))
+            logger.error(f"Что-то не так при генерации OpenAI: {str(e)}")
             return None
 
     def _save_and_calculate_cost(self, combined_messages):
@@ -590,7 +574,7 @@ class ChatModel:
                 command = response[start_index:end_index]
 
                 # Логируем текущую команду
-                print(f"Обработка команды: {command}")
+                logger.info(f"Обработка команды: {command}")
 
                 # Обработка команды
                 if command == "Достать бензопилу":
@@ -610,7 +594,7 @@ class ChatModel:
                 else:
                     # Обработка неизвестных команд
                     #add_temporary_system_message(messages, f"Неизвестная команда: {command}")
-                    print(f"Неизвестная команда: {command}")
+                    logger.info(f"Неизвестная команда: {command}")
 
                 # Сдвигаем указатель поиска на следующий символ после текущей команды
                 search_start = end_index + len(end_tag)
@@ -646,7 +630,7 @@ class ChatModel:
         return clean_text
 
     def reload_promts(self):
-        print("Перезагрузка промптов")
+        logger.info("Перезагрузка промптов")
 
         self.current_character.init()
         self.current_character.process_response()

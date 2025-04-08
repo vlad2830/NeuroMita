@@ -1,31 +1,7 @@
 from FSM.Events.MitaEvents import MitaEvents
 from FSM.Events.PlayerEvents import PlayerEvents
 from FSM.BaseState import BaseState
-#region Logging
-# Настройка логирования
-import logging
-import colorlog
-
-from FSM.Stages.BaseStage import BaseStage
-
-# Настройка цветного логирования
-# handler = colorlog.StreamHandler()
-# handler.setFormatter(colorlog.ColoredFormatter(
-#     '%(log_color)s%(asctime)s - %(levelname)s - %(message)s',
-#     log_colors={
-#         'INFO': 'white',
-#         'WARNING': 'yellow',
-#         'ERROR': 'red',
-#         'CRITICAL': 'red,bg_white',
-#     }
-# ))
-#
-# logger = colorlog.getLogger(__name__)
-# logger.setLevel(logging.INFO)
-# logger.addHandler(handler)
-
-logger = logging.getLogger(__name__)
-#endregion
+from Logger import logger
 
 
 class FiniteStateMachine:

@@ -2,6 +2,8 @@ import json
 import socket
 from datetime import datetime
 
+from Logger import logger
+
 
 class ChatServer:
     def __init__(self, gui, chat_model, host='127.0.0.1', port=12345):
@@ -21,7 +23,7 @@ class ChatServer:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.host, self.port))  # Привязка к адресу
         self.server_socket.listen(5)  # Ожидание подключений (макс. 5 в очереди)
-        print(f"Сервер запущен на {self.host}:{self.port}")
+        logger.info(f"Сервер запущен на {self.host}:{self.port}")
 
     #TODO РЕФАКТОРЬ РЕФАКТОРЬ РЕФАКТОРЬ!
     def handle_connection(self):
@@ -30,36 +32,36 @@ class ChatServer:
         if not self.server_socket:
             raise RuntimeError("Сервер не запущен. Вызовите start() перед handle_connection().")
         try:
-            #print("Жду получения от клиента игры")
+            #logger.info("Жду получения от клиента игры")
             # Ожидание подключения
             self.client_socket, addr = self.server_socket.accept()
-            #print(f"Подключен {addr}")
+            #logger.info(f"Подключен {addr}")
 
             received_text = self.client_socket.recv(8192).decode("utf-8")
 
             # Логируем полученные данные
-            #print(f"Получено: {received_text}")
+            #logger.info(f"Получено: {received_text}")
 
             # Проверяем, корректно ли закрыт JSON (простая проверка)
             # Валидация JSON структуры
             if not received_text.strip().endswith("}"):
-                print("Ошибка: JSON оборван")
+                logger.info("Ошибка: JSON оборван")
                 return False
             # Парсинг JSON данных
             try:
                 message_data = json.loads(received_text)
-                #print("JSON успешно разобран!")
+                #logger.info("JSON успешно разобран!")
             except json.JSONDecodeError as e:
-                print(f"Ошибка обработки JSON: {e}")
+                logger.info(f"Ошибка обработки JSON: {e}")
                 return False
             # Обработка распарсенных данных
             self.process_message_data(message_data)
             return True
 
         except socket.error as e:
-            print(f"Socket error: {e}")
+            logger.info(f"Socket error: {e}")
         except Exception as e:
-            print(f"Connection handling error: {e}")
+            logger.info(f"Connection handling error: {e}")
             self.gui.ConnectedToGame = False  # Обновление статуса в GUI
         finally:
             if self.client_socket:
@@ -92,7 +94,7 @@ class ChatServer:
             self.gui.dialog_active = bool(message_data.get("dialog_active", False))
 
             if system_info != "-":
-                print("Добавил систем инфо " + system_info)
+                logger.info("Добавил систем инфо " + system_info)
                 self.chat_model.add_temporary_system_info(system_info)
 
             response = ""
@@ -100,27 +102,27 @@ class ChatServer:
             # Обработка системных сообщений
             if message == "waiting":
                 if system_message != "-":
-                    print(f"Получено system_message {system_message} id {message_id}")
+                    logger.info(f"Получено system_message {system_message} id {message_id}")
                     self.gui.id_sound = message_id
                     response = self.generate_response("", system_message)
                     self.gui.insertDialog("", response)
                 elif self.messages_to_say:
                     response = self.messages_to_say.pop(0)
             elif message == "boring":
-                print(f"Получено boring message id {message_id}")
+                logger.info(f"Получено boring message id {message_id}")
                 date_now = datetime.datetime.now().replace(microsecond=0)
                 self.gui.id_sound = message_id
                 response = self.generate_response("",
                                                   f"Время {date_now}, Игрок долго молчит( Ты можешь что-то сказать или предпринять")
                 self.gui.insertDialog("", response)
-                print("Отправлено Мите на озвучку: " + response)
+                logger.info("Отправлено Мите на озвучку: " + response)
             else:
-                print(f"Получено message id {message_id}")
+                logger.info(f"Получено message id {message_id}")
                 # Если игрок отправил внутри игры, message его
                 self.gui.id_sound = message_id
                 response = self.generate_response(message, "")
                 #self.gui.insertDialog(message,response)
-                print("Отправлено Мите на озвучку: " + response)
+                logger.info("Отправлено Мите на озвучку: " + response)
 
                 if not character:
                     character = "Mita"
@@ -130,7 +132,7 @@ class ChatServer:
                 transmitted_to_game = True
 
             if self.gui.patch_to_sound_file != "":
-                print(f"id {message_id} Скоро передам {self.gui.patch_to_sound_file} id {self.gui.id_sound}")
+                logger.info(f"id {message_id} Скоро передам {self.gui.patch_to_sound_file} id {self.gui.id_sound}")
 
             message_data = {
                 "id": int(message_id),
@@ -153,7 +155,7 @@ class ChatServer:
 
                 "instant_send": bool(self.gui.instant_send),
             })
-            #print(message_data)
+            #logger.info(message_data)
             self.gui.instant_send = False
             self.gui.patch_to_sound_file = ""
 
@@ -167,7 +169,7 @@ class ChatServer:
             self.gui.ConnectedToGame = True
             return True
         except Exception as e:
-            print(f"Ошибка обработки подключения: {e}")
+            logger.info(f"Ошибка обработки подключения: {e}")
             self.gui.ConnectedToGame = False
             return False
         finally:
@@ -185,7 +187,7 @@ class ChatServer:
 
 
         except Exception as e:
-            print(f"Ошибка генерации ответа: {e}")
+            logger.error(f"Ошибка генерации ответа: {e}")
             response = "Произошла ошибка при обработке вашего сообщения."
 
             self.gui.waiting_answer = False
@@ -198,5 +200,5 @@ class ChatServer:
         """Закрывает сервер."""
         if self.server_socket:
             self.server_socket.close()
-            print("Сервер остановлен.")
+            logger.info("Сервер остановлен.")
             self.gui.ConnectedToGame = False

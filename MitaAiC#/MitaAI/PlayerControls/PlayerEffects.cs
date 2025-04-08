@@ -179,10 +179,18 @@ namespace MitaAI
             
         }
 
-        public static void ShowDayFromNumber(int number, string title = null)
+        public static void ShowDayFromNumber(int number, string title = null,bool avoidSplit = true)
         {
             string numStr = number.ToString();
             string n1 = "", n2 = "", n3 = "";
+
+
+            if (avoidSplit)
+            {
+                showDay(title, n2: number.ToString());
+                return;
+            }
+
 
             switch (numStr.Length)
             {
@@ -202,13 +210,12 @@ namespace MitaAI
                     Debug.LogError("Число должно быть от 0 до 999!");
                     return;
             }
-
             showDay(title,n1: n1, n2: n2, n3: n3);
         }
 
         public static void showDay(string name=null, string n1 = null, string n2 = null, string n3 = null)
         {
-            DayEffect.active = true;
+            
             
             
             if (name != null)
@@ -222,6 +229,8 @@ namespace MitaAI
 
             if (n3 != null) 
                 DayEffect.transform.Find("Number 3").GetComponent<Text>().text = n3;
+
+            DayEffect.active = true;
 
             Utils.ToggleObjectActiveAfterTime(DayEffect);
         }

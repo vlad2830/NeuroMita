@@ -1187,7 +1187,7 @@ namespace MitaAI
             int currentDays = Settings.Get<int>("DaysInGame");
             currentDays = currentDays + 1;
             Settings.Set("DaysInGame", currentDays);
-            MelonLogger.Msg($"Дней в игре: {Settings.Get<int>("DaysInGame")}"); // Проверяем
+            MelonLogger.Msg($"DaysInGame: {Settings.Get<int>("DaysInGame")}"); // Проверяем
 
 
             PlayerEffectsModded.turnBlackScreen(false);

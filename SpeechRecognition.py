@@ -9,10 +9,6 @@ import sounddevice as sd
 from collections import deque
 from threading import Lock
 
-logging.basicConfig()
-logger = logging.getLogger(__name__)
-
-
 class AudioState:
     def __init__(self):
         self.is_recording = False
@@ -211,10 +207,6 @@ class SpeechRecognition:
         SpeechRecognition.microphone_index = device_id
         asyncio.run_coroutine_threadsafe(SpeechRecognition.speach_recognition_start_async(), loop)
 
-    # @staticmethod
-    # def start_audio_monitoring(device_id: int, loop):
-    #  SpeechRecognition.microphone_index = device_id
-    # asyncio.run_coroutine_threadsafe(SpeechRecognition.speach_recognition_start_async(), loop)
 
     @staticmethod
     async def audio_monitoring():
@@ -236,13 +228,3 @@ class SpeechRecognition:
     async def get_current_text() -> str:
         async with SpeechRecognition._text_lock:
             return SpeechRecognition._current_text.strip()
-
-
-async def main():
-    speech_recognition = SpeechRecognition()
-
-
-if __name__ == "__main__":
-    speech_recognition = SpeechRecognition()
-    asyncio.run(SpeechRecognition.audio_monitoring())
-    asyncio.run(main())

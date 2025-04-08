@@ -12,6 +12,7 @@ import platform
 
 from AudioConverter import AudioConverter
 from AudioHandler import AudioHandler
+from Logger import logger
 from utils import SH
 
 
@@ -84,9 +85,9 @@ class TelegramBotHandler:
                 app_version=app_version,
             )
         except:
-            print("Проблема в ините тг")
-            print(SH(self.api_id))
-            print(SH(self.api_hash))
+            logger.info("Проблема в ините тг")
+            logger.info(SH(self.api_id))
+            logger.info(SH(self.api_hash))
 
     def reset_message_count(self):
         """Сбрасывает счетчик сообщений каждую минуту."""
@@ -108,7 +109,7 @@ class TelegramBotHandler:
         if self.last_send_time > 0:  # проверяем, что это не первый вызов
             time_since_last = current_time - self.last_send_time
             if time_since_last < 0.7:
-                print(f"Слишком быстро пришел некст войс, ждем{0.7 - time_since_last}")
+                logger.info(f"Слишком быстро пришел некст войс, ждем{0.7 - time_since_last}")
                 await asyncio.sleep(0.7 - time_since_last)
 
         self.last_send_time = time.time()  # обновляем время после возможной паузы
@@ -143,7 +144,7 @@ class TelegramBotHandler:
         self.reset_message_count()
 
         if self.message_count >= self.message_limit_per_minute:
-            print("Превышен лимит сообщений. Ожидаем...")
+            logger.info("Превышен лимит сообщений. Ожидаем...")
             await asyncio.sleep(random.uniform(10, 15))
             return
 
@@ -154,7 +155,7 @@ class TelegramBotHandler:
         self.message_count += 1
 
         # Ожидание ответа от бота
-        print("Ожидание ответа от бота...")
+        logger.info("Ожидание ответа от бота...")
         response = None
         attempts = 0
         attempts_per_second = 3
@@ -181,28 +182,28 @@ class TelegramBotHandler:
                                 break
             if response:  # Если ответ найден, выходим из цикла
                 break
-            print(f"Попытка {attempts + 1}/{attempts_max}. Ответ от бота не найден.")
+            logger.info(f"Попытка {attempts + 1}/{attempts_max}. Ответ от бота не найден.")
             attempts += 1
             await asyncio.sleep(1 / attempts_per_second)  # Немного подождем
 
         if not response:
-            print(f"Ответ от бота не получен после {attempts_max} попыток.")
+            logger.info(f"Ответ от бота не получен после {attempts_max} попыток.")
             return
 
-        print("Ответ получен")
+        logger.info("Ответ получен")
         # Обработка полученного сообщения
         if response.media and isinstance(response.media, MessageMediaDocument):
             if response and response.media:
                 file_path = await self.client.download_media(response.media)
 
-                print(f"Файл загружен: {file_path}")
+                logger.info(f"Файл загружен: {file_path}")
                 sound_absolute_path = os.path.abspath(file_path)
 
                 # end_time = time.time()
-                # print(f"Время генерации озвучки {self.tg_bot}: {end_time - start_time}")
+                # logger.info(f"Время генерации озвучки {self.tg_bot}: {end_time - start_time}")
 
                 if self.gui.ConnectedToGame:
-                    print("Подключен к игре, нужна конвертация")
+                    logger.info("Подключен к игре, нужна конвертация")
 
                     # Генерируем путь для WAV-файла на основе имени исходного MP3
                     base_name = os.path.splitext(os.path.basename(file_path))[
@@ -222,11 +223,11 @@ class TelegramBotHandler:
                     )
 
                     try:
-                        print(f"Удаляю файл: {sound_absolute_path}")
+                        logger.info(f"Удаляю файл: {sound_absolute_path}")
                         os.remove(sound_absolute_path)
-                        print(f"Файл {sound_absolute_path} удалён.")
+                        logger.info(f"Файл {sound_absolute_path} удалён.")
                     except OSError as remove_error:
-                        print(
+                        logger.info(
                             f"Ошибка при удалении файла {sound_absolute_path}: {remove_error}"
                         )
 
@@ -234,15 +235,15 @@ class TelegramBotHandler:
 
                     self.gui.patch_to_sound_file = absolute_wav_path
                     self.gui.id_sound = message_id
-                    print(f"Файл wav загружен: {absolute_wav_path}")
+                    logger.info(f"Файл wav загружен: {absolute_wav_path}")
                 else:
-                    print(f"Отправлен воспроизводится: {sound_absolute_path}")
+                    logger.info(f"Отправлен воспроизводится: {sound_absolute_path}")
                     await AudioHandler.handle_voice_file(file_path)
         elif response.text:  # Если сообщение текстовое
-            print(f"Ответ от бота: {response.text}")
+            logger.info(f"Ответ от бота: {response.text}")
 
     async def start(self):
-        print("Запуск коннектора ТГ!")
+        logger.info("Запуск коннектора ТГ!")
         try:
             await self.client.connect()
 
@@ -294,7 +295,7 @@ class TelegramBotHandler:
                     verification_code = await code_future
                     await self.client.sign_in(phone=self.phone, code=verification_code)
                 except Exception as e:
-                    print(f"Ошибка при вводе кода: {e}")
+                    logger.info(f"Ошибка при вводе кода: {e}")
                     raise
 
             await self.client.send_message(self.tg_bot, "/start")
@@ -310,7 +311,7 @@ class TelegramBotHandler:
                 await self.client.send_message(self.tg_bot, "/hd")
                 await asyncio.sleep(0.35)
                 await self.client.send_message(self.tg_bot, "/videonotes")
-            print("Включено все в ТГ для сообщений миты")
+            logger.info("Включено все в ТГ для сообщений миты")
         except Exception as e:
             self.gui.silero_connected.set(False)
-            print(f"Ошибка авторизации: {e}")
+            logger.error(f"Ошибка авторизации: {e}")

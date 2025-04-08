@@ -1,5 +1,6 @@
 import uuid
 from AudioHandler import AudioHandler
+from Logger import logger
 from SettingsManager import SettingsManager, CollapsibleSection
 from chat_model import ChatModel
 from web.client import MikuTTSClient
@@ -81,7 +82,7 @@ class ChatGUI:
             self.load_api_settings(False)  # Загружаем настройки при инициализации
             self.settings = SettingsManager(self.config_path)
         except Exception as e:
-            print("Не удалось удачно получить из системных переменных все данные", e)
+            logger.info("Не удалось удачно получить из системных переменных все данные", e)
             self.settings = SettingsManager("Settings/settings.json")
 
         self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model,
@@ -114,7 +115,7 @@ class ChatGUI:
         try:
             self.load_mic_settings()
         except Exception as e:
-            print("Не удалось удачно получить настройки микрофона", e)
+            logger.info("Не удалось удачно получить настройки микрофона", e)
 
         # Событие для синхронизации потоков
         self.loop_ready_event = threading.Event()
@@ -135,38 +136,38 @@ class ChatGUI:
         try:
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
-            print("Цикл событий asyncio успешно запущен.")
+            logger.info("Цикл событий asyncio успешно запущен.")
             self.loop_ready_event.set()  # Сигнализируем, что цикл событий готов
             try:
                 self.loop.run_forever()
             except Exception as e:
-                print(f"Ошибка в цикле событий asyncio: {e}")
+                logger.info(f"Ошибка в цикле событий asyncio: {e}")
             finally:
                 self.loop.close()
         except Exception as e:
-            print(f"Ошибка при запуске цикла событий asyncio: {e}")
+            logger.info(f"Ошибка при запуске цикла событий asyncio: {e}")
             self.loop_ready_event.set()  # Сигнализируем даже в случае ошибки
 
     def start_silero_async(self):
         """Отправляет задачу для запуска Silero в цикл событий."""
-        print("Ожидание готовности цикла событий...")
+        logger.info("Ожидание готовности цикла событий...")
         self.loop_ready_event.wait()  # Ждем, пока цикл событий будет готов
         if self.loop and self.loop.is_running():
-            print("Запускаем Silero через цикл событий.")
+            logger.info("Запускаем Silero через цикл событий.")
             asyncio.run_coroutine_threadsafe(self.startSilero(), self.loop)
         else:
-            print("Ошибка: Цикл событий asyncio не запущен.")
+            logger.info("Ошибка: Цикл событий asyncio не запущен.")
 
     async def startSilero(self):
         """Асинхронный запуск обработчика Telegram Bot."""
-        print("Telegram Bot запускается!")
+        logger.info("Telegram Bot запускается!")
         try:
             if not self.api_id or not self.api_hash or not self.phone:
-                print("Ошибка: отсутствуют необходимые данные для Telegram бота")
+                logger.info("Ошибка: отсутствуют необходимые данные для Telegram бота")
                 self.silero_connected.set(False)
                 return
 
-            print(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
+            logger.info(f"Передаю в тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто)")
 
             self.bot_handler = TelegramBotHandler(self, self.api_id, self.api_hash, self.phone,
                                                   self.settings.get("AUDIO_BOT", "@silero_voice_bot"))
@@ -175,16 +176,16 @@ class ChatGUI:
                 await self.bot_handler.start()
                 self.bot_handler_ready = True
                 if hasattr(self, 'silero_connected') and self.silero_connected:
-                    print("ТГ успешно подключен")
+                    logger.info("ТГ успешно подключен")
                 else:
-                    print("ТГ не подключен")
+                    logger.info("ТГ не подключен")
             except Exception as e:
-                print(f"Ошибка при запуске Telegram бота: {e}")
+                logger.info(f"Ошибка при запуске Telegram бота: {e}")
                 self.bot_handler_ready = False
                 self.silero_connected.set(False)
 
         except Exception as e:
-            print(f"Критическая ошибка при инициализации Telegram Bot: {e}")
+            logger.info(f"Критическая ошибка при инициализации Telegram Bot: {e}")
             self.silero_connected.set(False)
             self.bot_handler_ready = False
 
@@ -193,15 +194,15 @@ class ChatGUI:
         # Убедимся, что цикл событий готов и запускаем задачу в том же цикле
         self.loop_ready_event.wait()  # Ждем, пока цикл событий будет готов
         if self.loop and self.loop.is_running():
-            print("Запускаем асинхронную задачу в цикле событий...")
+            logger.info("Запускаем асинхронную задачу в цикле событий...")
             # Здесь мы вызываем асинхронную задачу через главный цикл
             self.loop.create_task(self.run_send_and_receive(self.textToTalk, self.textSpeaker))
         else:
-            print("Ошибка: Цикл событий asyncio не готов.")
+            logger.info("Ошибка: Цикл событий asyncio не готов.")
 
     async def run_send_and_receive(self, response, speaker_command, id):
         """Асинхронный метод для вызова send_and_receive."""
-        print("Попытка получить фразу")
+        logger.info("Попытка получить фразу")
         self.waiting_answer = True
         text_to_talk = response
 
@@ -250,16 +251,16 @@ class ChatGUI:
                     if response:
                         break
                 except Exception as e:
-                    print(f"Попытка {attempt + 1} из {max_retries} не удалась. {e}")
+                    logger.info(f"Попытка {attempt + 1} из {max_retries} не удалась. {e}")
                     await asyncio.sleep(retry_delay)
 
-            print(
+            logger.info(
                 f"Успешно сгенерирована озвучка, {time_taken} секунд, Движок: {self.settings.get("MIKUTTS_ENGINE")}, Текст: {text_to_talk}")
 
             voice_path = f"MitaVoices/{uuid.uuid4()}.{"wav" if self.ConnectedToGame else "mp3"}"
             absolute_audio_path = os.path.abspath(voice_path)
 
-            print(f"После uuid {voice_path} \n{absolute_audio_path}")
+            logger.info(f"После uuid {voice_path} \n{absolute_audio_path}")
 
             try:
                 # Создаем директорию в отдельном потоке
@@ -270,44 +271,44 @@ class ChatGUI:
                     lambda: open(absolute_audio_path, "wb").write(response.content)
                 )
 
-                print("Запись завершена")
+                logger.info("Запись завершена")
             except Exception as e:
-                print(f"Ошибка при записи файла: {e}")
+                logger.info(f"Ошибка при записи файла: {e}")
 
             # end_time = time.time()
-            # print(f"Время генерации озвучки {self.settings.get("AUDIO_BOT")}: {end_time - start_time}")
+            # logger.info(f"Время генерации озвучки {self.settings.get("AUDIO_BOT")}: {end_time - start_time}")
 
             if self.ConnectedToGame:
                 self.patch_to_sound_file = absolute_audio_path
-                print(f"Файл wav загружен: {absolute_audio_path}")
+                logger.info(f"Файл wav загружен: {absolute_audio_path}")
             else:
-                print(f"Отправлен воспроизводится: {absolute_audio_path}")
+                logger.info(f"Отправлен воспроизводится: {absolute_audio_path}")
                 await AudioHandler.handle_voice_file(absolute_audio_path)
         else:
             await self.bot_handler.send_and_receive(response, speaker_command, id)
         self.waiting_answer = False
-        print("Завершение получения фразы")
+        logger.info("Завершение получения фразы")
 
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
         if self.textToTalk:  #and not self.ConnectedToGame:
-            print(f"Есть текст для отправки: {self.textToTalk} id {self.id_sound}")
+            logger.info(f"Есть текст для отправки: {self.textToTalk} id {self.id_sound}")
             # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
                 try:
                     if bool(self.settings.get("SILERO_USE")):
-                        print("Цикл событий готов. Отправка текста.")
+                        logger.info("Цикл событий готов. Отправка текста.")
                         asyncio.run_coroutine_threadsafe(
                             self.run_send_and_receive(self.textToTalk, self.textSpeaker, self.id_sound),
                             self.loop
                         )
                     self.textToTalk = ""  # Очищаем текст после отправки
-                    print("Выполнено")
+                    logger.info("Выполнено")
                 except Exception as e:
-                    print(f"Ошибка при отправке текста: {e}")
+                    logger.info(f"Ошибка при отправке текста: {e}")
                     self.textToTalk = ""  # Очищаем текст в случае ошибки
             else:
-                print("Ошибка: Цикл событий не готов.")
+                logger.info("Ошибка: Цикл событий не готов.")
 
         if bool(self.settings.get("MIC_INSTANT_SENT")):
 
@@ -332,7 +333,7 @@ class ChatGUI:
         """Мгновенная отправка распознанного текста"""
         try:
             #if text:
-            #print(f"Получен текст: {text}")
+            #logger.info(f"Получен текст: {text}")
 
             #self.user_entry.delete("1.0", tk.END)
             #self.user_entry.insert(tk.END, text)
@@ -345,7 +346,7 @@ class ChatGUI:
             SpeechRecognition._current_text = ""
 
         except Exception as e:
-            print(f"Ошибка обработки текста: {str(e)}")
+            logger.info(f"Ошибка обработки текста: {str(e)}")
 
     def clear_user_input(self):
         self.user_input = ""
@@ -358,14 +359,14 @@ class ChatGUI:
             self.server.start()  # Инициализация сокета
             self.server_thread = threading.Thread(target=self.run_server_loop, daemon=True)
             self.server_thread.start()
-            print("Сервер запущен.")
+            logger.info("Сервер запущен.")
 
     def stop_server(self):
         """Останавливает сервер."""
         if self.running:
             self.running = False
             self.server.stop()
-            print("Сервер остановлен.")
+            logger.info("Сервер остановлен.")
 
     def run_server_loop(self):
         """Цикл обработки подключений сервера."""
@@ -920,13 +921,13 @@ class ChatGUI:
                     try:
                         decoded = base64.b64decode(encoded)
                     except binascii.Error:
-                        print("Ошибка: Файл настроек поврежден (невалидный Base64).")
+                        logger.info("Ошибка: Файл настроек поврежден (невалидный Base64).")
                         decoded = "{}".encode("utf-8")  # Пустой JSON в виде строки
 
                     try:
                         settings = json.loads(decoded.decode("utf-8"))
                     except json.JSONDecodeError:
-                        print("Ошибка: Файл настроек содержит некорректный JSON.")
+                        logger.info("Ошибка: Файл настроек содержит некорректный JSON.")
                         settings = {}
 
                 except (OSError, IOError) as e:
@@ -935,32 +936,32 @@ class ChatGUI:
 
             # Обновляем настройки новыми значениями, если они не пустые
             if api_key := self.api_key_entry.get().strip():
-                print("Сохранение апи ключа")
+                logger.info("Сохранение апи ключа")
                 settings["NM_API_KEY"] = api_key
             if api_key_res := self.api_key_res_entry.get().strip():
-                print("Сохранение резервного апи ключа")
+                logger.info("Сохранение резервного апи ключа")
                 settings["NM_API_KEY_RES"] = api_key_res
             if api_url := self.api_url_entry.get().strip():
-                print("Сохранение апи ссылки")
+                logger.info("Сохранение апи ссылки")
                 settings["NM_API_URL"] = api_url
             else:
-                print("Сохранение ссылку по умолчанию, тк она пуста")
+                logger.info("Сохранение ссылку по умолчанию, тк она пуста")
                 settings["NM_API_URL"] = "https://openrouter.ai/api/v1"
             if api_model := self.api_model_entry.get().strip():
-                print("Сохранение апи модели")
+                logger.info("Сохранение апи модели")
                 settings["NM_API_MODEL"] = api_model
             else:
-                print("Сохранение модель по умолчанию, тк настройка пуста")
+                logger.info("Сохранение модель по умолчанию, тк настройка пуста")
                 settings["NM_API_MODEL"] = "google/gemini-2.0-pro-exp-02-05:free"
 
             if api_id := self.api_id_entry.get().strip():
-                print("Сохранение тг айди")
+                logger.info("Сохранение тг айди")
                 settings["NM_TELEGRAM_API_ID"] = api_id
             if api_hash := self.api_hash_entry.get().strip():
-                print("Сохранение тг хеш")
+                logger.info("Сохранение тг хеш")
                 settings["NM_TELEGRAM_API_HASH"] = api_hash
             if phone := self.phone_entry.get().strip():
-                print("Сохранение тг телефона")
+                logger.info("Сохранение тг телефона")
                 settings["NM_TELEGRAM_PHONE"] = phone
 
             # Булево значение сохраняем всегда
@@ -973,24 +974,24 @@ class ChatGUI:
             # Сохраняем в файл
             with open(self.config_path, "wb") as f:
                 f.write(encoded)
-            print("Настройки успешно сохранены в файл")
+            logger.info("Настройки успешно сохранены в файл")
 
         except Exception as e:
-            print(f"Ошибка сохранения: {e}")
+            logger.info(f"Ошибка сохранения: {e}")
 
         # Сразу же их загружаем
         self.load_api_settings(update_model=True)
 
         if not self.silero_connected.get():
-            print("Попытка запустить силеро заново")
+            logger.info("Попытка запустить силеро заново")
             self.start_silero_async()
 
     def load_api_settings(self, update_model):
         """Загружает настройки из файла"""
-        print("Начинаю загрузку настроек")
+        logger.info("Начинаю загрузку настроек")
 
         if not os.path.exists(self.config_path):
-            print("Не найден файл настроек")
+            logger.info("Не найден файл настроек")
             #self.save_api_settings(False)
             return
 
@@ -1015,9 +1016,9 @@ class ChatGUI:
             self.api_hash = settings.get("NM_TELEGRAM_API_HASH", "")
             self.phone = settings.get("NM_TELEGRAM_PHONE", "")
 
-            print(
+            logger.info(
                 f"Итого загружено {SH(self.api_key)},{SH(self.api_key_res)},{self.api_url},{self.api_model},{self.makeRequest} (Должно быть не пусто)")
-            print(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто если тг)")
+            logger.info(f"По тг {SH(self.api_id)},{SH(self.api_hash)},{SH(self.phone)} (Должно быть не пусто если тг)")
             if update_model:
                 if self.api_key:
                     self.model.api_key = self.api_key
@@ -1029,9 +1030,9 @@ class ChatGUI:
                 self.model.makeRequest = self.makeRequest
                 self.model.update_openai_client()
 
-            print("Настройки загружены из файла")
+            logger.info("Настройки загружены из файла")
         except Exception as e:
-            print(f"Ошибка загрузки: {e}")
+            logger.info(f"Ошибка загрузки: {e}")
 
     def paste_from_clipboard(self, event=None):
         try:
@@ -1115,14 +1116,14 @@ class ChatGUI:
                 try:
                     if self.server.client_socket:
                         self.server.send_message_to_server(response)
-                        print("Сообщение отправлено на сервер (связь с игрой есть)")
+                        logger.info("Сообщение отправлено на сервер (связь с игрой есть)")
                     else:
-                        print("Нет активного подключения к клиенту игры")
+                        logger.info("Нет активного подключения к клиенту игры")
                 except Exception as e:
-                    print(f"Ошибка при отправке сообщения на сервер: {e}")
+                    logger.info(f"Ошибка при отправке сообщения на сервер: {e}")
         except asyncio.TimeoutError:
             # Обработка тайм-аута
-            print("Тайм-аут: генерация ответа заняла слишком много времени.")
+            logger.info("Тайм-аут: генерация ответа заняла слишком много времени.")
             #self.insert_message("assistant", "Превышен лимит времени ожидания ответа от нейросети.")
 
     def clear_history(self):
@@ -1202,7 +1203,7 @@ class ChatGUI:
             ]
             return input_devices
         except Exception as e:
-            print(f"Ошибка получения списка микрофонов: {e}")
+            logger.info(f"Ошибка получения списка микрофонов: {e}")
             return []
 
     def update_mic_list(self):
@@ -1214,7 +1215,7 @@ class ChatGUI:
             self.selected_microphone = selection.split(" (")[0]
             device_id = int(selection.split(" (")[-1].replace(")", ""))
             self.device_id = device_id
-            print(f"Выбран микрофон: {self.selected_microphone} (ID: {device_id})")
+            logger.info(f"Выбран микрофон: {self.selected_microphone} (ID: {device_id})")
             self.save_mic_settings(device_id)
 
     def save_mic_settings(self, device_id):
@@ -1249,10 +1250,10 @@ class ChatGUI:
                 self.selected_microphone = device_name
                 self.device_id = device_id
                 self.mic_combobox.set(f"{device_name} ({device_id})")
-                print(f"Загружен микрофон: {device_name} (ID: {device_id})")
+                logger.info(f"Загружен микрофон: {device_name} (ID: {device_id})")
 
         except Exception as e:
-            print(f"Ошибка загрузки настроек микрофона: {e}")
+            logger.info(f"Ошибка загрузки настроек микрофона: {e}")
 
     # endregion
 
@@ -1299,7 +1300,7 @@ class ChatGUI:
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = bool(value)
-        print(f"Настройки изменены: {key} = {value}")
+        logger.info(f"Настройки изменены: {key} = {value}")
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
@@ -1523,12 +1524,12 @@ class ChatGUI:
 
         self.delete_all_sound_files()
         self.stop_server()
-        print("Закрываемся")
+        logger.info("Закрываемся")
         self.root.destroy()
 
     def close_app(self):
         """Закрытие приложения корректным образом."""
-        print("Завершение программы...")
+        logger.info("Завершение программы...")
         self.root.destroy()  # Закрывает GUI
 
     @staticmethod
@@ -1540,9 +1541,9 @@ class ChatGUI:
         for file in files:
             try:
                 os.remove(file)
-                print(f"Удален файл: {file}")
+                logger.info(f"Удален файл: {file}")
             except Exception as e:
-                print(f"Ошибка при удалении файла {file}: {e}")
+                logger.info(f"Ошибка при удалении файла {file}: {e}")
 
         # Получаем список всех .wav файлов в корневой директории
         files = glob.glob("*.mp3")
@@ -1551,6 +1552,6 @@ class ChatGUI:
         for file in files:
             try:
                 os.remove(file)
-                print(f"Удален файл: {file}")
+                logger.info(f"Удален файл: {file}")
             except Exception as e:
-                print(f"Ошибка при удалении файла {file}: {e}")
+                logger.info(f"Ошибка при удалении файла {file}: {e}")

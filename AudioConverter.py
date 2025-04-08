@@ -3,6 +3,9 @@ import os
 import ffmpeg
 import sys
 
+from Logger import logger
+
+
 class AudioConverter:
     # Проверяем, где лежит ffmpeg
     ffmpeg_rel_path = os.path.join("ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe")
@@ -22,7 +25,7 @@ class AudioConverter:
 
     @staticmethod
     async def convert_to_wav(input_file, output_file):
-        print(f"Начинаю конвертацию {input_file} в {output_file} с помощью {AudioConverter.ffmpeg_path}")
+        logger.info(f"Начинаю конвертацию {input_file} в {output_file} с помощью {AudioConverter.ffmpeg_path}")
 
         try:
             command = [
@@ -41,7 +44,7 @@ class AudioConverter:
             subprocess.run(command, check=True, capture_output=True)
             return True
         except subprocess.CalledProcessError as e:
-            print(f"Ошибка при конвертации аудио: {e}")
+            logger.info(f"Ошибка при конвертации аудио: {e}")
             return False
 
     @staticmethod
@@ -49,12 +52,12 @@ class AudioConverter:
         """Конвертирует MP3 в WAV с использованием ffmpeg."""
         try:
             if not os.path.exists(input_path):
-                print(f"Файл {input_path} не найден при попытке конвертации.")
+                logger.info(f"Файл {input_path} не найден при попытке конвертации.")
                 return
 
             # Указываем путь к ffmpeg
 
-            print(f"Начинаю конвертацию {input_path} в {output_path} с помощью {AudioConverter.ffmpeg_path}")
+            logger.info(f"Начинаю конвертацию {input_path} в {output_path} с помощью {AudioConverter.ffmpeg_path}")
 
             # Выполняем команду конвертации с нужными параметрами
             (
@@ -70,6 +73,6 @@ class AudioConverter:
                 .run(cmd=AudioConverter.ffmpeg_path)
             )
 
-            print(f"Конвертация завершена: {output_path}")
+            logger.info(f"Конвертация завершена: {output_path}")
         except Exception as e:
-            print(f"Ошибка при конвертации: {e}")
+            logger.info(f"Ошибка при конвертации: {e}")
