@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import requests
 import re
 
 from num2words import num2words

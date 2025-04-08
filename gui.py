@@ -377,7 +377,7 @@ class ChatGUI:
 
     def setup_ui(self):
         self.root.config(bg="#2c2c2c")  # Установите темный цвет фона для всего окна
-        self.root.geometry("1200x600")
+        self.root.geometry("1200x800")
 
         main_frame = tk.Frame(self.root, bg="#2c2c2c")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -386,32 +386,40 @@ class ChatGUI:
         left_frame = tk.Frame(main_frame, bg="#2c2c2c")
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
+        # Настройка grid для left_frame
+        left_frame.grid_rowconfigure(0, weight=1)  # Чат получает всё свободное место
+        left_frame.grid_rowconfigure(1, weight=0)  # Инпут остаётся фиксированным
+        left_frame.grid_columnconfigure(0, weight=1)
+
+        # Чат - верхняя часть (растягивается)
         self.chat_window = tk.Text(
             left_frame, height=30, width=40, state=tk.NORMAL,
             bg="#1e1e1e", fg="#ffffff", insertbackground="white", wrap=tk.WORD,
             font=("Arial", 12)
         )
-
-        self.chat_window.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.chat_window.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 0))
 
         # Добавляем стили
         self.chat_window.tag_configure("Mita", foreground="hot pink", font=("Arial", 12, "bold"))
         self.chat_window.tag_configure("Player", foreground="gold", font=("Arial", 12, "bold"))
         self.chat_window.tag_configure("System", foreground="white", font=("Arial", 12, "bold"))
 
+        # Инпут - нижняя часть (фиксированная высота)
         input_frame = tk.Frame(left_frame, bg="#2c2c2c")
-        input_frame.pack(fill=tk.X, padx=10, pady=10)
+        input_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=(20, 10))  # pady=(20, 10) — отступ сверху 20px
 
-        self.user_entry = tk.Text(input_frame, height=3, width=50, bg="#1e1e1e", fg="#ffffff", insertbackground="white",
-                                  font=("Arial", 12))
+        self.user_entry = tk.Text(
+            input_frame, height=3, width=50, bg="#1e1e1e", fg="#ffffff",
+            insertbackground="white", font=("Arial", 12)
+        )
         self.user_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
-        #self.user_entry.bind("<KeyRelease>", self.update_token_count)
 
         self.send_button = tk.Button(
-            input_frame, text=_("Отправить","Send"), command=self.send_message,
+            input_frame, text=_("Отправить", "Send"), command=self.send_message,
             bg="#9370db", fg="#ffffff", font=("Arial", 12)
         )
         self.send_button.pack(side=tk.RIGHT, padx=5)
+
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
