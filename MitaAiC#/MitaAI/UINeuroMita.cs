@@ -19,7 +19,7 @@ namespace MitaAI
         static bool InludeNewMita_TEST = true;
 
         // Добавляем переменную для отслеживания состояния меню паузы
-        static bool isPauseMenu = false;
+        public static bool isPauseMenu = false;
 
         static GameObject MenuObject;
         static Menu MainMenu;

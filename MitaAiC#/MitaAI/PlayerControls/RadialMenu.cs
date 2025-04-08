@@ -60,7 +60,7 @@ namespace MitaAI
             // Если правая кнопка мыши только что нажата
             if (Input.GetMouseButtonDown(1))
             {
-                if (!Showed)
+                if (!Showed && !UINeuroMita.isPauseMenu)
                 {
                     ShowMenu();
                     Showed = true;
@@ -75,7 +75,7 @@ namespace MitaAI
             }
 
             // Если меню показано, обновляем выбор
-            if (Showed)
+            if (Showed && !UINeuroMita.isPauseMenu)
             {
                 UpdateSelection();
 

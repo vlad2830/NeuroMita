@@ -37,7 +37,7 @@ class ChatServer:
             self.client_socket, addr = self.server_socket.accept()
             #logger.info(f"Подключен {addr}")
 
-            received_text = self.client_socket.recv(8192).decode("utf-8")
+            received_text = self.client_socket.recv(16384).decode("utf-8")
 
             # Логируем полученные данные
             #logger.info(f"Получено: {received_text}")
@@ -45,23 +45,23 @@ class ChatServer:
             # Проверяем, корректно ли закрыт JSON (простая проверка)
             # Валидация JSON структуры
             if not received_text.strip().endswith("}"):
-                logger.info("Ошибка: JSON оборван")
+                logger.error("Ошибка: JSON оборван")
                 return False
             # Парсинг JSON данных
             try:
                 message_data = json.loads(received_text)
                 #logger.info("JSON успешно разобран!")
             except json.JSONDecodeError as e:
-                logger.info(f"Ошибка обработки JSON: {e}")
+                logger.error(f"Ошибка обработки JSON: {e}")
                 return False
             # Обработка распарсенных данных
             self.process_message_data(message_data)
             return True
 
         except socket.error as e:
-            logger.info(f"Socket error: {e}")
+            logger.error(f"Socket error: {e}")
         except Exception as e:
-            logger.info(f"Connection handling error: {e}")
+            logger.error(f"Connection handling error: {e}")
             self.gui.ConnectedToGame = False  # Обновление статуса в GUI
         finally:
             if self.client_socket:
@@ -169,7 +169,7 @@ class ChatServer:
             self.gui.ConnectedToGame = True
             return True
         except Exception as e:
-            logger.info(f"Ошибка обработки подключения: {e}")
+            logger.error(f"Ошибка обработки подключения: {e}")
             self.gui.ConnectedToGame = False
             return False
         finally:
