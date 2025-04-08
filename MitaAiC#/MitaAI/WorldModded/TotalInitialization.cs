@@ -288,30 +288,29 @@ namespace MitaAI
 
 
                 var sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/Sofa");
-                oam = ObjectAnimationMita.Create(sofa.gameObject,"Hall Sofa sit");
-
+                oam = ObjectAnimationMita.Create(sofa.gameObject,"Hall Sofa sit right", "Сесть на диван справа ближе к туалету");
                 oam.setStartPos(new Vector3(-0.9f, 0.6f, 0), new Vector3(270, 180, 0));
                 oam.setAiMovePoint(new Vector3(0, 0, 0.5f), new Vector3(0, 0, 0));
-               
                 oam.setIdleAnimation("Mita SitIdle");
                 oam.addEnqueAnimationAction("Mita SitIdle");
-                oam.tip = "Сесть на диван";
+                oam.setRevertAOM("Hall Sofa stand up", "Слезть с дивана");
 
-                oamBack = ObjectAnimationMita.Create(sofa.gameObject,"Hall Sofa stand up");
-                oamBack.setStartPos(new Vector3(-0.9f, 0.6f, 0), new Vector3(270,180,0));
-
-
-                oamBack.setIdleAnimation("Mita Idle_2", false);
-                oamBack.addEnqueAnimationAction("Mita Idle_2");
-                oamBack.addReturningToNormal();
-                oamBack.tip = "Слезть с дивана";
-                oamBack.enabled = false;
+                sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/Sofa");
+                oam = ObjectAnimationMita.Create(sofa.gameObject, "Hall Sofa sit center", "Сесть на диван по центру");
+                oam.setStartPos(new Vector3(0f, 0.6f, 0), new Vector3(270, 180, 0));
+                oam.setAiMovePoint(new Vector3(0, 0, 0.5f), new Vector3(0, 0, 0));
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setRevertAOM("Hall Sofa stand up", "Слезть с дивана");
 
 
-                oam.backAnimation = oamBack;
-                oamBack.backAnimation = oam;
-
-
+                sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/Sofa");
+                oam = ObjectAnimationMita.Create(sofa.gameObject, "Hall Sofa sit left", "Сесть на слева ближе к кухне");
+                oam.setStartPos(new Vector3(0.8f, 0.6f, 0), new Vector3(270, 180, 0));
+                oam.setAiMovePoint(new Vector3(0, 0, 0.5f), new Vector3(0, 0, 0));
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setRevertAOM("Hall Sofa stand up", "Слезть с дивана");
 
 
                 var TrashBox = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/TrashBox");
@@ -337,6 +336,25 @@ namespace MitaAI
                 oam.addEnqueAnimationAction("Mita SitIdle");
                 oam.setRevertAOM("CornerSofa stend up", "Встать с углового дивана");
 
+                CornerSofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa");
+                oam = ObjectAnimationMita.Create(CornerSofa.gameObject, "CornerSofa Hall sit right", "Сесть на угловой диван справа к лампе");
+                oam.setAiMovePoint(new Vector3(-0.6f, 0.0f, 0.6f));
+                oam.setStartPos(new Vector3(0f, 0.25f, 0f), new Vector3(270, 180, 0));
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setRevertAOM("CornerSofa stend up", "Встать с углового дивана");
+
+                CornerSofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa");
+                oam = ObjectAnimationMita.Create(CornerSofa.gameObject, "CornerSofa Hall sit left", "Сесть на угловой диван слева к окну");
+                oam.setAiMovePoint(new Vector3(0.6f, 0.0f, 0.6f));
+                oam.setStartPos(new Vector3(0f, 0.25f, 0f), new Vector3(270, 180, 0));
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setRevertAOM("CornerSofa stend up", "Встать с углового дивана");
+
+
+
+
                 var OttomanSit = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaOttoman");
                 oam = ObjectAnimationMita.Create(OttomanSit.gameObject, "SofaOttoman Hall sit","Сесть на пуфик");
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
@@ -354,6 +372,13 @@ namespace MitaAI
                 oam.setRevertAOM("BedroomChair stend up", "Встать с кресла");
 
 
+                var LivingRoomBigTumb = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingRoomBigTumb");
+                oam = ObjectAnimationMita.Create(LivingRoomBigTumb.gameObject, "LivingRoomBigTumb sit", "Залезть и сесть на тумбочку");
+                oam.setAiMovePoint(new Vector3(0.5f, 0f, 0f));
+                oam.setStartPos(new Vector3(-0.1f, 0.4f, 0.3f), new Vector3(270, 180, 0));
+                oam.setIdleAnimation("Mita Sit High");
+                oam.addEnqueAnimationAction("Mita Sit High");
+                oam.setRevertAOM("LivingRoomBigTumb unsit", "Слезть с тумбочки с кресла");
 
 
 

@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Transactions;
 using UnityEngine;
 using UnityEngine.AI;
-using static MelonLoader.MelonLogger;
+
 
 namespace MitaAI.Mita
 {

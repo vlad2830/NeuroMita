@@ -36,7 +36,8 @@ namespace MitaAI.Mita
         public static GameObject bat;
         public static GameObject pipe;
 
-        static public string currentIdleAnim = "Idle";
+        const string initIdle = "Mita Idle_2";
+        static public string currentIdleAnim = "Mita Idle_2";
 
 
         static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, characterType character = characterType.None)
@@ -638,7 +639,7 @@ namespace MitaAI.Mita
 
 
             }
-            
+            MitaMovement.ChoseStyle(currentIdleAnim);
             checkCanMoveRotateLook();
             MelonLogger.Msg($"Ended quque currentIdleAnim {currentIdleAnim}");
             animator.CrossFade(currentIdleAnim,0.25f);
@@ -674,17 +675,13 @@ namespace MitaAI.Mita
             AnimationClip anim = FindAnimationClipInControllerByName(animName);
             if (anim != null)
             {
-                //if (ObjectAnimationMita.CurrentOAMc?.backAnimation != null) { }
 
-                // while (isMitaWalking()) yield return null;
-                //ObjectAnimationMita.finishWorkingOAM();
-                //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
                 MelonLogger.Msg($"Crossfade");
                 MelonLogger.Msg($"Now playing: {animName}");
                 try
                 {
                     mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
-                    MitaCore.Instance.Mita.MagnetOff();
+                    
 
                     // Вот это надо донастроить
                     if (anim.events.Count > 0)
@@ -777,16 +774,19 @@ namespace MitaAI.Mita
                 yield return new WaitForSeconds(animation.length + fadeDuration);
             }
         }
-        static public void resetToIdleAnimation(bool total_clear = false)
+        static public void resetToIdleAnimation(bool toInitAnim = true, bool total_clear = false,bool needEnque = false)
         {
-            setIdleAnimation("Mita Idle_2");
-            if (total_clear)
-            {
-                ClearQueue();
-                EnqueueAnimation("Mita Idle_2");
-            }
-           
+            string anim = toInitAnim ? initIdle : currentIdleAnim;
+
+            if (needEnque) EnqueueAnimation(anim);
+
+            setIdleAnimation(anim);
             
+
+            if (total_clear) ClearQueue();
+
+            
+
         }
         static public void setIdleAnimation(string animName)
         {
@@ -797,13 +797,8 @@ namespace MitaAI.Mita
                 {
                     currentIdleAnim = animName;
                     AnimationClip anim = FindAnimationClipInControllerByName(animName);
-                    if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
                     location34_Communication.mitaAnimationIdle = anim;
-
-                    if (animName.Contains("sit") || animName.Contains("Sit"))
-                    {
-                        MitaMovement.movementStyle = MovementStyles.sitting;
-                    }
+                    MitaMovement.ChoseStyle(animName);
                     checkCanMoveRotateLook();
 
                 }

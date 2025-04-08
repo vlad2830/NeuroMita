@@ -18,6 +18,16 @@ namespace MitaAI
     public class MitaState
     {
         public static MitaStateType currentMitaState = MitaStateType.normal;
+        
 
+        public static bool isMovingAvailble()
+        {
+            return currentMitaState == MitaStateType.normal;
+        }
+
+        public static bool isAnimationAvailble()
+        {
+            return currentMitaState == MitaStateType.normal;
+        }
     }
 }
