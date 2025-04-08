@@ -167,3 +167,4 @@ cython_debug/
 /__pycache__/
 /.vs
 /.vs
+/har_and_cookies

@@ -1,5 +1,6 @@
 import time
 
+import requests
 import tiktoken
 from openai import OpenAI
 from g4f.client import Client as g4fClient
