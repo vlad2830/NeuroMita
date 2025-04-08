@@ -12,6 +12,8 @@ using UnityEngine.Events;
 using Harmony;
 namespace MitaAI.Mita
 {
+
+
     public static class MitaAnimationModded
     {
         //static private Queue<(string,float,float)> animationQueue = new Queue<(string,float,float)>();
@@ -254,7 +256,7 @@ namespace MitaAI.Mita
                         setIdleAnimation("Mita Tired");
                         break;
                     case "Притвориться отключенной и упасть":
-                        MitaCore.movementStyle = MovementStyles.layingOnTheFloorAsDead;
+                        MitaMovement.movementStyle = MovementStyles.layingOnTheFloorAsDead;
                         EnqueueAnimation("Mita Fall Start");
                         setIdleAnimation("Mita Fall Idle");
 
@@ -338,7 +340,7 @@ namespace MitaAI.Mita
                     case "Сесть и плакать":
                         EnqueueAnimation("Mila CryNo");
                         setIdleAnimation("Mila CryNo");
-                        MitaCore.movementStyle = MovementStyles.cryingOnTheFloor;
+                        MitaMovement.movementStyle = MovementStyles.cryingOnTheFloor;
                         break;
                     case "Дружески ударить":
                         EnqueueAnimation("Mila Kick");
@@ -446,11 +448,6 @@ namespace MitaAI.Mita
                 MelonLogger.Error($"Problem with Animation: {ex.Message}");
             }
 
-
-            
-            //checkCanMoveRotateLook();
-
-
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
@@ -480,18 +477,18 @@ namespace MitaAI.Mita
         {     
         
             // Если запрещено двигаться
-            if (MovementStylesNoMovingAtAll.Contains(MitaCore.movementStyle))
+            if (MovementStylesNoMovingAtAll.Contains(MitaMovement.movementStyle))
             {
                 MitaCore.Instance.MitaLook.enabled = false;
                 location34_Communication.ActivationCanWalk(false);
             }
-            else if (MovementStylesNoBodyLooking.Contains(MitaCore.movementStyle))
+            else if (MovementStylesNoBodyLooking.Contains(MitaMovement.movementStyle))
             {
                 MitaCore.Instance.MitaLook.enabled = true;
                 MitaCore.Instance.MitaLook.canRotateBody = false;
                 location34_Communication.ActivationCanWalk(false);
             }
-            else if (MovementStylesNoWalking.Contains(MitaCore.movementStyle))
+            else if (MovementStylesNoWalking.Contains(MitaMovement.movementStyle))
             {
                 MitaCore.Instance.MitaLook.enabled = true;
                 MitaCore.Instance.MitaLook.canRotateBody = true;
@@ -595,15 +592,15 @@ namespace MitaAI.Mita
 
 
         static int testIndex = 0;
+        
+        
         // Корутина для последовательного проигрывания
         static private IEnumerator ProcessQueue()
         {
-            //if (isPlaying) yield break; // Already processing
-            int testIndexLocal = testIndex;
-            testIndex++;
-
             isPlaying = true;
+
             location34_Communication.ActivationCanWalk(false);
+
             while (animationList.Count > 0)
             {
 
@@ -611,106 +608,129 @@ namespace MitaAI.Mita
                 
 
 
-                string animName = animObject.animName;
-                float crossfade_len = animObject.begin_crossfade;
-                float delay_after = animObject.delay_after;
-                bool avoidStateSettings = animObject.avoidStateSettings;
-                var ObjectAnimationMita = animObject.ObjectAnimationMita;
+
                 animationList.RemoveFirst();
 
-                MelonLogger.Msg($"QUE {testIndexLocal}, ANIM LIST: count {animationList.Count} Now playing: {animObject.animName} {animObject.animationType} {ObjectAnimationMita}");
+                MelonLogger.Msg($"ANIM LIST: count {animationList.Count} Now playing: {animObject.animName} {animObject.animationType} {animObject.ObjectAnimationMita}");
 
-                if (ObjectAnimationMita != null)
+                if (animObject.ObjectAnimationMita != null)
                 {
-                    ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
-                    MelonLogger.Msg($"Now playing OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
-                    objectAnimationMita.Play();
-                    //checkCanMoveRotateLook();
-
-                    float beforeWalk = Time.unscaledTime;
-
-                    yield return new WaitForSeconds(0.25f);
-                    while (objectAnimationMita.isWalking && Time.unscaledTime - beforeWalk<20f) yield return new WaitForSeconds(0.25f);
-                    //while (isMitaWalking() && Time.unscaledDeltaTime - beforeWalk < 30f) yield return new WaitForSeconds(0.25f);
-
-                    MelonLogger.Msg($"Now ended walking OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
+                    yield return MelonCoroutines.Start( processObjectAnimationMita(animObject) );
                 }
                 else
                 {
-                    AnimationClip anim = FindAnimationClipByName(animName);
-                    if (anim != null)
-                    {
-                        //if (ObjectAnimationMita.CurrentOAMc?.backAnimation != null) { }
+                    yield return MelonCoroutines.Start( processAnimationMita(animObject) );
 
-                        // while (isMitaWalking()) yield return null;
-                        //ObjectAnimationMita.finishWorkingOAM();
-                        //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
-                        MelonLogger.Msg($"Crossfade");
-                        MelonLogger.Msg($"Now playing: {animName}");
-                        try
-                        {
-                            mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
-                            MitaCore.Instance.Mita.MagnetOff();
-                            
-                            // Вот это надо донастроить
-                            if (anim.events.Count > 0)
-                            {
-                                // yield return new WaitForSeconds(anim.events[0].floatParameter);
-                                MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0].stringParameter);
-                            }
-
-                            MelonLogger.Msg($"Finded animation event");
-                        }
-                        catch (Exception ex)
-
-                        {
-
-                            MelonLogger.Msg(ex);
-                        }
-
-
-                        MelonLogger.Msg($"zzz2");
-
-                        yield return WaitForAnimationCompletion(anim, false, 0.25f);
-
-                        if (animName == "Mita Kick")
-                        {
-                            // После завершения анимации удара деактивируем оба объекта
-                            bat.active = false;
-                            pipe.active = false;
-                        }
-                    }
-                    else
-                    {
-                        anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
-                        if (anim != null)
-                        {
-                            MelonLogger.Msg($"Usual case");
-                            mitaAnimatorFunctions.AnimationClipSimpleNext(anim);
-                            yield return WaitForAnimationCompletion(anim, false, 0.25f);
-                        }
-                        else
-                        {
-                            MelonLogger.Msg($"Not found state or clip");
-                        }
-
-                    }
-                    // Ждем завершения анимации
                 }
-                if (!avoidStateSettings) checkCanMoveRotateLook();
                 
-                yield return new WaitForSeconds(delay_after);
+                
+                if (!animObject.avoidStateSettings) checkCanMoveRotateLook();
+                
+                yield return new WaitForSeconds(animObject.delay_after);
 
 
 
 
             }
+            
             checkCanMoveRotateLook();
             MelonLogger.Msg($"Ended quque currentIdleAnim {currentIdleAnim}");
             animator.CrossFade(currentIdleAnim,0.25f);
-            //location34_Communication.enabled = true;
+            
             isPlaying = false;
         }
+        
+        
+        static IEnumerator processObjectAnimationMita(MitaActionAnimation animObject)
+        {
+            ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
+            MelonLogger.Msg($"Now playing OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
+            objectAnimationMita.Play();
+
+
+            float beforeWalk = Time.unscaledTime;
+
+            yield return new WaitForSeconds(0.25f);
+            while (objectAnimationMita.isWalking && Time.unscaledTime - beforeWalk < 20f) yield return new WaitForSeconds(0.25f);
+            
+
+            MelonLogger.Msg($"Now ended walking OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
+        }
+        static IEnumerator processAnimationMita(MitaActionAnimation animObject)
+        {
+
+            string animName = animObject.animName;
+            float crossfade_len = animObject.begin_crossfade;
+            float delay_after = animObject.delay_after;
+            bool avoidStateSettings = animObject.avoidStateSettings;
+            var ObjectAnimationMita = animObject.ObjectAnimationMita;
+
+            AnimationClip anim = FindAnimationClipByName(animName);
+            if (anim != null)
+            {
+                //if (ObjectAnimationMita.CurrentOAMc?.backAnimation != null) { }
+
+                // while (isMitaWalking()) yield return null;
+                //ObjectAnimationMita.finishWorkingOAM();
+                //if (mitaAnimatorFunctions.anim.runtimeAnimatorController != runtimeAnimatorController) mitaAnimatorFunctions.anim.runtimeAnimatorController = runtimeAnimatorController;
+                MelonLogger.Msg($"Crossfade");
+                MelonLogger.Msg($"Now playing: {animName}");
+                try
+                {
+                    mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
+                    MitaCore.Instance.Mita.MagnetOff();
+
+                    // Вот это надо донастроить
+                    if (anim.events.Count > 0)
+                    {
+                        // yield return new WaitForSeconds(anim.events[0].floatParameter);
+                        MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0].stringParameter);
+                    }
+
+                    MelonLogger.Msg($"Finded animation event");
+                }
+                catch (Exception ex)
+
+                {
+
+                    MelonLogger.Msg(ex);
+                }
+
+
+                MelonLogger.Msg($"zzz2");
+
+                yield return WaitForAnimationCompletion(anim, false, 0.25f);
+
+                if (animName == "Mita Kick")
+                {
+                    // После завершения анимации удара деактивируем оба объекта
+                    bat.active = false;
+                    pipe.active = false;
+                }
+            }
+            else
+            {
+                anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
+                if (anim != null)
+                {
+                    MelonLogger.Msg($"Usual case");
+                    mitaAnimatorFunctions.AnimationClipSimpleNext(anim);
+                    yield return WaitForAnimationCompletion(anim, false, 0.25f);
+                }
+                else
+                {
+                    MelonLogger.Msg($"Not found state or clip");
+                }
+
+            }
+        }
+
+
+
+
+
+
+
         static private bool isMitaWalking()
         {
             if (mitaNavMeshAgent != null) return mitaNavMeshAgent.enabled;
@@ -776,7 +796,7 @@ namespace MitaAI.Mita
 
                     if (animName.Contains("sit") || animName.Contains("Sit"))
                     {
-                        MitaCore.movementStyle = MovementStyles.sitting;
+                        MitaMovement.movementStyle = MovementStyles.sitting;
                     }
                     checkCanMoveRotateLook();
 

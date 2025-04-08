@@ -354,6 +354,8 @@ namespace MitaAI
                 MelonLogger.Msg("Start Play Anim Object Mita");
                 mitaAIMovePoint.mita = MitaCore.Instance.Mita;
                 MitaAnimationModded.location34_Communication.ActivationCanWalk(false);
+                MitaState.currentMitaState = MitaStateType.interaction;
+
                 //MitaCore.Instance.MitaPersonObject.GetComponent<Collider>().enabled = false;
                 MitaCore.Instance.Mita.MagnetOff();
                 MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = true;
@@ -427,6 +429,9 @@ namespace MitaAI
             MitaAnimationModded.location34_Communication.gameObject.active = true;
             //MitaAnimationModded.location34_Communication.mitaCanWalk = true;
             MitaAnimationModded.checkCanMoveRotateLook();
+            
+            MitaState.currentMitaState = MitaStateType.normal;
+
             MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = false;
         }
         void commonAction()

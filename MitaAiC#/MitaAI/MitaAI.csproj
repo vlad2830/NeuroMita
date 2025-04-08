@@ -335,6 +335,7 @@
 		<Compile Include="ConnectionAndDialogue\CurrentInfoControl.cs" />
 		<Compile Include="Mita\MitaFaceAnimationModded.cs" />
 		<Compile Include="Mita\MitaMovement.cs" />
+		<Compile Include="Mita\MitaState.cs" />
 		<Compile Include="Mita\ObjectAnimationMita.cs" />
 		<Compile Include="Mita\MitaActionAnimation.cs" />
 		<Compile Include="PlayerControls\PlayerEffects.cs" />

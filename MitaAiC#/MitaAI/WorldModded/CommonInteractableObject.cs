@@ -11,6 +11,11 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class CommonInteractableObject : MonoBehaviour
     {
+        /*
+         *  Компонента для отслеживания, занято место кем-то или нет 
+         * 
+         */
+
 
         public characterType taker = characterType.None;        
 

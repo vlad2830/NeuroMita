@@ -364,9 +364,9 @@ namespace MitaAI
 
         public characterType currentCharacter = characterType.Crazy;
 
-        public static MovementStyles movementStyle = MovementStyles.walkNear;
+        
 
-        public MitaState mitaState = MitaState.normal;
+        
 
         
 

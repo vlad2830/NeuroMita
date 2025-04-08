@@ -13,6 +13,25 @@ using static Il2CppRootMotion.FinalIK.InteractionObject;
 using UnityEngine.UI;
 namespace MitaAI
 {
+    public enum characterType
+    {
+        // НПС должны строго соотвествовать эквивалентам в питоне!
+
+        Player = -2,
+        None = -1,
+        Crazy = 0,
+        Cappy = 1,
+        Kind = 2,
+        Cart_portal = 3,
+        ShortHair = 4,
+        Cart_divan,
+        Mila,
+        Sleepy,
+        Creepy,
+        GameMaster
+
+    }
+
     public static class CharacterControl
     {
 
@@ -253,7 +272,7 @@ namespace MitaAI
             }
             
             // Специальная логика для режима hunt - оставляю на будующее если проблемы с охотой случатся
-            if (MitaCore.Instance.mitaState == MitaState.hunt && from == characterType.Crazy)
+            if (MitaState.currentMitaState == MitaStateType.hunt && from == characterType.Crazy)
             {
                 //можно будет например спам убрать, слишком много во время охоты говорит
             }

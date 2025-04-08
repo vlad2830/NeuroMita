@@ -260,7 +260,7 @@ namespace MitaAI
                 }
 
                 // Восстановление стандартного стиля движения
-                MitaCore.movementStyle = MovementStyles.walkNear;
+                MitaMovement.movementStyle = MovementStyles.walkNear;
                 if (navMeshAgent != null)
                 {
                     navMeshAgent.enabled = true;

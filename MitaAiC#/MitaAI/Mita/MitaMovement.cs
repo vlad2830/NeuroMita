@@ -9,11 +9,25 @@ using UnityEngine.Playables;
 using UnityEngine.AI;
 using Il2CppRootMotion.FinalIK;
 using UnityEngine.Events;
-using static MitaAI.MitaCore;
-namespace MitaAI.Mita
+
+namespace MitaAI
 {
+    public enum MovementStyles
+    {
+        walkNear = 0,
+        follow = 1,
+        stay = 2,
+        noclip = 3,
+        layingOnTheFloorAsDead = 4,
+        sitting,
+        cryingOnTheFloor
+
+    }
+
     public static class MitaMovement
     {
+        public static MovementStyles movementStyle = MovementStyles.walkNear;
+
 
         public static string SetMovementStyle(string response)
         {

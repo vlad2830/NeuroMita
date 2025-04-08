@@ -76,7 +76,7 @@ namespace MitaAI
             {
 
                 if (MitaCore.Instance.MitaPersonObject != null) info += $"Your game object name is <{MitaCore.Instance.MitaPersonObject.name}>\n";
-                info += $"Current movement type: {movementStyle.ToString()}\n";
+                info += $"Current movement type: {MitaMovement.movementStyle.ToString()}\n";
                 if (MitaAnimationModded.currentIdleAnim != "") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
                 if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!\n";
                 if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!\n";
@@ -102,7 +102,7 @@ namespace MitaAI
                 MelonLogger.Msg("CurrentInfo 2");
 
 
-                if (MitaCore.Instance.mitaState == MitaState.hunt) info += $"You are hunting player with knife:\n";
+                if (MitaState.currentMitaState == MitaStateType.hunt) info += $"You are hunting player with knife:\n";
 
                 info += $"Your size: {MitaCore.Instance.MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";
