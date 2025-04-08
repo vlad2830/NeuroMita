@@ -3,6 +3,8 @@ import os
 import datetime
 import shutil
 
+from Logger import logger
+
 
 class HistoryManager:
     """ В работе, пока неактивно"""
@@ -28,13 +30,13 @@ class HistoryManager:
                     return data
 
                 else:
-                    print("Ошибка загрузки истории, копия сохранена в резерв, текущая сброшена")
+                    logger.info("Ошибка загрузки истории, копия сохранена в резерв, текущая сброшена")
                     self.save_history_separate()
                     return self._default_history()
 
         except (json.JSONDecodeError, FileNotFoundError):
             # Если файл пуст или не существует, возвращаем структуру по умолчанию
-            print("Ошибка загрузки истории")
+            logger.info("Ошибка загрузки истории")
             return self._default_history()
 
     def history_format_correct(self, data):
@@ -53,7 +55,7 @@ class HistoryManager:
             # Выводим сообщения об ошибках для тех условий, которые не выполнены
             for condition, error_message in checks:
                 if not condition:
-                    print(f"Ошибка: {error_message}")
+                    logger.info(f"Ошибка: {error_message}")
             return False
 
     def save_history(self, data):
@@ -72,7 +74,7 @@ class HistoryManager:
 
     def save_history_separate(self):
         """Нужно, чтобы история сохранилась отдельно"""
-        print("save_chat_history")
+        logger.info("save_chat_history")
         # Папка для сохранения историй
         target_folder = f"Histories\\{self.character_name}\\Saved"
         # Проверяем, существует ли папка SavedHistories, и создаём её, если нет
@@ -87,15 +89,15 @@ class HistoryManager:
 
         # Копируем файл
         shutil.copy(self.history_file_path, target_path)
-        print(f"Файл сохранён как {target_path}")
+        logger.info(f"Файл сохранён как {target_path}")
 
     def clear_history(self):
-        print("Сброс файла истории")
+        logger.info("Сброс файла истории")
 
         self.save_history(self._default_history())
 
     def _default_history(self):
-        print("Созданная пустая история")
+        logger.info("Созданная пустая история")
         """Создаем структуру истории по умолчанию."""
         return {
             'fixed_parts': [],

@@ -1,3 +1,4 @@
+from Logger import logger
 from character import Character
 from promptPart import PromptPart, PromptType
 
@@ -91,13 +92,13 @@ class CrazyMita(Character):
 
     def _start_playing_with_player(self):
         """Игровая логика, когда персонаж начинает играть с игроком"""
-        print("Играет с игроком в якобы невиновную")
+        logger.info("Играет с игроком в якобы невиновную")
         self.PlayingFirst = True
         self.replace_prompt("main", "mainPlaying")
 
     def _reveal_secret(self):
         """Логика раскрытия секрета"""
-        print("Перестала играть вообще")
+        logger.info("Перестала играть вообще")
         self.secretExposedFirst = True
         self.secretExposed = True
         self.replace_prompt("main", "mainCrazy")
@@ -114,7 +115,7 @@ class CrazyMita(Character):
 
             if not self.secretExposedFirst:
                 self.secretExposed = True
-                print(f"Секрет раскрыт")
+                logger.info(f"Секрет раскрыт")
                 self.attitude = 15
                 self.boredom = 20
 
@@ -224,7 +225,7 @@ class ShortHairMita(Character):
 
     def _reveal_secret(self):
         """Логика раскрытия секрета"""
-        print("Перестала играть вообще")
+        logger.info("Перестала играть вообще")
         self.secretExposedFirst = True
         self.secretExposed = True
         #self.replace_prompt("main", "mainCrazy")
@@ -241,7 +242,7 @@ class ShortHairMita(Character):
 
             if not self.secretExposedFirst:
                 self.secretExposed = True
-                print(f"Секрет раскрыт")
+                logger.info(f"Секрет раскрыт")
                 self.attitude = 15
                 self.boredom = 20
 
@@ -321,7 +322,7 @@ class CappyMita(Character):
 
     def _reveal_secret(self):
         """Логика раскрытия секрета"""
-        print("Перестала играть вообще")
+        logger.info("Перестала играть вообще")
         self.secretExposedFirst = True
         self.secretExposed = True
         #self.replace_prompt("main", "mainCrazy")
@@ -338,7 +339,7 @@ class CappyMita(Character):
 
             if not self.secretExposedFirst:
                 self.secretExposed = True
-                print(f"Секрет раскрыт")
+                logger.info(f"Секрет раскрыт")
                 self.attitude = 15
                 self.boredom = 20
 
@@ -494,7 +495,7 @@ class GameMaster(Character):
     def add_context(self,messages):
         super().add_context(messages)
 
-        print("Особый контекст ГМ")
+        logger.info("Особый контекст ГМ")
         for prompt in self.temp_prompts:
             messages.append({"role": "system", "content": str(prompt)})
 

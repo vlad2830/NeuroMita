@@ -5,6 +5,8 @@ import os
 import tkinter as tk
 from tkinter import ttk
 
+from Logger import logger
+
 
 class SettingsManager:
     instance = None
@@ -23,7 +25,7 @@ class SettingsManager:
                 decoded = base64.b64decode(encoded)
                 self.settings = json.loads(decoded.decode("utf-8"))
         except Exception as e:
-            print(f"Error loading settings: {e}")
+            logger.error(f"Error loading settings: {e}")
             self.settings = {}
 
     def save_settings(self):
@@ -33,7 +35,7 @@ class SettingsManager:
             with open(self.config_path, "wb") as f:
                 f.write(encoded)
         except Exception as e:
-            print(f"Error saving settings: {e}")
+            logger.error(f"Error saving settings: {e}")
 
     def get(self, key, default=None):
         return self.settings.get(key, default)

@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from FSM.FiniteStateMachine import FiniteStateMachine
+from Logger import logger
 from MemorySystem import MemorySystem
 from promptPart import PromptPart, PromptType
 from HistoryManager import HistoryManager
@@ -56,13 +57,13 @@ class Character:
         elif part.is_temporary:
             self.temp_prompts.append(part)
         else:
-            print("Добавляется неизвестный промпарт")
+            logger.info("Добавляется неизвестный промпарт")
 
     def find_prompt(self, list_to_find, name):
         return next((p for p in list_to_find if p.name == name), None)
 
     def find_float(self, name):
-        print("Попытка найти ивент")
+        logger.info("Попытка найти ивент")
         return self.find_prompt(self.float_prompts, name)
 
     def replace_prompt(self, name_current: str, name_next: str):
@@ -72,21 +73,21 @@ class Character:
         :param name_current: Имя текущего активного промпта.
         :param name_next: Имя следующего промпта, который нужно активировать.
         """
-        print("Замена промпарта")
+        logger.info("Замена промпарта")
 
         # Находим текущий активный промпт
         current_prompt = self.find_prompt(self.fixed_prompts, name_current)
         if current_prompt:
             current_prompt.active = False
         else:
-            print(f"Промпт '{name_current}' не существует")
+            logger.info(f"Промпт '{name_current}' не существует")
 
         # Находим следующий промпт
         next_prompt = self.find_prompt(self.fixed_prompts, name_next)
         if next_prompt:
             next_prompt.active = True
         else:
-            print(f"Промпт '{name_next}' не существует")
+            logger.info(f"Промпт '{name_next}' не существует")
 
     def prepare_fixed_messages(self) -> List[Dict]:
         """Создает фиксированные начальные установки
@@ -109,7 +110,7 @@ class Character:
                 state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FIXED_START)}
                 messages.append(state_message)
             except Exception as ex:
-                print("FSM",ex)
+                logger.info("FSM",ex)
 
 
 
@@ -122,7 +123,7 @@ class Character:
         :param messages сообщения фиксированные заготовленные
         :return: сообщения
         """
-        print(f"Добавление плавающих")
+        logger.info(f"Добавление плавающих")
         for part in self.float_prompts:
 
             text = str(part).strip()
@@ -130,13 +131,13 @@ class Character:
                 m = {"role": "system", "content": str(text)}
                 messages.append(m)
                 part.active = False
-                print(f"Добавляю плавающий промпт {text}")
+                logger.info(f"Добавляю плавающий промпт {text}")
         if self.fsm:
             try:
                 state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FLOATING_SYSTEM)}
                 messages.append(state_message)
             except Exception as ex:
-                print("FSM",ex)
+                logger.info("FSM",ex)
 
 
 
@@ -172,7 +173,7 @@ class Character:
                 repeated_system_message += self.fsm.get_prompts_text(PromptType.CONTEXT_TEMPORARY)
                 repeated_system_message += self.fsm.get_variables_text()
             except Exception as ex:
-                print("FSM",ex)
+                logger.info("FSM",ex)
 
 
 
@@ -185,7 +186,7 @@ class Character:
 
     def process_logic(self, messages: dict = None):
         """То, как должно что-то менять до получения ответа"""
-        print("Персонаж без изменяемой логики промптов")
+        logger.info("Персонаж без изменяемой логики промптов")
 
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)
@@ -196,7 +197,7 @@ class Character:
             try:
                 self.fsm.process_response(response)
             except Exception as ex:
-                print("FSM",ex)
+                logger.info("FSM",ex)
 
         return response
 
@@ -237,7 +238,7 @@ class Character:
         matches = re.findall(memory_pattern, response, re.DOTALL)
 
         if matches:
-            print("Обнаружены команды изменения памяти!")
+            logger.info("Обнаружены команды изменения памяти!")
             for operation, content in matches:
                 content = content.strip()
                 try:
@@ -250,14 +251,14 @@ class Character:
                                 priority=priority,
                                 content=mem_content
                             )
-                            print(f"Добавлено воспоминание #{mem_content}")
+                            logger.info(f"Добавлено воспоминание #{mem_content}")
                         elif len(parts) == 1:
                             mem_content = parts[0]
                             self.memory_system.add_memory(
                                 priority="normal",
                                 content=mem_content
                             )
-                            print(f"Добавлено воспоминание #{mem_content} (Старый формат)")
+                            logger.info(f"Добавлено воспоминание #{mem_content} (Старый формат)")
                         else:
                             raise ValueError("Неверный формат данных для добавления")
 
@@ -276,7 +277,7 @@ class Character:
                             priority=priority,
                             content=mem_content
                         )
-                        print(f"Обновлено воспоминание #{number}")
+                        logger.info(f"Обновлено воспоминание #{number}")
 
                     # Обработка удаления
                     elif operation == "-":
@@ -287,7 +288,7 @@ class Character:
                             for number in numbers:
                                 if number.isdigit():
                                     self.memory_system.delete_memory(number=int(number))
-                                    print(f"Удалено воспоминание #{number}")
+                                    logger.info(f"Удалено воспоминание #{number}")
                         # Обработка записи через дефис (5-9)
                         elif "-" in content:
                             start_end = content.split("-")
@@ -296,18 +297,18 @@ class Character:
                                 end = int(start_end[1])
                                 for number in range(start, end + 1):
                                     self.memory_system.delete_memory(number=number)
-                                    print(f"Удалено воспоминание #{number}")
+                                    logger.info(f"Удалено воспоминание #{number}")
                         # Обычное удаление одного числа
                         else:
                             if content.isdigit():
                                 self.memory_system.delete_memory(number=int(content))
-                                print(f"Удалено воспоминание #{content}")
+                                logger.info(f"Удалено воспоминание #{content}")
 
 
 
                     self.MitaLongMemory = {"role": "system", "content": self.memory_system.get_memories_formatted()}
                 except Exception as e:
-                    print(f"Ошибка обработки памяти: {str(e)}")
+                    logger.info(f"Ошибка обработки памяти: {str(e)}")
 
         return response
 
@@ -368,19 +369,19 @@ class Character:
         amount = clamp(amount, -5, 5)
         """Корректируем отношение."""
         self.attitude = clamp(self.attitude + amount, 0, 100)
-        print(f"Отношение изменилось на {amount}, новое значение: {self.attitude}")
+        logger.info(f"Отношение изменилось на {amount}, новое значение: {self.attitude}")
 
     def adjust_boredom(self, amount):
         amount = clamp(amount, -5, 5)
         """Корректируем уровень скуки."""
         self.boredom = clamp(self.boredom + amount, 0, 100)
-        print(f"Скука изменилась на {amount}, новое значение: {self.boredom}")
+        logger.info(f"Скука изменилась на {amount}, новое значение: {self.boredom}")
 
     def adjust_stress(self, amount):
         amount = clamp(amount, -5, 5)
         """Корректируем уровень стресса."""
         self.stress = clamp(self.stress + amount, 0, 100)
-        print(f"Стресс изменился на {amount}, новое значение: {self.stress}")
+        logger.info(f"Стресс изменился на {amount}, новое значение: {self.stress}")
 
     def get_path(self, path):
         return f"Prompts/{self.name}/{path}"
@@ -463,7 +464,7 @@ class GameMaster(Character):
     def add_context(self,messages):
         super().add_context(messages)
 
-        print("Особый контекст ГМ")
+        logger.info("Особый контекст ГМ")
         for prompt in self.temp_prompts:
             messages.append({"role": "system", "content": str(prompt)})
 
