@@ -3,7 +3,7 @@
 Поиск любого активного объекта (Только со всеми активными родителями!)
  MenuObject = GameObject.Find("MenuGame");
 
-Поиск ребенка объекта, внимание, не нужно его самого в строку включать! Игнорирует неактивность
+Поиск ребенка объекта, внимание, не нужно его самого в строку включать (В данном случае world не нужен)! Игнорирует неактивность
  CornerSofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa");
 
 Найти в конретной сцене

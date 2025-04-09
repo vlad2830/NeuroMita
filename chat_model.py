@@ -182,10 +182,10 @@ class ChatModel:
             response, success = self._generate_chat_response(combined_messages)
 
             if not success:
-                logger.info("Неудачная генерация")
+                logger.warning("Неудачная генерация")
                 return response
             elif response == "":
-                logger.info("Пустая генерация")
+                logger.warning("Пустая генерация")
                 return response
 
             response_message = {

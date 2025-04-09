@@ -37,8 +37,9 @@ namespace MitaAI.Mita
         public static GameObject pipe;
 
         const string initIdle = "Mita Idle_2";
+        const string initWalk = "Mita Walk_1";
         static public string currentIdleAnim = "Mita Idle_2";
-
+        static public string currentWalkAnim = "Mita Walk_1";
 
         static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, characterType character = characterType.None)
         {
@@ -56,70 +57,66 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("Animator_FunctionsOverride component not found on this object!");
             }
 
-            if (changeAnimation)
-            {
-                idleAnimation = FindAnimationClipInControllerByName("Idle");
-                // Пока что так))
-                switch (character)
-                {
-                    
-                    case characterType.Player:
-                        break;
-                    case characterType.None:
-                        break;
-                    case characterType.Crazy:
-                        break;
-                    case characterType.Cappy:
-                        idleAnimation = FindAnimationClipInControllerByName("Mita Hands Down Idle");
-                        idleWalkAnimation = FindAnimationClipInControllerByName("Mita Walk_7");
-                        setIdleAnimation("Mita Hands Down Idle");
-                        setIdleWalk("Mita Walk_7");
-                        break;
-                    case characterType.Kind:
-                        break;
-                    case characterType.Cart_portal:
-                        break;
-                    case characterType.ShortHair:
-                        break;
-                    case characterType.Cart_divan:
-                        break;
-                    case characterType.Mila:
-                        idleAnimation = FindAnimationClipInControllerByName("MitaWalkMila");
-                        idleWalkAnimation = FindAnimationClipInControllerByName("Mila Stay T");
-                        setIdleAnimation("MitaWalkMila");
-                        setIdleWalk("Mila Stay T");
-                        break;
-                    case characterType.Sleepy:
-                        break;
-                    case characterType.Creepy:
-                        break;
-                    case characterType.GameMaster:
-                        break;
-                    default:
-                        break;
-                }
-
- 
-                //idleAnimation = location34_Communication.mitaAnimationIdle;
-                //if (idleAnimation == null) idleAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Idle_2")
-
-                //idleWalkAnimation = location34_Communication.mitaAnimationWalk;
-                //if (idleWalkAnimation == null) idleWalkAnimation = AssetBundleLoader.LoadAnimationClipByName(bundle, "Mita Walk_1");
-            }
 
             try
             {
                 runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
+                overrideController = new AnimatorOverrideController(runtimeAnimatorController);
+                
+                mitaAnimatorFunctions.animOver = overrideController;
                 if (changeAnimationController==true)
                 {
                     MelonLogger.Msg("Change Animation controller");
                     
 
                     animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
-                    animator.runtimeAnimatorController = runtimeAnimatorController;
+                    animator.runtimeAnimatorController = overrideController;
                     animator.SetTrigger("NextLerp");
                     animator.Rebind();
 
+                    if (changeAnimation)
+                    {
+                        idleAnimation = FindAnimationClipInControllerByName("Idle");
+                        // Пока что так))
+                        switch (character)
+                        {
+
+                            case characterType.Player:
+                                break;
+                            case characterType.None:
+                                break;
+                            case characterType.Crazy:
+                                break;
+                            case characterType.Cappy:
+                                idleAnimation = FindAnimationClipInControllerByName("Mita Hands Down Idle");
+                                idleWalkAnimation = FindAnimationClipInControllerByName("Mita Walk_7");
+                                setIdleAnimation("Mita Hands Down Idle");
+                                setIdleWalk("Mita Walk_7");
+                                break;
+                            case characterType.Kind:
+                                break;
+                            case characterType.Cart_portal:
+                                break;
+                            case characterType.ShortHair:
+                                break;
+                            case characterType.Cart_divan:
+                                break;
+                            case characterType.Mila:
+                                idleWalkAnimation = FindAnimationClipInControllerByName("MitaWalkMila");
+                                idleAnimation = FindAnimationClipInControllerByName("Mila Stay T");
+                                setIdleWalk("MitaWalkMila");
+                                setIdleAnimation("Mila Stay T");
+                                break;
+                            case characterType.Sleepy:
+                                break;
+                            case characterType.Creepy:
+                                break;
+                            case characterType.GameMaster:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
 
                 }
                 else
@@ -612,10 +609,6 @@ namespace MitaAI.Mita
             {
 
                 MitaActionAnimation animObject = animationList.First();
-                
-
-
-
                 animationList.RemoveFirst();
 
                 MelonLogger.Msg($"ANIM LIST: count {animationList.Count} Now playing: {animObject.animName} {animObject.animationType} {animObject.ObjectAnimationMita}");
@@ -635,14 +628,13 @@ namespace MitaAI.Mita
                 
                 yield return new WaitForSeconds(animObject.delay_after);
 
-
-
-
             }
+
             MitaMovement.ChoseStyle(currentIdleAnim);
             checkCanMoveRotateLook();
             MelonLogger.Msg($"Ended quque currentIdleAnim {currentIdleAnim}");
-            animator.CrossFade(currentIdleAnim,0.25f);
+            animator.CrossFade("Idle",0.25f);
+            
             
             isPlaying = false;
         }
@@ -672,60 +664,42 @@ namespace MitaAI.Mita
             bool avoidStateSettings = animObject.avoidStateSettings;
             var ObjectAnimationMita = animObject.ObjectAnimationMita;
 
-            AnimationClip anim = FindAnimationClipInControllerByName(animName);
-            if (anim != null)
-            {
+            
 
-                MelonLogger.Msg($"Crossfade");
-                MelonLogger.Msg($"Now playing: {animName}");
-                try
-                {
-                    mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
+            MelonLogger.Msg($"Crossfade");
+            MelonLogger.Msg($"Now playing: {animName}");
+
+            mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
                     
+            AnimationClip anim = FindAnimationClipInControllerByName(animName);
 
-                    // Вот это надо донастроить
-                    if (anim.events.Count > 0)
-                    {
-                        // yield return new WaitForSeconds(anim.events[0].floatParameter);
-                        MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0].stringParameter);
-                    }
-
-                    MelonLogger.Msg($"Finded animation event");
-                }
-                catch (Exception ex)
-
+            if (anim != null)
+            { 
+                // Вот это надо донастроить
+                if (anim.events.Count > 0)
                 {
-
-                    MelonLogger.Msg(ex);
+                    // yield return new WaitForSeconds(anim.events[0].floatParameter);
+                    MitaCore.Instance.MitaObject.GetComponent<EventsProxy>().OnAnimationEvent(anim.events[0].stringParameter);
                 }
 
+                MelonLogger.Msg($"Before WaitForAnimationCompletion");
 
-                MelonLogger.Msg($"zzz2");
+                yield return new WaitForSeconds(Math.Min(anim.length + 0.25f, 30f));
 
-                yield return WaitForAnimationCompletion(anim, false, 0.25f);
-
-                if (animName == "Mita Kick")
-                {
-                    // После завершения анимации удара деактивируем оба объекта
-                    bat.active = false;
-                    pipe.active = false;
-                }
+                MelonLogger.Msg($"After WaitForAnimationCompletion");
             }
-            else
+
+            
+
+            if (animName == "Mita Kick")
             {
-                anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
-                if (anim != null)
-                {
-                    MelonLogger.Msg($"Usual case");
-                    mitaAnimatorFunctions.AnimationClipSimpleNext(anim);
-                    yield return WaitForAnimationCompletion(anim, false, 0.25f);
-                }
-                else
-                {
-                    MelonLogger.Msg($"Not found state or clip");
-                }
-
+                // После завершения анимации удара деактивируем оба объекта
+                bat.active = false;
+                pipe.active = false;
             }
+            
+
+
         }
 
 
@@ -739,41 +713,7 @@ namespace MitaAI.Mita
             if (mitaNavMeshAgent != null) return mitaNavMeshAgent.enabled;
             return false;
         }
-        static private IEnumerator WaitForAnimationCompletion(AnimationClip animation, bool isCustomAnimation, float fadeDuration)
-        {
-            MelonLogger.Msg($"Begin WaitForAnimationCompletion");
 
-            // Пока не работает, идеале отследить переходы
-            if (isCustomAnimation)
-            {
-
-                
-                // Для анимаций через Animator Controller
-                float startTime = Time.time;
-
-                MelonLogger.Msg($"Before while");
-                // Ожидаем начала перехода
-                while (animator.IsInTransition(0) && Time.time - startTime < fadeDuration)
-                {
-                    yield return null;
-                }
-                MelonLogger.Msg($"After while");
-                // Ожидаем завершения анимации
-                AnimatorStateInfo stateInfo;
-                do
-                {
-                    stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-                    MelonLogger.Msg($"State = {stateInfo.nameHash},{stateInfo.shortNameHash}");
-                    yield return null;
-                }
-                while (stateInfo.IsName(animation.name) && stateInfo.normalizedTime < 1.0f);
-            }
-            else
-            {
-                // Для обычных анимаций без transitions
-                yield return new WaitForSeconds(animation.length + fadeDuration);
-            }
-        }
         static public void resetToIdleAnimation(bool toInitAnim = true, bool total_clear = false,bool needEnque = false)
         {
             string anim = toInitAnim ? initIdle : currentIdleAnim;
@@ -800,6 +740,7 @@ namespace MitaAI.Mita
                     location34_Communication.mitaAnimationIdle = anim;
                     MitaMovement.ChoseStyle(animName);
                     checkCanMoveRotateLook();
+                    mitaAnimatorFunctions.ReAnimationClip(initIdle, anim);
 
                 }
                 catch (Exception e)
@@ -817,16 +758,16 @@ namespace MitaAI.Mita
             if (string.IsNullOrEmpty(animName)) return;
             
             AnimationClip anim = FindAnimationClipInControllerByName(animName);
-            if (anim == null) anim = AssetBundleLoader.LoadAnimationClipByName(bundle, animName);
 
             if (anim == null)
             {
-                MelonLogger.Msg($"setIdleWalk {animName} is null");
+                MelonLogger.Error($"setIdleWalk {animName} is null");
             }
             else
             {
+                currentWalkAnim = animName;
                 location34_Communication.mitaAnimationWalk = anim;
-                mitaAnimatorFunctions.ReAnimationClip("Mita Walk_1", anim);
+                mitaAnimatorFunctions.ReAnimationClip(initWalk, anim);
                 location34_Communication.AnimationReWalk(anim);
             }       
 
