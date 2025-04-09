@@ -375,7 +375,7 @@ namespace MitaAI
                 var LivingRoomBigTumb = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingRoomBigTumb");
                 oam = ObjectAnimationMita.Create(LivingRoomBigTumb.gameObject, "LivingRoomBigTumb sit", "Залезть и сесть на тумбочку");
                 oam.setAiMovePoint(new Vector3(0.5f, 0f, 0f));
-                oam.setStartPos(new Vector3(-0.1f, 0.3f, 0.2f), new Vector3(0, 270, 270));
+                oam.setStartPos(new Vector3(-0.1f, 0.3f, 0.1f), new Vector3(0, 270, 270));
                 oam.setIdleAnimation("Mita Sit High");
                 oam.addEnqueAnimationAction("Mita Sit High");
                 oam.setRevertAOM("LivingRoomBigTumb unsit", "Слезть с тумбочки с кресла");

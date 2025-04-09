@@ -31,13 +31,14 @@ namespace MitaAI
 
             if (currentOAMc != null) {
                 info += $"Currently interacting with {currentOAMc.AmimatedObject.name} - {currentOAMc.tip}";
+                info += $"Attention: all move commands will finish iteraction! Thus use finishing they only intentionally!";
             }
             if (allOAMs.Count>0)
             {
 
                 info += $"\n You have special commands <{command}> for animating your interactions like sitting, lying, taking something.";
                 info += $"\n Current available interactions (use <{command}>Name</{command}> to interact): ";
-                info += $"Attention: all non-face animation or move commands will end current/potential interaction";
+                
                 foreach (var oam in allOAMs)
                 {
                     var distance = Utils.getDistanceBetweenObjects(oam.Value.AmimatedObject, MitaCore.Instance.MitaPersonObject);

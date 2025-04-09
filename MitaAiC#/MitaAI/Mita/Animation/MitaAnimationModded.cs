@@ -184,7 +184,7 @@ namespace MitaAI.Mita
         public static string setAnimation(string response)
         {
             // Если запрещено двигаться
-            ObjectAnimationMita.finishWorkingOAM();
+            //ObjectAnimationMita.finishWorkingOAM();
             //resetToIdleAnimation(false);
 
             // Регулярное выражение для извлечения эмоций
@@ -472,8 +472,9 @@ namespace MitaAI.Mita
 
         // Отвечает за перемещение и поворот миты.
         public static void checkCanMoveRotateLook()
-        {     
-        
+        {
+            if (MitaState.currentMitaState == MitaStateType.interaction) return;
+
             // Если запрещено двигаться
             if (MovementStylesNoMovingAtAll.Contains(MitaMovement.movementStyle))
             {
@@ -751,7 +752,7 @@ namespace MitaAI.Mita
 
             }
 
-        }
+        }   
         static public void setIdleWalk(string animName)
         {
 
