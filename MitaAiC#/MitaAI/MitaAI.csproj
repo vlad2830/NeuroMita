@@ -348,6 +348,7 @@
 		<Compile Include="Utils\ComponentCopier.cs" />
 		<Compile Include="WorldModded\CommonInteractableObject.cs" />
 		<Compile Include="WorldModded\Events\WardrobeFix.cs" />
+		<Compile Include="WorldModded\Games\TVModded.cs" />
 		<Compile Include="WorldModded\Other\ShaderReplacer.cs" />
 		<Compile Include="WorldModded\Events\EventsProxy.cs" />
 		<Compile Include="Mita\AudioControl.cs" />

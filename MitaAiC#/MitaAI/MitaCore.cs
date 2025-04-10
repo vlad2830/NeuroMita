@@ -751,15 +751,7 @@ namespace MitaAI
             TotalInitialization.initStartSecret2();
 
             MelonLogger.Msg($"Attempt Interactions before");
-            try
-            {
-                Interactions.init();
-            }
-            catch (Exception)
-            {
 
-                throw;
-            }
 
 
             

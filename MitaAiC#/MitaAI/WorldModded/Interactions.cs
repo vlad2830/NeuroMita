@@ -6,6 +6,8 @@ using System.Collections;
 using UnityEngine;
 using System.Text;
 using MitaAI.WorldModded;
+using Il2CppEPOOutline;
+using UnityEngine.Events;
 
 namespace MitaAI
 {
@@ -14,27 +16,34 @@ namespace MitaAI
 
         public static void init()
         {
-            Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
-            Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
-            Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
-           // Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
+            var b =  MitaCore.worldHouse.transform.Find("Mita/Addon/Interactive PhotoMita/").gameObject;
+
+
+            var objectInteractive = Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/RemoteTV").gameObject);
+            objectInteractive.eventClick.AddListener((UnityAction)TVModded.turnTV);
+
+            //Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
+            //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
+            //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
+            //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
         }
 
-        public static void CreateObjectInteractable(GameObject gameObject)
+        public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject)
         {
             if (gameObject == null)
             {
                 MelonLogger.Msg("ERROR FIND: GameObject is null");
-                return;
+                return null;
             }
 
-            ObjectInteractive objectInteractive;
-            if (!gameObject.GetComponent<Collider>())
+            var collider = gameObject.GetComponent<Collider>();
+            if (collider == null)
             {
                 BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
                 MelonLogger.Msg($"Collider added to {gameObject.name}");
             }
-            objectInteractive = gameObject.GetComponent<ObjectInteractive>();
+            
+            ObjectInteractive objectInteractive = gameObject.GetComponent<ObjectInteractive>();
             if (!objectInteractive)
             {
                 objectInteractive = gameObject.AddComponent<ObjectInteractive>();
@@ -42,9 +51,23 @@ namespace MitaAI
             }
             objectInteractive.active = true;
 
+            var outline = gameObject.GetComponent<Outlinable>();
+            if (!outline)
+            {
+                outline = gameObject.AddComponent<Outlinable>();
+
+            }
+            objectInteractive.outline = outline;
+
+            if (objectInteractive.eventClick == null)
+                objectInteractive.eventClick = new UnityEvent();
+
             
 
+            return objectInteractive;
         }
+
+
         private static Dictionary<string, float> objectViewTime = new Dictionary<string, float>();
 
         public static void Update()
@@ -127,21 +150,12 @@ namespace MitaAI
             }
             return "";
 
-            // Удаляем только те объекты, которые уже обработаны
-            // foreach (var obj in toRemove)
-            //{
-            //   objectViewTime.Remove(obj);
-            // }
-
             
 
         }
         public static void OnGameObjectClicked(GameObject gameObject)
         {
-            //MelonLogger.Msg($"OnGameObjectClicked {gameObject.name} enter");
 
-            //MitaCore.Instance.sendSystemInfo($"Игрок стукнул по {gameObject.name}.");
-            //MelonLogger.Msg($"The GameObject {gameObject.name} was clicked!");
 
             if (gameObject.GetComponent<ObjectInteractive>())
             {

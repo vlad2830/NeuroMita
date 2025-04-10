@@ -11,8 +11,17 @@ using UnityEngine;
 
 namespace MitaAI
 {
+    public enum MitaGame
+    {
+        None,
+        Snows,
+        Milk
+    }
+
     public static class MitaGames
     {
+        public static MitaGame currentGame = MitaGame.None;
+
         #region Hunting
         public static void beginHunt()
         {
@@ -186,6 +195,8 @@ namespace MitaAI
 
 
         #region TV
+
+        
 
 
         #endregion

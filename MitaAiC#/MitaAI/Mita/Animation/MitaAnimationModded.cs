@@ -150,7 +150,7 @@ namespace MitaAI.Mita
             
         }
 
-        public class FloatEvent : UnityEvent<float> { } //empty class; just needs to exist
+        
 
         static private void setCustomAnimatiomEvents(AnimationClip anim)
         { 

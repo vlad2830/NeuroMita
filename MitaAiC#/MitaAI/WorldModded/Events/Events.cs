@@ -9,15 +9,21 @@ using UnityEngine;
 using System.Collections;
 using MitaAI.Mita;
 using Il2CppInterop.Runtime.InteropTypes;
+using UnityEngine.Events;
 
 namespace MitaAI
 {
+    public class FloatEvent : UnityEvent<float> { } //empty class; just needs to exist
+    public class BoolEvent : UnityEvent<bool> { } //empty class; just needs to exist
+
     public static class EventsModded
     {
+
         static bool DisableEvents = false;
 
         static float lastEventTime = 0f;
         static float timeBeetweenEvents = 30f;
+
 
 
         // Фиксирует, что что-то произошло, чтобы ивенты не наслаивались
