@@ -347,6 +347,7 @@
 		<Compile Include="Utils\Utils.cs" />
 		<Compile Include="Utils\ComponentCopier.cs" />
 		<Compile Include="WorldModded\CommonInteractableObject.cs" />
+		<Compile Include="WorldModded\LookAtPlayer.cs" />
 		<Compile Include="WorldModded\Events\WardrobeFix.cs" />
 		<Compile Include="WorldModded\Games\TVModded.cs" />
 		<Compile Include="WorldModded\Other\ShaderReplacer.cs" />

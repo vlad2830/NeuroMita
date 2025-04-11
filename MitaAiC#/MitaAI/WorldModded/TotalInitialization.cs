@@ -1141,7 +1141,9 @@ namespace MitaAI
             oam.addEnqueAnimationAction("Mita SitIdle");
             oamBack = oam.setRevertAOM("Kitchen Chair 4 stand up", "Слезть со стула", NeedMovingToIdle: true);
 
-
+            chairOIP = PlayerAnimationModded.CopyObjectInteractivePlayerTo(chair, "Interactive SitOnChair");
+            chairOIP.transform.localEulerAngles = new Vector3(0, 270, 270);
+            chairOIP.transform.localPosition = new Vector3(0.5f, 0.2f, 0);
 
 
 

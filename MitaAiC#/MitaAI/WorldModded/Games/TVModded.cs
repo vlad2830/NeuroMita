@@ -17,7 +17,7 @@ namespace MitaAI
     {
 
         public static MinigamesTelevisionController minigamesTelevisionController;
-
+        static bool KeysActive = false;
 
         public static void SetTVController()
         {
@@ -30,18 +30,33 @@ namespace MitaAI
             
             var ExitEvent = Menu.transform.Find("Exit").GetComponent<Interface_KeyHint_Key>().eventKeyDown;
             ExitEvent.RemoveAllListeners();
-            ExitEvent.AddListener((UnityAction)turnTV);
+
+            ExitEvent.AddListener((UnityAction)TurnControlKeys);
             //minigamesTelevisionController.keysMenu
         }
 
         public static void turnTV()
         {
-            if (minigamesTelevisionController.activation) minigamesTelevisionController.StartTelevision();
+
+            if (!minigamesTelevisionController.activation)
+            {
+                minigamesTelevisionController.StartTelevision();
+                MelonCoroutines.Start(startKeysMenu());
+            }
             else minigamesTelevisionController.StopTelevision();
 
         }
+        public static void TurnControlKeys()
+        {
+            KeysActive = !KeysActive;
 
+            minigamesTelevisionController.KeysMenuActive(KeysActive);
+        }
 
-
+        static IEnumerator startKeysMenu()
+        {
+            yield return new WaitForSeconds(1f);
+            TurnControlKeys();
+        }
     }
 }

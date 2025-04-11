@@ -13,14 +13,18 @@ namespace MitaAI
 {
     public static class Interactions
     {
+        public static GameObject tipTemplate;
 
         public static void init()
         {
-            var b =  MitaCore.worldHouse.transform.Find("Mita/Addon/Interactive PhotoMita/").gameObject;
 
+            tipTemplate = GameObject.Find("Addon/Interactive PhotoMita/Canvas");
 
             var objectInteractive = Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/RemoteTV").gameObject);
             objectInteractive.eventClick.AddListener((UnityAction)TVModded.turnTV);
+            objectInteractive.active = true;
+
+            
 
             //Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
@@ -62,8 +66,27 @@ namespace MitaAI
             if (objectInteractive.eventClick == null)
                 objectInteractive.eventClick = new UnityEvent();
 
-            
+            var caseInfo = GameObject.Instantiate(tipTemplate, gameObject.transform).GetComponent<ObjectInteractive_CaseInfo>();
+            objectInteractive.caseInfo = caseInfo;
+            objectInteractive.objectInteractive = gameObject;
 
+            objectInteractive.timeDeactive = 5;
+
+
+
+            caseInfo.interactiveMe = objectInteractive;
+            caseInfo.active = false;
+            caseInfo.transform.localPosition = Vector3.zero;
+            caseInfo.dontDestroyAfter = true;
+            caseInfo.transform.localPosition = new Vector3(0, 0, 40);
+            caseInfo.cameraT = MitaCore.Instance.playerPersonObject.transform;
+            //caseInfo.gameObject.AddComponent<LookAtPlayer>();
+
+            caseInfo.colorGradient1 = Color.green;
+            var cirle = caseInfo.transform.Find("Circle");
+            cirle.transform.eulerAngles = new Vector3(60, 0, 0);
+
+            cirle.transform.localScale = Vector3.one*1.5f;
             return objectInteractive;
         }
 

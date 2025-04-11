@@ -597,6 +597,10 @@ namespace MitaAI
             Loc34_Template = location34_Communication.gameObject;
 
             Mita = GameObject.Find("Mita")?.GetComponent<MitaPerson>();
+
+            
+
+
             MitaObject = GameObject.Find("Mita").gameObject;
             
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
@@ -630,6 +634,7 @@ namespace MitaAI
 
             playerObject.GetComponent<PlayerMove>().speedPlayer = 1f;
             playerObject.GetComponent<PlayerMove>().canRun = true;
+            LookAtPlayer.init(playerPersonObject.transform);
 
             if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
 
