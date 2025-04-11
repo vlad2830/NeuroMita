@@ -416,11 +416,6 @@ namespace MitaAI
         public Vector3 lastPosition;
 
         public string playerMessage = "";
-        //static public Queue<string> playerMessages = new Queue<string>();
-
-        public List<MitaAI.characterType> playerMessageCharacters = new List<MitaAI.characterType>();
-
-
         
 
         public string hierarchy = "-";

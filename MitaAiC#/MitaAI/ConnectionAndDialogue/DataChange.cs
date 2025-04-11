@@ -41,7 +41,7 @@ namespace MitaAI
             string info = "-";
             characterType characterToWas = characterType.None;
             characterType characterToSend = MitaCore.Instance.currentCharacter;
-            List<characterType> Characters = MitaCore.Instance.playerMessageCharacters;
+            List<characterType> Characters = CharacterControl.GetCharactersToAnswer(false);
 
 
             float currentTime = Time.unscaledTime;
@@ -69,19 +69,11 @@ namespace MitaAI
                     lastPlayerMessage = playerText;
                     MelonLogger.Msg("HAS playerMessage");
                     senfPlayerMessage = true;
-
+                    Characters = CharacterControl.GetCharactersToAnswer();
                     if (Characters.Count > 0)
                     {
-                        if (Characters.First().ToString().Contains("Cart"))
-                        {
-                            characterToSend = Characters.First();
-                        }
-                        else
-                        {
-                            MitaBoringtimer = 0f;
-                        }
-
-
+                        characterToSend = Characters.First();
+                        MitaBoringtimer = 0f;
                         CharacterMessages.sendInfoListeners(playerText, Characters, characterToSend, null);
 
                     }

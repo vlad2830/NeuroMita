@@ -103,7 +103,6 @@ class TelegramBotHandler:
         if not input_message or not speaker_command:
             return
 
-
         # Защита от слишком быстрых сообщений
         current_time = time.time()
         if self.last_send_time > 0:  # проверяем, что это не первый вызов
@@ -125,26 +124,19 @@ class TelegramBotHandler:
             self.last_speaker_command = speaker_command
             await asyncio.sleep(0.7)
 
+            await self.TurnOnHd()
+            await asyncio.sleep(0.75)
+
             if self.gui.silero_turn_off_video:
-                await self.client.send_message(self.tg_bot, "/videonotes")
-
-                await asyncio.sleep(0.8)
-
-                # Получаем последнее сообщение от бота
-                messages = await self.client.get_messages(self.tg_bot, limit=1)
-                last_message = messages[0] if messages else None
-
-                # Проверяем содержимое последнего сообщения
-                if last_message and last_message.text == "Кружки включены!":
-                    # Если условие выполнено, отправляем команду еще раз
-                    await self.client.send_message(self.tg_bot, "/videonotes")
+                await self.TurnOffCircles()
+                await asyncio.sleep(0.75)
 
         self.last_speaker_command = speaker_command
 
         self.reset_message_count()
 
         if self.message_count >= self.message_limit_per_minute:
-            logger.info("Превышен лимит сообщений. Ожидаем...")
+            logger.warning("Превышен лимит сообщений. Ожидаем...")
             await asyncio.sleep(random.uniform(10, 15))
             return
 
@@ -162,7 +154,7 @@ class TelegramBotHandler:
 
         attempts_max = self.silero_time_limit * attempts_per_second
 
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
         while attempts <= attempts_max:  # Попытки получения ответа
 
             async for message in self.client.iter_messages(self.tg_bot, limit=1):
@@ -308,10 +300,82 @@ class TelegramBotHandler:
                 await asyncio.sleep(0.35)
                 await self.client.send_message(self.tg_bot, "/mp3")
                 await asyncio.sleep(0.35)
-                await self.client.send_message(self.tg_bot, "/hd")
+                await self.TurnOnHd()
                 await asyncio.sleep(0.35)
-                await self.client.send_message(self.tg_bot, "/videonotes")
+                await self.TurnOffCircles()
             logger.info("Включено все в ТГ для сообщений миты")
         except Exception as e:
             self.gui.silero_connected.set(False)
             logger.error(f"Ошибка авторизации: {e}")
+
+    async def getLastMessage(self):
+        # Получаем последнее сообщение от бота
+        messages = await self.client.get_messages(self.tg_bot, limit=1)
+        last_message = messages[0] if messages else None
+        return last_message
+
+    async def TurnOnHd(self):
+        return await self.execute_toggle_command(
+            command="/hd",
+            active_response="Режим HD включен!",
+            inactive_response="Режим HD выключен!"
+        )
+
+    async def TurnOffCircles(self):
+        return await self.execute_toggle_command(
+            command="/videonotes",
+            active_response="Кружки выключены!",
+            inactive_response="Кружки включены!"
+        )
+
+    async def execute_toggle_command(self, command: str,
+                                     active_response: str,
+                                     inactive_response: str,
+                                     max_attempts: int = 3,
+                                     initial_delay: float = 0.1,
+                                     retry_delay: float = 0.8):
+        """
+        Обобщенная функция для выполнения toggle-команд с проверкой состояния и повторными попытками
+
+        :param command: Команда для отправки (например "/hd" или "/videonotes")
+        :param active_response: Текст сообщения, когда функция активна (например "Кружки включены!")
+        :param inactive_response: Текст сообщения, когда функция неактивна (например "Режим HD выключен!")
+        :param max_attempts: Максимальное количество попыток
+        :param initial_delay: Задержка перед проверкой ответа (в секундах)
+        :param retry_delay: Задержка перед повторной попыткой (в секундах)
+        """
+        attempts = 0
+
+        while attempts < max_attempts:
+            attempts += 1
+
+            try:
+                await self.client.send_message(self.tg_bot, command)
+                await asyncio.sleep(initial_delay)
+                last_message = await self.getLastMessage()
+
+                if not last_message:
+                    continue
+
+                # Если получили сообщение о слишком частых запросах
+                if "Слишком много запросов" in last_message.text:
+                    if attempts < max_attempts:
+                        await asyncio.sleep(retry_delay)
+                    continue
+
+                # Если получили сообщение о неактивном состоянии - выполняем команду еще раз
+                if last_message.text == inactive_response:
+                    await asyncio.sleep(retry_delay)
+                    await self.client.send_message(self.tg_bot, command)
+                    return True
+
+                # Если получили сообщение об активном состоянии - все ок
+                if last_message.text == active_response:
+                    return True
+
+            except Exception as e:
+                print(f"Ошибка при выполнении команды {command}: {str(e)}")
+                if attempts < max_attempts:
+                    await asyncio.sleep(retry_delay)
+
+        return False

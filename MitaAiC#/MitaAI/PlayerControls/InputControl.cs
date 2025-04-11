@@ -410,7 +410,7 @@ namespace MitaAI.PlayerControls
 
             //MitaCore.playerMessages.Enqueue(inputText);
 
-            MitaCore.Instance.playerMessageCharacters = CharacterControl.GetCharactersToAnswer();
+            
 
 
         }

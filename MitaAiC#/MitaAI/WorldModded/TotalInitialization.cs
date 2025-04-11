@@ -634,20 +634,26 @@ namespace MitaAI
             MelonLogger.Msg($"Scene {sceneToLoad} loaded.");
 
             // Находим объект в загруженной сцене
-            Transform worldManekenWorld = FindObjectInScene(scene.name, "World");
-            if (worldManekenWorld == null)
+            Transform world = FindObjectInScene(scene.name, "World");
+            if (world == null)
             {
                 MelonLogger.Msg("World object not found.");
                 yield break; // Прерываем выполнение, если объект не найден
             }
-            worldManekenWorld.gameObject.SetActive(false);
+            world.gameObject.SetActive(false);
 
-            MelonLogger.Msg($"Object found: {worldManekenWorld.name}");
+            MelonLogger.Msg($"Object found: {world.name}");
             try
             {
-                MitaCore.ShortHairObject = GameObject.Instantiate(Utils.TryfindChild(worldManekenWorld, "General/Mita Old"), MitaCore.worldHouse);
-                MitaCore.ShortHairObject.active = false;
 
+                ScaryFaceTemplate = new GameObject("ScaryFaceTemplate");
+                GameObject.DontDestroyOnLoad(ScaryFaceTemplate);
+                var MatTexture = world.Find("Acts/Mita/MitaPerson Mita/Head").GetComponent<Material_Texture>();
+                var MatTextureCopy = ScaryFaceTemplate.AddComponent<Material_Texture>();
+                MatTextureCopy.indexMaterial = MatTexture.indexMaterial;
+                MatTextureCopy.startIndex = MatTexture.startIndex;
+                MatTextureCopy.textures = MatTexture.textures;
+                MatTextureCopy.valueMaterial = MatTexture.valueMaterial;
             }
 
             catch (Exception ex)
@@ -689,14 +695,8 @@ namespace MitaAI
             MelonLogger.Msg($"Object found: {world.name}");
             try
             {
-                ScaryFaceTemplate = new GameObject("ScaryFaceTemplate");
-                GameObject.DontDestroyOnLoad(ScaryFaceTemplate);
-                var MatTexture = world.Find("Acts/Mita/MitaPerson Mita/Head").GetComponent<Material_Texture>();
-                var MatTextureCopy = ScaryFaceTemplate.AddComponent<Material_Texture>();
-                MatTextureCopy.indexMaterial = MatTexture.indexMaterial;
-                MatTextureCopy.startIndex = MatTexture.startIndex;
-                MatTextureCopy.textures = MatTexture.textures;
-                MatTextureCopy.valueMaterial = MatTexture.valueMaterial;
+                MitaCore.ShortHairObject = GameObject.Instantiate(Utils.TryfindChild(world, "General/Mita Old"), MitaCore.worldHouse);
+                MitaCore.ShortHairObject.active = false;
             }
 
             catch (Exception ex)

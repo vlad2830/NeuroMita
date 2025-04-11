@@ -78,13 +78,13 @@ namespace MitaAI
             caseInfo.active = false;
             caseInfo.transform.localPosition = Vector3.zero;
             caseInfo.dontDestroyAfter = true;
-            caseInfo.transform.localPosition = new Vector3(0, 0, 40);
+            caseInfo.transform.localPosition = new Vector3(0, 0, 0.2f);
             caseInfo.cameraT = MitaCore.Instance.playerPersonObject.transform;
             //caseInfo.gameObject.AddComponent<LookAtPlayer>();
 
             caseInfo.colorGradient1 = Color.green;
             var cirle = caseInfo.transform.Find("Circle");
-            cirle.transform.eulerAngles = new Vector3(60, 0, 0);
+            cirle.transform.localEulerAngles = new Vector3(60, 0, 0);
 
             cirle.transform.localScale = Vector3.one*1.5f;
             return objectInteractive;
