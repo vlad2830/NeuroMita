@@ -15,7 +15,7 @@ namespace MitaAI
         public void moveChair()
         {
             float yRotation = transform.eulerAngles.y; // Текущий угол поворота по Y (0-360°)
-            float directionMultiplier = Mathf.Sign(Mathf.Cos(yRotation * Mathf.Deg2Rad));
+            float directionMultiplier = -Mathf.Sign(Mathf.Cos(yRotation * Mathf.Deg2Rad));
 
             Vector3 localMovement = Vector3.right * moveDistance * (isCloseToTable ? 1 : -1) * directionMultiplier;
             Utils.StartObjectAnimation(gameObject, localMovement, Vector3.zero, animationDuration, true);
