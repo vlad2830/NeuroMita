@@ -1556,7 +1556,7 @@ class ChatGUI:
     def get_news_content(self):
         """Получает содержимое новостей с GitHub"""
         try:
-            response = requests.get('https://raw.githubusercontent.com/VinerX/NeuroMita/main/NEWS.md', timeout=500)
+            response = requests.get('https://raw.githubusercontent.com/VinerX/NeuroMita/refs/heads/main/NEWS.md', timeout=500)
             if response.status_code == 200:
                 return response.text
             return _('Не удалось загрузить новости', 'Failed to load news')
