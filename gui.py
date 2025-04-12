@@ -29,6 +29,8 @@ from utils import SH
 import sounddevice as sd
 from SpeechRecognition import SpeechRecognition
 
+import requests
+
 
 #gettext.bindtextdomain('NeuroMita', '/Translation')
 #gettext.textdomain('NeuroMita')
@@ -484,7 +486,9 @@ class ChatGUI:
         self.setup_tg_controls(settings_frame)
         self.setup_microphone_controls(settings_frame)
 
-        self.setup_mita_controls(settings_frame)
+        self.setup_mita_controls(settings_frame)\
+        
+        self.setup_general_settings_control(settings_frame)
 
         # Передаем settings_frame как родителя
 
@@ -504,6 +508,8 @@ class ChatGUI:
 
         self.setup_common_controls(settings_frame)
         self.setup_game_master_controls(settings_frame)
+
+        self.setup_news_control(settings_frame)
 
         #self.setup_advanced_controls(right_frame)
 
@@ -841,15 +847,6 @@ class ChatGUI:
             {'label': _('gpt4free | Модель gpt4free', 'gpt4free | model gpt4free'), 'key': 'gpt4free_model',
              'type': 'entry', 'default': "gemini-1.5-flash"},
             # gpt-4o-mini тоже подходит
-            {'label': _('Настройки ВСЕХ моделей', 'All models settings'), 'type': 'text'},
-            {'label': _('Лимит сообщений', 'Message limit'), 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry',
-             'default': 40,
-             'tooltip': _('Сколько сообщений будет помнить мита', 'How much messages Mita will remember')},
-            {'label': _('Кол-во попыток', 'Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 'type': 'entry',
-             'default': 3},
-            {'label': _('Время между попытками', 'time between attempts'), 'key': 'MODEL_MESSAGE_ATTEMPTS_TIME',
-             'type': 'entry', 'default': 0.20}
-
         ]
 
         self.create_settings_section(parent, _("Настройки модели", "Model settings"), mita_config)
@@ -911,6 +908,32 @@ class ChatGUI:
                                      common_config)
 
     #endregion
+    def setup_general_settings_control(self, parent):
+        general_config = [
+            # здесь настройки из setup_model_controls
+            {'label': _('Настройки сообщений', 'Message settings'), 'type': 'text'},
+            {'label': _('Лимит сообщений','Message limit'), 'key': 'MODEL_MESSAGE_LIMIT', 
+             'type': 'entry', 'default': 40,
+             'tooltip':_('Сколько сообщений будет помнить мита','How much messages Mita will remember')},
+            {'label': _('Кол-во попыток','Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 
+             'type': 'entry', 'default': 3},
+            {'label': _('Время между попытками','time between attempts'), 
+             'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20},
+            {'label': _('Настройки ожидания', 'Waiting settings'), 'type': 'text'},
+            {'label': _('Время ожидания текста', 'Text waiting time'), 
+             'key': 'TEXT_WAIT_TIME', 'type': 'entry', 'default': 10,
+             'tooltip': _('время ожидания ответа','response waiting time')},
+            {'label': _('Время ожидания звука', 'Voice waiting time (sec)'), 
+             'key': 'VOICE_WAIT_TIME', 'type': 'entry', 'default': 15,
+             'tooltip': _('время ожидания озвучки','voice generation waiting time')},
+            {'label': _('Экспериментальные функции', 'Experimental features'), 'type': 'text'},
+            {'label': _('Меню', 'menu'), 'key': 'menu', 'type': 'checkbutton', 'default_checkbutton': False}
+        ]
+
+        self.create_settings_section(parent,
+                                   _("Общие настройки моделей", "General settings for models"), 
+                                   general_config)
+
 
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
@@ -1530,6 +1553,26 @@ class ChatGUI:
         pass
 
     # endregion
+    def get_news_content(self):
+        """Получает содержимое новостей с GitHub"""
+        try:
+            response = requests.get('https://raw.githubusercontent.com/VinerX/NeuroMita/main/NEWS.md', timeout=500)
+            if response.status_code == 200:
+                return response.text
+            return _('Не удалось загрузить новости', 'Failed to load news')
+        except Exception as e:
+            logger.info(f"Ошибка при получении новостей: {e}")
+            return _('Ошибка при загрузке новостей', 'Error loading news')
+
+    def setup_news_control(self, parent):
+        news_config = [
+            {'label': _('Новости и обновления', 'News and updates'), 'type': 'text'},
+            {'label': self.get_news_content(), 'type': 'text'},
+        ]
+
+        self.create_settings_section(parent,
+                                   _("Новости", "News"), 
+                                   news_config)
 
     #region HotKeys
     def keypress(self, e):

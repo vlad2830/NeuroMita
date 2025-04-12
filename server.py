@@ -17,6 +17,8 @@ class ChatServer:
         self.passive_server_socket = None  # Резервный серверный сокет (не используется)
         self.chat_model = chat_model  # Модель обработки сообщений
         self.messages_to_say = []  # Очередь сообщений для отправки
+        self.text_wait_limit_enabled = False
+        self.voice_wait_limit_enabled = False
 
     def start(self):
         """Инициализирует и запускает сервер, создавая TCP-сокет."""
@@ -32,6 +34,9 @@ class ChatServer:
         if not self.server_socket:
             raise RuntimeError("Сервер не запущен. Вызовите start() перед handle_connection().")
         try:
+            self.text_wait_limit_enabled = self.gui.settings.get("LIMIT_TEXT_WAIT", False)
+            self.voice_wait_limit_enabled = self.gui.settings.get("LIMIT_VOICE_WAIT", False)
+
             #logger.info("Жду получения от клиента игры")
             # Ожидание подключения
             self.client_socket, addr = self.server_socket.accept()
@@ -192,6 +197,16 @@ class ChatServer:
 
             self.gui.waiting_answer = False
         return response
+
+    async def handle_message(self, message):
+        """Обрабатывает сообщение. Будущая реализация: добавление ограничений по времени для текста и голоса."""
+        if self.text_wait_limit_enabled:
+            # TODO: Ждем ограничение по времени для текста
+            pass
+
+        if self.voice_wait_limit_enabled:
+            # TODO: Ждем ограничение по времени для голоса
+            pass
 
     def send_message_to_server(self, message):
         self.messages_to_say.append(message)
