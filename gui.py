@@ -486,7 +486,7 @@ class ChatGUI:
         self.setup_tg_controls(settings_frame)
         self.setup_microphone_controls(settings_frame)
 
-        self.setup_mita_controls(settings_frame)\
+        self.setup_mita_controls(settings_frame)
         
         self.setup_general_settings_control(settings_frame)
 
