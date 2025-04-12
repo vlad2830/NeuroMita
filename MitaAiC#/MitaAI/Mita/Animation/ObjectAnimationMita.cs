@@ -46,7 +46,7 @@ namespace MitaAI
 
                     if (oam.Value.enabled == false) continue;
 
-                    if (oam.Value.commonInteractableObject.isTaken())
+                    if (oam.Value.commonInteractableObject.isTaken(oam.Value.position))
                     {
                         // TODO сделать лучше
                         info += $"\n Name: '{oam.Key}' distance :{distance.ToString("F2")} is taken by {oam.Value.commonInteractableObject.taker}";
@@ -113,6 +113,7 @@ namespace MitaAI
 
         public string text = "";
         public string tip = "";
+        public string position = "center";
 
         public string mitaAmimatedName;
         public string mitaAmimatedNameIdle;
@@ -165,7 +166,7 @@ namespace MitaAI
         }
 
 
-        public static ObjectAnimationMita Create(GameObject parent,string name, string tip = "",bool needWalking = true, bool NeedMovingToIdle = true,bool isEndingObject = false)
+        public static ObjectAnimationMita Create(GameObject parent,string name, string tip = "",bool needWalking = true, bool NeedMovingToIdle = true,bool isEndingObject = false,string position = "center")
 
         {
             ObjectAnimationMita oam = new GameObject(name).AddComponent<ObjectAnimationMita>();
@@ -178,9 +179,12 @@ namespace MitaAI
             oam.name = name;
             oam.needWalking = needWalking;
             oam.NeedMovingToIdle = NeedMovingToIdle;
-            oam.commonInteractableObject = CommonInteractableObject.CheckCreate(oam.gameObject);
-            oam.Initialize();
+            oam.position = position;
+            oam.commonInteractableObject = CommonInteractableObject.CheckCreate(oam.gameObject.transform.parent.gameObject);
+            
 
+            oam.Initialize();
+            
             if (!isEndingObject && TestWithBalls)
             {
                 Testing.makeTestingSphere(oam.gameObject, Color.green);
@@ -268,10 +272,14 @@ namespace MitaAI
 
         #region ДействияПоПриходуКТочке
 
-        public void addSimpleAction(UnityAction unityAction)
+        public void addSimpleAction(UnityAction unityAction,bool setToBackOAM = true)
         {
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener(unityAction);
+            if (setToBackOAM && backAnimation != null)
+            {
+                backAnimation.mitaAIMovePoint.eventFinish.AddListener(unityAction);
+            }
         }
         public void addAdvancedAction(string name)
         {
@@ -398,7 +406,7 @@ namespace MitaAI
                         MelonLogger.Error($"Error AiWalkToTargetTranform {ex2}");
                     }
 
-                    if (!isEndingObject) commonInteractableObject.setTaken(MitaCore.Instance.currentCharacter);
+                    if (!isEndingObject) commonInteractableObject.setTaken(MitaCore.Instance.currentCharacter,position);
                 }
                 else
                 {
@@ -443,8 +451,9 @@ namespace MitaAI
         }
         void SetIdleAnimation()
         {
- 
+            
             MitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
+            MitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition: true);
             if (NeedMovingToIdle) Utils.StartObjectAnimation(MitaCore.Instance.MitaPersonObject, transform.position, transform.eulerAngles, AnimationTransitionDuration+0.5f, false);
 
         }
@@ -453,12 +462,12 @@ namespace MitaAI
         {
             
             MitaAnimationModded.resetToIdleAnimation(needEnque:true);
-            MitaAnimationModded.checkCanMoveRotateLook();
+            MitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition:true);
         }
         void returnToNormalState()
         {
 
-            backAnimation.commonInteractableObject.free();
+            backAnimation.commonInteractableObject.free(position);
 
             MitaCore.Instance.Mita.MagnetOff();
             

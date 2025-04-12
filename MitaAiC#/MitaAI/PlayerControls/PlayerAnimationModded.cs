@@ -150,7 +150,7 @@ namespace MitaAI
             }
         }
 
-        public static GameObject CopyObjectInteractivePlayerTo(Transform parent,string name)
+        public static GameObject CopyObjectAmimationPlayerTo(Transform parent,string name)
         {
 
             if (ObjectsAnimationPlayer.ContainsKey(name))
@@ -161,7 +161,7 @@ namespace MitaAI
                 OAP.objectInteractive = parent.gameObject;
                 OAP.active = true;
                 OAPobj.active = true;
-                CommonInteractableObject.CheckCreate(OAPobj);
+                CommonInteractableObject.CheckCreate(parent.gameObject);
                 return OAPobj;
             }
 

@@ -378,12 +378,15 @@ namespace MitaAI.PlayerControls
             inputField.ActivateInputField();
 
 
+            if (MitaCore.experimentalFunctionsOn)
+            {
+                // Меню действий игрока
+                var radMenu = new GameObject("RadialMenu").AddComponent<RadialMenu>();
+                radMenu.transform.SetParent(MitaCore.Instance.playerController.transform.Find("Interface"));
+                radMenu.radialCanvas = MitaCore.Instance.playerController.GetComponentInChildren<Canvas>();
+                radMenu.transform.localPosition = Vector3.zero;
 
-            // Меню действий игрока
-            var radMenu = new GameObject("RadialMenu").AddComponent<RadialMenu>();
-            radMenu.transform.SetParent(MitaCore.Instance.playerController.transform.Find("Interface"));
-            radMenu.radialCanvas = MitaCore.Instance.playerController.GetComponentInChildren<Canvas>();
-            radMenu.transform.localPosition = Vector3.zero;
+            }
 
         }
 

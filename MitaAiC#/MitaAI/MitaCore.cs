@@ -25,6 +25,8 @@ namespace MitaAI
     
     public class MitaCore : MelonMod
     {
+        public static bool experimentalFunctionsOn = true;
+
         // Ссылка на экземпляр MitaCore, если он нужен
         public static MitaCore Instance;
         private LogicCharacter characterLogic;
@@ -878,12 +880,7 @@ namespace MitaAI
 
 
         }
-
-
-      
-
-
-        
+                  
         // Глобальный список для хранения дочерних объектов
         List<GameObject> globalChildObjects = new List<GameObject>();
 
@@ -957,27 +954,26 @@ namespace MitaAI
         
         public void remakeArrayl34(Location34_Communication Location34_Communication, GameObject newPoint, string room)
         {
-            MelonLogger.Msg($"Start Il2CppReferenceArray {Location34_Communication} 33 {newPoint} ");
+
             // Создаем новый массив с размером на 1 больше
             Il2CppReferenceArray<Location34_PositionForMita> newArray = new Il2CppReferenceArray<Location34_PositionForMita>(Location34_Communication.positionsForMita.Length + 1);
-            MelonLogger.Msg($" Il2CppReferenceArray222");
+
             // Копируем старые данные
             for (int i = 0; i < Location34_Communication.positionsForMita.Length; i++)
             {
                 newArray[i] = Location34_Communication.positionsForMita[i];
             }
 
-            MelonLogger.Msg($" Il2CppReferenceArray333");
             // Добавляем новый элемент
             Location34_PositionForMita l = new Location34_PositionForMita();
-            MelonLogger.Msg($" Il2CppReferenceArray444");
+
             l.target = newPoint.transform;
             l.room = room;
-            MelonLogger.Msg($" Il2CppReferenceArray5");
+
             newArray[newArray.Length - 1] = l;
 
             Location34_Communication.positionsForMita = newArray;
-            MelonLogger.Msg($"End");
+
             
         }
 

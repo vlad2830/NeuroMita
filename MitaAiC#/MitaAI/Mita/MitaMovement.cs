@@ -94,16 +94,19 @@ namespace MitaAI
         }
         public static void ChoseStyle(string animName)
         {
-            
 
             if (animName.Contains("sit") || animName.Contains("Sit"))
             {
                 movementStyle = MovementStyles.sitting;
             }
-            else if (movementStyle == MovementStyles.sitting)
+            else
             {
                 movementStyle = MovementStyles.walkNear;
             }
+           // else if (movementStyle == MovementStyles.sitting)
+            //{
+              //  movementStyle = MovementStyles.walkNear;
+           // }
         }
 
         public static IEnumerator LookOnPlayer()

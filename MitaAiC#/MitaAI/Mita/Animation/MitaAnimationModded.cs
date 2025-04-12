@@ -471,9 +471,9 @@ namespace MitaAI.Mita
         };
 
         // Отвечает за перемещение и поворот миты.
-        public static void checkCanMoveRotateLook()
+        public static void checkCanMoveRotateLook(bool ignoreInteractionCondition = false)
         {
-            if (MitaState.currentMitaState == MitaStateType.interaction) return;
+            if (MitaState.currentMitaState == MitaStateType.interaction && !ignoreInteractionCondition) return;
 
             // Если запрещено двигаться
             if (MovementStylesNoMovingAtAll.Contains(MitaMovement.movementStyle))
@@ -701,18 +701,6 @@ namespace MitaAI.Mita
             
 
 
-        }
-
-
-
-
-
-
-
-        static private bool isMitaWalking()
-        {
-            if (mitaNavMeshAgent != null) return mitaNavMeshAgent.enabled;
-            return false;
         }
 
         static public void resetToIdleAnimation(bool toInitAnim = true, bool total_clear = false,bool needEnque = false)

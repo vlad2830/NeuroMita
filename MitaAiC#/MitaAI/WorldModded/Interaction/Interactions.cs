@@ -1,7 +1,5 @@
 ﻿using Il2Cpp;
-using Il2CppSystem;
 using MelonLoader;
-using System;
 using System.Collections;
 using UnityEngine;
 using System.Text;
@@ -9,30 +7,54 @@ using MitaAI.WorldModded;
 using Il2CppEPOOutline;
 using UnityEngine.Events;
 
+using UnityEngine.UI;
+using UnityEngine.Bindings;
+
+
 namespace MitaAI
 {
     public static class Interactions
     {
         public static GameObject tipTemplate;
 
+        public static GameObject InteractionContainer;
+
+        public static GameObject GetInteractionContainer()
+        {
+            if (InteractionContainer == null)
+            {
+                InteractionContainer = new GameObject("InteractionContainer");
+                InteractionContainer.transform.parent = MitaCore.worldHouse;
+            }
+            return InteractionContainer;
+        }
+
         public static void init()
         {
 
-            tipTemplate = GameObject.Find("Addon/Interactive PhotoMita/Canvas");
+            tipTemplate = GameObject.Find("Addon/Interactive Aihastion/Canvas");
 
             var objectInteractive = Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/RemoteTV").gameObject);
             objectInteractive.eventClick.AddListener((UnityAction)TVModded.turnTV);
             objectInteractive.active = true;
 
-            
+   
+            //chairOIP.transform.localEulerAngles = new Vector3(0, 270, 270);
+            //chairOIP.transform.localPosition = new Vector3(0.5f, 0.2f, 0);
 
+
+
+            objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true);
+            var chairOIP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(objectInteractive.transform, "Interactive Aihastion");
+            //objectInteractive.eventClick.AddListener((UnityAction)chairOIP.GetComponent<ObjectAnimationPlayer>().AnimationPlay);
+            objectInteractive.active = true;
             //Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
         }
 
-        public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject)
+        public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool clearEvent = true, float timeDeactive = 5, string tipText = null, bool addCollider = true, bool useParent = false, Vector3 position = new Vector3())
         {
             if (gameObject == null)
             {
@@ -41,19 +63,27 @@ namespace MitaAI
             }
 
             var collider = gameObject.GetComponent<Collider>();
-            if (collider == null)
+            if (collider == null && addCollider)
             {
                 BoxCollider boxCollider = gameObject.AddComponent<BoxCollider>();
                 MelonLogger.Msg($"Collider added to {gameObject.name}");
             }
-            
+   
             ObjectInteractive objectInteractive = gameObject.GetComponent<ObjectInteractive>();
             if (!objectInteractive)
             {
+                //if (useParent) objectInteractive = gameObject.transform.parent.gameObject.AddComponent<ObjectInteractive>();
+                //else
                 objectInteractive = gameObject.AddComponent<ObjectInteractive>();
 
             }
+  
             objectInteractive.active = true;
+            if (position != new Vector3()) { 
+                objectInteractive.transform.localPosition = position;
+                objectInteractive.transform.localRotation = Quaternion.identity;
+            }
+
 
             var outline = gameObject.GetComponent<Outlinable>();
             if (!outline)
@@ -62,31 +92,76 @@ namespace MitaAI
 
             }
             objectInteractive.outline = outline;
+            
+            objectInteractive.objectInteractive = gameObject;
+            if (useParent) objectInteractive.objectInteractive = gameObject.transform.parent.gameObject;
+
+            objectInteractive.timeDeactive = timeDeactive;
 
             if (objectInteractive.eventClick == null)
                 objectInteractive.eventClick = new UnityEvent();
-
-            var caseInfo = GameObject.Instantiate(tipTemplate, gameObject.transform).GetComponent<ObjectInteractive_CaseInfo>();
-            objectInteractive.caseInfo = caseInfo;
-            objectInteractive.objectInteractive = gameObject;
-
-            objectInteractive.timeDeactive = 5;
+            else
+            {   
+                if (clearEvent) objectInteractive.eventClick.RemoveAllListeners();
+            }
 
 
+            var caseInfoObj = objectInteractive.transform.Find("Canvas");
 
-            caseInfo.interactiveMe = objectInteractive;
-            caseInfo.active = false;
-            caseInfo.transform.localPosition = Vector3.zero;
-            caseInfo.dontDestroyAfter = true;
-            caseInfo.transform.localPosition = new Vector3(0, 0, 0.2f);
-            caseInfo.cameraT = MitaCore.Instance.playerPersonObject.transform;
-            //caseInfo.gameObject.AddComponent<LookAtPlayer>();
+            try
+            {
+                if (caseInfoObj == null)
+                {
+                    var caseInfo = GameObject.Instantiate(tipTemplate, gameObject.transform).GetComponent<ObjectInteractive_CaseInfo>();
 
-            caseInfo.colorGradient1 = Color.green;
-            var cirle = caseInfo.transform.Find("Circle");
-            cirle.transform.localEulerAngles = new Vector3(60, 0, 0);
+                    objectInteractive.caseInfo = caseInfo;
 
-            cirle.transform.localScale = Vector3.one*1.5f;
+
+                    caseInfo.interactiveMe = objectInteractive;
+                    caseInfo.active = false;
+                    caseInfo.transform.localPosition = Vector3.zero;
+
+
+
+                    caseInfo.dontDestroyAfter = true;
+                    caseInfo.transform.localPosition = new Vector3(0, 0, 0.1f);
+                    caseInfo.cameraT = MitaCore.Instance.playerPersonObject.transform;
+
+                    //caseInfo.gameObject.AddComponent<LookAtPlayer>();
+
+                    caseInfo.colorGradient1 = Color.green;
+                    //var cirle = caseInfo.transform.Find("Circle");
+                    //cirle.transform.localEulerAngles = new Vector3(60, 0, 0);
+
+                    //cirle.transform.localScale = Vector3.one * 1.5f;
+                    MelonLogger.Msg("FindOrCreateObjectInteractable 4");
+                    var text = caseInfo.GetComponentInChildren<Text>();
+                    if (text != null && tipText != null)
+                    {
+                        text.text = tipText;
+                        text.m_Text = tipText;
+                    }
+                }
+                else
+                {
+                    MelonLogger.Msg("FindOrCreateObjectInteractable 4");
+                    var text = caseInfoObj.GetComponentInChildren<Text>();
+                    if (text != null && tipText != null)
+                    {
+                        text.text = tipText;
+                        text.m_Text = tipText;
+                    }
+                }
+       
+            }
+            catch (Exception ex2)
+            {
+
+                MelonLogger.Error(ex2);
+            }
+           
+
+
             return objectInteractive;
         }
 
