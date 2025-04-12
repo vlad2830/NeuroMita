@@ -107,7 +107,7 @@ class ChatGUI:
         self.root = tk.Tk()
         self.root.title("Чат с NeuroMita")
 
-        self.last_price = ""
+        self.root.bind("<Control-KeyPress>", self.keypress) 
 
         self.delete_all_sound_files()
         self.setup_ui()
@@ -420,7 +420,6 @@ class ChatGUI:
         )
         self.send_button.pack(side=tk.RIGHT, padx=5)
 
-
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Второй столбец
@@ -506,7 +505,6 @@ class ChatGUI:
         self.setup_common_controls(settings_frame)
         self.setup_game_master_controls(settings_frame)
 
-
         #self.setup_advanced_controls(right_frame)
 
         #Сворачивание секций
@@ -538,7 +536,7 @@ class ChatGUI:
         # Галки для подключения
         self.game_status_checkbox = tk.Checkbutton(
             status_frame,
-            text=_("Подключение к игре","Connection to game"),
+            text=_("Подключение к игре", "Connection to game"),
             variable=self.game_connected,
             state="disabled",
             bg="#2c2c2c",
@@ -549,7 +547,7 @@ class ChatGUI:
 
         self.silero_status_checkbox = tk.Checkbutton(
             status_frame,
-            text=_("Подключение Telegram","Connection Telegram"),
+            text=_("Подключение Telegram", "Connection Telegram"),
             variable=self.silero_connected,
             state="disabled",
             bg="#2c2c2c",
@@ -642,13 +640,13 @@ class ChatGUI:
         history_frame.pack(fill=tk.X, pady=4)
 
         clear_button = tk.Button(
-            history_frame, text=_("Очистить историю персонажа","Clear character history"), command=self.clear_history,
+            history_frame, text=_("Очистить историю персонажа", "Clear character history"), command=self.clear_history,
             bg="#8a2be2", fg="#ffffff"
         )
         clear_button.pack(side=tk.LEFT, padx=5)
 
         clear_button = tk.Button(
-            history_frame, text=_("Очистить все истории","Clear all histories"), command=self.clear_history_all,
+            history_frame, text=_("Очистить все истории", "Clear all histories"), command=self.clear_history_all,
             bg="#8a2be2", fg="#ffffff"
         )
         clear_button.pack(side=tk.LEFT, padx=5)
@@ -672,7 +670,6 @@ class ChatGUI:
 
         self.update_debug_info()
 
-
     #region SetupControls
 
     def setup_debug_controls(self, parent):
@@ -694,7 +691,7 @@ class ChatGUI:
         self.show_api_var = tk.BooleanVar(value=False)
 
         api_toggle = tk.Checkbutton(
-            api_frame, text=_("Показать настройки API","Show API settings"), variable=self.show_api_var,
+            api_frame, text=_("Показать настройки API", "Show API settings"), variable=self.show_api_var,
             command=lambda: self.pack_unpack(self.show_api_var, self.api_settings_frame), bg="#2c2c2c", fg="#ffffff"
         )
         api_toggle.pack(side=tk.LEFT, padx=4)
@@ -703,7 +700,7 @@ class ChatGUI:
 
         # Элементы в одном столбце
         tk.Label(
-            self.api_settings_frame, text=_("API-ключ:","API-key:"), bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("API-ключ:", "API-key:"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=0, column=0, padx=4, pady=4, sticky=tk.W)
 
         self.api_key_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -711,7 +708,7 @@ class ChatGUI:
         self.api_key_entry.grid(row=0, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
-            self.api_settings_frame, text=_("резервный API-ключ:","reserve API-key:"), bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("резервный API-ключ:", "reserve API-key:"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=1, column=0, padx=4, pady=4, sticky=tk.W)
 
         self.api_key_res_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -719,7 +716,7 @@ class ChatGUI:
         self.api_key_res_entry.grid(row=1, column=1, padx=4, pady=4, sticky=tk.W)
 
         tk.Label(
-            self.api_settings_frame, text=_("Ссылка:","URL"), bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("Ссылка:", "URL"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_url_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -727,7 +724,7 @@ class ChatGUI:
         self.api_url_entry.grid(row=2, column=1, padx=4, pady=5, sticky=tk.W)
 
         tk.Label(
-            self.api_settings_frame, text=_("Модель:","Model:"), bg="#2c2c2c", fg="#ffffff"
+            self.api_settings_frame, text=_("Модель:", "Model:"), bg="#2c2c2c", fg="#ffffff"
         ).grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
 
         self.api_model_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
@@ -767,7 +764,7 @@ class ChatGUI:
         self.toggle_makeRequest(False)
 
         save_button = tk.Button(
-            self.api_settings_frame, text=_("Сохранить","Save"), command=self.save_api_settings,
+            self.api_settings_frame, text=_("Сохранить", "Save"), command=self.save_api_settings,
             bg="#8a2be2", fg="#ffffff"
         )
         save_button.grid(row=8, column=0, padx=5, sticky=tk.E)
@@ -791,61 +788,77 @@ class ChatGUI:
              'default': True},
             {'label': _('Вариант озвучки', "Speech option"), 'key': 'LOCAL_OR_NET', 'type': 'combobox',
              'options': ["TG", "Local"], 'default': "TG"},
-            {'label': _('Канал телеграмм',"Telegram channel"), 'key': 'AUDIO_BOT', 'type': 'combobox',
-             'options': ["@silero_voice_bot","@CrazyMitaAIbot"],'default': "@silero_voice_bot"},
-            {'label': _('Максимальное ожидание','Max awaiting time'), 'key': 'SILERO_TIME', 'type': 'entry', 'default': 12,
+            {'label': _('Канал телеграмм', "Telegram channel"), 'key': 'AUDIO_BOT', 'type': 'combobox',
+             'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
+            {'label': _('Максимальное ожидание', 'Max awaiting time'), 'key': 'SILERO_TIME', 'type': 'entry',
+             'default': 12,
              'validation': self.validate_number},
         ]
         if False:
             mita_voice_config.extend([
-            {'label': _('Без тг | Движок',"No TG | engine"), 'key': 'MIKUTTS_ENGINE', 'type': 'combobox',
-             'options': ["Edge", "Vosk", "Silero"], 'default': "Edge"},
-            {'label': _('Без тг | Скорость голоса','No TG | Voice speed'), 'key': 'MIKUTTS_VOICE_RATE', 'type': 'entry', 'default': "+10%"},
-            {'label': _('Без тг | Высота голоса','No TG | Voice pitch'), 'key': 'MIKUTTS_VOICE_PITCH', 'type': 'entry', 'default': 8},
-            {'label': _("Без тг | VOSK | IDs",'No TG | VOSK | IDs'), 'key': 'MIKUTTS_VOSK_IDS', 'type': 'combobox', 'options': [0, 1, 2, 3, 4],
-             'default': 0},
-            {'label': _("Без тг | SILERO | Провайдер",'No TG | SILERO | Provider'), 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox',
-             'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
+                {'label': _('Без тг | Движок', "No TG | engine"), 'key': 'MIKUTTS_ENGINE', 'type': 'combobox',
+                 'options': ["Edge", "Vosk", "Silero"], 'default': "Edge"},
+                {'label': _('Без тг | Скорость голоса', 'No TG | Voice speed'), 'key': 'MIKUTTS_VOICE_RATE',
+                 'type': 'entry', 'default': "+10%"},
+                {'label': _('Без тг | Высота голоса', 'No TG | Voice pitch'), 'key': 'MIKUTTS_VOICE_PITCH',
+                 'type': 'entry', 'default': 8},
+                {'label': _("Без тг | VOSK | IDs", 'No TG | VOSK | IDs'), 'key': 'MIKUTTS_VOSK_IDS', 'type': 'combobox',
+                 'options': [0, 1, 2, 3, 4],
+                 'default': 0},
+                {'label': _("Без тг | SILERO | Провайдер", 'No TG | SILERO | Provider'),
+                 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox',
+                 'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
             ])
 
         # ТГ
         mita_voice_config.extend([
-                {'label': _('Настройки ТГ будут скрыты после перезапуска!','TG Settings will be hidden after restart!'),'type': 'text'},
-                {'label': _('Telegram id'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry','default':"",'hide': bool(self.settings.get("HIDE_PRIVATE"))},
-                {'label': _('Telegram hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry','default':"",'hide':bool(self.settings.get("HIDE_PRIVATE"))},
-                {'label': _('Telegram number'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry','default':"",'hide':bool(self.settings.get("HIDE_PRIVATE"))},
+            {'label': _('Настройки ТГ будут скрыты после перезапуска!', 'TG Settings will be hidden after restart!'),
+             'type': 'text'},
+            {'label': _('Telegram id'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry', 'default': "",
+             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
+            {'label': _('Telegram hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry', 'default': "",
+             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
+            {'label': _('Telegram number'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry', 'default': "",
+             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
         ])
-        self.create_settings_section(parent, _("Настройка озвучки","Speech settings"), mita_voice_config)
+        self.create_settings_section(parent, _("Настройка озвучки", "Speech settings"), mita_voice_config)
 
     def setup_mita_controls(self, parent):
         # Основные настройки
         mita_config = [
-            {'label': _('Персонаж','Character'), 'key': 'CHARACTER', 'type': 'combobox', 'options': self.model.get_all_mitas(),
+            {'label': _('Персонаж', 'Character'), 'key': 'CHARACTER', 'type': 'combobox',
+             'options': self.model.get_all_mitas(),
              'default': "Crazy"}
         ]
 
-        self.create_settings_section(parent, _("Выбор персонажа","Character selection"), mita_config)
+        self.create_settings_section(parent, _("Выбор персонажа", "Character selection"), mita_config)
 
     def setup_model_controls(self, parent):
         # Основные настройки
         mita_config = [
-            {'label': _('Использовать gpt4free','Use gpt4free'), 'key': 'gpt4free', 'type': 'checkbutton', 'default_checkbutton': False},
-            {'label': _('gpt4free | Модель gpt4free','gpt4free | model gpt4free'), 'key': 'gpt4free_model', 'type': 'entry', 'default': "gemini-1.5-flash"},
+            {'label': _('Использовать gpt4free', 'Use gpt4free'), 'key': 'gpt4free', 'type': 'checkbutton',
+             'default_checkbutton': False},
+            {'label': _('gpt4free | Модель gpt4free', 'gpt4free | model gpt4free'), 'key': 'gpt4free_model',
+             'type': 'entry', 'default': "gemini-1.5-flash"},
             # gpt-4o-mini тоже подходит
             {'label': _('Настройки ВСЕХ моделей', 'All models settings'), 'type': 'text'},
-            {'label': _('Лимит сообщений','Message limit'), 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry', 'default': 40,
-             'tooltip':_('Сколько сообщений будет помнить мита','How much messages Mita will remember')},
-            {'label': _('Кол-во попыток','Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 'type': 'entry', 'default': 3},
-            {'label': _('Время между попытками','time between attempts'), 'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20}
+            {'label': _('Лимит сообщений', 'Message limit'), 'key': 'MODEL_MESSAGE_LIMIT', 'type': 'entry',
+             'default': 40,
+             'tooltip': _('Сколько сообщений будет помнить мита', 'How much messages Mita will remember')},
+            {'label': _('Кол-во попыток', 'Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 'type': 'entry',
+             'default': 3},
+            {'label': _('Время между попытками', 'time between attempts'), 'key': 'MODEL_MESSAGE_ATTEMPTS_TIME',
+             'type': 'entry', 'default': 0.20}
 
         ]
 
-        self.create_settings_section(parent, _("Настройки модели","Model settings"), mita_config)
+        self.create_settings_section(parent, _("Настройки модели", "Model settings"), mita_config)
 
     def setup_common_controls(self, parent):
         # Основные настройки
         common_config = [
-            {'label': _('Скрывать (приватные) данные','Hide (private) data'), 'key': 'HIDE_PRIVATE', 'type': 'checkbutton',
+            {'label': _('Скрывать (приватные) данные', 'Hide (private) data'), 'key': 'HIDE_PRIVATE',
+             'type': 'checkbutton',
              'default_checkbutton': True},
 
         ]
@@ -854,18 +867,22 @@ class ChatGUI:
     def setup_game_master_controls(self, parent):
         # Основные настройки
         common_config = [
-            {'label': _('ГеймМастер включен','GameMaster is on'), 'key': 'GM_ON', 'type': 'checkbutton',
+            {'label': _('ГеймМастер включен', 'GameMaster is on'), 'key': 'GM_ON', 'type': 'checkbutton',
              'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги, в теории устраняя проблемы'},
-            {'label': _('ГеймМастер зачитывается','GameMaster write in game'), 'key': 'GM_READ', 'type': 'checkbutton',
+            {'label': _('ГеймМастер зачитывается', 'GameMaster write in game'), 'key': 'GM_READ', 'type': 'checkbutton',
              'default_checkbutton': False},
-            {'label': _('ГеймМастер озвучивает','GameMaster is voiced'), 'key': 'GM_VOICE', 'type': 'checkbutton',
+            {'label': _('ГеймМастер озвучивает', 'GameMaster is voiced'), 'key': 'GM_VOICE', 'type': 'checkbutton',
              'default_checkbutton': False},
-            {'label': _('Встревать через','Intervene after'), 'key': 'GM_REPEAT', 'type': 'entry',
-             'default': 2, 'tooltip': _('Через сколько фраз гейммастер вмешивается','How much phares GM need to intervene')},
-            {'label': _('Лимит речей нпс %','Limit NPC convesationg'), 'key': 'CC_Limit_mod', 'type': 'entry',
-             'default': 100, 'tooltip': _('Сколько от кол-ва персонажей может отклоняться повтор речей нпс','How long NPC can talk ignoring player')}
+            {'label': _('Встревать через', 'Intervene after'), 'key': 'GM_REPEAT', 'type': 'entry',
+             'default': 2,
+             'tooltip': _('Через сколько фраз гейммастер вмешивается', 'How much phares GM need to intervene')},
+            {'label': _('Лимит речей нпс %', 'Limit NPC convesationg'), 'key': 'CC_Limit_mod', 'type': 'entry',
+             'default': 100, 'tooltip': _('Сколько от кол-ва персонажей может отклоняться повтор речей нпс',
+                                          'How long NPC can talk ignoring player')}
         ]
-        self.create_settings_section(parent, _("Настройки Мастера игры и Диалогов","GameMaster and Dialogues settings"), common_config)
+        self.create_settings_section(parent,
+                                     _("Настройки Мастера игры и Диалогов", "GameMaster and Dialogues settings"),
+                                     common_config)
 
     def setup_new_game_master_controls(self, parent):
         # Основные настройки для новой секции
@@ -883,14 +900,15 @@ class ChatGUI:
             {'label': _('Ссылка', 'URL'), 'key': 'NM_API_URL', 'type': 'entry'},
             {'label': _('Модель', 'Model'), 'key': 'NM_API_MODEL', 'type': 'entry'},
             {'label': _('Ключ', 'Key'), 'key': 'NM_API_KEY', 'type': 'entry'},
-            {'label': _('Резервные ключи', 'Reserve keys'), 'key': 'NM_API_KEY_RES', 'type': 'text', 'hide':  bool(self.settings.get("HIDE_PRIVATE")) },
+            {'label': _('Резервные ключи', 'Reserve keys'), 'key': 'NM_API_KEY_RES', 'type': 'text',
+             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
             {'label': _('Через Request', 'Using Request'), 'key': 'NM_API_REQ', 'type': 'checkbutton'},
-            {'label': _('Спец Структура Гемини', 'Special Gemini Case'), 'key': 'GEMINI_CASE', 'type': 'checkbutton','default_checkbutton':False}
+            {'label': _('Спец Структура Гемини', 'Special Gemini Case'), 'key': 'GEMINI_CASE', 'type': 'checkbutton',
+             'default_checkbutton': False}
         ]
         self.create_settings_section(parent,
                                      _("Настройки API", "API settings"),
                                      common_config)
-
 
     #endregion
 
@@ -1084,7 +1102,7 @@ class ChatGUI:
             )
             self.update_debug_info()
 
-    def insertDialog(self, input_text="", response="",system_text=""):
+    def insertDialog(self, input_text="", response="", system_text=""):
         MitaName = self.model.current_character.name
 
         if input_text != "":
@@ -1096,7 +1114,6 @@ class ChatGUI:
         if response != "":
             self.chat_window.insert(tk.END, f"{MitaName}: ", "Mita")
             self.chat_window.insert(tk.END, f"{response}\n\n")
-
 
     def send_message(self, system_input=""):
         user_input = self.user_entry.get("1.0", "end-1c")
@@ -1201,6 +1218,7 @@ class ChatGUI:
                     elif isinstance(child, tk.Checkbutton):
                         if 'MIC_ACTIVE' in str(widget):
                             self.mic_active_check = child
+
     def get_microphone_list(self):
         try:
             devices = sd.query_devices()
@@ -1325,8 +1343,8 @@ class ChatGUI:
                 default_checkbutton=config.get('default_checkbutton', False),
                 validation=config.get('validation', None),
                 tooltip=config.get('tooltip', ""),
-                hide = config.get('hide', False),
-                command = config.get('command', None)
+                hide=config.get('hide', False),
+                command=config.get('command', None)
             )
             section.add_widget(widget)
 
@@ -1334,7 +1352,7 @@ class ChatGUI:
 
     def create_setting_widget(self, parent, label, setting_key, widget_type='entry',
                               options=None, default='', default_checkbutton=False, validation=None, tooltip=None,
-                              width=None, height=None, command=None,hide=False):
+                              width=None, height=None, command=None, hide=False):
 
         """
         Создает виджет настройки с различными параметрами.
@@ -1445,8 +1463,6 @@ class ChatGUI:
 
         elif widget_type == 'text':
 
-
-
             if setting_key != "":
                 def save_text():
                     self._save_setting(setting_key, text.get('1.0', 'end-1c'))
@@ -1462,10 +1478,6 @@ class ChatGUI:
 
             else:
                 lbl.config(width=100)
-
-
-
-
 
         # Добавляем tooltip если указан
         if tooltip:
@@ -1518,6 +1530,37 @@ class ChatGUI:
         pass
 
     # endregion
+
+    #region HotKeys
+    def keypress(self, e):
+        # Обработчик комбинаций клавиш для вставки, копирования и вырезания
+        if e.keycode == 86 and e.keysym != 'v':
+            self.cmd_paste()
+        elif e.keycode == 67 and e.keysym != 'c':
+            self.cmd_copy()
+        elif e.keycode == 88 and e.keysym != 'x':
+            self.cmd_cut()
+
+    def cmd_copy(self):
+        # Обработчик команды копирования
+        widget = self.root.focus_get()
+        if isinstance(widget, ttk.Entry) or isinstance(widget, tk.Text):
+            widget.event_generate("<<Copy>>")
+
+    def cmd_cut(self):
+        # Обработчик команды вырезания
+        widget = self.root.focus_get()
+        if isinstance(widget, ttk.Entry) or isinstance(widget, tk.Text):
+            widget.event_generate("<<Cut>>")
+
+    def cmd_paste(self):
+        # Обработчик команды вставки
+        widget = self.root.focus_get()
+        if isinstance(widget, ttk.Entry) or isinstance(widget, tk.Text):
+            widget.event_generate("<<Paste>>")
+
+    #endregion
+
     def run(self):
         self.root.mainloop()
 
