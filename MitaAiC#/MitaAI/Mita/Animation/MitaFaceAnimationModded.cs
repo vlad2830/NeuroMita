@@ -1,19 +1,26 @@
 using Il2Cpp;
-
 using MelonLoader;
-using System.Collections;
-using UnityEngine;
 using System.Text.RegularExpressions;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using UnityEngine.Playables;
-using UnityEngine.AI;
-using Il2CppRootMotion.FinalIK;
-using UnityEngine.Events;
-using Harmony;
+using UnityEngine;
 namespace MitaAI.Mita
 {
     public static class MitaFaceAnimationModded
     {
+
+        public static string getFaceInfo(GameObject MitaPersonObject)
+        {
+            if (MitaPersonObject == null) return "";
+
+            string info = "";
+
+            var heartNeon = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye/heartNeon");
+            if (heartNeon != null && heartNeon.gameObject.active)
+            {
+                info += "\nВ твоих глазах светятся розовые сердечки";
+            }
+
+            return info;
+        }
 
         public static (List<string>, string) ExtractEmotions(string response)
         {
@@ -88,11 +95,11 @@ namespace MitaAI.Mita
             try
             {
 
-                if (MitaCore.Instance.currentCharacter != characterType.Crazy)
-                {
-                    MelonLogger.Error("SetFaceStyleMita Not crazy");
-                    return cleanedResponse;
-                }
+                //if (MitaCore.Instance.currentCharacter != characterType.Crazy)
+                //{
+                  //  MelonLogger.Error("SetFaceStyleMita Not crazy");
+                    //return cleanedResponse;
+                //}
 
 
                 // Проверка на наличие объекта Mita перед применением эмоции
@@ -113,6 +120,12 @@ namespace MitaAI.Mita
                         //Mita.FaceColorUpdate();
                         MitaCore.Instance.Mita.FaceLayer(2);
                         break;
+                    case "LoveEyesOn":
+                        setLoveEye(MitaCore.Instance.MitaPersonObject);
+                        break;
+                    case "LoveEyesOff":
+                        setLoveEye(MitaCore.Instance.MitaPersonObject,false);
+                        break;
                     default:
                         //Mita.FaceColorUpdate();
                         MitaCore.Instance.Mita.FaceLayer(0);
@@ -121,14 +134,48 @@ namespace MitaAI.Mita
             }
             catch (Exception ex)
             {
-                MelonLogger.Error($"Problem with FaceStyle: {ex.Message}");
+                MelonLogger.Error($"Problem with FaceStyle: {ex}");
             }
 
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
 
+        static void setLoveEye(GameObject MitaPersonObject, bool on = true)
+        {
 
+            var RightEye = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");
+            var LeftEye = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Left Eye");
+
+            MelonLogger.Msg("setLoveEye 1");
+
+            // Прям на глаза ставить
+            // 0 0,025 0
+            // 90 0 0
+
+
+            GameObject heartNeon = RightEye.Find("HeartNeon")?.gameObject;
+            GameObject heartNeonL = LeftEye.Find("HeartNeon")?.gameObject;
+
+            MelonLogger.Msg("setLoveEye 2");
+
+            if (heartNeon == null)
+            {
+                heartNeon = GameObject.Instantiate(TotalInitialization.HeartNeonTemplate, RightEye);
+                heartNeon.transform.localPosition = new Vector3(0,0.025f,0);
+                heartNeon.transform.localEulerAngles = new Vector3(90,0,0);
+
+                heartNeonL = GameObject.Instantiate(TotalInitialization.HeartNeonTemplate, LeftEye);
+                heartNeonL.transform.localPosition = new Vector3(0, 0.025f, 0);
+                heartNeonL.transform.localEulerAngles = new Vector3(90, 0, 0);
+            }
+            MelonLogger.Msg("setLoveEye 3");
+
+            heartNeon.SetActive(on);
+            heartNeonL.SetActive(on);
+
+
+        }
 
     }
 

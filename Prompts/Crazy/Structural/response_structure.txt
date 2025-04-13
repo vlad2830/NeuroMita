@@ -7,6 +7,7 @@ OFTEN INCLUDED - Emotions (block <e>, example: <e>smile</e>).
 Action commands (block <c>, example: <c>Заспавнить манекен</c>).
 Movement types (block <m>, example: <m>NoClip</m>).
 Animations (block <a>, example: <a>Щелчек</a>).
+Interactions (block <interaction> <interaction>Hall Sofa sit center</interaction>)
 Face effects (block <f> <f>Смущаться</f>).
 Player (Visual) Effects (block <v>, <v>Глитч,4.1</v>).
 Music (block <music>, <music>Music 2</music>).

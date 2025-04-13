@@ -483,12 +483,13 @@ class ChatGUI:
         self.setup_language_controls(settings_frame)
         self.setup_api_controls_new(settings_frame)
         self.setup_model_controls(settings_frame)
+        self.setup_general_settings_control(settings_frame)
         self.setup_tg_controls(settings_frame)
         self.setup_microphone_controls(settings_frame)
 
         self.setup_mita_controls(settings_frame)
         
-        self.setup_general_settings_control(settings_frame)
+
 
         # Передаем settings_frame как родителя
 
@@ -835,7 +836,7 @@ class ChatGUI:
             {'label': _('Персонаж', 'Character'), 'key': 'CHARACTER', 'type': 'combobox',
              'options': self.model.get_all_mitas(),
              'default': "Crazy"},
-            
+
             {'label': _('Экспериментальные функции', 'Experimental features'), 'type': 'text'},
             {'label': _('Меню выбора Мит', 'Mita selection menu'), 'key': 'MITAS_MENU', 'type': 'checkbutton',
              'default_checkbutton': False}
@@ -853,7 +854,7 @@ class ChatGUI:
             # gpt-4o-mini тоже подходит
         ]
 
-        self.create_settings_section(parent, _("Настройки модели", "Model settings"), mita_config)
+        self.create_settings_section(parent, _("Настройки gpt4free модели", "Gpt4free settings"), mita_config)
 
     def setup_common_controls(self, parent):
         # Основные настройки
@@ -929,10 +930,10 @@ class ChatGUI:
 
 
             {'label': _('Настройки ожидания', 'Waiting settings'), 'type': 'text'},
-            {'label': _('Время ожидания текста', 'Text waiting time'), 
+            {'label': _('Время ожидания текста (сек)', 'Text waiting time (sec)'),
              'key': 'TEXT_WAIT_TIME', 'type': 'entry', 'default': 25,
              'tooltip': _('время ожидания ответа','response waiting time')},
-            {'label': _('Время ожидания звука', 'Voice waiting time (sec)'), 
+            {'label': _('Время ожидания звука (сек)', 'Voice waiting time (sec)'),
              'key': 'VOICE_WAIT_TIME', 'type': 'entry', 'default': 25,
              'tooltip': _('время ожидания озвучки','voice generation waiting time')},
 
@@ -1575,7 +1576,7 @@ class ChatGUI:
 
     def setup_news_control(self, parent):
         news_config = [
-            {'label': _('Новости и обновления', 'News and updates'), 'type': 'text'},
+            #{'label': _('Новости и обновления', 'News and updates'), 'type': 'text'},
             {'label': self.get_news_content(), 'type': 'text'},
         ]
 

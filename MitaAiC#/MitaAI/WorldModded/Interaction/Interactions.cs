@@ -110,10 +110,15 @@ namespace MitaAI
 
             try
             {
+                ObjectInteractive_CaseInfo caseInfo;
                 if (caseInfoObj == null)
                 {
-                    var caseInfo = GameObject.Instantiate(tipTemplate, gameObject.transform).GetComponent<ObjectInteractive_CaseInfo>();
-
+                    caseInfo = GameObject.Instantiate(tipTemplate, gameObject.transform).GetComponent<ObjectInteractive_CaseInfo>();
+                }
+                else
+                {
+                    caseInfo = caseInfoObj.GetComponent<ObjectInteractive_CaseInfo>();
+                }
                     objectInteractive.caseInfo = caseInfo;
 
 
@@ -134,24 +139,14 @@ namespace MitaAI
                     //cirle.transform.localEulerAngles = new Vector3(60, 0, 0);
 
                     //cirle.transform.localScale = Vector3.one * 1.5f;
-                    MelonLogger.Msg("FindOrCreateObjectInteractable 4");
+
                     var text = caseInfo.GetComponentInChildren<Text>();
                     if (text != null && tipText != null)
                     {
                         text.text = tipText;
                         text.m_Text = tipText;
                     }
-                }
-                else
-                {
-                    MelonLogger.Msg("FindOrCreateObjectInteractable 4");
-                    var text = caseInfoObj.GetComponentInChildren<Text>();
-                    if (text != null && tipText != null)
-                    {
-                        text.text = tipText;
-                        text.m_Text = tipText;
-                    }
-                }
+            
        
             }
             catch (Exception ex2)

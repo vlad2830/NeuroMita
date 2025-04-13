@@ -164,6 +164,7 @@ namespace MitaAI
                     MelonLogger.Error($"interactionGetCurrentInfo {ex}");
                 }
 
+                info += MitaFaceAnimationModded.getFaceInfo(MitaCore.Instance.MitaPersonObject);
             }
             catch (Exception ex)
             {

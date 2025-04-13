@@ -1091,7 +1091,7 @@ namespace MitaAI
         {
 
             MelonLogger.Msg("Try TestingGround");
-            
+
 
             for (int i = 1; i < 5; i++)
             {
@@ -1120,7 +1120,7 @@ namespace MitaAI
                     oam1.addSimpleAction((UnityAction)comp.moveChair);
 
                     MelonLogger.Msg("Before FindOrCreateObjectInteractable");
-                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP, false, 5, "Сесть за стул", false, useParent: true);
+                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 5, "Сесть за стул", false, useParent: true);
                     obj.eventClick.AddListener((UnityAction)comp.moveChair);
                 }
                 catch (Exception ex)
@@ -1128,12 +1128,12 @@ namespace MitaAI
 
                     MelonLogger.Error(ex);
                 }
-                
+
             }
 
-            
+
             var sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/Sofa");
-            var oam = ObjectAnimationMita.Create(sofa.gameObject, "Hall Sofa sit right", "Сесть на диван справа ближе к туалету",position:"right");
+            var oam = ObjectAnimationMita.Create(sofa.gameObject, "Hall Sofa sit right", "Сесть на диван справа ближе к туалету", position: "right");
             oam.setStartPos(new Vector3(-0.9f, 0.6f, 0), new Vector3(270, 180, 0));
             oam.setAiMovePoint(new Vector3(0, 0, 0.5f), new Vector3(0, 0, 0));
             oam.setIdleAnimation("Mita SitIdle");
@@ -1141,9 +1141,15 @@ namespace MitaAI
             oam.setRevertAOM("Hall Sofa stand up", "Слезть с дивана");
 
             var sofaAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "right");
-            sofaAP.transform.localEulerAngles = new Vector3(0, 90, 90);
-            sofaAP.transform.localPosition = new Vector3(0.4f, 0.4f, 1);
-            var objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP, false, 5, "Сесть диван", true, useParent: true);
+            ObjectInteractive objSofa;
+            if (sofaAP != null)
+            {
+                sofaAP.transform.localEulerAngles = new Vector3(90, 0, 0);
+                sofaAP.transform.localPosition = new Vector3(-0.8f, 1.4f, 0);
+                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 5, "Сесть на диван", false, useParent: true);
+                objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
+            }
+
 
             //"AnimationPlayer Sit"
 
@@ -1164,11 +1170,14 @@ namespace MitaAI
             oam.addEnqueAnimationAction("Mita SitIdle");
             oam.setRevertAOM("Hall Sofa stand up", "Слезть с дивана");
 
-            sofaAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "left");
-            sofaAP.transform.localEulerAngles = new Vector3(0, 90, 90);
-            sofaAP.transform.localPosition = new Vector3(0.4f, 0.4f, 1);
-            objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP, false, 5, "Сесть диван", true, useParent: true);
-
+            if (sofaAP != null)
+            {
+                sofaAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "left");
+                sofaAP.transform.localEulerAngles = new Vector3(90, 0, 0);
+                sofaAP.transform.localPosition = new Vector3(0.8f, 1.4f, 0);
+                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 5, "Сесть на диван", false, useParent: true);
+                objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
+            }
 
 
             var TrashBox = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/TrashBox");
@@ -1221,8 +1230,7 @@ namespace MitaAI
             oam.addEnqueAnimationAction("Mita SitIdle");
             oam.setRevertAOM("SofaOttoman stend up", "Встать с пуфика");
 
-            
-
+           
 
             var ChairRoom = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/BedroomChair");
             oam = ObjectAnimationMita.Create(ChairRoom.gameObject, "BedroomChair sit", "Сесть на кресло спальни");

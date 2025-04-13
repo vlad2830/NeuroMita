@@ -149,7 +149,7 @@ namespace MitaAI
             }
         }
 
-        public static GameObject CopyObjectAmimationPlayerTo(Transform parent,string name, string position="center")
+        public static ObjectAnimationPlayer CopyObjectAmimationPlayerTo(Transform parent,string name, string position="center")
         {
 
             if (ObjectsAnimationPlayer.ContainsKey(name))
@@ -157,11 +157,16 @@ namespace MitaAI
                 var OAPobj = GameObject.Instantiate(ObjectsAnimationPlayer[name].gameObject, parent);
                 var OAP = OAPobj.GetComponent<ObjectInteractive>();
                 OAPobj.transform.localPosition = Vector3.zero;
-                OAP.objectInteractive = parent.gameObject;
-                OAP.active = true;
+                if (OAP != null)
+                {
+                    
+                    OAP.objectInteractive = parent.gameObject;
+                    OAP.active = true;
+                    
+                }
                 OAPobj.active = true;
                 CommonInteractableObject.CheckCreate(parent.gameObject,position);
-                return OAPobj;
+                return OAPobj.GetComponent<ObjectAnimationPlayer>();
             }
 
 
