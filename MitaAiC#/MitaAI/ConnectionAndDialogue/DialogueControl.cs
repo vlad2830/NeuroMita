@@ -16,6 +16,8 @@ namespace MitaAI
 {
     static class DialogueControl
     {
+        public static float voiceTimout = 30;
+        
         const int simbolsPerSecond = 15;
         const float minDialoguePartLen = 0.50f;
         const float maxDialoguePartLen = 8f;
@@ -44,12 +46,12 @@ namespace MitaAI
             {
 
                 float elapsedTime = 0f; // Счетчик времени
-                float timeout = 30f;     // Лимит времени ожидания
+
                 float waitingTimer = 0.75f;
                 float lastCallTime = 0f; // Время последнего вызова
 
                 // Ждем, пока patch_to_sound_file перестанет быть пустым или не истечет время ожидания
-                while (string.IsNullOrEmpty(patch_to_sound) && elapsedTime < timeout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
+                while (string.IsNullOrEmpty(patch_to_sound) && elapsedTime < voiceTimout && NetworkController.connectedToSilero) //&& waitForSounds=="1")
                 {
                     //MelonLogger.Msg("DisplayResponseAndEmotionCicle");
                     if (DataChange.sound_files.ContainsKey(id))

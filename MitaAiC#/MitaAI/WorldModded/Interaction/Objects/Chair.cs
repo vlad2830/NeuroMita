@@ -9,7 +9,7 @@ namespace MitaAI
     public class Chair : MonoBehaviour
     {
         private bool isCloseToTable = true;
-        private float moveDistance = 0.4f; // Расстояние для перемещения
+        private float moveDistance = 0.3f; // Расстояние для перемещения
         private float animationDuration = 1.4f; // Длительность анимации
 
         public void moveChair()
@@ -19,6 +19,8 @@ namespace MitaAI
 
             Vector3 localMovement = Vector3.right * moveDistance * (isCloseToTable ? 1 : -1) * directionMultiplier;
             Utils.StartObjectAnimation(gameObject, localMovement, Vector3.zero, animationDuration, true);
+
+            isCloseToTable = !isCloseToTable;
         }
     }
 }

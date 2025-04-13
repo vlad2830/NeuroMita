@@ -4,6 +4,7 @@ using MelonLoader;
 using UnityEngine;
 using System.Collections;
 using UnityEngine.Events;
+using UnityEngine.UIElements;
 
 namespace MitaAI
 {
@@ -145,12 +146,10 @@ namespace MitaAI
                     ObjectsAnimationPlayer[oap.name].transform.SetParent(ObjectAnimationContainer.transform);
                     ObjectsAnimationPlayer[oap.name].gameObject.SetActive(false);
                 }
-
-               
             }
         }
 
-        public static GameObject CopyObjectAmimationPlayerTo(Transform parent,string name)
+        public static GameObject CopyObjectAmimationPlayerTo(Transform parent,string name, string position="center")
         {
 
             if (ObjectsAnimationPlayer.ContainsKey(name))
@@ -161,7 +160,7 @@ namespace MitaAI
                 OAP.objectInteractive = parent.gameObject;
                 OAP.active = true;
                 OAPobj.active = true;
-                CommonInteractableObject.CheckCreate(parent.gameObject);
+                CommonInteractableObject.CheckCreate(parent.gameObject,position);
                 return OAPobj;
             }
 
@@ -229,8 +228,16 @@ namespace MitaAI
         private static void endLastOAP()
         {
             if (lastOAP==null) return;
+            try
+            {
+                lastOAP?.GetComponent<CommonInteractableObject>().free();
+            }
+            catch (Exception ex)
+            {
 
-            lastOAP?.GetComponent<CommonInteractableObject>().free();
+                MelonLogger.Error(ex);
+            }
+            
 
             var obj = lastOAP.GetComponent<ObjectInteractive>();
             if (obj!=null) obj.active = true;
@@ -253,13 +260,13 @@ namespace MitaAI
                     obj.eventFinish = new UnityEngine.Events.UnityEvent();
                     obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
                     obj.AnimationPlay();
-
+                   
                     var COI = obj.GetComponent<CommonInteractableObject>();
                     if (COI  != null)
                     {
                         COI.setTaken(characterType.Player);
                     }
-                    
+                    lastOAP = obj;
                 }
                 catch (Exception Ex)
                 {
@@ -464,6 +471,7 @@ namespace MitaAI
 
         public static void stopAnim()
         {
+            endLastOAP();
             playerMove.AnimationStop();
         }
         public static void UnstackPlayer(bool teleportToZero = true)

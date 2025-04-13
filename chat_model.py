@@ -317,8 +317,8 @@ class ChatModel:
                 else:
                     # Переключаем ключи начиная со второй попытки
 
-                    if attempt >= max_attempts - 2:
-                        logger.info("Пробую gtp4free")
+                    if bool(self.gui.settings.get("SettingsManager")) and attempt >= max_attempts:
+                        logger.warning("Пробую gtp4free как последнюю попытку")
                         response = self._generate_openapi_response(combined_messages, use_gpt4free=True)
                     else:
                         if attempt > 1:
@@ -339,10 +339,10 @@ class ChatModel:
 
             # Если ответа нет - ждем перед следующей попыткой
             if attempt < max_attempts:
-                logger.info(f"Ожидание {retry_delay} сек. перед повторной попыткой...")
+                logger.warning(f"Ожидание {retry_delay} сек. перед повторной попыткой...")
                 time.sleep(retry_delay)
 
-        logger.info("Все попытки исчерпаны")
+        logger.error("Все попытки исчерпаны")
         return None, False
 
     def _log_generation_start(self):
@@ -389,16 +389,13 @@ class ChatModel:
             self.update_openai_client()
 
         try:
-            if "gemini" in self.api_model and combined_messages[-1]["role"] == "system":
-                logger.info("gemini последнее системное сообщение на юзерское")
-                combined_messages[-1]["role"] = "user"
-                combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]
+
 
             logger.info(f"Перед запросом  {len(combined_messages)}", )
 
             if bool(self.gui.settings.get("gpt4free")) or use_gpt4free:
                 logger.info("gpt4free case")
-
+                self.change_last_message_to_user_for_gemini(self.gpt4free_model, combined_messages)
                 completion = self.g4fClient.chat.completions.create(
                     model=self.gpt4free_model,
                     messages=combined_messages,
@@ -407,6 +404,7 @@ class ChatModel:
                     web_search=False
                 )
             else:
+                self.change_last_message_to_user_for_gemini(self.api_model, combined_messages)
                 completion = self.client.chat.completions.create(
                     model=self.api_model,
                     messages=combined_messages,
@@ -433,6 +431,12 @@ class ChatModel:
         except Exception as e:
             logger.error(f"Что-то не так при генерации OpenAI: {str(e)}")
             return None
+
+    def change_last_message_to_user_for_gemini(self, api_model, combined_messages):
+        if "gemini" in api_model and combined_messages[-1]["role"] == "system":
+            logger.info("gemini последнее системное сообщение на юзерское")
+            combined_messages[-1]["role"] = "user"
+            combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]
 
     def _save_and_calculate_cost(self, combined_messages):
         save_combined_messages(combined_messages)

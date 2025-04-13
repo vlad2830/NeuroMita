@@ -60,12 +60,14 @@ namespace MitaAI.Mita
 
             try
             {
-                runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
-                overrideController = new AnimatorOverrideController(runtimeAnimatorController);
-                
-                mitaAnimatorFunctions.animOver = overrideController;
-                if (changeAnimationController==true)
+              
+                if (changeAnimationController)
                 {
+                    runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
+                    overrideController = new AnimatorOverrideController(runtimeAnimatorController);
+
+                    mitaAnimatorFunctions.animOver = overrideController;
+
                     MelonLogger.Msg("Change Animation controller");
                     
 
@@ -76,7 +78,8 @@ namespace MitaAI.Mita
 
                     if (changeAnimation)
                     {
-                        idleAnimation = FindAnimationClipInControllerByName("Idle");
+                        MelonLogger.Msg("changeAnimation Specific");
+                        idleAnimation = FindAnimationClipInControllerByName(initIdle);
                         // Пока что так))
                         switch (character)
                         {
@@ -130,9 +133,6 @@ namespace MitaAI.Mita
                     setCustomAnimatiomEvents(item);
                 }
                 mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
-
-                MelonLogger.Msg("b!");
-                //setIdleWalk("Mita Walk_1");
 
                 if (changeAnimation){
                     animator.Rebind();

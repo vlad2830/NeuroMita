@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace MitaAI
 {
@@ -19,8 +20,8 @@ namespace MitaAI
          */
 
         public Dictionary<string,characterType> taker = new Dictionary<string, characterType> { {"center",characterType.None } };        
-
-        public static CommonInteractableObject CheckCreate(GameObject gameObject,string position="center")
+        public UnityEvent eventEnd = new UnityEvent();
+        public static CommonInteractableObject CheckCreate(GameObject gameObject,string position="center",UnityAction freeCase = null)
         {
             var CIO = gameObject.GetComponent<CommonInteractableObject>();
             if (CIO  == null)
@@ -30,6 +31,11 @@ namespace MitaAI
             }
             CIO.setTaken(characterType.None, position);
             
+            if (freeCase != null)
+            {
+                CIO.eventEnd.AddListener(freeCase);
+            }
+
             return CIO;
 
         }
@@ -64,6 +70,18 @@ namespace MitaAI
             {
                 obj.active = true;
             }
+
+
+            try
+            {
+                eventEnd.Invoke();
+            }
+            catch (Exception ex)
+            {
+
+                MelonLogger.Error(ex);
+            }
+            
         }
 
     }

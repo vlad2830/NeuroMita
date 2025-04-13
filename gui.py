@@ -834,7 +834,11 @@ class ChatGUI:
         mita_config = [
             {'label': _('Персонаж', 'Character'), 'key': 'CHARACTER', 'type': 'combobox',
              'options': self.model.get_all_mitas(),
-             'default': "Crazy"}
+             'default': "Crazy"},
+            
+            {'label': _('Экспериментальные функции', 'Experimental features'), 'type': 'text'},
+            {'label': _('Меню выбора Мит', 'Mita selection menu'), 'key': 'MITAS_MENU', 'type': 'checkbutton',
+             'default_checkbutton': False}
         ]
 
         self.create_settings_section(parent, _("Выбор персонажа", "Character selection"), mita_config)
@@ -919,15 +923,19 @@ class ChatGUI:
              'type': 'entry', 'default': 3},
             {'label': _('Время между попытками','time between attempts'), 
              'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20},
+            {'label': _('Использовать gpt4free последней попыткой ', 'Use gpt4free as last attempt'),
+             'key': 'GPT4FREE_LAST_ATTEMPT', 'type': 'checkbutton', 'default_checkbutton': True},
+
+
+
             {'label': _('Настройки ожидания', 'Waiting settings'), 'type': 'text'},
             {'label': _('Время ожидания текста', 'Text waiting time'), 
-             'key': 'TEXT_WAIT_TIME', 'type': 'entry', 'default': 10,
+             'key': 'TEXT_WAIT_TIME', 'type': 'entry', 'default': 25,
              'tooltip': _('время ожидания ответа','response waiting time')},
             {'label': _('Время ожидания звука', 'Voice waiting time (sec)'), 
-             'key': 'VOICE_WAIT_TIME', 'type': 'entry', 'default': 15,
+             'key': 'VOICE_WAIT_TIME', 'type': 'entry', 'default': 25,
              'tooltip': _('время ожидания озвучки','voice generation waiting time')},
-            {'label': _('Экспериментальные функции', 'Experimental features'), 'type': 'text'},
-            {'label': _('Меню', 'menu'), 'key': 'menu', 'type': 'checkbutton', 'default_checkbutton': False}
+
         ]
 
         self.create_settings_section(parent,

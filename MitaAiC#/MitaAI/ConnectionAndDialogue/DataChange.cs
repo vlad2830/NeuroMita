@@ -13,6 +13,8 @@ namespace MitaAI
 {
     public static class DataChange
     {
+        public static float textTimeout = 40f;     // Лимит времени ожидания
+
         private const float MitaBoringInterval = 180f;
         public static float MitaBoringtimer = 0f;
         
@@ -34,7 +36,7 @@ namespace MitaAI
 
             string playerText = MitaCore.Instance.playerMessage;
             MitaCore.Instance.playerMessage = "";
-            bool senfPlayerMessage = false;
+            bool sentPlayerMessage = false;
 
             string dataToSent = "waiting";
             string dataToSentSystem = "-";
@@ -68,13 +70,14 @@ namespace MitaAI
                     
                     lastPlayerMessage = playerText;
                     MelonLogger.Msg("HAS playerMessage");
-                    senfPlayerMessage = true;
+                    sentPlayerMessage = true;
                     Characters = CharacterControl.GetCharactersToAnswer();
                     if (Characters.Count > 0)
                     {
                         characterToSend = Characters.First();
+                        CharacterMessages.sendInfoListeners(playerText, Characters, characterToSend);
                         MitaBoringtimer = 0f;
-                        CharacterMessages.sendInfoListeners(playerText, Characters, characterToSend, null);
+                        
 
                     }
 
@@ -145,26 +148,27 @@ namespace MitaAI
 
             string response = "";
 
-            if (CharacterMessages.systemInfos.Count > 0)
-            {
-                //MelonLogger.Msg("HAS SYSTEM INFOS");
-                //Отправляю залпом.
-                while (CharacterMessages.systemInfos.Count() > 0)
-                {
-                    var message = CharacterMessages.systemInfos.Dequeue();
-                    characterType ch = message.Item2;
 
-                    if (ch == characterToSend)
-                    {
-                        info += message.Item1 + "\n";
-                    }
-                    else
-                    {
-                        CharacterMessages.sendSystemInfo(message.Item1, ch);
-                        break;
-                    }
+            // TO DO Написать логику на питоне и отправлять туда сразу и там обрабатывать
+
+            //MelonLogger.Msg("HAS SYSTEM INFOS");
+            //Отправляю залпом.
+            while (CharacterMessages.systemInfos.Count() > 0)
+            {
+                var message = CharacterMessages.systemInfos.Dequeue();
+                characterType ch = message.Item2;
+
+                if (ch == characterToSend)
+                {
+                    info += message.Item1 + "\n";
+                }
+                else
+                {
+                    CharacterMessages.sendSystemInfo(message.Item1, ch);
+                    break;
                 }
             }
+            
             
             if (characterToSend != MitaCore.Instance.currentCharacter)
             {
@@ -186,7 +190,7 @@ namespace MitaAI
 
 
 
-            float timeout = 40f;     // Лимит времени ожидания
+
             float waitMessageTimer = 0.5f;
             float elapsedTime = 0f; // Счетчик времени
             float lastCallTime = 0f; // Время последнего вызова
@@ -195,7 +199,7 @@ namespace MitaAI
             while (!responseTask.IsCompleted)
             {
                 elapsedTime += 0.1f;
-                if (elapsedTime >= timeout)
+                if (elapsedTime >= textTimeout)
                 {
                     MelonLogger.Msg("Too long waiting for text");
                     break;
@@ -250,6 +254,13 @@ namespace MitaAI
                     int GM_REPEAT = messageData2.ContainsKey("GM_REPEAT") ? messageData2["GM_REPEAT"].GetInt32() : 2;
 
                     int limitmod = messageData2.ContainsKey("CC_Limit_mod") ? messageData2["CC_Limit_mod"].GetInt32() : 100;
+
+                    CustomUI.inAllowed = messageData2.ContainsKey("MITAS_MENU") ? messageData2["MITAS_MENU"].GetBoolean() : false;
+
+                    if (messageData2.ContainsKey("TEXT_WAIT_TIME")) DataChange.textTimeout = messageData2["TEXT_WAIT_TIME"].GetInt32();
+                    if (messageData2.ContainsKey("VOICE_WAIT_TIME")) DialogueControl.voiceTimout = messageData2["VOICE_WAIT_TIME"].GetInt32();
+                    
+
 
                     InputControl.instantSend = messageData2.ContainsKey("instant_send") ? messageData2["instant_send"].GetBoolean() : false;
 
@@ -315,7 +326,7 @@ namespace MitaAI
 
                 //Тестово - хочешь чтобы было без лишнего отрубай это
 
-                MelonCoroutines.Start(testNextAswer(response, characterToSend, senfPlayerMessage));
+                MelonCoroutines.Start(testNextAswer(response, characterToSend, sentPlayerMessage));
 
 
 

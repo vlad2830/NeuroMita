@@ -166,7 +166,7 @@ namespace MitaAI
         }
 
 
-        public static ObjectAnimationMita Create(GameObject parent,string name, string tip = "",bool needWalking = true, bool NeedMovingToIdle = true,bool isEndingObject = false,string position = "center")
+        public static ObjectAnimationMita Create(GameObject parent,string name, string tip = "",bool needWalking = true, bool NeedMovingToIdle = true,bool isEndingObject = false,string position = "center", UnityAction freeCase = null)
 
         {
             ObjectAnimationMita oam = new GameObject(name).AddComponent<ObjectAnimationMita>();
@@ -180,7 +180,7 @@ namespace MitaAI
             oam.needWalking = needWalking;
             oam.NeedMovingToIdle = NeedMovingToIdle;
             oam.position = position;
-            oam.commonInteractableObject = CommonInteractableObject.CheckCreate(oam.gameObject.transform.parent.gameObject);
+            oam.commonInteractableObject = CommonInteractableObject.CheckCreate(oam.gameObject.transform.parent.gameObject,position,freeCase);
             
 
             oam.Initialize();

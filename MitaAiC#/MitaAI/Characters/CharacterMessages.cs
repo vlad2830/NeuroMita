@@ -40,11 +40,11 @@ namespace MitaAI
             systemInfos.Enqueue((m, character));
         }
 
-        public static void sendInfoListeners(string message, List<characterType> characters = null, characterType exluding = characterType.None, string from = "Игрок")
+        public static void sendInfoListeners(string message, List<characterType> characters = null, characterType exluding = characterType.None, string from = "Player")
         {
-            MelonLogger.Msg($"sendInfoListeners char {characters} exl {exluding} from {from}");
+            MelonLogger.Msg($"sendInfoListeners {message} exluding {exluding} from {from}");
 
-            if (characters == null) characters = CharacterControl.GetCharactersToAnswer();
+            if (characters == null) characters = CharacterControl.GetCharactersToAnswer(false);
 
             if (exluding == characterType.None) exluding = MitaCore.Instance.currentCharacter;
 
@@ -52,7 +52,7 @@ namespace MitaAI
             string charName = CharacterControl.extendCharsString(exluding);
 
             if (CharacterControl.gameMaster != null) characters.Add(characterType.GameMaster);
-            //characters.Remove(exluding);
+
 
             foreach (characterType character in characters)
             {
@@ -63,7 +63,7 @@ namespace MitaAI
                     string messageToListener = "";
                     messageToListener += speakersText;
 
-                    messageToListener += $"[SPEAKER] : {from} said: {message} and was answered by {charName}";
+                    messageToListener += $"[SPEAKER] : {from} said: '{message}' and was answered by {charName}";
                     sendSystemInfo(messageToListener, character);
                 }
             }

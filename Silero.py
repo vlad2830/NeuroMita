@@ -124,12 +124,12 @@ class TelegramBotHandler:
             self.last_speaker_command = speaker_command
             await asyncio.sleep(0.7)
 
-            await self.TurnOnHd()
-            await asyncio.sleep(0.75)
+            #await self.TurnOnHd()
+            #await asyncio.sleep(0.75)
 
-            if self.gui.silero_turn_off_video:
-                await self.TurnOffCircles()
-                await asyncio.sleep(0.75)
+            #if self.gui.silero_turn_off_video:
+             #   await self.TurnOffCircles()
+              #  await asyncio.sleep(0.75)
 
         self.last_speaker_command = speaker_command
 

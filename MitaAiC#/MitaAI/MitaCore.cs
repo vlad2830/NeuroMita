@@ -43,12 +43,12 @@ namespace MitaAI
         public MitaPerson Mita;
 
         public static GameObject CrazyObject;
-        public static GameObject CreepyObject; // Объект для уродливой Миты
+        public static GameObject CreepyObject; 
         public static GameObject CappyObject;
         public static GameObject KindObject;
         public static GameObject ShortHairObject;
-        public static GameObject MilaObject; // Объект для нового персонажа
-        public static GameObject SleepyObject; // Объект для нового персонажа
+        public static GameObject MilaObject; 
+        public static GameObject SleepyObject; 
 
 
         Animator_FunctionsOverride MitaAnimatorFunctions;
@@ -314,14 +314,14 @@ namespace MitaAI
                
 
                
-                MitaAnimationModded.init(MitaAnimatorFunctions, location34_Communication, ChangeAnimationControler, changeAnimation);
+                MitaAnimationModded.init(MitaAnimatorFunctions, location34_Communication, ChangeAnimationControler, changeAnimation, character);
 
 
                 
      
 
 
-                if (!changeAnimation) MitaAnimationModded.resetToIdleAnimation();
+                //if (!changeAnimation) MitaAnimationModded.resetToIdleAnimation();
 
                 MitaClothesModded.init_hair();
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");

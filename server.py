@@ -159,6 +159,11 @@ class ChatServer:
                 "CC_Limit_mod": int(self.gui.settings.get("CC_Limit_mod")),
 
                 "instant_send": bool(self.gui.instant_send),
+
+                "MITAS_MENU": bool(self.gui.settings.get("MITAS_MENU")),
+                "TEXT_WAIT_TIME": int(self.gui.settings.get("TEXT_WAIT_TIME")),
+                "VOICE_WAIT_TIME": int(self.gui.settings.get("VOICE_WAIT_TIME")),
+
             })
             #logger.info(message_data)
             self.gui.instant_send = False
