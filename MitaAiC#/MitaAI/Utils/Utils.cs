@@ -230,7 +230,7 @@ namespace MitaAI
 
 
 
-        public static void StartObjectAnimation(GameObject targetObject,Vector3 position,Vector3 rotation,float duration, bool delta = true)
+        public static void StartObjectAnimation(GameObject targetObject, Vector3 position, Vector3 rotation, float duration, bool delta = true)
         {
             if (delta) MelonCoroutines.Start(AnimateObjectByDelta(targetObject.transform,position, rotation, duration));
             else MelonCoroutines.Start(AnimateObjectToFinalPos(targetObject.transform, position, rotation, duration));

@@ -41,7 +41,7 @@ namespace MitaAI
             if (!minigamesTelevisionController.activation)
             {
                 minigamesTelevisionController.StartTelevision();
-                MelonCoroutines.Start(startKeysMenu());
+                //MelonCoroutines.Start(startKeysMenu());
             }
             else minigamesTelevisionController.StopTelevision();
 

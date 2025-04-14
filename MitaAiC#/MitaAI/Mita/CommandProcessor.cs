@@ -201,12 +201,7 @@ namespace MitaAI.Mita
                     }
                     break;
 
-                case "Надеть очки":
-                    GlassesObj(true);
-                    break;
-                case "Снять очки":
-                    GlassesObj(false);
-                    break;
+
 
 
                 case "tojail":
@@ -442,20 +437,7 @@ namespace MitaAI.Mita
 
 
 
-        // TODO СДЕЛАТЬ НЕ ТАКИМ ПРИВЯЗАННЫМ
-        public static void GlassesObj(bool state)
-        {
-            try
-            {
-                var glasses = MitaPersonObject.transform.Find("World/Acts/Mita/MitaPerson/Head/Mita'sGlasses").gameObject;
-                glasses.SetActive(state);
-                CharacterMessages.sendSystemInfo(state ? "Очки надеты" : "Очки сняты");
-            }
-            catch (Exception ex)
-            {
-                MelonLogger.Error($"Ошибка при работе с очками: {ex.Message}");
-            }
-        }
+
         public static IEnumerator ActivateAndDisableKiller(float delay)
         {
             MelonLogger.Msg("Player killed");

@@ -332,7 +332,7 @@ class TelegramBotHandler:
                                      active_response: str,
                                      inactive_response: str,
                                      max_attempts: int = 3,
-                                     initial_delay: float = 0.1,
+                                     initial_delay: float = 0.25,
                                      retry_delay: float = 0.8):
         """
         Обобщенная функция для выполнения toggle-команд с проверкой состояния и повторными попытками

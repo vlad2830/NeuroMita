@@ -18,6 +18,11 @@ namespace MitaAI.Mita
             {
                 info += "\nВ твоих глазах светятся розовые сердечки";
             }
+            var glasess = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Mita'sGlasses");
+            if (glasess != null && glasess.gameObject.active)
+            {
+                info += "\nYou wear glasses";
+            }
 
             return info;
         }
@@ -126,6 +131,22 @@ namespace MitaAI.Mita
                     case "LoveEyesOff":
                         setLoveEye(MitaCore.Instance.MitaPersonObject,false);
                         break;
+
+
+
+
+
+
+                    case "GlassesOn":
+                        GlassesObj(MitaCore.Instance.MitaPersonObject,true);
+                        break;
+                    case "GlasessOff":
+                        GlassesObj(MitaCore.Instance.MitaPersonObject,false);
+                        break;
+
+
+
+
                     default:
                         //Mita.FaceColorUpdate();
                         MitaCore.Instance.Mita.FaceLayer(0);
@@ -141,13 +162,35 @@ namespace MitaAI.Mita
             return cleanedResponse;
         }
 
+        // TODO СДЕЛАТЬ НЕ ТАКИМ ПРИВЯЗАННЫМ
+        public static void GlassesObj(GameObject MitaPersonObject,bool on)
+        {
+
+
+            var Glasess = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Mita'sGlasses")?.gameObject;
+
+            if (Glasess == null)
+            {
+                Glasess = GameObject.Instantiate(TotalInitialization.Glasses, MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head").transform);
+                Glasess.transform.localPosition = new Vector3(0,0.085f,0.125f);
+                Glasess.transform.localEulerAngles = new Vector3(270, 0, 0);
+
+                // TO DO Чекнуть поворот
+
+                Glasess.transform.Find("Mita'sGlassesLeftEar").transform.SetLocalPositionAndRotation(new Vector3(-0.0787f,0,0), Quaternion.identity);
+                Glasess.transform.Find("Mita'sGlassesRightEar").transform.SetLocalPositionAndRotation(new Vector3(0.0787f, 0, 0), Quaternion.identity);
+            }
+
+            Glasess.SetActive(on);
+
+        }
+
         static void setLoveEye(GameObject MitaPersonObject, bool on = true)
         {
 
             var RightEye = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");
             var LeftEye = MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Left Eye");
 
-            MelonLogger.Msg("setLoveEye 1");
 
             // Прям на глаза ставить
             // 0 0,025 0

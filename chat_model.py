@@ -1,3 +1,4 @@
+import concurrent.futures
 import time
 
 import requests
@@ -291,6 +292,7 @@ class ChatModel:
         """Генерирует ответ с использованием единого цикла"""
         max_attempts = self.max_request_attempts  # Общее максимальное количество попыток
         retry_delay = self.request_delay  # Задержка между попытками в секундах
+        request_timeout = 30  # Таймаут для запросов в секундах
 
         # Определяем провайдера для первой попытки
         #use_gemini = self.makeRequest and not bool(self.gui.settings.get("gpt4free"))
@@ -311,7 +313,11 @@ class ChatModel:
                     if bool(self.gui.settings.get("GEMINI_CASE", False)):
                         combined_messages = self._format_messages_for_gemini(combined_messages)
 
-                    response = self._generate_request_response(combined_messages)
+                    response = self._execute_with_timeout(
+                        self._generate_request_response,
+                        args=(combined_messages,),
+                        timeout=request_timeout
+                    )
 
                 # Через openapi
                 else:
@@ -319,14 +325,23 @@ class ChatModel:
 
                     if bool(self.gui.settings.get("SettingsManager")) and attempt >= max_attempts:
                         logger.warning("Пробую gtp4free как последнюю попытку")
-                        response = self._generate_openapi_response(combined_messages, use_gpt4free=True)
+                        response = self._execute_with_timeout(
+                            self._generate_openapi_response,
+                            args=(combined_messages,),
+                            kwargs={'use_gpt4free': True},
+                            timeout=request_timeout
+                        )
                     else:
                         if attempt > 1:
                             key = self.GetOtherKey()
                             logger.info(f"Пробую другой ключ {self.last_key} {key}")
                             self.update_openai_client(reserve_key=key)
 
-                        response = self._generate_openapi_response(combined_messages)
+                        response = self._execute_with_timeout(
+                            self._generate_openapi_response,
+                            args=(combined_messages,),
+                            timeout=request_timeout
+                        )
 
                 if response:
                     response = self._clean_response(response)
@@ -344,6 +359,12 @@ class ChatModel:
 
         logger.error("Все попытки исчерпаны")
         return None, False
+
+    def _execute_with_timeout(self, func, args=(), kwargs={}, timeout=30):
+        """Выполняет функцию с ограничением по времени"""
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(func, *args, **kwargs)
+            return future.result(timeout=timeout)
 
     def _log_generation_start(self):
         logger.info("Перед отправкой на генерацию")

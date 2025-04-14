@@ -42,6 +42,7 @@ namespace MitaAI
         #endregion
 
 
+        public static GameObject Glasses;
 
 
 
@@ -228,6 +229,9 @@ namespace MitaAI
 
 
                 TVModded.SetTVController();
+
+                Hints.interfaceHintTeplate = GameObject.Instantiate(MitaCore.worldHouse.Find("Quests/Quest 1/Game Card/Interface Game/2D HintKey ShowCard").gameObject);
+                Hints.flyingHintTeplate = GameObject.Instantiate(MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bedroom Wardrobe/Bedroom WardrobeDoorR/3D HintKey Open").gameObject);
 
 
             }
@@ -447,7 +451,7 @@ namespace MitaAI
             try
             {
                 HeartNeonTemplate = GameObject.Instantiate(MitaCore.worldTogether.Find("Acts/Mita/MitaPerson Mita/Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye/HeartNeon").gameObject);
-
+                Glasses = GameObject.Instantiate(MitaCore.worldTogether.Find("Acts/Act General/Mita TakeGlasses/Position Glasses/Mita'sGlasses").gameObject);
 
             }
             finally
@@ -1170,14 +1174,14 @@ namespace MitaAI
             oam.addEnqueAnimationAction("Mita SitIdle");
             oam.setRevertAOM("Hall Sofa stand up", "Слезть с дивана");
 
-            if (sofaAP != null)
-            {
-                sofaAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "left");
-                sofaAP.transform.localEulerAngles = new Vector3(90, 0, 0);
-                sofaAP.transform.localPosition = new Vector3(0.8f, 1.4f, 0);
-                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 5, "Сесть на диван", false, useParent: true);
-                objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
-            }
+            //if (sofaAP != null)
+            //{
+            //    sofaAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "left");
+            //    sofaAP.transform.localEulerAngles = new Vector3(90, 0, 0);
+            //    sofaAP.transform.localPosition = new Vector3(0.8f, 1.4f, 0);
+            //    objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 5, "Сесть на диван", false, useParent: true);
+            //    objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
+            //}
 
 
             var TrashBox = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/TrashBox");
