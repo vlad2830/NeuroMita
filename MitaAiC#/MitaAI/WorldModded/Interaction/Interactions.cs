@@ -230,7 +230,7 @@ namespace MitaAI
             sitBasement.name = "MUChair";
             oam = ObjectAnimationMita.Create(sitBasement.gameObject, "MUChair Basement sit", "Сесть на табуретку");
             oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
-            oam.setStartPos(new Vector3(0f, -0.2f, 0f), new Vector3(90, 0, 0));
+            oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(90, 0, 0));
             oam.setIdleAnimation("Mita SitIdle");
             oam.addEnqueAnimationAction("Mita SitIdle");
             oam.setRevertAOM("MUChair Basement stend up", "Встать с табуретки");
