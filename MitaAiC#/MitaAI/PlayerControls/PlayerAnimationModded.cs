@@ -149,24 +149,28 @@ namespace MitaAI
             }
         }
 
-        public static ObjectAnimationPlayer CopyObjectAmimationPlayerTo(Transform parent,string name, string position="center")
+        public static ObjectAnimationPlayer CopyObjectAmimationPlayerTo(Transform parent,string name, string position="center",float rotation = 60)
         {
 
             if (ObjectsAnimationPlayer.ContainsKey(name))
             {
                 var OAPobj = GameObject.Instantiate(ObjectsAnimationPlayer[name].gameObject, parent);
-                var OAP = OAPobj.GetComponent<ObjectInteractive>();
+                var OI = OAPobj.GetComponent<ObjectInteractive>();
                 OAPobj.transform.localPosition = Vector3.zero;
-                if (OAP != null)
+                if (OI != null)
                 {
                     
-                    OAP.objectInteractive = parent.gameObject;
-                    OAP.active = true;
+                    OI.objectInteractive = parent.gameObject;
+                    OI.active = true;
                     
                 }
                 OAPobj.active = true;
+                
                 CommonInteractableObject.CheckCreate(parent.gameObject,position);
-                return OAPobj.GetComponent<ObjectAnimationPlayer>();
+
+                var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
+                OAP.angleHeadRotate = rotation;
+                return OAP;
             }
 
 
@@ -476,6 +480,7 @@ namespace MitaAI
 
         public static void stopAnim()
         {
+            Hints.freeExitButton();
             endLastOAP();
             playerMove.AnimationStop();
         }

@@ -306,7 +306,7 @@ namespace MitaAI
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
         }
-        public void setIdleAnimation(string animName,bool _magnetAfter = true, float _waitingAfterWalk = 0f)
+        public void setIdleAnimation(string animName,bool _magnetAfter = false, float _waitingAfterWalk = 0f)
         {
             //mitaAIMovePoint.magnetAfter = magnetAfter;
             // Что проиграет Мита, когда подойдет

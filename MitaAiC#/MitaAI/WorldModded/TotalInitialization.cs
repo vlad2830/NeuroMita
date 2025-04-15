@@ -452,7 +452,7 @@ namespace MitaAI
             {
                 HeartNeonTemplate = GameObject.Instantiate(MitaCore.worldTogether.Find("Acts/Mita/MitaPerson Mita/Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye/HeartNeon").gameObject);
                 Glasses = GameObject.Instantiate(MitaCore.worldTogether.Find("Acts/Act General/Mita TakeGlasses/Position Glasses/Mita'sGlasses").gameObject);
-
+                Glasses.active = false;
             }
             finally
             {
@@ -948,7 +948,7 @@ namespace MitaAI
                 CoreRoom.SetParent(MitaCore.worldHouse);
                 CoreRoom.gameObject.active = true;
                 CoreRoom.position = new Vector3(1.013f, 0f,10.242f);
-
+                CoreRoom.gameObject.active = false;
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 2").gameObject, "Embient horrific waiting");
                 //AudioControl.addMusicObject(world.Find("Sounds/Ambient Evil 3").gameObject, "Embient horrific tension large");
 
@@ -1126,6 +1126,7 @@ namespace MitaAI
                     MelonLogger.Msg("Before FindOrCreateObjectInteractable");
                     var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 5, "Сесть за стул", false, useParent: true);
                     obj.eventClick.AddListener((UnityAction)comp.moveChair);
+                    obj.eventClick.AddListener((UnityAction)Hints.createExitButton);
                 }
                 catch (Exception ex)
                 {

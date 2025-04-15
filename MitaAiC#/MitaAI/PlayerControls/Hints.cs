@@ -15,6 +15,8 @@ namespace MitaAI
         public static GameObject flyingHintTeplate;
         public static Transform interfaceCanvas;
 
+        public static GameObject exitButton;
+
         static Transform GetInterfaceCanvas()
         {
             if (interfaceCanvas == null)
@@ -38,17 +40,29 @@ namespace MitaAI
                 Debug.LogError("Hint template or parent is not set!");
                 return null;
             }
+            
 
             GameObject hintObject = GameObject.Instantiate(template, parent);
+
+
             hintObject.transform.localPosition = localPosition;
+            hintObject.name = $"hint {text}";
 
             Interface_KeyHint_Key interfaceKeyHint = hintObject.GetComponent<Interface_KeyHint_Key>();
-            interfaceKeyHint.textDescription.text = text;
             interfaceKeyHint.nameKey = key;
             interfaceKeyHint.textKey.text = key;
+
+            hintObject.active = true;
+
+            interfaceKeyHint.indexString = -1;
+            interfaceKeyHint.textDescription.text = text;
+            interfaceKeyHint.textDescription.m_Text = text;
+
             interfaceKeyHint.destroyAfter = destroyAfter;
             if (interfaceKeyHint.eventKeyDown == null) interfaceKeyHint.eventKeyDown = new UnityEngine.Events.UnityEvent();
             interfaceKeyHint.eventKeyDown.RemoveAllListeners();
+
+            hintObject.active = true;
 
             return interfaceKeyHint;
         }
@@ -56,9 +70,19 @@ namespace MitaAI
 
         public static void createExitButton()
         {
-            MelonLogger.Msg("!!! %%% YES");
-            var hint = CreateHint("Закончить", "E",new Vector3(-350,-350,0));
+            if (exitButton != null) return;
+            
+            var hint = CreateHint("Закончить", "E", new Vector3(-350, -350, 0));
             hint.eventKeyDown.AddListener((UnityAction)PlayerAnimationModded.stopAnim);
+            exitButton = hint.gameObject;
+            
+        }
+
+        public static void freeExitButton()
+        {
+            if (exitButton == null) return;
+
+            exitButton.SetActive(false);
         }
     }
 }

@@ -162,7 +162,6 @@ namespace MitaAI.Mita
             return cleanedResponse;
         }
 
-        // TODO СДЕЛАТЬ НЕ ТАКИМ ПРИВЯЗАННЫМ
         public static void GlassesObj(GameObject MitaPersonObject,bool on)
         {
 

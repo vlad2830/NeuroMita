@@ -416,6 +416,54 @@ namespace MitaAI
 
             return parts;
         }
+        public static void SetupDialogueTemplates(Transform worldHouse)
+        {
+            Transform dialogOriginal = worldHouse.Find("Quests/Quest 1/Dialogues/Dialogue Mita/Dialogue Finish Aihastion/DMita 2");
 
+            if (dialogOriginal == null)
+            {
+                MelonLogger.Msg("Target object 'DMita 2' not found.");
+                dialogOriginal = worldHouse.Find("Quests/Quest 1 Start/3D Text 5");
+
+                if (dialogOriginal == null)
+                {
+
+                    MelonLogger.Msg("Target object '3D Text 5' not found.");
+                }
+
+            }
+
+            DialogueControl.CustomDialog = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
+            DialogueControl.CustomDialog.name = "Custom Dialogue Mita";
+
+            // Опускаем объект CustomDialog на 200 единиц по оси Y
+            Vector3 newPosition = DialogueControl.CustomDialog.transform.position; // Получаем текущую позицию
+            newPosition.y -= 200; // Уменьшаем Y на 200
+            DialogueControl.CustomDialog.transform.position = newPosition; // Применяем новую позицию
+
+
+            Dialogue_3DText CustomDialogText = DialogueControl.CustomDialog.GetComponent<Dialogue_3DText>();
+
+            CustomDialogText.nextText = null;
+            CustomDialogText.sizeHeight = 0.0687f;
+            CustomDialogText.sizeSymbol = 0.0014f;
+            CustomDialogText.sizeWidth = 0.75f;
+            CustomDialogText.xPrint = 0.413f;
+            CustomDialogText.indexString = -1;
+
+            dialogOriginal = worldHouse.Find("Quests/Quest 1/Dialogues/Dialogue Player/Dialogue Hello/DPlayer 3");
+            DialogueControl.CustomDialogPlayer = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
+            DialogueControl.CustomDialogPlayer.name = "Custom Dialogue Player";
+
+            CustomDialogText = DialogueControl.CustomDialogPlayer.GetComponent<Dialogue_3DText>();
+
+            CustomDialogText.nextText = null;
+            CustomDialogText.sizeHeight = 0.0687f;
+            CustomDialogText.sizeSymbol = 0.0014f;
+            CustomDialogText.sizeWidth = 0.75f;
+            CustomDialogText.xPrint = 0.413f;
+            CustomDialogText.indexString = -1;
+            CustomDialogText.showSubtitles = true;
+        }
     }
 }

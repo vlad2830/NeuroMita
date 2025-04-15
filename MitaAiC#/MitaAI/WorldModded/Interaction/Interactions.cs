@@ -48,8 +48,6 @@ namespace MitaAI
             //var chairOIP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(objectInteractive.transform, "Interactive Aihastion");
             //objectInteractive.eventClick.AddListener((UnityAction)chairOIP.GetComponent<ObjectAnimationPlayer>().AnimationPlay);
             objectInteractive.active = true;
-            objectInteractive.gameObject.name = "GREAT TEST!!!";
-            //objectInteractive.eventClick.RemoveAllListeners();
             objectInteractive.eventClick.AddListener((UnityAction)Hints.createExitButton);
 
             //Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
@@ -58,6 +56,11 @@ namespace MitaAI
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "Quests/Quest 1/Addon/Interactive Aihastion").gameObject);
         }
 
+        /*
+         * 
+         *  очень полезная функция, делающая прдемет кликабельным
+         * 
+         */
         public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool clearEvent = true, float timeDeactive = 5, string tipText = null, bool addCollider = true, bool useParent = false, Vector3 position = new Vector3())
         {
             if (gameObject == null)
@@ -107,6 +110,7 @@ namespace MitaAI
             else
             {   
                 if (clearEvent) objectInteractive.eventClick.RemoveAllListeners();
+
             }
 
 
@@ -118,38 +122,40 @@ namespace MitaAI
                 if (caseInfoObj == null)
                 {
                     caseInfo = GameObject.Instantiate(tipTemplate, gameObject.transform).GetComponent<ObjectInteractive_CaseInfo>();
+                    caseInfo.cameraT = MitaCore.Instance.playerPersonObject.transform;
                 }
                 else
                 {
                     caseInfo = caseInfoObj.GetComponent<ObjectInteractive_CaseInfo>();
                 }
-                    objectInteractive.caseInfo = caseInfo;
+
+                objectInteractive.caseInfo = caseInfo;
 
 
-                    caseInfo.interactiveMe = objectInteractive;
-                    caseInfo.active = false;
-                    caseInfo.transform.localPosition = Vector3.zero;
+                caseInfo.interactiveMe = objectInteractive;
+                caseInfo.active = false;
+                caseInfo.transform.localPosition = Vector3.zero;
 
 
 
-                    caseInfo.dontDestroyAfter = true;
-                    caseInfo.transform.localPosition = new Vector3(0, 0, 0.1f);
-                    caseInfo.cameraT = MitaCore.Instance.playerPersonObject.transform;
+                caseInfo.dontDestroyAfter = true;
+                caseInfo.transform.localPosition = new Vector3(0, 0, 0.1f);
+                
 
-                    //caseInfo.gameObject.AddComponent<LookAtPlayer>();
+                //caseInfo.gameObject.AddComponent<LookAtPlayer>();
 
-                    caseInfo.colorGradient1 = Color.green;
-                    //var cirle = caseInfo.transform.Find("Circle");
-                    //cirle.transform.localEulerAngles = new Vector3(60, 0, 0);
+                caseInfo.colorGradient1 = Color.green;
+                //var cirle = caseInfo.transform.Find("Circle");
+                //cirle.transform.localEulerAngles = new Vector3(60, 0, 0);
 
-                    //cirle.transform.localScale = Vector3.one * 1.5f;
+                //cirle.transform.localScale = Vector3.one * 1.5f;
 
-                    var text = caseInfo.GetComponentInChildren<Text>();
-                    if (text != null && tipText != null)
-                    {
-                        text.text = tipText;
-                        text.m_Text = tipText;
-                    }
+                var text = caseInfo.GetComponentInChildren<Text>();
+                if (text != null && tipText != null)
+                {
+                    text.text = tipText;
+                    text.m_Text = tipText;
+                }
             
        
             }

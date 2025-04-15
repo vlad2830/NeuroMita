@@ -61,6 +61,7 @@ namespace MitaAI
                 obj.active = false;
             }
         }
+
         public void free(string position = "center")
         {
             taker[position] = characterType.None;
@@ -71,14 +72,14 @@ namespace MitaAI
                 obj.active = true;
             }
 
+            if (eventEnd == null) return;
 
             try
-            {
+            { 
                 eventEnd.Invoke();
             }
             catch (Exception ex)
-            {
-
+            { 
                 MelonLogger.Error(ex);
             }
             

@@ -595,11 +595,11 @@ namespace MitaAI
 
             Mita = GameObject.Find("Mita")?.GetComponent<MitaPerson>();
 
-            
+
 
 
             MitaObject = GameObject.Find("Mita").gameObject;
-            
+
             MitaPersonObject = MitaObject.transform.Find("MitaPerson Mita").gameObject;
             CrazyObject = MitaObject;
 
@@ -631,6 +631,7 @@ namespace MitaAI
 
             playerObject.GetComponent<PlayerMove>().speedPlayer = 1f;
             playerObject.GetComponent<PlayerMove>().canRun = true;
+            PlayerHands.init(playerObject.transform);
             LookAtPlayer.init(playerPersonObject.transform);
 
             if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
@@ -642,9 +643,9 @@ namespace MitaAI
 
 
 
-            
 
-            Text HintText =  GameObject.Find("GameController/Interface/HintScreen/Text").GetComponent<Text>();
+
+            Text HintText = GameObject.Find("GameController/Interface/HintScreen/Text").GetComponent<Text>();
 
             blackScreen = GameObject.Find("Game/Interface/BlackScreen").GetComponent<BlackScreen>();
             try
@@ -660,15 +661,12 @@ namespace MitaAI
 
 
 
-            MelonLogger.Msg(Mita != null ? "Mita found!" : "Mita not found.");
-            MelonLogger.Msg(playerPerson != null ? "Player found!" : "Player not found.");
-
             if (Mita == null || playerPerson == null) return;
 
 
-            CommandProcessor.Initialize(this, playerObject.transform,MitaObject.transform,location34_Communication);
+            CommandProcessor.Initialize(this, playerObject.transform, MitaObject.transform, location34_Communication);
 
-                
+
             worldHouse = GameObject.Find("World")?.transform;
             World worldSettings = worldHouse.gameObject.GetComponent<World>();
             MitaObject.transform.SetParent(worldHouse);
@@ -677,7 +675,7 @@ namespace MitaAI
             PlayerAnimationModded.Init(playerObject, worldHouse, playerObject.GetComponent<PlayerMove>());
             PlayerEffectsModded.Init(playerPersonObject);
             LightingAndDaytime.Init(location21_World, worldHouse);
-            
+
             ShaderReplacer.init();
 
 
@@ -700,76 +698,30 @@ namespace MitaAI
 
             }
 
-
-            Transform dialogOriginal = worldHouse.Find("Quests/Quest 1/Dialogues/Dialogue Mita/Dialogue Finish Aihastion/DMita 2");
-
-            if (dialogOriginal == null)
-            {
-                MelonLogger.Msg("Target object 'DMita 2' not found.");
-                dialogOriginal = worldHouse.Find("Quests/Quest 1 Start/3D Text 5");
-
-                if (dialogOriginal == null)
-                {
-
-                    MelonLogger.Msg("Target object '3D Text 5' not found.");
-                }
-
-            }
-
-            DialogueControl.CustomDialog = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
-            DialogueControl.CustomDialog.name = "Custom Dialogue Mita";
-
-            // Опускаем объект CustomDialog на 200 единиц по оси Y
-            Vector3 newPosition = DialogueControl.CustomDialog.transform.position; // Получаем текущую позицию
-            newPosition.y -= 200; // Уменьшаем Y на 200
-            DialogueControl.CustomDialog.transform.position = newPosition; // Применяем новую позицию
-
-
-            Dialogue_3DText CustomDialogText = DialogueControl.CustomDialog.GetComponent<Dialogue_3DText>();
-
-            CustomDialogText.nextText = null;
-            CustomDialogText.sizeHeight = 0.0687f;
-            CustomDialogText.sizeSymbol = 0.0014f;
-            CustomDialogText.sizeWidth = 0.75f;
-            CustomDialogText.xPrint = 0.413f;
-            CustomDialogText.indexString = -1;
-
-            dialogOriginal = worldHouse.Find("Quests/Quest 1/Dialogues/Dialogue Player/Dialogue Hello/DPlayer 3");
-            DialogueControl.CustomDialogPlayer = GameObject.Instantiate(dialogOriginal.gameObject, worldHouse.Find("Quests/Quest 1/Dialogues"));
-            DialogueControl.CustomDialogPlayer.name = "Custom Dialogue Player";
-
-            CustomDialogText = DialogueControl.CustomDialogPlayer.GetComponent<Dialogue_3DText>();
-
-            CustomDialogText.nextText = null;
-            CustomDialogText.sizeHeight = 0.0687f;
-            CustomDialogText.sizeSymbol = 0.0014f;
-            CustomDialogText.sizeWidth = 0.75f;
-            CustomDialogText.xPrint = 0.413f;
-            CustomDialogText.indexString = -1;
-            CustomDialogText.showSubtitles = true;
+            DialogueControl.SetupDialogueTemplates(worldHouse.transform);
 
             MelonLogger.Msg($"Attempt initStartSecret2");
-            
+
             TotalInitialization.initStartSecret2();
 
             MelonLogger.Msg($"Attempt Interactions before");
 
 
 
-            
+
 
             //MelonLogger.Msg($"Attempt after");
             MelonLogger.Msg($"Attempt Interactions end");
             try
             {
-                MelonCoroutines.Start( TotalInitialization.AddOtherScenes() );
+                MelonCoroutines.Start(TotalInitialization.AddOtherScenes());
             }
             catch (Exception e)
             {
                 MelonLogger.Error(e);
             }
 
-      
+
 
             //Interactions.Test(GameObject.Find("Table"));
             MelonCoroutines.Start(ConnectionTimer());
@@ -777,12 +729,11 @@ namespace MitaAI
 
 
 
-            
+
             //TestBigMita();
         }
 
-
-
+        
 
         public static void DeleteChildren(GameObject parent)
         {
