@@ -215,10 +215,16 @@ namespace MitaAI
 
         public static void showDay(string name=null, string n1 = null, string n2 = null, string n3 = null)
         {
-            
-            
-            
+
+
+
             if (name != null)
+                try
+                {
+                    DayEffect.GetComponentInChildren<Localization_UIText>().Start();
+                }
+                catch { }
+
                 DayEffect.transform.Find("TextDay").GetComponent<Text>().text = name;
   
             if (n1 != null)

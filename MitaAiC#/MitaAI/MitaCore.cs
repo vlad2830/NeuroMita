@@ -779,8 +779,8 @@ namespace MitaAI
                 }
 
                 // Обновляем таймеры
-                timer += Time.deltaTime;
-                DataChange.MitaBoringtimer += Time.deltaTime;
+                timer += Time.unscaledDeltaTime;
+                DataChange.MitaBoringtimer += Time.unscaledDeltaTime;
 
                 // Проверяем, достиг ли timer значения Interval и не запущен ли уже HandleDialogue
                 if (timer >= Interval && !isHandleDialogueRunning)
@@ -891,7 +891,11 @@ namespace MitaAI
                         globalChildObjects.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
 
-
+                        newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(12.1435f, -2.9941f, -11.9181f), Quaternion.identity, childTransform.parent);
+                        newPoint.name = "Point Basement Near Cartridge";
+                        globalChildObjects.Add(newPoint);
+                        remakeArrayl34(location34_Communication, newPoint, "b");
+                        
 
                     }
 

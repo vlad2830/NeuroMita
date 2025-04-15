@@ -188,7 +188,7 @@ namespace MitaAI
 
             Task<Dictionary<string, JsonElement>> responseTask = NetworkController.GetResponseFromPythonSocketAsync(dataToSent, dataToSentSystem, info, characterToSend);
 
-
+            if (responseTask == null) yield break;
 
 
             float waitMessageTimer = 0.5f;

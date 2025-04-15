@@ -191,6 +191,7 @@ class ChatServer:
         try:
 
             self.gui.waiting_answer = True
+
             response = self.chat_model.generate_response(input_text, system_input_text)
             if input_text != "":
                 self.gui.insertDialog(input_text, response, system_input_text)

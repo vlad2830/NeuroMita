@@ -431,7 +431,8 @@ class ChatModel:
                     messages=combined_messages,
                     max_tokens=self.max_response_tokens,
                     #presence_penalty=1.5,
-                    temperature=0.5
+                    temperature=0.5,
+                    timeout=int(self.gui.settings.get("TEXT_WAIT_TIME"))
                 )
             logger.info(f"after completion{completion}")
 

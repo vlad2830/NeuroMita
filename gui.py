@@ -1162,7 +1162,7 @@ class ChatGUI:
 
     async def async_send_message(self, user_input, system_input=""):
         try:
-            # Ограничиваем выполнение задачи 10 секундами
+            # Ограничиваем выполнение задачи
             response = await asyncio.wait_for(
                 self.loop.run_in_executor(None, lambda: self.model.generate_response(user_input, system_input)),
                 timeout=25.0  # Тайм-аут в секундах

@@ -28,7 +28,6 @@ namespace MitaAI
 
         public static Interface_KeyHint_Key CreateHint(string text, string key, Vector3 localPosition, bool isFlyingHint = false, GameObject parentObject = null,bool destroyAfter = true)
         {
-            MelonLogger.Msg("!!! 222 %%% YES 222");
 
             GameObject template = isFlyingHint ? flyingHintTeplate : interfaceHintTeplate;
             Transform parent = isFlyingHint ?
@@ -52,9 +51,16 @@ namespace MitaAI
             interfaceKeyHint.nameKey = key;
             interfaceKeyHint.textKey.text = key;
 
-            hintObject.active = true;
+            
 
-            interfaceKeyHint.indexString = -1;
+            interfaceKeyHint.indexString = 0;
+            try
+            {
+                interfaceKeyHint.Start();
+            }
+            catch (Exception ex) { }
+            hintObject.active = true;
+            
             interfaceKeyHint.textDescription.text = text;
             interfaceKeyHint.textDescription.m_Text = text;
 
@@ -70,7 +76,11 @@ namespace MitaAI
 
         public static void createExitButton()
         {
-            if (exitButton != null) return;
+            if (exitButton != null)
+            {
+                exitButton.active = true;
+                return;
+            }
             
             var hint = CreateHint("Закончить", "E", new Vector3(-350, -350, 0));
             hint.eventKeyDown.AddListener((UnityAction)PlayerAnimationModded.stopAnim);
