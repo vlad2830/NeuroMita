@@ -115,7 +115,7 @@ namespace MitaAI
         
         private static GameObject ObjectAnimationContainer;
 
-        static ObjectAnimationPlayer lastOAP;
+        static List<ObjectAnimationPlayer> lastOAPs = new List<ObjectAnimationPlayer>();
 
         public static void copyAllObjectAnimationPlayerFromParent(Transform parent)
         {
@@ -149,7 +149,7 @@ namespace MitaAI
             }
         }
 
-        public static ObjectAnimationPlayer CopyObjectAmimationPlayerTo(Transform parent,string name, string position="center",float rotation = 60)
+        public static ObjectAnimationPlayer CopyObjectAmimationPlayerTo(Transform parent,string name, string position="center",float rotation = 60,UnityAction freeCase = null)
         {
 
             if (ObjectsAnimationPlayer.ContainsKey(name))
@@ -166,7 +166,7 @@ namespace MitaAI
                 }
                 OAPobj.active = true;
                 
-                CommonInteractableObject.CheckCreate(parent.gameObject,position);
+                CommonInteractableObject.CheckCreate(parent.gameObject,position,freeCase);
 
                 var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
                 OAP.angleHeadRotate = rotation;
@@ -217,7 +217,7 @@ namespace MitaAI
                     
 
                     var obj = ObjectsAnimationPlayer[objectAnimationName];
-                    lastOAP = obj;
+                    lastOAPs.Add(obj);
                     obj.eventFinish = new UnityEngine.Events.UnityEvent();
                     obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
                     obj.AnimationPlayOnPlayer();
@@ -236,20 +236,31 @@ namespace MitaAI
 
         private static void endLastOAP()
         {
-            if (lastOAP==null) return;
-            try
+            foreach (var lastOAP in lastOAPs)
             {
-                lastOAP?.GetComponent<CommonInteractableObject>().free();
-            }
-            catch (Exception ex)
-            {
+                if (lastOAPs == null)
+                {
+                    MelonLogger.Msg($"lastOAP is null");
+                    return;
+                }
+                MelonLogger.Msg($"Try TendLastOAP {lastOAP.gameObject.name}");
+                try
+                {
+                    var CIO = lastOAP.GetComponent<CommonInteractableObject>();
+                    if (CIO == null) CIO = lastOAP.transform.parent.GetComponent<CommonInteractableObject>();
+                    if (CIO != null) CIO.free();
+                }
+                catch (Exception ex)
+                {
 
-                MelonLogger.Error(ex);
+                    MelonLogger.Error(ex);
+                }
+
+
+                var obj = lastOAP.GetComponent<ObjectInteractive>();
+                if (obj != null) obj.active = true;
             }
             
-
-            var obj = lastOAP.GetComponent<ObjectInteractive>();
-            if (obj!=null) obj.active = true;
         }
 
         // -0,4194 0,3125 -0,0256  60,0001 91,5637 89,5765 Кресло
@@ -275,7 +286,7 @@ namespace MitaAI
                     {
                         COI.setTaken(characterType.Player);
                     }
-                    lastOAP = obj;
+                    lastOAPs.Add(obj);
                 }
                 catch (Exception Ex)
                 {

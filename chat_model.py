@@ -214,7 +214,7 @@ class ChatModel:
             self.gui.update_debug_info()
             return response
         except Exception as e:
-            logger.error(f"Ошибка на фазе генерации: {e}", exc_info=True)
+            logger.error(f"Ошибка на фазе генерации: {e}")
             return f"Ошибка на фазе генерации: {e}"
 
     def save_chat_history(self):
@@ -292,7 +292,7 @@ class ChatModel:
         """Генерирует ответ с использованием единого цикла"""
         max_attempts = self.max_request_attempts  # Общее максимальное количество попыток
         retry_delay = self.request_delay  # Задержка между попытками в секундах
-        request_timeout = 30  # Таймаут для запросов в секундах
+        request_timeout = 45  # Таймаут для запросов в секундах
 
         # Определяем провайдера для первой попытки
         #use_gemini = self.makeRequest and not bool(self.gui.settings.get("gpt4free"))
@@ -325,23 +325,16 @@ class ChatModel:
 
                     if bool(self.gui.settings.get("SettingsManager")) and attempt >= max_attempts:
                         logger.warning("Пробую gtp4free как последнюю попытку")
-                        response = self._execute_with_timeout(
-                            self._generate_openapi_response,
-                            args=(combined_messages,),
-                            kwargs={'use_gpt4free': True},
-                            timeout=request_timeout
-                        )
+                        response = self._generate_openapi_response(combined_messages, use_gpt4free=True)
+
                     else:
                         if attempt > 1:
                             key = self.GetOtherKey()
                             logger.info(f"Пробую другой ключ {self.last_key} {key}")
                             self.update_openai_client(reserve_key=key)
 
-                        response = self._execute_with_timeout(
-                            self._generate_openapi_response,
-                            args=(combined_messages,),
-                            timeout=request_timeout
-                        )
+                        response = self._generate_openapi_response(combined_messages)
+
 
                 if response:
                     response = self._clean_response(response)
@@ -432,7 +425,7 @@ class ChatModel:
                     max_tokens=self.max_response_tokens,
                     #presence_penalty=1.5,
                     temperature=0.5,
-                    timeout=int(self.gui.settings.get("TEXT_WAIT_TIME"))
+                    #timeout=int(self.gui.settings.get("TEXT_WAIT_TIME"))
                 )
             logger.info(f"after completion{completion}")
 

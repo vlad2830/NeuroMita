@@ -51,15 +51,17 @@ namespace MitaAI
             interfaceKeyHint.nameKey = key;
             interfaceKeyHint.textKey.text = key;
 
-            
 
-            interfaceKeyHint.indexString = 0;
+
+            interfaceKeyHint.indexString = -1;
+            
             try
             {
+                hintObject.active = true;
                 interfaceKeyHint.Start();
             }
             catch (Exception ex) { }
-            hintObject.active = true;
+            
             
             interfaceKeyHint.textDescription.text = text;
             interfaceKeyHint.textDescription.m_Text = text;
@@ -68,7 +70,7 @@ namespace MitaAI
             if (interfaceKeyHint.eventKeyDown == null) interfaceKeyHint.eventKeyDown = new UnityEngine.Events.UnityEvent();
             interfaceKeyHint.eventKeyDown.RemoveAllListeners();
 
-            hintObject.active = true;
+            
 
             return interfaceKeyHint;
         }
@@ -82,7 +84,7 @@ namespace MitaAI
                 return;
             }
             
-            var hint = CreateHint("Закончить", "E", new Vector3(-350, -350, 0));
+            var hint = CreateHint("Закончить", " ", new Vector3(-350, -350, 0));
             hint.eventKeyDown.AddListener((UnityAction)PlayerAnimationModded.stopAnim);
             exitButton = hint.gameObject;
             

@@ -223,6 +223,8 @@ namespace MitaAI
                 }
                 yield return new WaitForSecondsRealtime(0.1f);
             }
+            
+
 
             string patch = null;
             bool GM_ON = false;
@@ -231,7 +233,14 @@ namespace MitaAI
             int id = 0;
             if (responseTask.IsCompleted)
             {
+
+
                 Dictionary<string, JsonElement> messageData2 = responseTask.Result;
+               // if (response == null || response.Count() == 0)
+                //{
+                 //   yield break;
+                //}
+
                 try
                 {
 

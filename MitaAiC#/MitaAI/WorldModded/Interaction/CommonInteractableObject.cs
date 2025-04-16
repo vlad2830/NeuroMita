@@ -64,6 +64,8 @@ namespace MitaAI
 
         public void free(string position = "center")
         {
+            MelonLogger.Msg($"Free CIO {this.gameObject.name}");
+
             taker[position] = characterType.None;
 
             var obj = GetComponent<ObjectInteractive>();

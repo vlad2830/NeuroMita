@@ -3,6 +3,7 @@ using MelonLoader;
 using MitaAI.Mita;
 using System;
 using System.Collections;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,12 +19,29 @@ namespace MitaAI
         Milk
     }
 
+
+
     public static class MitaGames
     {
         public static MitaGame currentGame = MitaGame.None;
+        public static string getGameInfo()
+        {
+            switch (currentGame)
+            {
+                case MitaGame.None:
+                    break;
+                case MitaGame.Snows:
+                    return TVModded.getSnowsString();
+                case MitaGame.Milk:
+                    return TVModded.getSnowsString();
 
+            }
+
+            return "";
+    
+        }
         #region Hunting
-        public static void beginHunt()
+            public static void beginHunt()
         {
             try
             {

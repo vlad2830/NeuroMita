@@ -221,7 +221,9 @@ namespace MitaAI
             if (name != null)
                 try
                 {
-                    DayEffect.GetComponentInChildren<Localization_UIText>().Start();
+                    DayEffect.GetComponentInChildren<Localization_UIText>().StringNumber = -1;
+                    //DayEffect.GetComponentInChildren<Localization_UIText>().enabled = false;
+                    DayEffect.GetComponentInChildren<Localization_UIText>() .Start();
                 }
                 catch { }
 

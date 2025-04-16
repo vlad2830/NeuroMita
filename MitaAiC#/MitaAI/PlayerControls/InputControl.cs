@@ -190,10 +190,10 @@ namespace MitaAI.PlayerControls
             {
                 try
                 {
-                    MelonLogger.Msg("Space pressed");
                     if (PlayerAnimationModded.playerMove != null)
                     {
                         PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.normal;
+                        PlayerAnimationModded.stopAnim();
                     }
                 }
                 catch (Exception e)

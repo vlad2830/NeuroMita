@@ -157,12 +157,23 @@ namespace MitaAI
                 try
                 {
                     info += ObjectAnimationMita.interactionGetCurrentInfo();
+                    
                 }
                 catch (Exception ex)
                 {
 
                     MelonLogger.Error($"interactionGetCurrentInfo {ex}");
                 }
+                try
+                { 
+                    info += MitaGames.getGameInfo();
+                }
+                catch (Exception ex)
+                {
+
+                    MelonLogger.Error($"MitaGames {ex}");
+                }
+
 
                 info += MitaFaceAnimationModded.getFaceInfo(MitaCore.Instance.MitaPersonObject);
             }
