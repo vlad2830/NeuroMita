@@ -295,6 +295,20 @@ namespace MitaAI
             targetTransform.localRotation = targetRotation;
         }
 
+        public static void setTextTimed(UnityEngine.UI.Text text,string content,float time = 2f)
+        {
+            text.text = content;
+            text.m_Text = content;
+            MelonCoroutines.Start(setTextTimedCorutine(text,content,time));
+        }
+        static IEnumerator setTextTimedCorutine(UnityEngine.UI.Text text, string content, float time = 2f)
+        {
+            yield return new WaitForSeconds(time);
+            text.text = content;
+            text.m_Text = content;
+
+        }
+
     }
 
 

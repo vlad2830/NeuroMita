@@ -8,6 +8,7 @@ using Il2CppInterop.Runtime.InteropTypes;
 using System.Globalization;
 
 
+
 namespace MitaAI
 {
     public static class PlayerEffectsModded
@@ -228,7 +229,8 @@ namespace MitaAI
                 catch { }
 
                 DayEffect.transform.Find("TextDay").GetComponent<Text>().text = name;
-  
+                Utils.setTextTimed(DayEffect.transform.Find("TextDay").GetComponent<Text>(), name, 0.35f);
+
             if (n1 != null)
                 DayEffect.transform.Find("Number 1").GetComponent<Text>().text = n1;
 

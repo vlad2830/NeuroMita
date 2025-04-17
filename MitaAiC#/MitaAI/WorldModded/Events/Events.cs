@@ -22,7 +22,7 @@ namespace MitaAI
         static bool DisableEvents = false;
 
         static float lastEventTime = 0f;
-        static float timeBeetweenEvents = 30f;
+        static float timeBeetweenEvents = 40f;
 
 
 

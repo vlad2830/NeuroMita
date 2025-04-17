@@ -10,6 +10,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Bindings;
 using System.ComponentModel.Design;
+using System.Runtime.CompilerServices;
 
 
 namespace MitaAI
@@ -68,7 +69,7 @@ namespace MitaAI
                     oam1.addSimpleAction((UnityAction)comp.moveChair);
 
                     MelonLogger.Msg("Before FindOrCreateObjectInteractable");
-                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 5, "Сесть за стул", false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
+                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 5, "Сесть", false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
                     obj.eventClick.AddListener((UnityAction)comp.moveChair);
                     obj.eventClick.AddListener((UnityAction)Hints.createExitButton);
                 }
@@ -307,7 +308,10 @@ namespace MitaAI
 
             if (objectInteractive.eventClick == null || remakeEvent)
                 objectInteractive.eventClick = new UnityEvent();
-                          
+
+           // objectInteractive.eventClick.AddListener((UnityAction)setAsLastOAP);
+
+
             var caseInfoTransform = objectInteractive.transform.Find("Canvas");
 
             try
@@ -359,16 +363,17 @@ namespace MitaAI
                 var text = caseInfo.GetComponentInChildren<Text>();
                 if (text != null && tipText != null)
                 {
-                    
+
+                    text.text = tipText;
+                    text.m_Text = tipText;
                     try
                     {
                         caseInfo.Start();
 
                     }
                     catch { }
-                    
-                    text.text = tipText;
-                    text.m_Text = tipText;
+
+                    Utils.setTextTimed(text, tipText);
                 }
                 
                
@@ -471,6 +476,12 @@ namespace MitaAI
             
 
         }
+        static void setAsLastOAP()
+        {
+           // PlayerAnimationModded.addOAP(CallConvThiscall/);
+        }
+
+
         public static void OnGameObjectClicked(GameObject gameObject)
         {
 

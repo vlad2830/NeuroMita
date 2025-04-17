@@ -115,7 +115,7 @@ namespace MitaAI
         
         private static GameObject ObjectAnimationContainer;
 
-        static List<ObjectAnimationPlayer> lastOAPs = new List<ObjectAnimationPlayer>();
+
 
         public static void copyAllObjectAnimationPlayerFromParent(Transform parent)
         {
@@ -166,16 +166,19 @@ namespace MitaAI
                 }
                 OAPobj.active = true;
                 
-                CommonInteractableObject.CheckCreate(parent.gameObject,position,freeCase);
+                var CIA = CommonInteractableObject.CheckCreate(parent.gameObject,position,freeCase);
 
                 var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
                 OAP.angleHeadRotate = rotation;
+                OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
                 return OAP;
             }
 
 
             return null;
         }
+
+
 
         // Для теста всех анимок
         public static void playObjectAnimationOnPlayerRandom()
@@ -201,13 +204,14 @@ namespace MitaAI
 
         public static void playObjectAnimationOnPlayer(string objectAnimationName)
         {
+            MelonLogger.Msg("playObjectAnimationOnPlayer");
  
             if (ObjectsAnimationPlayer.ContainsKey(objectAnimationName)){
                 try
                 {
                     try
                     {
-                        endLastOAP();
+                        endLastCIAs();
                     }
                     catch (Exception Ex2)
                     {
@@ -217,7 +221,10 @@ namespace MitaAI
                     
 
                     var obj = ObjectsAnimationPlayer[objectAnimationName];
-                    lastOAPs.Add(obj);
+
+                    
+
+                    //lastCOA.Add(obj);
                     obj.eventFinish = new UnityEngine.Events.UnityEvent();
                     obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
                     obj.AnimationPlayOnPlayer();
@@ -234,39 +241,19 @@ namespace MitaAI
             }
         }
 
-        private static void endLastOAP()
+        private static void endLastCIAs()
         {
-            foreach (var lastOAP in lastOAPs)
-            {
-                if (lastOAPs == null)
-                {
-                    MelonLogger.Msg($"lastOAP is null");
-                    return;
-                }
-                MelonLogger.Msg($"Try TendLastOAP {lastOAP.gameObject.name}");
-                try
-                {
-                    var CIO = lastOAP.GetComponent<CommonInteractableObject>();
-                    if (CIO == null) CIO = lastOAP.transform.parent.GetComponent<CommonInteractableObject>();
-                    if (CIO != null) CIO.free();
-                }
-                catch (Exception ex)
-                {
 
-                    MelonLogger.Error(ex);
-                }
+            CommonInteractableObject.endLastPlayersCIAs();
 
 
-                var obj = lastOAP.GetComponent<ObjectInteractive>();
-                if (obj != null) obj.active = true;
-            }
-            
         }
 
         // -0,4194 0,3125 -0,0256  60,0001 91,5637 89,5765 Кресло
 
         public static void playObjectAnimation(string objectAnimationName, Transform Object, Vector3 localCoords,Quaternion localRotate)
         {
+            MelonLogger.Msg("playObjectAnimation");
 
             if (ObjectsAnimationPlayer.ContainsKey(objectAnimationName))
             {
@@ -281,12 +268,13 @@ namespace MitaAI
                     obj.eventFinish.AddListener((UnityAction)obj.AnimationStop);
                     obj.AnimationPlay();
                    
-                    var COI = obj.GetComponent<CommonInteractableObject>();
-                    if (COI  != null)
+                    var CIA = obj.GetComponent<CommonInteractableObject>();
+                    if ( CIA == null) CIA = obj.transform.parent.GetComponent<CommonInteractableObject>();
+                    if (CIA != null)
                     {
-                        COI.setTaken(characterType.Player);
+                        CIA.setTaken(characterType.Player);
                     }
-                    lastOAPs.Add(obj);
+                    //lastCOA.Add(obj);
                 }
                 catch (Exception Ex)
                 {
@@ -492,7 +480,7 @@ namespace MitaAI
         public static void stopAnim()
         {
             Hints.freeExitButton();
-            endLastOAP();
+            endLastCIAs();
             playerMove.AnimationStop();
         }
         public static void UnstackPlayer(bool teleportToZero = true)

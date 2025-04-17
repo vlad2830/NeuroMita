@@ -19,8 +19,6 @@ namespace MitaAI
         Milk
     }
 
-
-
     public static class MitaGames
     {
         public static MitaGame currentGame = MitaGame.None;
@@ -40,6 +38,7 @@ namespace MitaAI
             return "";
     
         }
+
         #region Hunting
             public static void beginHunt()
         {

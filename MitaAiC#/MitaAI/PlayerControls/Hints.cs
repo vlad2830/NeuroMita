@@ -65,6 +65,7 @@ namespace MitaAI
             
             interfaceKeyHint.textDescription.text = text;
             interfaceKeyHint.textDescription.m_Text = text;
+            Utils.setTextTimed(interfaceKeyHint.textDescription, text, 0.5f);
 
             interfaceKeyHint.destroyAfter = destroyAfter;
             if (interfaceKeyHint.eventKeyDown == null) interfaceKeyHint.eventKeyDown = new UnityEngine.Events.UnityEvent();
