@@ -74,7 +74,7 @@ namespace MitaAI
         }
         public void setTakenPlayer()
         {
-            MelonLogger.Msg($"Set Taken {gameObject.name}");
+            MelonLogger.Msg($"Set Taken CIA {gameObject.name}");
 
             taker["center"] = characterType.Player;
 
@@ -94,7 +94,7 @@ namespace MitaAI
 
         public void setTaken(characterType character = characterType.Player,string position = "center")
         {
-            MelonLogger.Msg($"Set Taken {gameObject.name}");
+            MelonLogger.Msg($"Set Taken CIA {gameObject.name}");
 
             taker[position] = character;
 

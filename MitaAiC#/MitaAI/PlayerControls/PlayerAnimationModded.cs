@@ -157,20 +157,23 @@ namespace MitaAI
                 var OAPobj = GameObject.Instantiate(ObjectsAnimationPlayer[name].gameObject, parent);
                 var OI = OAPobj.GetComponent<ObjectInteractive>();
                 OAPobj.transform.localPosition = Vector3.zero;
+                var CIA = CommonInteractableObject.CheckCreate(parent.gameObject, position, freeCase);
                 if (OI != null)
                 {
                     
                     OI.objectInteractive = parent.gameObject;
                     OI.active = true;
-                    
+                    OI.eventClick.AddListener((UnityAction)CIA.setTakenPlayer);
+
+
                 }
                 OAPobj.active = true;
                 
-                var CIA = CommonInteractableObject.CheckCreate(parent.gameObject,position,freeCase);
+               
 
                 var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
                 OAP.angleHeadRotate = rotation;
-                OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
+                //OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
                 return OAP;
             }
 
