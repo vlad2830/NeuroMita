@@ -17,8 +17,6 @@ from characters import *
 from utils import *
 
 
-
-
 class ChatModel:
     def __init__(self, gui, api_key, api_key_res, api_url, api_model, gpt4free_model, api_make_request):
 
@@ -323,7 +321,7 @@ class ChatModel:
                 else:
                     # Переключаем ключи начиная со второй попытки
 
-                    if bool(self.gui.settings.get("SettingsManager")) and attempt >= max_attempts:
+                    if bool(self.gui.settings.get("GPT4FREE_LAST_ATTEMPT")) and attempt >= max_attempts:
                         logger.warning("Пробую gtp4free как последнюю попытку")
                         response = self._generate_openapi_response(combined_messages, use_gpt4free=True)
 
@@ -335,10 +333,9 @@ class ChatModel:
 
                         response = self._generate_openapi_response(combined_messages)
 
-
                 if response:
                     response = self._clean_response(response)
-                    # logger.info(f"Успешный ответ:\n{response}")
+                    logger.info(f"Успешный ответ")
                     if response:
                         return response, True
 
@@ -403,7 +400,6 @@ class ChatModel:
             self.update_openai_client()
 
         try:
-
 
             logger.info(f"Перед запросом  {len(combined_messages)}")
 

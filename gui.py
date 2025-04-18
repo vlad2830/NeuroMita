@@ -109,10 +109,11 @@ class ChatGUI:
         self.root = tk.Tk()
         self.root.title("Чат с NeuroMita")
 
-        self.root.bind("<Control-KeyPress>", self.keypress) 
+
 
         self.delete_all_sound_files()
         self.setup_ui()
+        self.root.bind_all("<Control-KeyPress>", self.keypress)
 
         try:
             self.load_mic_settings()
@@ -488,8 +489,6 @@ class ChatGUI:
         self.setup_microphone_controls(settings_frame)
 
         self.setup_mita_controls(settings_frame)
-        
-
 
         # Передаем settings_frame как родителя
 
@@ -901,9 +900,9 @@ class ChatGUI:
         common_config = [
             {'label': _('Ссылка', 'URL'), 'key': 'NM_API_URL', 'type': 'entry'},
             {'label': _('Модель', 'Model'), 'key': 'NM_API_MODEL', 'type': 'entry'},
-            {'label': _('Ключ', 'Key'), 'key': 'NM_API_KEY', 'type': 'entry'},
+            {'label': _('Ключ', 'Key'), 'key': 'NM_API_KEY', 'type': 'entry', 'default': ""},
             {'label': _('Резервные ключи', 'Reserve keys'), 'key': 'NM_API_KEY_RES', 'type': 'text',
-             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
+             'hide': bool(self.settings.get("HIDE_PRIVATE")), 'default': ""},
             {'label': _('Через Request', 'Using Request'), 'key': 'NM_API_REQ', 'type': 'checkbutton'},
             {'label': _('Спец Структура Гемини', 'Special Gemini Case'), 'key': 'GEMINI_CASE', 'type': 'checkbutton',
              'default_checkbutton': False}
@@ -917,32 +916,29 @@ class ChatGUI:
         general_config = [
             # здесь настройки из setup_model_controls
             {'label': _('Настройки сообщений', 'Message settings'), 'type': 'text'},
-            {'label': _('Лимит сообщений','Message limit'), 'key': 'MODEL_MESSAGE_LIMIT', 
+            {'label': _('Лимит сообщений', 'Message limit'), 'key': 'MODEL_MESSAGE_LIMIT',
              'type': 'entry', 'default': 40,
-             'tooltip':_('Сколько сообщений будет помнить мита','How much messages Mita will remember')},
-            {'label': _('Кол-во попыток','Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT', 
+             'tooltip': _('Сколько сообщений будет помнить мита', 'How much messages Mita will remember')},
+            {'label': _('Кол-во попыток', 'Attempt count'), 'key': 'MODEL_MESSAGE_ATTEMPTS_COUNT',
              'type': 'entry', 'default': 3},
-            {'label': _('Время между попытками','time between attempts'), 
+            {'label': _('Время между попытками', 'time between attempts'),
              'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20},
             {'label': _('Использовать gpt4free последней попыткой ', 'Use gpt4free as last attempt'),
              'key': 'GPT4FREE_LAST_ATTEMPT', 'type': 'checkbutton', 'default_checkbutton': True},
 
-
-
             {'label': _('Настройки ожидания', 'Waiting settings'), 'type': 'text'},
             {'label': _('Время ожидания текста (сек)', 'Text waiting time (sec)'),
              'key': 'TEXT_WAIT_TIME', 'type': 'entry', 'default': 25,
-             'tooltip': _('время ожидания ответа','response waiting time')},
+             'tooltip': _('время ожидания ответа', 'response waiting time')},
             {'label': _('Время ожидания звука (сек)', 'Voice waiting time (sec)'),
              'key': 'VOICE_WAIT_TIME', 'type': 'entry', 'default': 25,
-             'tooltip': _('время ожидания озвучки','voice generation waiting time')},
+             'tooltip': _('время ожидания озвучки', 'voice generation waiting time')},
 
         ]
 
         self.create_settings_section(parent,
-                                   _("Общие настройки моделей", "General settings for models"), 
-                                   general_config)
-
+                                     _("Общие настройки моделей", "General settings for models"),
+                                     general_config)
 
     def validate_number(self, new_value):
         if not new_value.isdigit():  # Проверяем, что это число
@@ -1429,6 +1425,7 @@ class ChatGUI:
                 if command:
                     command(entry.get())
 
+            entry.bind("<Control-KeyPress>", self.keypress)
             entry.bind("<FocusOut>", lambda e: save_entry())
             entry.bind("<Return>", lambda e: save_entry())
 
@@ -1507,7 +1504,7 @@ class ChatGUI:
                 text.bind("<FocusOut>", lambda e: save_text())
                 text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
-
+                text.bind("<Control-KeyPress>", self.keypress)
             else:
                 lbl.config(width=100)
 
@@ -1581,8 +1578,8 @@ class ChatGUI:
         ]
 
         self.create_settings_section(parent,
-                                   _("Новости", "News"), 
-                                   news_config)
+                                     _("Новости", "News"),
+                                     news_config)
 
     #region HotKeys
     def keypress(self, e):
