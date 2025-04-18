@@ -10,7 +10,7 @@ namespace MitaAI
     {
         private bool isCloseToTable = true;
         private float moveDistance = 0.3f; // Расстояние для перемещения
-        private float animationDuration = 1.4f; // Длительность анимации
+        private float animationDuration = 2; // Длительность анимации
 
         public void moveChair()
         {

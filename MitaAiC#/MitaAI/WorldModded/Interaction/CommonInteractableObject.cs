@@ -139,5 +139,60 @@ namespace MitaAI
             
         }
 
-    }
+
+        #region
+
+        /// <summary>
+        /// Настраивает анимацию сидения на объекте (например, диване)
+        /// </summary>
+        /// <param name="targetObject">Целевой объект, к которому добавляется анимация</param>
+        /// <param name="animationName">Имя анимации (по умолчанию "AnimationPlayer Sit")</param>
+        /// <param name="side">Сторона ("left", "right" и т.д.)</param>
+        /// <param name="rotation">Локальный поворот (Euler angles)</param>
+        /// <param name="position">Локальная позиция</param>
+        /// <param name="interactionText">Текст подсказки при взаимодействии</param>
+        /// <param name="interactionDistance">Дистанция взаимодействия</param>
+        /// <param name="useParent">Использовать родительский объект для взаимодействия</param>
+        public static void SetupSitAnimation(
+            GameObject targetObject,
+            string animationName = "AnimationPlayer Sit",
+            string side = "center",
+            Vector3? rotation = null,
+            Vector3? position = null,
+            string interactionText = "Сесть",
+            float interactionDistance = 2f,
+            bool useParent = true)
+            {
+                var animationPlayer = PlayerAnimationModded.CopyObjectAmimationPlayerTo(
+                    targetObject.transform,
+                    animationName,
+                    side);
+
+                if (animationPlayer != null)
+                {
+                    // Устанавливаем поворот и позицию (значения по умолчанию, если не заданы)
+                    animationPlayer.transform.localEulerAngles = rotation ?? new Vector3(90, 0, 0);
+                    animationPlayer.transform.localPosition = position ?? new Vector3(0.8f, 1.4f, 0);
+
+                    // Создаем интерактивный объект
+                    var interactable = Interactions.FindOrCreateObjectInteractable(
+                        animationPlayer.gameObject,
+                        false,
+                        interactionDistance,
+                        interactionText,
+                        false,
+                        useParent: useParent);
+
+                    // Назначаем анимацию по клику
+                    interactable.eventClick.AddListener((UnityAction)animationPlayer.AnimationPlay);
+                }
+                else
+                {
+                    MelonLogger.Error($"Failed to create: {targetObject.name}");
+                }
+        }
+
+    #endregion
+
+}
 }

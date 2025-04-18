@@ -69,7 +69,7 @@ namespace MitaAI
                     oam1.addSimpleAction((UnityAction)comp.moveChair);
 
                     MelonLogger.Msg("Before FindOrCreateObjectInteractable");
-                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 5, "Сесть", false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
+                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 1, "Сесть", false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
                     obj.eventClick.AddListener((UnityAction)comp.moveChair);
                     obj.eventClick.AddListener((UnityAction)Hints.createExitButton);
                 }
@@ -126,7 +126,7 @@ namespace MitaAI
             {
                 sofaAP.transform.localEulerAngles = new Vector3(90, 0, 0);
                 sofaAP.transform.localPosition = new Vector3(0.8f, 1.4f, 0);
-                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 5, "Сесть на диван", false, useParent: true);
+                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 1, "Усесться", false, useParent: true);
                 objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
             }
 
@@ -251,8 +251,8 @@ namespace MitaAI
          *  очень полезная функция, делающая прдемет кликабельным
          * 
          */
-        public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool remakeEvent = true, float timeDeactive = 5, string tipText = null, bool addCollider = true, 
-            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3())
+        public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool remakeEvent = true, float timeDeactive = 2, string tipText = null, bool addCollider = true, 
+            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 2f)
         {
             if (gameObject == null)
             {
@@ -309,8 +309,9 @@ namespace MitaAI
             if (objectInteractive.eventClick == null || remakeEvent)
                 objectInteractive.eventClick = new UnityEvent();
 
-           // objectInteractive.eventClick.AddListener((UnityAction)setAsLastOAP);
+            // objectInteractive.eventClick.AddListener((UnityAction)setAsLastOAP);
 
+            objectInteractive.distanceFloor = distanceFloor;
 
             var caseInfoTransform = objectInteractive.transform.Find("Canvas");
 
@@ -334,7 +335,7 @@ namespace MitaAI
                 }
                 else
                 {
-                    caseInfoTransform.position = objectInteractive.transform.parent.position+objectInteractive.transform.localPosition+new Vector3(0,0,0.1f);
+                    caseInfoTransform.position = objectInteractive.transform.parent.position+objectInteractive.transform.localPosition+new Vector3(0,0.15f,0f);
                 }
 
                 objectInteractive.caseInfo = caseInfo;
@@ -352,7 +353,7 @@ namespace MitaAI
 
                 //caseInfo.gameObject.AddComponent<LookAtPlayer>();
 
-                caseInfo.colorGradient1 = Color.green;
+                //caseInfo.colorGradient1 = Color.green;
                 //var cirle = caseInfo.transform.Find("Circle");
                 //cirle.transform.localEulerAngles = new Vector3(60, 0, 0);
 

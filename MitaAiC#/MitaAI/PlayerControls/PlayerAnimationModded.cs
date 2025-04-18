@@ -173,7 +173,7 @@ namespace MitaAI
 
                 var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
                 OAP.angleHeadRotate = rotation;
-                //OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
+                OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
                 return OAP;
             }
 

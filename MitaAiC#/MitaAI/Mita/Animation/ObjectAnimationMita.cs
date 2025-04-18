@@ -157,17 +157,7 @@ namespace MitaAI
 
         public static ObjectAnimationMita CurrentOAMc { get => currentOAMc; set => currentOAMc = value; }
 
-        void testInit(string name, string tip = "", string AnimName= "Mita SitIdle", string idleAnim= "Mita SitIdle")
-        {
-            this.name = name;
-            transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-            startOAMPosition = transform.position;
-            startOAMRotation = Quaternion.ToEulerAngles(transform.rotation);
-            mitaAmimatedName = AnimName;
-            Initialize();
-            addEnqueAnimationAction(AnimName);
-            if (!string.IsNullOrEmpty(idleAnim)) setIdleAnimation(idleAnim);
-        }
+
 
 
         public static ObjectAnimationMita Create(GameObject parent,string name, string tip = "",bool needWalking = true, bool NeedMovingToIdle = true,bool isEndingObject = false,string position = "center", UnityAction freeCase = null)
@@ -306,7 +296,7 @@ namespace MitaAI
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
         }
-        public void setIdleAnimation(string animName,bool _magnetAfter = false, float _waitingAfterWalk = 0f)
+        public void setIdleAnimation(string animName,bool _magnetAfter = true, float _waitingAfterWalk = 0f)
         {
             //mitaAIMovePoint.magnetAfter = magnetAfter;
             // Что проиграет Мита, когда подойдет
@@ -519,12 +509,18 @@ namespace MitaAI
         #region Other
 
 
-        IEnumerator MagnetAfterDelay(MitaPerson mita, Transform transform, float seconds = 0f)
+        IEnumerator MagnetAfterDelay(MitaPerson mita, Transform transform, float seconds = 0f, bool offAfter = true, float secondsAfter = 1f)
         {
 
             yield return new WaitForSeconds(seconds);
             mita.MagnetToTarget(transform);
 
+            if (offAfter)
+            {
+                yield return new WaitForSeconds(seconds);
+                mita.MagnetOff();
+            }
+           
 
         }
 
@@ -550,6 +546,27 @@ namespace MitaAI
         #endregion
 
 
+        #region Test
+        void testInit(string name, string tip = "", string AnimName = "Mita SitIdle", string idleAnim = "Mita SitIdle")
+        {
+            this.name = name;
+            transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            startOAMPosition = transform.position;
+            startOAMRotation = Quaternion.ToEulerAngles(transform.rotation);
+            mitaAmimatedName = AnimName;
+            Initialize();
+            addEnqueAnimationAction(AnimName);
+            if (!string.IsNullOrEmpty(idleAnim)) setIdleAnimation(idleAnim);
+        }
+
+
+        public void MagnetMita()
+        {
+            if (MitaCore.Instance.Mita.magnetTarget != null) MitaCore.Instance.Mita.MagnetToTarget(this.transform);
+            else MitaCore.Instance.Mita.MagnetOff();
+        }
+
+        #endregion
 
     }
 }

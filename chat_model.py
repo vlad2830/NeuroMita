@@ -405,7 +405,7 @@ class ChatModel:
         try:
 
 
-            logger.info(f"Перед запросом  {len(combined_messages)}", )
+            logger.info(f"Перед запросом  {len(combined_messages)}")
 
             if bool(self.gui.settings.get("gpt4free")) or use_gpt4free:
                 logger.info("gpt4free case")

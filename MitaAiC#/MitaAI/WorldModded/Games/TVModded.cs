@@ -53,6 +53,7 @@ namespace MitaAI
             
             
             var ExitEvent = Menu.transform.Find("Exit").GetComponent<Interface_KeyHint_Key>().eventKeyDown;
+            Menu.transform.localPosition = new Vector3(0, 125, 0);
             ExitEvent.RemoveAllListeners();
 
             ExitEvent.AddListener((UnityAction)TurnControlKeys);
@@ -95,7 +96,7 @@ namespace MitaAI
 
             if (KeysActive)
             {
-                PlayerHands.takeInHand(GamepadBlue,true,Vector3.zero,Vector3.zero);
+                PlayerHands.takeInHand(GamepadBlue,true,new Vector3(0,0,-0.08f),Vector3.zero);
             }
             else
             {
@@ -121,8 +122,9 @@ namespace MitaAI
            
 
             minigamesTelevisionGame = UnityEngine.Object.FindObjectOfType<MinigamesTelevisionGame>();
+            
+            CharacterMessages.sendSystemMessage($"TV game '{minigamesTelevisionController.textNeedNameGame}' is loading.");
 
-            CharacterMessages.sendSystemMessage("TV game is loading");
             while (minigamesTelevisionGame == null)
             {
                 minigamesTelevisionGame = UnityEngine.Object.FindObjectOfType<MinigamesTelevisionGame>();
@@ -162,7 +164,7 @@ namespace MitaAI
                     yield return new WaitForSeconds(5f);
 
                     mT_GameCnowballs.Continue();
-                    TurnControlKeys();
+                    minigamesTelevisionController.KeysMenuActive(true);
                     yield break;
                 }
 
@@ -172,6 +174,10 @@ namespace MitaAI
                 mT_GameCnowballs.PlayTimeStart();
             }
         }
+
+        static int scorePlayer = 0;
+        static int scoreMita = 0;
+
         static IEnumerator processMilk()
         {
             MitaGames.currentGame = MitaGame.Milk;
@@ -188,13 +194,16 @@ namespace MitaAI
                     yield return new WaitForSeconds(5f);
 
                     mT_Location4Fight.Continue();
-                    TurnControlKeys();
+                    minigamesTelevisionController.KeysMenuActive(true);
                     yield break;
                 }
 
 
-                if (mT_Location4Fight.winWas) CharacterMessages.sendSystemMessage($"Player won round in the game of Milk fight.");
+                if (mT_Location4Fight.winG != scorePlayer) CharacterMessages.sendSystemMessage($"Player won round in the game of Milk fight.");
                 else CharacterMessages.sendSystemMessage($"You won round in the game of Milk fight.");
+
+                scorePlayer = mT_Location4Fight.winG;
+                scoreMita = mT_Location4Fight.loseG;
 
                 yield return new WaitForSeconds(5f);
 

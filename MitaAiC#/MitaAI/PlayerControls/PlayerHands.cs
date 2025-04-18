@@ -27,7 +27,7 @@ namespace MitaAI
             if (Item == null) { MelonLogger.Error("Hand is null!!!"); }
             else MelonLogger.Msg("Hand is non null)");
 
-            OldParents[gameObject.GetInstanceID()] = (gameObject.transform, gameObject.transform.localPosition, gameObject.transform.eulerAngles);
+            OldParents[gameObject.GetInstanceID()] = (gameObject.transform.parent, gameObject.transform.localPosition, gameObject.transform.eulerAngles);
             gameObject.transform.SetParent(Item);
             gameObject.transform.localPosition = localPos;
             gameObject.transform.localEulerAngles = localRot;
@@ -40,7 +40,7 @@ namespace MitaAI
 
             if (OldParents.ContainsKey(gameObject.GetInstanceID()))
             {
-                MelonLogger.Msg("Found in dict");
+                MelonLogger.Msg($"Found in dict, setting parent {OldParents[gameObject.GetInstanceID()].Item1} for {Item.name}");
                 Item.transform.SetParent(OldParents[gameObject.GetInstanceID()].Item1);
                 Item.localPosition = OldParents[gameObject.GetInstanceID()].Item2;
                 Item.localEulerAngles = OldParents[gameObject.GetInstanceID()].Item3;
