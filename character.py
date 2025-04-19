@@ -439,6 +439,10 @@ class GameMaster(Character):
     Специальный служебный персонаж, отвечающий за ход диалога
     """
 
+    #class GameMaster(Character):
+       # def __init__(self, *args, **kwargs):
+       #     super().__init__(*args, **kwargs)  # Важно: вызываем родительский __init__
+
     def init(self):
         self.init_prompts()
 
@@ -446,11 +450,21 @@ class GameMaster(Character):
         Prompts = []
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Game_master.txt")))
-        Prompts.append(PromptPart(PromptType.FIXED_START, text=settings.get("GM_SMALL_PROMPT", "")))
+        #Prompts.append(PromptPart(PromptType.FIXED_START, text=))
         Prompts.append(PromptPart(PromptType.CONTEXT_TEMPORARY, self.get_path("current_command.txt")))
 
         for prompt in Prompts:
             self.add_prompt_part(prompt)
+
+    def prepare_fixed_messages(self) -> List[Dict]:
+        messages = super().prepare_fixed_messages()
+        current_instruction = settings.get("GM_SMALL_PROMPT", "")
+        if current_instruction != "":
+            small_prompt = {"role": "system", "content": f"[INSTRUCTION]: {current_instruction}"}
+            messages.append(small_prompt)
+
+        return messages
+
 
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)

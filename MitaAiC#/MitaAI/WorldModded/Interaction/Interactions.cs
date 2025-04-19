@@ -11,6 +11,7 @@ using UnityEngine.UI;
 using UnityEngine.Bindings;
 using System.ComponentModel.Design;
 using System.Runtime.CompilerServices;
+using MitaAI.Mita;
 
 
 namespace MitaAI
@@ -236,15 +237,58 @@ namespace MitaAI
 
 
 
-            
 
 
-
+            initCornerSofa(MitaCore.worldHouse);
+            initConsole(MitaCore.worldBasement);
 
 
 
 
         }
+
+        public static void initCornerSofa(Transform world)
+        {
+            MelonLogger.Msg("initCornerSofa");
+            GameObject sofa = Utils.TryfindChild(world, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair");
+            GameObject sofaChil = new GameObject("OI");
+            sofaChil.transform.parent = sofa.transform;
+            sofaChil.transform.localPosition = new Vector3(-0.4855f, 0.3255f, 0.0982f);
+            sofaChil.transform.localRotation = Quaternion.Euler(10f, 90f, 90f);
+            var objectAnimationPlayer = sofaChil.AddComponent<ObjectAnimationPlayer>();
+            var objectInteractive = Interactions.FindOrCreateObjectInteractable(sofa, true, 1, "Усесться");
+            objectAnimationPlayer.angleHeadRotate = 70;
+            //Utils.CopyComponentValues(exampleComponent, objectInteractive);
+
+            objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
+            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player Sit");
+            objectAnimationPlayer.animationStop = PlayerAnimationModded.getPlayerAnimationClip("Player Stand");
+            objectInteractive.eventClick.AddListener((UnityAction)objectAnimationPlayer.AnimationPlay);
+
+            //GameObject GameAihastion = Utils.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
+
+        }
+        public static void initConsole(Transform worldBasement)
+        {
+            GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
+            MitaCore.Console = console;
+            MitaCore.Instance.cartridgeReader = console;
+
+            var comp = console.AddComponent<Character>();
+            comp.init_cartridge();
+            comp.enabled = false;
+
+            AudioControl.cartAudioSource = console.AddComponent<AudioSource>();
+
+            console.GetComponent<Animator>().enabled = true;
+            console.GetComponent<Outlinable>().enabled = true;
+            ObjectInteractive objectInteractive = Interactions.FindOrCreateObjectInteractable(console, true, 1, "Переключить");
+
+            objectInteractive.eventClick = new UnityEvent();
+            objectInteractive.eventClick.AddListener((UnityAction)comp.changeActivation);
+
+        }
+
 
         /*
          * 
@@ -252,7 +296,7 @@ namespace MitaAI
          * 
          */
         public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool remakeEvent = true, float timeDeactivate = 1, string tipText = null, bool addCollider = true, 
-            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 2f)
+            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 1.4f)
         {
             if (gameObject == null)
             {
@@ -476,10 +520,6 @@ namespace MitaAI
 
             
 
-        }
-        static void setAsLastOAP()
-        {
-           // PlayerAnimationModded.addOAP(CallConvThiscall/);
         }
 
 

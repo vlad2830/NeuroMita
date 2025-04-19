@@ -11,8 +11,9 @@ from g4f.client import Client as g4fClient
 import re
 
 from Logger import logger
-from character import *
 from characters import *
+from character import GameMaster,SpaceCartridge,DivanCartridge
+
 
 from utils import *
 
@@ -167,7 +168,10 @@ class ChatModel:
         messages = self._add_input(user_input, system_input, messages)
 
         # Ограничение на количество сообщений
-        messages = messages[-self.memory_limit:]
+        if self.current_character == self.GameMaster:
+            messages = messages[-8:]
+        else:
+            messages = messages[-self.memory_limit:]
 
         # Обновление текущего настроения
         timed_system_message = self.current_character.current_variables()
@@ -256,7 +260,7 @@ class ChatModel:
         # Возвращаем название комнаты, если оно есть, иначе возвращаем сообщение о неизвестной комнате
         return room_names.get(room_id, "?")
 
-    def _combine_messages_character(self, character: Character, messages, timed_system_message):
+    def _combine_messages_character(self, character, messages, timed_system_message):
         """Комбинирование всех сообщений перед отправкой"""
         # Чем выше здесь, тем дальше от начала будет
 

@@ -100,14 +100,14 @@ namespace MitaAI.Mita
                     Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку вплотную":
-                    newPosition.transform.position = playerPerson.position + direction * 0.4f; // closeDistance — ваше значение
+                    newPosition.transform.position = playerPerson.position + direction * 0.45f; // closeDistance — ваше значение
                     ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.Mita.AiWalkToTargetTranform(newPosition, null);
                     location34_Communication.indexSwitchAnimation = 1;
                     Utils.DestroyAfterTime(newPosition.gameObject, 5f);
                     break;
                 case "подойти к игроку близко":
-                    newPosition.transform.position = playerPerson.position + direction * 0.85f; // closeDistance — ваше значение
+                    newPosition.transform.position = playerPerson.position + direction * 1f; // closeDistance — ваше значение
                     ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.Mita.AiWalkToTargetTranform(newPosition, null);
                     location34_Communication.indexSwitchAnimation = 1;
@@ -246,6 +246,7 @@ namespace MitaAI.Mita
 
         private static void HandleTwoPartCommand(string command, string secondCommand)
         {
+            GameObject gameObject;
 
             float.TryParse(secondCommand, NumberStyles.Float, CultureInfo.InvariantCulture, out float time);
             switch (command.ToLower())
@@ -285,12 +286,15 @@ namespace MitaAI.Mita
                     break;
 
                 case "lookat":
+                    if (secondCommand.Contains("Player") || secondCommand.Contains("player")) secondCommand = "HeadPlayer";
                     MitaCore.Instance.MitaLook.LookOnObject(GameObject.Find(secondCommand).transform);
                     break;
                 case "lookaturnto":
+                    if (secondCommand.Contains("Player") || secondCommand.Contains("player")) secondCommand = "HeadPlayer";
                     MitaCore.Instance.MitaLook.LookOnObjectAndRotate(GameObject.Find(secondCommand).transform);
                     break;
                 case "turnto":
+                    if (secondCommand.Contains("Player") || secondCommand.Contains("player")) secondCommand = "HeadPlayer";
                     MitaCore.Instance.MitaLook.RotateOnTarget(GameObject.Find(secondCommand).transform);
                     break;
 

@@ -109,11 +109,12 @@ namespace MitaAI
                 addCIA(this);
             }
 
-            var obj = GetComponent<ObjectInteractive>();
-            if (obj != null)
-            {
-                obj.active = false;
+            var obj = GetComponents<ObjectInteractive>();
+            foreach (var objectInteractive in obj) {
+                objectInteractive.active = false;
             }
+
+       
 
 
         }
@@ -125,15 +126,10 @@ namespace MitaAI
 
             taker[position] = characterType.None;
 
-            var obj = GetComponent<ObjectInteractive>();
-            if (obj != null)
+            var obj = GetComponents<ObjectInteractive>();
+            foreach (var objectInteractive in obj)
             {
-                obj.active = true;
-            }
-            var OAM = GetComponent<ObjectAnimationMita>();
-            if (OAM != null)
-            {
-                OAM.enabled = true;
+                objectInteractive.active = true;
             }
 
 

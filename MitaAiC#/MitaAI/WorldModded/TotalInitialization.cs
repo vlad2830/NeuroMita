@@ -63,34 +63,7 @@ namespace MitaAI
         }
         
         #region InitObjects
-        public static void InitObjects()
-        {
-            //TotalInitialization.initTVGames(MitaCore.worldHouse);
-            //TotalInitialization.initCornerSofa(MitaCore.worldHouse);
-        }
 
-
-        public static void initCornerSofa(Transform world)
-        {
-            MelonLogger.Msg("initCornerSofa");
-            GameObject sofa = Utils.TryfindChild(world, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair");
-            GameObject sofaChil = new GameObject("OI");
-            sofaChil.transform.parent = sofa.transform;
-            sofaChil.transform.localPosition = new Vector3(-0.4855f, 0.3255f, 0.0982f);
-            sofaChil.transform.localRotation = Quaternion.Euler(10f, 90f, 90f);
-            var objectAnimationPlayer = sofaChil.AddComponent<ObjectAnimationPlayer>();
-            var objectInteractive = sofa.AddComponent<ObjectInteractive>();
-            objectAnimationPlayer.angleHeadRotate = 70;
-            //Utils.CopyComponentValues(exampleComponent, objectInteractive);
-
-            objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
-            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player Sit");
-            objectAnimationPlayer.animationStop = PlayerAnimationModded.getPlayerAnimationClip("Player Stand");
-            //objectInteractive.eventClick = EventsProxy.ChangeAnimationEvent(sofa, "SofaSit");
-
-            //GameObject GameAihastion = Utils.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
-
-        }
     
         public static void initTVGames(Transform world)
         {
@@ -110,43 +83,7 @@ namespace MitaAI
             GameObject GameAihastion = Utils.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
         }
 
-        public static void initConsole(Transform worldBasement)
-        {
-            GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
-            MitaCore.Console = console;
-            MitaCore.Instance.cartridgeReader = console;
 
-            var comp = console.AddComponent<Character>();
-            comp.init_cartridge();
-
-            AudioControl.cartAudioSource = console.AddComponent<AudioSource>();
-
-            ObjectInteractive objectInteractive = console.GetComponent<ObjectInteractive>();
-            console.GetComponent<Animator>().enabled = true;
-            console.GetComponent<Outlinable>().enabled = true;
-            objectInteractive.eventClick.RemoveAllListeners();
-            objectInteractive.eventClick.AddListener((UnityAction)InteractionCases.caseConsoleStart);
-            //GameObject console_res = GameObject.Instantiate(console, console.transform.parent);
-            //console_res.name = console.name+"_res";
-            //console_res.active = false;
-
-            Utils.TryTurnChild(MitaCore.worldBasement, "Quests/Quest1 Start/Dialogues Привет - Передай ключ",false);
-            Utils.TryTurnChild(MitaCore.worldBasement, "Quests/Quest1 Start/Dialogues Console", false);
-            objectInteractive.active = true;
-            objectInteractive.destroyComponent = false;
-
-            ObjectAnimationPlayer drop = Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start/AnimationPlayer Drop").GetComponent<ObjectAnimationPlayer>();
-            //drop.eventsPlayer = new Il2CppSystem.Collections.Generic.List<UnityEngine.Events.UnityEvent>();
-            //drop.animationStart.events = new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<AnimationEvent>(0);
-
-            //MitaCore.AddAnimationEvent(drop.gameObject, drop.animationStart,"ConsoleEnd");
-            //drop.eventStartAnimaiton = null;
-            //drop.eventStartLoop = null;
-
-            EventsProxy.ChangeAnimationEvent(drop.gameObject, "ConsoleEnd");
-            //GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
-
-        }
         #endregion
 
 
@@ -1232,15 +1169,6 @@ namespace MitaAI
                     MelonLogger.Msg("Error while handling wardrobe transform.");
                 }
 
-                try
-                {
-                    TotalInitialization.initConsole(MitaCore.worldBasement);
-                }
-                catch (Exception ex)
-                {
-
-                    MelonLogger.Msg("Error while handling initConsole: " + ex);
-                }
 
                 Utils.TryfindChild(MitaCore.worldBasement, "Act/ContinueScene").SetActive(false);
                 Utils.TryfindChild(MitaCore.worldBasement, "Quests/Quest1 Start").SetActive(true);

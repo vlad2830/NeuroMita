@@ -30,7 +30,23 @@ namespace MitaAI
             init(CharacterControl.get_cart());
 
         }
+        public void changeActivation()
+        {
+            enabled = !enabled;
+            if (isCartdige) 
+            {
+                if (enabled)
+                {
+                    CharacterMessages.sendSystemMessage($"Тебя только что включили", character);
+                }
+                else
+                {
+                    CharacterMessages.sendSystemInfo($"Тебя выключили", character);
+                }
+            }
+            
 
+        }
 
         public void DecreseOrderPoints(int n = 25)
         {

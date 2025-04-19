@@ -87,7 +87,7 @@ class ChatGUI:
             logger.info("Не удалось удачно получить из системных переменных все данные", e)
             self.settings = SettingsManager("Settings/settings.json")
 
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model,self.makeRequest)
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -106,8 +106,6 @@ class ChatGUI:
 
         self.root = tk.Tk()
         self.root.title("Чат с NeuroMita")
-
-
 
         self.delete_all_sound_files()
         self.setup_ui()
@@ -480,8 +478,6 @@ class ChatGUI:
         right_canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux (прокрутка вверх)
         right_canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux (прокрутка вниз)
 
-
-
         self.setup_status_indicators(settings_frame)
         self.setup_language_controls(settings_frame)
         self.setup_api_controls_new(settings_frame)
@@ -762,14 +758,15 @@ class ChatGUI:
         common_config = [
             {'label': _('ГеймМастер включен', 'GameMaster is on'), 'key': 'GM_ON', 'type': 'checkbutton',
              'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги, в теории устраняя проблемы'},
-            {'label': _('ГеймМастер зачитывается', 'GameMaster write in game'), 'key': 'GM_READ', 'type': 'checkbutton',
-             'default_checkbutton': False},
-            {'label': _('ГеймМастер озвучивает', 'GameMaster is voiced'), 'key': 'GM_VOICE', 'type': 'checkbutton',
-             'default_checkbutton': False},
-            {'label': _('Задача ГМу', 'GM task'), 'key': 'GM_SMALL_PROMPT', 'type': 'text','default': ""},
-            {'label': _('ГеймМастер встревает каждые', 'GameMaster Intervene after'), 'key': 'GM_REPEAT', 'type': 'entry',
+            #{'label': _('ГеймМастер зачитывается', 'GameMaster write in game'), 'key': 'GM_READ', 'type': 'checkbutton',
+            # 'default_checkbutton': False},
+            #{'label': _('ГеймМастер озвучивает', 'GameMaster is voiced'), 'key': 'GM_VOICE', 'type': 'checkbutton',
+           #  'default_checkbutton': False},
+            {'label': _('Задача ГМу', 'GM task'), 'key': 'GM_SMALL_PROMPT', 'type': 'text', 'default': ""},
+            {'label': _('ГеймМастер встревает каждую', 'GameMaster intervene each'), 'key': 'GM_REPEAT',
+             'type': 'entry',
              'default': 2,
-             'tooltip': _('Через сколько фраз гейммастер вмешивается', 'How much phrases GM need to intervene')},
+             'tooltip': _('Пример: 3 Означает, что через каждые две фразы ГМ напишет свое сообщение', 'Example: 3 means that after 2 phreses GM will write his message')},
             {'label': _('Лимит речей нпс %', 'Limit NPC convesationg'), 'key': 'CC_Limit_mod', 'type': 'entry',
              'default': 100, 'tooltip': _('Сколько от кол-ва персонажей может отклоняться повтор речей нпс',
                                           'How long NPC can talk ignoring player')}
@@ -777,7 +774,6 @@ class ChatGUI:
         self.create_settings_section(parent,
                                      _("Настройки Мастера игры и Диалогов", "GameMaster and Dialogues settings"),
                                      common_config)
-
 
     def setup_api_controls_new(self, parent):
         # Основные настройки
@@ -1483,17 +1479,17 @@ class ChatGUI:
 
     def cmd_copy(self, widget):
         # Обработчик команды копирования
-        if isinstance(widget, (tk.Entry,ttk.Entry, tk.Text)):
+        if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Copy>>")
 
     def cmd_cut(self, widget):
         # Обработчик команды вырезания
-        if isinstance(widget, (tk.Entry,ttk.Entry, tk.Text)):
+        if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Cut>>")
 
     def cmd_paste(self, widget):
         # Обработчик команды вставки
-        if isinstance(widget, (tk.Entry,ttk.Entry, tk.Text)):
+        if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Paste>>")
 
     #endregion
