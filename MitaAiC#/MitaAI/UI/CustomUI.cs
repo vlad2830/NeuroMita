@@ -19,7 +19,7 @@ namespace MitaAI
     public class CustomUI
     {
         public static CustomUI Instance;
-        public static bool inAllowed = false;
+        public static bool isAllowed = false;
 
         private Dictionary<characterType, bool> characterStates = new Dictionary<characterType, bool>();
         private bool isManualControl = false;
@@ -48,7 +48,7 @@ namespace MitaAI
 
         private void OnDrawMenu()
         {
-            if (!isMenuVisible || !inAllowed) 
+            if (!isMenuVisible || !isAllowed) 
             {
                 return;
             }

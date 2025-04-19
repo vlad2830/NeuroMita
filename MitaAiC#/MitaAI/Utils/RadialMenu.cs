@@ -10,6 +10,8 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class RadialMenu : MonoBehaviour
     {
+        public static bool isAllowed = false;
+
         public Canvas radialCanvas;
         public GameObject itemPrefab;
         public float radius = 250f;
@@ -21,7 +23,7 @@ namespace MitaAI
         public List<MenuItemData> menuItemsData = new List<MenuItemData>
         {
             new MenuItemData("Удар", "Нанести удар", "AnimationPlayer Kick 1"),
-            new MenuItemData("Обнять", "Обнять персонажа","AnimationPlayer Hug"),
+            new MenuItemData("Принять объятия", "Обнять персонажа","AnimationPlayer Hug"),
             new MenuItemData("Отказ", "Спросить что-то", "AnimationPlayer Nope Juice"),
             new MenuItemData("Остановить анимацию")
         };
@@ -58,7 +60,7 @@ namespace MitaAI
             if (!MitaCore.isRequiredScene()) return;
 
             // Если правая кнопка мыши только что нажата
-            if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(1) && isAllowed)
             {
                 if (!Showed && !UINeuroMita.isPauseMenu)
                 {

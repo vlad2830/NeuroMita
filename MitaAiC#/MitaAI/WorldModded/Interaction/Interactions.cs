@@ -222,7 +222,7 @@ namespace MitaAI
 
 
 
-            objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true,timeDeactive:5);
+            objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true,timeDeactivate:5);
             //var chairOIP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(objectInteractive.transform, "Interactive Aihastion");
             //objectInteractive.eventClick.AddListener((UnityAction)chairOIP.GetComponent<ObjectAnimationPlayer>().AnimationPlay);
             objectInteractive.active = true;
@@ -251,7 +251,7 @@ namespace MitaAI
          *  очень полезная функция, делающая прдемет кликабельным
          * 
          */
-        public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool remakeEvent = true, float timeDeactive = 2, string tipText = null, bool addCollider = true, 
+        public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool remakeEvent = true, float timeDeactivate = 1, string tipText = null, bool addCollider = true, 
             bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 2f)
         {
             if (gameObject == null)
@@ -304,7 +304,7 @@ namespace MitaAI
             }
      
 
-            objectInteractive.timeDeactive = timeDeactive;
+            objectInteractive.timeDeactive = timeDeactivate;
 
             if (objectInteractive.eventClick == null || remakeEvent)
                 objectInteractive.eventClick = new UnityEvent();
@@ -495,7 +495,7 @@ namespace MitaAI
                 if (Utils.getDistanceBetweenObjects(gameObject, MitaCore.Instance.playerPersonObject) >= 3f) return;
 
                 MelonLogger.Msg("OnGameObjectClicked all");
-                UseSpecialCase(gameObject);
+                //UseSpecialCase(gameObject);
 
             }
         }

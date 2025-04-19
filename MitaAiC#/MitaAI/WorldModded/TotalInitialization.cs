@@ -66,7 +66,7 @@ namespace MitaAI
         public static void InitObjects()
         {
             //TotalInitialization.initTVGames(MitaCore.worldHouse);
-            TotalInitialization.initCornerSofa(MitaCore.worldHouse);
+            //TotalInitialization.initCornerSofa(MitaCore.worldHouse);
         }
 
 
@@ -459,7 +459,7 @@ namespace MitaAI
 
             }
 
-            InitObjects();
+            //InitObjects();
 
 
             //SceneManager.UnloadScene(sceneToLoad);

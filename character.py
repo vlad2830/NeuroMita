@@ -411,6 +411,9 @@ class SpaceCartridge(Cartridge):
             self.add_prompt_part(prompt)
 
 
+from SettingsManager import SettingsManager as settings
+
+
 class DivanCartridge(Cartridge):
 
     def init(self):
@@ -443,6 +446,7 @@ class GameMaster(Character):
         Prompts = []
 
         Prompts.append(PromptPart(PromptType.FIXED_START, self.get_path("Game_master.txt")))
+        Prompts.append(PromptPart(PromptType.FIXED_START, text=settings.get("GM_SMALL_PROMPT", "")))
         Prompts.append(PromptPart(PromptType.CONTEXT_TEMPORARY, self.get_path("current_command.txt")))
 
         for prompt in Prompts:

@@ -15,6 +15,7 @@ namespace MitaAI
         public static MelonPreferences_Entry<characterType> MitaType;
 
         public static MelonPreferences_Entry<int> DaysInGame;
+        public static MelonPreferences_Entry<string> Language;
         public static void Initialize()
         {
             MelonLogger.Msg($"Init settings");
@@ -23,6 +24,7 @@ namespace MitaAI
 
             MitaType = category.CreateEntry("MitaType", characterType.Crazy);
             DaysInGame = category.CreateEntry("DaysInGame", 0);
+            Language = category.CreateEntry("Language", "Ru");
             // Добавляем нового персонажа как опцию
             // category.CreateEntry("MilaType", character.Mila);
 
@@ -47,14 +49,14 @@ namespace MitaAI
         }
 
         // Метод для быстрого получения значения
-        public static T Get<T>(string entryName) where T : struct
+        public static T Get<T>(string entryName)
         {
             var entry = category.GetEntry<T>(entryName);
             return entry != null ? entry.Value : default(T);
         }
 
         // Метод для быстрой установки значения
-        public static void Set<T>(string entryName, T value) where T : struct
+        public static void Set<T>(string entryName, T value)
         {
             var entry = category.GetEntry<T>(entryName);
             if (entry != null)

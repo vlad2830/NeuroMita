@@ -692,103 +692,6 @@ class ChatGUI:
 
         self.update_debug_info()  # Отобразить изначальное состояние переменных
 
-    def setup_api_controls(self, parent):
-        api_frame = tk.Frame(parent, bg="#2c2c2c")
-        api_frame.pack(fill=tk.X, pady=3)
-
-        self.show_api_var = tk.BooleanVar(value=False)
-
-        api_toggle = tk.Checkbutton(
-            api_frame, text=_("Показать настройки API", "Show API settings"), variable=self.show_api_var,
-            command=lambda: self.pack_unpack(self.show_api_var, self.api_settings_frame), bg="#2c2c2c", fg="#ffffff"
-        )
-        api_toggle.pack(side=tk.LEFT, padx=4)
-
-        self.api_settings_frame = tk.Frame(parent, bg="#2c2c2c")
-
-        # Элементы в одном столбце
-        tk.Label(
-            self.api_settings_frame, text=_("API-ключ:", "API-key:"), bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=0, column=0, padx=4, pady=4, sticky=tk.W)
-
-        self.api_key_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                      insertbackground="white")
-        self.api_key_entry.grid(row=0, column=1, padx=4, pady=4, sticky=tk.W)
-
-        tk.Label(
-            self.api_settings_frame, text=_("резервный API-ключ:", "reserve API-key:"), bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=1, column=0, padx=4, pady=4, sticky=tk.W)
-
-        self.api_key_res_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                          insertbackground="white")
-        self.api_key_res_entry.grid(row=1, column=1, padx=4, pady=4, sticky=tk.W)
-
-        tk.Label(
-            self.api_settings_frame, text=_("Ссылка:", "URL"), bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
-
-        self.api_url_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                      insertbackground="white")
-        self.api_url_entry.grid(row=2, column=1, padx=4, pady=5, sticky=tk.W)
-
-        tk.Label(
-            self.api_settings_frame, text=_("Модель:", "Model:"), bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
-
-        self.api_model_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                        insertbackground="white")
-        self.api_model_entry.grid(row=3, column=1, padx=4, pady=4, sticky=tk.W)
-
-        tk.Label(
-            self.api_settings_frame, text="Telegram API ID:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
-
-        self.api_id_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                     insertbackground="white")
-        self.api_id_entry.grid(row=4, column=1, padx=4, pady=4, sticky=tk.W)
-
-        tk.Label(
-            self.api_settings_frame, text="Telegram API Hash:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
-
-        self.api_hash_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                       insertbackground="white")
-        self.api_hash_entry.grid(row=5, column=1, padx=4, pady=4, sticky=tk.W)
-
-        tk.Label(
-            self.api_settings_frame, text="Telegram Phone:", bg="#2c2c2c", fg="#ffffff"
-        ).grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
-
-        self.phone_entry = tk.Entry(self.api_settings_frame, width=50, bg="#1e1e1e", fg="#ffffff",
-                                    insertbackground="white")
-        self.phone_entry.grid(row=6, column=1, padx=4, pady=4, sticky=tk.W)
-
-        # Переменная для тумблера
-        self.makeRequest_entry = tk.Checkbutton(
-            self.api_settings_frame, text="openapi or req", variable=self.show_api_var,
-            command=self.toggle_makeRequest, bg="#2c2c2c", fg="#ffffff"
-        )
-        self.makeRequest_entry.grid(row=7, column=0, padx=15, pady=0, sticky=tk.W)
-        self.toggle_makeRequest(False)
-
-        save_button = tk.Button(
-            self.api_settings_frame, text=_("Сохранить", "Save"), command=self.save_api_settings,
-            bg="#8a2be2", fg="#ffffff"
-        )
-        save_button.grid(row=8, column=0, padx=5, sticky=tk.E)
-
-        # Обновляем поля ввода
-        self.api_url_entry.insert(0, self.api_url)
-        self.api_model_entry.insert(0, self.api_model)
-
-        if not bool(self.settings.get(
-                "HIDE_PRIVATE")):  # Для безопасности стримеров т.п. это надо будет сделать переключаемым по настройке
-            self.api_key_entry.insert(0, self.api_key)
-            self.api_key_res_entry.insert(0, self.api_key_res)
-            self.api_id_entry.insert(0, self.api_id)
-            self.api_hash_entry.insert(0, self.api_hash)
-            self.phone_entry.insert(0, self.phone)
-
     def setup_tg_controls(self, parent):
         # Основные настройки
         mita_voice_config = [
@@ -802,21 +705,6 @@ class ChatGUI:
              'default': 12,
              'validation': self.validate_number},
         ]
-        if False:
-            mita_voice_config.extend([
-                {'label': _('Без тг | Движок', "No TG | engine"), 'key': 'MIKUTTS_ENGINE', 'type': 'combobox',
-                 'options': ["Edge", "Vosk", "Silero"], 'default': "Edge"},
-                {'label': _('Без тг | Скорость голоса', 'No TG | Voice speed'), 'key': 'MIKUTTS_VOICE_RATE',
-                 'type': 'entry', 'default': "+10%"},
-                {'label': _('Без тг | Высота голоса', 'No TG | Voice pitch'), 'key': 'MIKUTTS_VOICE_PITCH',
-                 'type': 'entry', 'default': 8},
-                {'label': _("Без тг | VOSK | IDs", 'No TG | VOSK | IDs'), 'key': 'MIKUTTS_VOSK_IDS', 'type': 'combobox',
-                 'options': [0, 1, 2, 3, 4],
-                 'default': 0},
-                {'label': _("Без тг | SILERO | Провайдер", 'No TG | SILERO | Provider'),
-                 'key': 'MIKUTTS_SILERO_PROVIDER', 'type': 'combobox',
-                 'options': ["aidar", "baya", "kseniya", "xenia", "eugene"], 'default': "aidar"},
-            ])
 
         # ТГ
         mita_voice_config.extend([
@@ -878,9 +766,10 @@ class ChatGUI:
              'default_checkbutton': False},
             {'label': _('ГеймМастер озвучивает', 'GameMaster is voiced'), 'key': 'GM_VOICE', 'type': 'checkbutton',
              'default_checkbutton': False},
-            {'label': _('Встревать через', 'Intervene after'), 'key': 'GM_REPEAT', 'type': 'entry',
+            {'label': _('Задача ГМу', 'GM task'), 'key': 'GM_SMALL_PROMPT', 'type': 'text','default': ""},
+            {'label': _('ГеймМастер встревает каждые', 'GameMaster Intervene after'), 'key': 'GM_REPEAT', 'type': 'entry',
              'default': 2,
-             'tooltip': _('Через сколько фраз гейммастер вмешивается', 'How much phares GM need to intervene')},
+             'tooltip': _('Через сколько фраз гейммастер вмешивается', 'How much phrases GM need to intervene')},
             {'label': _('Лимит речей нпс %', 'Limit NPC convesationg'), 'key': 'CC_Limit_mod', 'type': 'entry',
              'default': 100, 'tooltip': _('Сколько от кол-ва персонажей может отклоняться повтор речей нпс',
                                           'How long NPC can talk ignoring player')}
@@ -889,15 +778,6 @@ class ChatGUI:
                                      _("Настройки Мастера игры и Диалогов", "GameMaster and Dialogues settings"),
                                      common_config)
 
-    def setup_new_game_master_controls(self, parent):
-        # Основные настройки для новой секции
-        new_common_config = [
-            {'label': 'Новая настройка 1', 'key': 'NEW_SETTING_1', 'type': 'checkbutton',
-             'default_checkbutton': False, 'tooltip': 'Описание новой настройки 1'},
-            {'label': 'Новая настройка 2', 'key': 'NEW_SETTING_2', 'type': 'entry',
-             'default': 5, 'tooltip': 'Описание новой настройки 2'}
-        ]
-        self.create_settings_section(parent, "Новая секция", new_common_config)
 
     def setup_api_controls_new(self, parent):
         # Основные настройки
@@ -932,10 +812,10 @@ class ChatGUI:
 
             {'label': _('Настройки ожидания', 'Waiting settings'), 'type': 'text'},
             {'label': _('Время ожидания текста (сек)', 'Text waiting time (sec)'),
-             'key': 'TEXT_WAIT_TIME', 'type': 'entry', 'default': 25,
+             'key': 'TEXT_WAIT_TIME', 'type': 'entry', 'default': 40,
              'tooltip': _('время ожидания ответа', 'response waiting time')},
             {'label': _('Время ожидания звука (сек)', 'Voice waiting time (sec)'),
-             'key': 'VOICE_WAIT_TIME', 'type': 'entry', 'default': 25,
+             'key': 'VOICE_WAIT_TIME', 'type': 'entry', 'default': 40,
              'tooltip': _('время ожидания озвучки', 'voice generation waiting time')},
 
         ]

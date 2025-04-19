@@ -91,7 +91,7 @@ namespace MitaAI
 
 
             GameObject NeuroMitaButtonText = NeuroMitaButton.transform.Find("Text").gameObject;
-            MelonCoroutines.Start(changeName(NeuroMitaButtonText, "ИГРАТЬ С NEUROMITA"));
+            MelonCoroutines.Start(changeName(NeuroMitaButtonText, loc._("ИГРАТЬ С NEUROMITA","PLAY WITH NEUROMITA")));
 
             UI_Colors uI_Colors = NeuroMitaButton.GetComponent<UI_Colors>();
 
@@ -157,7 +157,7 @@ namespace MitaAI
                 MitaCrazyButton.name = "MitaCrazyButton";
                 MitaCrazyButton.active = true;
 
-                MelonCoroutines.Start(changeName(MitaCrazyButton.transform.Find("Text").gameObject, "Безумная Мита"));
+                MelonCoroutines.Start(changeName(MitaCrazyButton.transform.Find("Text").gameObject, loc._("Безумная Мита","Crazy Mita") ));
                 MitaCrazyButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MitaCrazyButton, MitaCrazyButton.name);
 
             }
@@ -171,7 +171,7 @@ namespace MitaAI
                 MitaKindButton.name = "MitaKindButton";
                 MitaKindButton.active = true;
 
-                MelonCoroutines.Start(changeName(MitaKindButton.transform.Find("Text").gameObject, "Добрая Мита"));
+                MelonCoroutines.Start(changeName(MitaKindButton.transform.Find("Text").gameObject, loc._("Добрая Мита","Kind Mita")));
                 MitaKindButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MitaKindButton, MitaKindButton.name);
 
             }
@@ -185,7 +185,7 @@ namespace MitaAI
                 MitaShorthairButton.name = "MitaShortButton";
                 MitaShorthairButton.active = true;
 
-                MelonCoroutines.Start(changeName(MitaShorthairButton.transform.Find("Text").gameObject, "Коротковолосая Мита"));
+                MelonCoroutines.Start(changeName(MitaShorthairButton.transform.Find("Text").gameObject, loc._("Коротковолосая Мита","Shorthair")));
                 MitaShorthairButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MitaShorthairButton, MitaShorthairButton.name);
 
             }
@@ -200,7 +200,7 @@ namespace MitaAI
                 MitaCappyButton.name = "MitaCappyButton";
                 MitaCappyButton.active = true;
 
-                MelonCoroutines.Start(changeName(MitaCappyButton.transform.Find("Text").gameObject, "Кепочка"));
+                MelonCoroutines.Start(changeName(MitaCappyButton.transform.Find("Text").gameObject, loc._("Кепочка","Cappy")));
                 MitaCappyButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MitaCappyButton, MitaCappyButton.name);
 
 
@@ -235,7 +235,7 @@ namespace MitaAI
                     SleepyMitaButton.name = "SleepyMitaButton";
                     SleepyMitaButton.active = true;
                     SleepyMitaButton.transform.localPosition += new Vector3(0, -110);
-                    MelonCoroutines.Start(changeName(SleepyMitaButton.transform.Find("Text").gameObject, "Сонная Мита (TODO 2X)"));
+                    MelonCoroutines.Start(changeName(SleepyMitaButton.transform.Find("Text").gameObject, loc._("Сонная Мита (TODO 2X)","Sleepy Mita")));
                     SleepyMitaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(SleepyMitaButton, SleepyMitaButton.name);
                 }
                 catch (Exception e) { MelonLogger.Error(e); }

@@ -328,6 +328,7 @@
 		<Compile Include="Characters\Character.cs" />
 		<Compile Include="PlayerControls\Hints.cs" />
 		<Compile Include="PlayerControls\PlayerHands.cs" />
+		<Compile Include="UI\LocalizationModded.cs" />
 		<Compile Include="UI\CustomUI.cs" />
 		<Compile Include="Mita\CharacterLookOld.cs" />
 		<Compile Include="Characters\LogicCharacter.cs" />
@@ -341,7 +342,7 @@
 		<Compile Include="Mita\Animation\MitaActionAnimation.cs" />
 		<Compile Include="PlayerControls\PlayerEffects.cs" />
 		<Compile Include="PlayerControls\PlayerMovement.cs" />
-		<Compile Include="PlayerControls\RadialMenu.cs" />
+		<Compile Include="Utils\RadialMenu.cs" />
 		<Compile Include="UI\UINeuroMita.cs" />
 		<Compile Include="Settings.cs" />
 		<Compile Include="PlayerControls\InputControl.cs" />

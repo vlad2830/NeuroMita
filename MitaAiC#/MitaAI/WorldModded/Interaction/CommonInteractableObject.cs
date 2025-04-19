@@ -87,6 +87,11 @@ namespace MitaAI
                 obj.active = false;
 
             }
+        
+            var OAM = GetComponent<ObjectAnimationMita>();
+            if (OAM != null) { 
+                OAM.enabled = false;
+            }
 
 
 
@@ -125,6 +130,12 @@ namespace MitaAI
             {
                 obj.active = true;
             }
+            var OAM = GetComponent<ObjectAnimationMita>();
+            if (OAM != null)
+            {
+                OAM.enabled = true;
+            }
+
 
             if (eventEnd == null) return;
 
