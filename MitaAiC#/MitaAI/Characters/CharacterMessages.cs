@@ -18,7 +18,7 @@ namespace MitaAI
     public static class CharacterMessages
     {
         public static Queue<(string, characterType)> systemMessages = new Queue<(string, characterType)>();
-        public static Queue<(string, characterType)> systemInfos = new Queue<(string, characterType)>();
+        public static LinkedList<(string, characterType)> systemInfos = new LinkedList<(string, characterType)>();
 
         public static void sendSystem(string m, bool info, characterType character = characterType.None)
         {
@@ -37,7 +37,7 @@ namespace MitaAI
         {
 
             if (character == characterType.None) character = MitaCore.Instance.currentCharacter;
-            systemInfos.Enqueue((m, character));
+            systemInfos.AddLast((m, character));
         }
 
         public static void sendInfoListeners(string message, List<characterType> characters = null, characterType exluding = characterType.None, string from = "Player")
@@ -56,10 +56,12 @@ namespace MitaAI
 
             foreach (characterType character in characters)
             {
+                MelonLogger.Msg($"sendInfoListeners {character}");
                 string speakersText = CharacterControl.getSpeakersInfo(character);
 
                 if (character != exluding)
                 {
+                    MelonLogger.Msg($"sendInfoListeners actually send {character}");
                     string messageToListener = "";
                     messageToListener += speakersText;
 

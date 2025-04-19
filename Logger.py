@@ -31,7 +31,7 @@ console_handler.setFormatter(colorlog.ColoredFormatter(
 console_handler.addFilter(MyFileFilter())
 
 # Обработчик для файла (добавляется всегда)
-file_handler = logging.FileHandler('app.log', encoding='utf-8')
+file_handler = logging.FileHandler('NeuroMitaLogs.log', encoding='utf-8')
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s - %(levelname)s - %(message)s'
 ))

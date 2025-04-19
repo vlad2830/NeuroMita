@@ -110,9 +110,7 @@ class Character:
                 state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FIXED_START)}
                 messages.append(state_message)
             except Exception as ex:
-                logger.info("FSM",ex)
-
-
+                logger.info("FSM", ex)
 
         return messages
 
@@ -137,9 +135,7 @@ class Character:
                 state_message = {"role": "system", "content": self.fsm.get_prompts_text(PromptType.FLOATING_SYSTEM)}
                 messages.append(state_message)
             except Exception as ex:
-                logger.info("FSM",ex)
-
-
+                logger.info("FSM", ex)
 
         return messages
 
@@ -173,9 +169,7 @@ class Character:
                 repeated_system_message += self.fsm.get_prompts_text(PromptType.CONTEXT_TEMPORARY)
                 repeated_system_message += self.fsm.get_variables_text()
             except Exception as ex:
-                logger.info("FSM",ex)
-
-
+                logger.info("FSM", ex)
 
         messages.append({"role": "system", "content": repeated_system_message})
 
@@ -197,7 +191,7 @@ class Character:
             try:
                 self.fsm.process_response(response)
             except Exception as ex:
-                logger.info("FSM",ex)
+                logger.info("FSM", ex)
 
         return response
 
@@ -304,8 +298,6 @@ class Character:
                                 self.memory_system.delete_memory(number=int(content))
                                 logger.info(f"Удалено воспоминание #{content}")
 
-
-
                     self.MitaLongMemory = {"role": "system", "content": self.memory_system.get_memories_formatted()}
                 except Exception as e:
                     logger.info(f"Ошибка обработки памяти: {str(e)}")
@@ -343,6 +335,9 @@ class Character:
         self.memory_system.clear_memories()
         self.history_manager.clear_history()
         self.load_history()
+
+    def add_message_to_history(self, message):
+        self.safe_history(self.load_history().get("messages").append(message), {})
 
     #endregion
 
@@ -432,6 +427,7 @@ class DivanCartridge(Cartridge):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
+
 #endregion
 
 
@@ -440,7 +436,7 @@ class GameMaster(Character):
     Специальный служебный персонаж, отвечающий за ход диалога
     """
 
-    def init(self): 
+    def init(self):
         self.init_prompts()
 
     def init_prompts(self):
@@ -461,7 +457,7 @@ class GameMaster(Character):
     def _process_behavior_changes(self, response):
         return response
 
-    def add_context(self,messages):
+    def add_context(self, messages):
         super().add_context(messages)
 
         logger.info("Особый контекст ГМ")

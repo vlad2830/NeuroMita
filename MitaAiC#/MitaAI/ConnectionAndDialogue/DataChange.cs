@@ -148,28 +148,18 @@ namespace MitaAI
 
             string response = "";
 
-
-            // TO DO Написать логику на питоне и отправлять туда сразу и там обрабатывать
-
-            //MelonLogger.Msg("HAS SYSTEM INFOS");
-            //Отправляю залпом.
-            while (CharacterMessages.systemInfos.Count() > 0)
+            // Добавляются все систем инфо
+            foreach (var message in CharacterMessages.systemInfos.ToList())
             {
-                var message = CharacterMessages.systemInfos.Dequeue();
-                characterType ch = message.Item2;
-
-                if (ch == characterToSend)
+                if (message.Item2 == characterToSend)
                 {
                     info += message.Item1 + "\n";
-                }
-                else
-                {
-                    CharacterMessages.sendSystemInfo(message.Item1, ch);
-                    break;
+                    CharacterMessages.systemInfos.Remove(message);
                 }
             }
-            
-            
+
+
+
             if (characterToSend != MitaCore.Instance.currentCharacter)
             {
                 if (characterToSend != characterType.GameMaster)

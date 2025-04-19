@@ -87,9 +87,7 @@ class ChatGUI:
             logger.info("Не удалось удачно получить из системных переменных все данные", e)
             self.settings = SettingsManager("Settings/settings.json")
 
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model,
-                               self.settings.get("gpt4free_model"),
-                               self.makeRequest)
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model,self.makeRequest)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -113,7 +111,9 @@ class ChatGUI:
 
         self.delete_all_sound_files()
         self.setup_ui()
-        self.root.bind_all("<Control-KeyPress>", self.keypress)
+
+        self.root.bind_class("Entry", "<Control-KeyPress>", self.keypress)
+        self.root.bind_class("Text", "<Control-KeyPress>", self.keypress)
 
         try:
             self.load_mic_settings()
@@ -480,6 +480,8 @@ class ChatGUI:
         right_canvas.bind_all("<Button-4>", _on_mousewheel)  # Linux (прокрутка вверх)
         right_canvas.bind_all("<Button-5>", _on_mousewheel)  # Linux (прокрутка вниз)
 
+
+
         self.setup_status_indicators(settings_frame)
         self.setup_language_controls(settings_frame)
         self.setup_api_controls_new(settings_frame)
@@ -838,6 +840,8 @@ class ChatGUI:
 
             {'label': _('Экспериментальные функции', 'Experimental features'), 'type': 'text'},
             {'label': _('Меню выбора Мит', 'Mita selection menu'), 'key': 'MITAS_MENU', 'type': 'checkbutton',
+             'default_checkbutton': False},
+            {'label': _('Меню эмоций Мит', 'Emotion menu'), 'key': 'EMOTION_MENU', 'type': 'checkbutton',
              'default_checkbutton': False}
         ]
 
@@ -1425,7 +1429,10 @@ class ChatGUI:
                 if command:
                     command(entry.get())
 
-            entry.bind("<Control-KeyPress>", self.keypress)
+            # Явная привязка горячих клавиш для Entry
+            entry.bind("<Control-v>", lambda e: self.cmd_paste(e.widget))
+            entry.bind("<Control-c>", lambda e: self.cmd_copy(e.widget))
+            entry.bind("<Control-x>", lambda e: self.cmd_cut(e.widget))
             entry.bind("<FocusOut>", lambda e: save_entry())
             entry.bind("<Return>", lambda e: save_entry())
 
@@ -1504,7 +1511,7 @@ class ChatGUI:
                 text.bind("<FocusOut>", lambda e: save_text())
                 text.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
 
-                text.bind("<Control-KeyPress>", self.keypress)
+
             else:
                 lbl.config(width=100)
 
@@ -1583,30 +1590,30 @@ class ChatGUI:
 
     #region HotKeys
     def keypress(self, e):
-        # Обработчик комбинаций клавиш для вставки, копирования и вырезания
-        if e.keycode == 86 and e.keysym != 'v':
-            self.cmd_paste()
-        elif e.keycode == 67 and e.keysym != 'c':
-            self.cmd_copy()
-        elif e.keycode == 88 and e.keysym != 'x':
-            self.cmd_cut()
+        # Получаем виджет, на котором произошло событие
+        widget = e.widget
 
-    def cmd_copy(self):
+        # Обработчик комбинаций клавиш
+        if e.keycode == 86 and e.state & 0x4:  # Ctrl+V
+            self.cmd_paste(widget)
+        elif e.keycode == 67 and e.state & 0x4:  # Ctrl+C
+            self.cmd_copy(widget)
+        elif e.keycode == 88 and e.state & 0x4:  # Ctrl+X
+            self.cmd_cut(widget)
+
+    def cmd_copy(self, widget):
         # Обработчик команды копирования
-        widget = self.root.focus_get()
-        if isinstance(widget, ttk.Entry) or isinstance(widget, tk.Text):
+        if isinstance(widget, (tk.Entry,ttk.Entry, tk.Text)):
             widget.event_generate("<<Copy>>")
 
-    def cmd_cut(self):
+    def cmd_cut(self, widget):
         # Обработчик команды вырезания
-        widget = self.root.focus_get()
-        if isinstance(widget, ttk.Entry) or isinstance(widget, tk.Text):
+        if isinstance(widget, (tk.Entry,ttk.Entry, tk.Text)):
             widget.event_generate("<<Cut>>")
 
-    def cmd_paste(self):
+    def cmd_paste(self, widget):
         # Обработчик команды вставки
-        widget = self.root.focus_get()
-        if isinstance(widget, ttk.Entry) or isinstance(widget, tk.Text):
+        if isinstance(widget, (tk.Entry,ttk.Entry, tk.Text)):
             widget.event_generate("<<Paste>>")
 
     #endregion

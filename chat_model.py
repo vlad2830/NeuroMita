@@ -18,7 +18,7 @@ from utils import *
 
 
 class ChatModel:
-    def __init__(self, gui, api_key, api_key_res, api_url, api_model, gpt4free_model, api_make_request):
+    def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
 
         # Временное решение, чтобы возвращать работоспособность старого формата
 
@@ -32,7 +32,7 @@ class ChatModel:
             self.api_key_res = api_key_res
             self.api_url = api_url
             self.api_model = api_model
-            self.gpt4free_model = gpt4free_model
+            self.gpt4free_model = self.gui.settings.get("gpt4free_model")
             self.makeRequest = api_make_request
 
             self.g4fClient = g4fClient()
@@ -405,9 +405,11 @@ class ChatModel:
 
             if bool(self.gui.settings.get("gpt4free")) or use_gpt4free:
                 logger.info("gpt4free case")
+
+                self.gpt4free_model = self.gui.settings.get("gpt4free_model")
                 self.change_last_message_to_user_for_gemini(self.gpt4free_model, combined_messages)
                 completion = self.g4fClient.chat.completions.create(
-                    model=self.gpt4free_model,
+                    model= self.gpt4free_model,
                     messages=combined_messages,
                     max_tokens=self.max_response_tokens,
                     temperature=0.5,
@@ -676,7 +678,8 @@ class ChatModel:
             "content": content
         }
         self.infos.append(system_info)
-        #.append(system_message)
+        #self.current_character.add_message_to_history(system_info)
+
 
     #region TokensCounting
     def calculate_cost(self, user_input):
