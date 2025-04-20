@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace MitaAI
 {
+    [RegisterTypeInIl2Cpp]
     public class Items : MonoBehaviour
     {
         Transform oldParent;
@@ -43,11 +44,12 @@ namespace MitaAI
             oldParent = transform.parent;
             oldPos = transform.localPosition;
             oldRot = transform.localEulerAngles;
-            oldScale = transform.localScale;
+            newScale = transform.localScale;
 
             NewPos = localPos;
             NewRot = localRot;
             part = _part;
+            newScale = localScale;
         }
 
         public static void Take(Transform what, Transform where, Vector3 localPos, Vector3 localRot)

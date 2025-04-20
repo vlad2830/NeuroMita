@@ -203,7 +203,7 @@ namespace MitaAI
                 if (OAP != null)
                 {
 
-                    OI = Interactions.FindOrCreateObjectInteractable(ChairRoom.gameObject, false, 3, loc._("Сесть", "Sit"), false,CanvasPosition:new Vector3(0,1,1));
+                    OI = Interactions.FindOrCreateObjectInteractable(ChairRoom.gameObject, true, 3, loc._("Сесть", "Sit"), false,CanvasPosition:new Vector3(0,1,1));
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
                     OAP.transform.localEulerAngles = new Vector3(90, 0, 0);
@@ -396,7 +396,7 @@ namespace MitaAI
                 if (OAP != null)
                 {
 
-                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, false, 3, loc._("Сесть", "Sit"), false);
+                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Сесть", "Sit"), false);
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
                     OAP.transform.localEulerAngles = new Vector3(270, 0, 180f);
@@ -414,7 +414,7 @@ namespace MitaAI
                 if (OAP != null)
                 {
 
-                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, false, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(0, 0.95f, 0.6f));
+                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(0, 0.95f, 0.6f));
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
                     OAP.transform.localEulerAngles = new Vector3(0, 90, 90);
@@ -599,7 +599,7 @@ namespace MitaAI
 
                     Utils.setTextTimed(text, tipText);
                 }
-                caseInfo.gameObject.active = false;
+                //caseInfo.gameObject.active = false;
                 //Utils.ToggleObjectActiveAfterTime(caseInfo.gameObject,0);
 
 
