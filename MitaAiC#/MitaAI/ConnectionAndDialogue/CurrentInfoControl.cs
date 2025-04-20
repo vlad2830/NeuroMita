@@ -102,7 +102,7 @@ namespace MitaAI
                 MelonLogger.Msg("CurrentInfo 2");
 
 
-                if (MitaState.currentMitaState == MitaStateType.hunt) info += $"You are hunting player with knife:\n";
+                if (MitaState.GetCurrentState(MitaCore.Instance.currentCharacter) == MitaStateType.hunt) info += $"You are hunting player with knife:\n";
 
                 info += $"Your size: {MitaCore.Instance.MitaPersonObject.transform.localScale.x}\n";
                 info += $"Your speed: {MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>().speed}\n";

@@ -806,7 +806,7 @@ class ChatGUI:
             {'label': _('Время между попытками', 'time between attempts'),
              'key': 'MODEL_MESSAGE_ATTEMPTS_TIME', 'type': 'entry', 'default': 0.20},
             {'label': _('Использовать gpt4free последней попыткой ', 'Use gpt4free as last attempt'),
-             'key': 'GPT4FREE_LAST_ATTEMPT', 'type': 'checkbutton', 'default_checkbutton': True},
+             'key': 'GPT4FREE_LAST_ATTEMPT', 'type': 'checkbutton', 'default_checkbutton': False},
 
             {'label': _('Настройки ожидания', 'Waiting settings'), 'type': 'text'},
             {'label': _('Время ожидания текста (сек)', 'Text waiting time (sec)'),

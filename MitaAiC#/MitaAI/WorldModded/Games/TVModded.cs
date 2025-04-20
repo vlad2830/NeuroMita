@@ -96,11 +96,11 @@ namespace MitaAI
 
             if (KeysActive)
             {
-                PlayerHands.takeInHand(GamepadBlue,true,new Vector3(0,0,-0.08f),Vector3.zero);
+                PlayerHands.TakeInHand(GamepadBlue,true,new Vector3(0,0,-0.08f),Vector3.zero);
             }
             else
             {
-                PlayerHands.free(GamepadBlue, true);
+                PlayerHands.Free(GamepadBlue, true);
             }
             
         }

@@ -632,8 +632,8 @@ namespace MitaAI
 
             playerObject.GetComponent<PlayerMove>().speedPlayer = 1f;
             playerObject.GetComponent<PlayerMove>().canRun = true;
-            PlayerHands.init(playerObject.transform);
-            LookAtPlayer.init(playerPersonObject.transform);
+            PlayerHands.Init(playerObject.transform);
+            LookAtPlayer.Init(playerPersonObject.transform);
 
             if (playerPersonObject.GetComponent<AudioSource>() == null) AudioControl.playerAudioSource = playerPersonObject.AddComponent<AudioSource>();
 

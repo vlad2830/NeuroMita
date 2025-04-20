@@ -31,6 +31,7 @@ namespace MitaAI
 
             if (currentOAMc != null) {
                 info += $"Currently interacting with {currentOAMc.AmimatedObject.name} - {currentOAMc.tip}";
+                info += $"To end this interaction, use <{command}>{currentOAMc.backAnimation.name}</{command}> or move to some point.";
                 info += $"Attention: all move commands will finish iteraction! Thus use finishing they only intentionally!";
             }
             if (allOAMs.Count>0)

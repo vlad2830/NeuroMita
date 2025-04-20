@@ -195,6 +195,8 @@ namespace MitaAI
 
                     // Назначаем анимацию по клику
                     interactable.eventClick.AddListener((UnityAction)animationPlayer.AnimationPlay);
+
+                    interactable.Click();
                 }
                 else
                 {

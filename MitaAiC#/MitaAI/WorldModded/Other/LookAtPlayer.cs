@@ -11,7 +11,7 @@ namespace MitaAI
         public bool flipSprite = true; // Для 2D объектов с рендерером
         public float rotationOffset = 0f; // Дополнительный поворот
 
-        public static void init(Transform _playerTransform)
+        public static void Init(Transform _playerTransform)
         {
             playerTransform = _playerTransform;
         }

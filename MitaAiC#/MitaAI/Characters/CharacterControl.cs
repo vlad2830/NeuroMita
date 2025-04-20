@@ -272,7 +272,7 @@ namespace MitaAI
             }
             
             // Специальная логика для режима hunt - оставляю на будующее если проблемы с охотой случатся
-            if (MitaState.currentMitaState == MitaStateType.hunt && from == characterType.Crazy)
+            if (MitaState.GetCurrentState(MitaCore.Instance.currentCharacter) == MitaStateType.hunt && from == characterType.Crazy)
             {
                 //можно будет например спам убрать, слишком много во время охоты говорит
             }
