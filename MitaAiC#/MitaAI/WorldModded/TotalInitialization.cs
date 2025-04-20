@@ -71,7 +71,7 @@ namespace MitaAI
             pult.active = false;
             pult.GetComponent<ObjectInteractive>().active = true;
 
-            GameObject pultCopy= GameObject.Instantiate(pult, pult.transform.parent);
+            GameObject pultCopy= GameObject.Instantiate(pult, world.Find("House"));
 
             MinigamesTelevisionController minigamesTelevisionController =  Utils.TryfindChild(world, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/TV/GameTelevision").GetComponent<MinigamesTelevisionController>();
             minigamesTelevisionController.destroyAfter = false;
@@ -79,6 +79,7 @@ namespace MitaAI
          
 
             pultCopy.active = true;
+
 
             GameObject GameAihastion = Utils.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
         }
