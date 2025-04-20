@@ -295,7 +295,7 @@ namespace MitaAI
 
             try
             {
-                var GamepadPink = MitaCore.worldHouse.Find("World/House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/GamepadPink");
+                var GamepadPink = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/GamepadPink");
                 oam = ObjectAnimationMita.Create(GamepadPink.gameObject, "GamepadPink take", "Взять розовый геймпад");
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
                 oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
@@ -397,14 +397,24 @@ namespace MitaAI
             {
                 var Bed = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bed");
                 Bed.name = "Bed";
-                oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down", "Лечь на кровать");
-                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
+                oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face left", "Лечь на кровать лицом влево");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
                 oam.setStartPos(new Vector3(-0.3f, -0.5f, 0.46f), new Vector3(277.3817f, 0, 180f));
                 oam.setIdleAnimation("Mita Fall Idle");
                 oam.addEnqueAnimationAction("Mita Fall Idle");
-                oam.setRevertAOM("Bed stend up", "Встать c кровати");
+                BackOAM = oam.setRevertAOM("Bed stend up", "Встать c кровати");
 
 
+                oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face right", "Лечь на кровать лицом в право (там может лечь игрок)");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
+                oam.setStartPos(new Vector3(0.4f,-0.53f, 0.85f), new Vector3(276.5924f, 0.4038f, 358.2999f));
+                oam.setIdleAnimation("Mita Fall Idle");
+                oam.addEnqueAnimationAction("Mita Fall Idle");
+                oam.setRevertAOM("Bed stend up", "Встать c кровати", oamBackSepate:BackOAM);
+
+
+                // 0,4 -0,53 0,85
+                // 276,5924 0,4038 358,2999
             }
             catch (Exception) { }
 
@@ -448,7 +458,7 @@ namespace MitaAI
             try
             {
                 var LivingRoomSeatTumb = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bed");
-                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(LivingRoomSeatTumb, "AnimationPlayer LieBed", "center", rotation:30);
+                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(LivingRoomSeatTumb, "AnimationPlayer LieBed", "center", rotation:15);
                 if (OAP != null)
                 {
 

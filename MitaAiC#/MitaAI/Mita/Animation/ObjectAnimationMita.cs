@@ -327,11 +327,18 @@ namespace MitaAI
         
         
         // Обратное действие
-        public ObjectAnimationMita setRevertAOM(string Name,string Tip,string idleAnim = "Mita Idle_2",bool needWalking = false, bool NeedMovingToIdle = false)
+        public ObjectAnimationMita setRevertAOM(string Name,string Tip,string idleAnim = "Mita Idle_2",bool needWalking = false, bool NeedMovingToIdle = false, ObjectAnimationMita oamBackSepate = null)
         {
-            
-
-            var oamBack = ObjectAnimationMita.Create(gameObject.transform.parent.gameObject, Name, Tip,isEndingObject:true);
+            ObjectAnimationMita oamBack;
+            if (oamBackSepate == null)
+            {
+                oamBack = ObjectAnimationMita.Create(gameObject.transform.parent.gameObject, Name, Tip, isEndingObject: true);
+            }
+            else
+            {
+                oamBack = oamBackSepate;
+            }
+           
 
             oamBack.resetIdleAnimation();
             oamBack.addReturningToNormal();

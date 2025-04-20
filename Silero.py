@@ -104,12 +104,13 @@ class TelegramBotHandler:
             return
 
         # Защита от слишком быстрых сообщений
+        time_between_messages = 1.5
         current_time = time.time()
         if self.last_send_time > 0:  # проверяем, что это не первый вызов
             time_since_last = current_time - self.last_send_time
-            if time_since_last < 0.7:
-                logger.info(f"Слишком быстро пришел некст войс, ждем{0.7 - time_since_last}")
-                await asyncio.sleep(0.7 - time_since_last)
+            if time_since_last < time_between_messages:
+                logger.info(f"Слишком быстро пришел некст войс, ждем{time_between_messages - time_since_last}")
+                await asyncio.sleep(time_between_messages - time_since_last)
 
         self.last_send_time = time.time()  # обновляем время после возможной паузы
 
