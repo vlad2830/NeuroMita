@@ -45,7 +45,9 @@ namespace MitaAI
 
             ObjectAnimationPlayer OAP;
             ObjectInteractive OI;
-
+            ObjectAnimationMita OAM;
+            ObjectAnimationMita BackOAM;
+            Items items;
             for (int i = 1; i < 5; i++)
             {
 
@@ -205,7 +207,7 @@ namespace MitaAI
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
                     OAP.transform.localEulerAngles = new Vector3(90, 0, 0);
-                    OAP.transform.localPosition = new Vector3(0, -0.8f, 0);///new Vector3(-16.2971f, 6.3132f, -2.9776f);
+                    OAP.transform.localPosition = new Vector3(0, 0.8f, 0);///new Vector3(-16.2971f, 6.3132f, -2.9776f);
                 } 
 
 
@@ -232,6 +234,45 @@ namespace MitaAI
             oam.setRevertAOM("MUChair Basement stend up", "Встать с табуретки");
 
 
+            try
+            {
+                var Vedro = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/Bucket");
+                sitBasement.name = "Vedro";
+                oam = ObjectAnimationMita.Create(Vedro.gameObject, "Bucket wear", "Надеть ведро на голову");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
+                oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
+                oam.addEnqueAnimationAction("Mita Click_2");
+                items = Vedro.gameObject.AddComponent<Items>();
+                //"Armature/Hips/Spine/Chest/Neck2/Neck1/"
+                items.init(new Vector3(0,0.5f,0),new Vector3(90,0,0),Vector3.one*0.61f,"Armature/Hips/Spine/Chest/Neck2/Neck1/Head");
+                oam.addSimpleAction((UnityAction)items.Take);
+                BackOAM = oam.setRevertAOM("Bucket wear end", "Снять ведро с головы");
+                BackOAM.addSimpleAction((UnityAction)items.Free, false);
+            }
+            catch (Exception)
+            {
+
+            }
+
+            try
+            {
+                var Lopata = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/Shovel 1");
+                sitBasement.name = "Lopata";
+                oam = ObjectAnimationMita.Create(Lopata.gameObject, "Shovel take", "Взять лопату в руки");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
+                oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
+                //oam.addEnqueAnimationAction("Mita Click_2");
+                items = Lopata.gameObject.AddComponent<Items>();
+                //"Armature/Hips/Spine/Chest/Neck2/Neck1/"
+                items.init(new Vector3(0, 0.8f, 0.1f), new Vector3(0, 180, 180), Vector3.one, "RightItem");
+                oam.addSimpleAction((UnityAction)items.Take);
+                BackOAM = oam.setRevertAOM("Shovel return", "Вернуть лопату на место");
+                BackOAM.addSimpleAction((UnityAction)items.Free, false);
+            }
+            catch (Exception)
+            {
+
+            }
 
 
 
@@ -377,7 +418,7 @@ namespace MitaAI
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
                     OAP.transform.localEulerAngles = new Vector3(0, 90, 90);
-                    OAP.transform.localPosition = new Vector3(-1.4f, 0.3f, 0);
+                    OAP.transform.localPosition = new Vector3(-1.4f, 0.2f, 0);
                 }
 
             }
@@ -559,7 +600,7 @@ namespace MitaAI
                     Utils.setTextTimed(text, tipText);
                 }
                 caseInfo.gameObject.active = false;
-                Utils.ToggleObjectActiveAfterTime(caseInfo.gameObject);
+                //Utils.ToggleObjectActiveAfterTime(caseInfo.gameObject,0);
 
 
 

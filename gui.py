@@ -105,7 +105,7 @@ class ChatGUI:
         self.waiting_answer = False
 
         self.root = tk.Tk()
-        self.root.title("Чат с NeuroMita")
+        self.root.title(_("Чат с NeuroMita","NeuroMita Chat"))
 
         self.delete_all_sound_files()
         self.setup_ui()

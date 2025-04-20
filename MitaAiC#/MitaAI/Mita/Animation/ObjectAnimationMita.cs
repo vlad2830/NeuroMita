@@ -54,7 +54,7 @@ namespace MitaAI
                         continue;
                     }
 
-                    info += $"\n Name: '{oam.Key}' Tip: {oam.Value.tip} distance :{distance.ToString("F2")}";
+                    info += $"\n Name with tags: '<{command}>{oam.Key}</{command}>' Desctiption: {oam.Value.tip} distance :{distance.ToString("F2")}";
                     
                 }
             }
@@ -137,7 +137,6 @@ namespace MitaAI
         public Vector3 aiMoveInitialRotation;
 
         // Где в начале Мита
-
         public Vector3 startOAMPosition;
         public Vector3 startOAMRotation;
 
@@ -243,7 +242,7 @@ namespace MitaAI
             aiMovePoint.transform.SetParent(transform);
             aiMovePoint.transform.SetLocalPositionAndRotation(pos,Quaternion.identity);
             //mitaAIMovePoint.targetMove = aiMovePoint.transform;
-
+            needWalking = true;
         }
 
         public void setStartPos(Vector3 pos, Vector3 rot)
@@ -251,6 +250,7 @@ namespace MitaAI
             startOAMPosition = pos;
             startOAMRotation = rot;
             transform.SetLocalPositionAndRotation(pos, Quaternion.Euler(rot));
+            needWalking = true;
 
         }
         public void setFinalPos(Vector3 pos, Vector3 rot)
