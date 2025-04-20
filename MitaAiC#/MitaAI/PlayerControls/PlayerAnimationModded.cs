@@ -28,7 +28,7 @@ namespace MitaAI
         static public PlayerPersonIK playerPersonIK;
         public static Dictionary<string, AnimationClip> PlayerAnimations { get; private set; } = new Dictionary<string, AnimationClip>();
 
-        public static Dictionary<string, ObjectAnimationPlayer> ObjectsAnimationPlayer { get; private set; } = new Dictionary<string, ObjectAnimationPlayer>();
+        public static Dictionary<string, ObjectAnimationPlayer> ObjectsAnimationPlayer = new Dictionary<string, ObjectAnimationPlayer>();
 
         public static AnimationClip getPlayerAnimationClip(string name)
         {

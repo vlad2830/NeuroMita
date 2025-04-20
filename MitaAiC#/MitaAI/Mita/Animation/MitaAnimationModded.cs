@@ -473,7 +473,7 @@ namespace MitaAI.Mita
         // Отвечает за перемещение и поворот миты.
         public static void checkCanMoveRotateLook(bool ignoreInteractionCondition = false)
         {
-            if (MitaState.currentMitaState == MitaStateType.interaction && !ignoreInteractionCondition) return;
+            if (MitaState.GetCurrentState(MitaCore.Instance.currentCharacter) == MitaStateType.interaction && !ignoreInteractionCondition) return;
 
             // Если запрещено двигаться
             if (MovementStylesNoMovingAtAll.Contains(MitaMovement.movementStyle))

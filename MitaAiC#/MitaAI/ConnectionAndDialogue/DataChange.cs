@@ -51,7 +51,7 @@ namespace MitaAI
             bool timeoutSatisfied = currentTime - lastActionTime > actionCooldown - (CharacterControl.needToIgnoreTimeout() ? 4 : 0);
             
             // Особая логика для режима охоты - принудительно сбрасываем счетчики дубликатов
-            if (MitaState.currentMitaState == MitaStateType.hunt && timeoutSatisfied)
+            if (MitaState.GetCurrentState(characterToSend) == MitaStateType.hunt && timeoutSatisfied)
             {
                 lastSystemData.Clear(); // Очищаем словарь с данными о сообщениях
             }
@@ -138,7 +138,7 @@ namespace MitaAI
 
                     lastActionTime = Time.unscaledTime;
                 }
-                else if (MitaBoringtimer >= MitaBoringInterval && MitaState.currentMitaState == MitaStateType.normal)
+                else if (MitaBoringtimer >= MitaBoringInterval && MitaState.GetCurrentState(characterToSend) == MitaStateType.normal)
                 {
                     MitaBoringtimer = 0f;
                     dataToSentSystem = "Player did nothing for 90 seconds";

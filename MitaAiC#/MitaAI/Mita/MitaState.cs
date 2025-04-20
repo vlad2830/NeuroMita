@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MitaAI
 {
@@ -11,23 +8,34 @@ namespace MitaAI
         normal,
         hunt,
         interaction
-
     }
-
 
     public class MitaState
     {
-        public static MitaStateType currentMitaState = MitaStateType.normal;
-        
+        private static Dictionary<characterType, MitaStateType> characterStates = new Dictionary<characterType, MitaStateType>();
 
-        public static bool isMovingAvailble()
+        public static MitaStateType GetCurrentState(characterType characterType)
         {
-            return currentMitaState == MitaStateType.normal;
+            if (characterStates.TryGetValue(characterType, out MitaStateType state))
+            {
+                return state;
+            }
+            return MitaStateType.normal; // Возвращаем значение по умолчанию, если ключ не найден
         }
 
-        public static bool isAnimationAvailble()
+        public static void SetCurrentState(characterType characterType, MitaStateType newState)
         {
-            return currentMitaState == MitaStateType.normal;
+            characterStates[characterType] = newState;
+        }
+
+        public static bool IsMovingAvailable(characterType characterType)
+        {
+            return GetCurrentState(characterType) == MitaStateType.normal;
+        }
+
+        public static bool IsAnimationAvailable(characterType characterType)
+        {
+            return GetCurrentState(characterType) == MitaStateType.normal;
         }
     }
 }

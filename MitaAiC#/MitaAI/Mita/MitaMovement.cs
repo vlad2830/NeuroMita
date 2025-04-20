@@ -9,6 +9,7 @@ using UnityEngine.Playables;
 using UnityEngine.AI;
 using Il2CppRootMotion.FinalIK;
 using UnityEngine.Events;
+using MitaAI.Mita;
 
 namespace MitaAI
 {
@@ -91,6 +92,7 @@ namespace MitaAI
             movementStyle = MovementStyles.stay;
             MitaCore.Instance.location34_Communication.ActivationCanWalk(false);
             MelonCoroutines.Start(LookOnPlayer());
+            MitaAnimationModded.resetToIdleAnimation();
         }
         public static void ChoseStyle(string animName)
         {
@@ -98,6 +100,11 @@ namespace MitaAI
             if (animName.Contains("sit") || animName.Contains("Sit"))
             {
                 movementStyle = MovementStyles.sitting;
+            }
+            else if(animName.Contains("Fall") || animName.Contains("Fall"))
+            {
+                movementStyle = MovementStyles.layingOnTheFloorAsDead;
+                
             }
             else
             {

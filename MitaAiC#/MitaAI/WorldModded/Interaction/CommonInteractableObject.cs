@@ -160,7 +160,7 @@ namespace MitaAI
         /// <param name="interactionText">Текст подсказки при взаимодействии</param>
         /// <param name="interactionDistance">Дистанция взаимодействия</param>
         /// <param name="useParent">Использовать родительский объект для взаимодействия</param>
-        public static void SetupSitAnimation(
+        public static void TestSetupAnimation(
             GameObject targetObject,
             string animationName = "AnimationPlayer Sit",
             string side = "center",
@@ -170,7 +170,10 @@ namespace MitaAI
             float interactionDistance = 2f,
             bool useParent = true)
             {
-                var animationPlayer = PlayerAnimationModded.CopyObjectAmimationPlayerTo(
+
+            if (string.IsNullOrEmpty(animationName)) animationName = "AnimationPlayer Sit";
+
+            var animationPlayer = PlayerAnimationModded.CopyObjectAmimationPlayerTo(
                     targetObject.transform,
                     animationName,
                     side);

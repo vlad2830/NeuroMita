@@ -67,7 +67,7 @@ class ChatServer:
             logger.error(f"Socket error: {e}")
         except Exception as e:
             logger.error(f"Connection handling error: {e}")
-            self.gui.ConnectedToGame = False  # Обновление статуса в GUI
+            self.gui.update_game_connection(False)  # Обновление статуса в GUI
         finally:
             if self.client_socket:
                 self.client_socket.close()  # Важно закрывать соединение
@@ -181,11 +181,12 @@ class ChatServer:
             json_message = json.dumps(message_data)
             self.client_socket.send(json_message.encode("utf-8"))
 
-            self.gui.ConnectedToGame = True
+            self.gui.update_game_connection(True)
+
             return True
         except Exception as e:
             logger.error(f"Ошибка обработки подключения: {e}")
-            self.gui.ConnectedToGame = False
+            self.gui.update_game_connection(False)
             return False
         finally:
             if self.client_socket:

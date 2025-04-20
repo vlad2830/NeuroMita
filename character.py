@@ -184,7 +184,10 @@ class Character:
 
     def process_response(self, response: str):
         response = self.extract_and_process_memory_data(response)
-        response = self._process_behavior_changes(response)
+        try:
+            response = self._process_behavior_changes(response)
+        except Exception as e:
+            logger.warning(e)
         """То, как должно что-то меняться в результате ответа"""
 
         if self.fsm:

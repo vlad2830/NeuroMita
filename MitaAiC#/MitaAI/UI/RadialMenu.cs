@@ -57,10 +57,10 @@ namespace MitaAI
 
         void Update()
         {
-            if (!MitaCore.isRequiredScene()) return;
+            if (!MitaCore.isRequiredScene() || !isAllowed) return;
 
             // Если правая кнопка мыши только что нажата
-            if (Input.GetMouseButtonDown(1) && isAllowed)
+            if (Input.GetMouseButtonDown(1))
             {
                 if (!Showed && !UINeuroMita.isPauseMenu)
                 {
@@ -235,7 +235,7 @@ namespace MitaAI
             // Создаем корневой объект
             var item = new GameObject("RadialMenuItem");
             var rectTransform = item.AddComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(100, 100);
+            rectTransform.sizeDelta = new Vector2(125, 125);
 
             // Добавляем компоненты
             var image = item.AddComponent<Image>();

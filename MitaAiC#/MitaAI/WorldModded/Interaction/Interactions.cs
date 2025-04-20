@@ -244,7 +244,89 @@ namespace MitaAI
 
 
 
+            try
+            {
+                var sitNearBed = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bedroom BedSeat");
+                sitNearBed.name = "NearBed";
+                oam = ObjectAnimationMita.Create(sitNearBed.gameObject, "NearBed Sit", "Сесть на сидушку у кровати");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
+                oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(90, 0, 0));
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setRevertAOM("NearBedSit stend up", "Встать с сидушки");
 
+                
+            }
+            catch (Exception) { }
+
+
+            try
+            {
+                var SitNearMirror = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bedroom MUTableSeat");
+                SitNearMirror.name = "NearMirror";
+                oam = ObjectAnimationMita.Create(SitNearMirror.gameObject, "NearMirror Sit", "Сесть на стул у зеркала");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
+                oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(90, 0, 0));
+                oam.setIdleAnimation("Mita SitIdle");
+                oam.addEnqueAnimationAction("Mita SitIdle");
+                oam.setRevertAOM("NearMirror stend up", "Встать со стула");
+
+
+            }
+            catch (Exception) { }
+
+
+
+            try
+            {
+                var SofaBasement = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/CornerSofaBasic");
+                SofaBasement.name = "SofaBasement";
+                oam = ObjectAnimationMita.Create(SofaBasement.gameObject, "SofaBasement lie down", "Лечь на диван");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
+                oam.setStartPos(new Vector3(-0.35f, -0.6273f, 0.6582f), new Vector3(0, 90, 265));
+                oam.setIdleAnimation("Mita Fall Start");
+                oam.addEnqueAnimationAction("Mita Fall Idle");
+                oam.setRevertAOM("SofaBasement stend up", "Встать со дивана");
+
+
+            }
+            catch (Exception) { }
+
+
+            try
+            {
+                var boxNearConsole = MitaCore.worldBasement.Find("World/House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/CardboardBox2");
+                boxNearConsole.name = "boxNearConsole";
+                oam = ObjectAnimationMita.Create(boxNearConsole.gameObject, "boxNearConsole sit", "Сесть на коробку рядом с картриджем");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
+                oam.setStartPos(new Vector3(-0.3f,0,1), new Vector3(90, 0,0));
+                oam.setIdleAnimation("Mita Sit Idle");
+                oam.addEnqueAnimationAction("Mita Sit Idle");
+                oam.setRevertAOM("boxNearConsole stend up", "Встать с коробки");
+
+
+            }
+            catch (Exception) { }
+            ObjectAnimationPlayer OAP;
+            ObjectInteractive OI;
+
+            try
+            {
+                var LivingRoomSeatTumb = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/LivingRoomSeatTumb");
+                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(LivingRoomSeatTumb, "AnimationPlayer Sit", "center");
+                if (OAP != null)
+                {
+                    OAP.transform.localEulerAngles = new Vector3(0, 0, 192.4337f);
+                    OAP.transform.localPosition = new Vector3(-16.2971f, 6.3132f, -2.9776f);
+                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, false, 1, loc._("Сесть", "Sit"), false, useParent: true);
+                    OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
+                }
+
+            }
+            catch (Exception) { }
+
+
+            
         }
 
         public static void initCornerSofa(Transform world)
@@ -296,7 +378,7 @@ namespace MitaAI
          * 
          */
         public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool remakeEvent = true, float timeDeactivate = 1, string tipText = null, bool addCollider = true, 
-            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 1.4f)
+            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 0.5f)
         {
             if (gameObject == null)
             {

@@ -46,7 +46,7 @@ namespace MitaAI
             {
                 MelonLogger.Msg("beginHunt ");
                 MitaCore.Instance.knife.SetActive(true);
-                MitaState.currentMitaState = MitaStateType.hunt;
+                MitaState.SetCurrentState(MitaCore.Instance.currentCharacter,MitaStateType.hunt);
 
 
                 if (MitaCore.Instance.currentCharacter == characterType.Creepy && LogicCharacter.Instance != null)
@@ -76,7 +76,7 @@ namespace MitaAI
 
             yield return new WaitForSecondsRealtime(1f);
 
-            while (MitaState.currentMitaState == MitaStateType.hunt)
+            while (MitaState.GetCurrentState(MitaCore.Instance.currentCharacter) == MitaStateType.hunt)
             {
                 if (MitaCore.Instance.getDistanceToPlayer() > 1f)
                 {
@@ -126,7 +126,7 @@ namespace MitaAI
                 MitaCore.Instance.knife.SetActive(false);
                 MitaMovement.movementStyle = MovementStyles.walkNear;
                 MitaAnimationModded.location34_Communication.ActivationCanWalk(true);
-                MitaState.currentMitaState = MitaStateType.normal;
+                MitaState.SetCurrentState(MitaCore.Instance.currentCharacter,MitaStateType.normal);
                 MitaCore.Instance.MitaSharplyStopTimed(0.5f);
             }
         }
@@ -140,7 +140,7 @@ namespace MitaAI
         // Метод для LogicCharacter, чтобы установить состояние персонажа
         public static void SetHuntState(bool isHunting)
         {
-            MitaState.currentMitaState = isHunting ? MitaStateType.hunt : MitaStateType.normal;
+            MitaState.SetCurrentState(MitaCore.Instance.currentCharacter,isHunting ? MitaStateType.hunt : MitaStateType.normal);
         }
         #endregion
 

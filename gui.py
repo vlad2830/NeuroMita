@@ -52,7 +52,7 @@ class ChatGUI:
     def __init__(self):
 
         self.silero_connected = False
-        self.game_connected = False
+        self.game_connected_checkbox_var = False
         self.ConnectedToGame = False
 
         self.chat_window = None
@@ -534,14 +534,14 @@ class ChatGUI:
         status_frame.pack(fill=tk.X, pady=3)
 
         # Переменные статуса
-        self.game_connected = tk.BooleanVar(value=False)  # Статус подключения к игре
+        self.game_connected_checkbox_var = tk.BooleanVar(value=False)  # Статус подключения к игре
         self.silero_connected = tk.BooleanVar(value=False)  # Статус подключения к Silero
 
         # Галки для подключения
         self.game_status_checkbox = tk.Checkbutton(
             status_frame,
             text=_("Подключение к игре", "Connection to game"),
-            variable=self.game_connected,
+            variable=self.game_connected_checkbox_var,
             state="disabled",
             bg="#2c2c2c",
             fg="#ffffff",
@@ -563,9 +563,11 @@ class ChatGUI:
     def updateAll(self):
         self.update_status_colors()
         self.update_debug_info()
-
+    def update_game_connection(self,is_connected):
+        self.ConnectedToGame = is_connected
+        self.game_connected_checkbox_var = tk.BooleanVar(value=is_connected)  # Статус подключения к игре
     def update_status_colors(self):
-        self.game_connected = tk.BooleanVar(value=self.ConnectedToGame)  # Статус подключения к игре
+        self.game_connected_checkbox_var = tk.BooleanVar(value=self.ConnectedToGame)  # Статус подключения к игре
         # Обновление цвета для подключения к игре
         game_color = "#00ff00" if self.ConnectedToGame else "#ffffff"
         self.game_status_checkbox.config(fg=game_color)

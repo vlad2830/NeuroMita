@@ -138,7 +138,7 @@ namespace MitaAI
                     loc._("Помните, все что пишет","Remember, all written"), 
                     loc._("ИИ - выдуманно!","by AI is imaginary!"),
                     loc._("Открыть чат - TAB","Open chat - TAB"),
-                    loc._("Отправить - ENTER","Sent - ENTER"), 
+                    loc._("Отправить - ENTER","Send - ENTER"), 
                     //"не выполняйте", 
                     //"и не повторяйте", 
                     //"действия сказанные", 
@@ -152,7 +152,7 @@ namespace MitaAI
                     newTextObject.name = "TextMod_" + i;
                     newTextObject.transform.localPosition = new Vector3(0, -550 + yOffset, 0); // Adjust position
                     MelonCoroutines.Start(changeName(newTextObject, lines[i]));
-                    yOffset -= 35f; // Decrease offset for the next line
+                    yOffset -= 40f; // Decrease offset for the next line
                 }
             }
             catch (Exception e) { MelonLogger.Error(e); }
@@ -246,7 +246,7 @@ namespace MitaAI
                     MilaButton.name = "MilaButton";
                     MilaButton.active = true;
                     MilaButton.transform.localPosition += new Vector3(0, -110);
-                    MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, loc._("Мила (в работе)","Mita (in work)")));
+                    MelonCoroutines.Start(changeName(MilaButton.transform.Find("Text").gameObject, loc._("Мила (в работе)","Mila (in work)")));
                     MilaButton.GetComponent<ButtonMouseClick>().eventClick = setupMenuEvent(MilaButton, MilaButton.name);
                 }
                 catch (Exception e) { MelonLogger.Error(e); }

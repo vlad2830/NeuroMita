@@ -380,7 +380,7 @@ namespace MitaAI
                 currentOAMc = this;
                 MitaCore.Instance.Mita.MagnetOff();
                 MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = true;
-                MitaState.currentMitaState = MitaStateType.interaction;
+                MitaState.SetCurrentState(MitaCore.Instance.currentCharacter, MitaStateType.interaction);
                 MitaAnimationModded.location34_Communication.ActivationCanWalk(false);
 
                 if (needWalking)
@@ -451,7 +451,7 @@ namespace MitaAI
             MitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
             MitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition: true);
             if (NeedMovingToIdle) Utils.StartObjectAnimation(MitaCore.Instance.MitaPersonObject, transform.position, transform.eulerAngles, AnimationTransitionDuration+0.5f, false);
-
+            MelonCoroutines.Start(MagnetAfterDelay(MitaCore.Instance.Mita, gameObject.transform, waitingAfterWalk, !magnetAfter));
         }
 
         void ResetIdleAnimation()
@@ -471,7 +471,7 @@ namespace MitaAI
 
             
 
-            MitaState.currentMitaState = MitaStateType.normal;
+            MitaState.SetCurrentState(MitaCore.Instance.currentCharacter,MitaStateType.normal);
 
             MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = false;
         }
@@ -488,7 +488,7 @@ namespace MitaAI
             // Для магнита где надо
             //aiMovePoint.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             
-            if (magnetAfter) MelonCoroutines.Start(MagnetAfterDelay(MitaCore.Instance.Mita, gameObject.transform, waitingAfterWalk));
+            
             
             //MitaCore.Instance.Mita.MagnetToTarget(gameObject.transform);
            
@@ -538,25 +538,34 @@ namespace MitaAI
                 yield return new WaitForSeconds(repeatTimer);
                 mita.MagnetToTarget(transform);
             }
-            if (offMagnetAfter) MitaCore.Instance.Mita.MagnetOff();
+            //if (offMagnetAfter) MitaCore.Instance.Mita.MagnetOff();
 
         }
 
 
-        #endregion
+#endregion
 
 
         #region Test
-        void testInit(string name, string tip = "", string AnimName = "Mita SitIdle", string idleAnim = "Mita SitIdle")
+        void a_testInit(string name="123", string tip = "Test", string AnimName = "Mita SitIdle", string idleAnim = "Mita SitIdle")
         {
+            MelonLogger.Warning("Test Init OAM");
+
             this.name = name;
             transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             startOAMPosition = transform.position;
-            startOAMRotation = Quaternion.ToEulerAngles(transform.rotation);
+            startOAMRotation = new Vector3(90, 0, 0);
+
+
+            if (string.IsNullOrEmpty(AnimName)) AnimName = "Mita SitIdle";
             mitaAmimatedName = AnimName;
             Initialize();
             addEnqueAnimationAction(AnimName);
-            if (!string.IsNullOrEmpty(idleAnim)) setIdleAnimation(idleAnim);
+            if (string.IsNullOrEmpty(idleAnim)) idleAnim = "Mita SitIdle";
+            setIdleAnimation(idleAnim);
+
+
+            Play();
         }
 
 
