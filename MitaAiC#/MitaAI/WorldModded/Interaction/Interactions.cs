@@ -203,7 +203,7 @@ namespace MitaAI
                 if (OAP != null)
                 {
 
-                    OI = Interactions.FindOrCreateObjectInteractable(ChairRoom.gameObject, true, 3, loc._("Сесть", "Sit"), false,CanvasPosition:new Vector3(0,1,1));
+                    OI = Interactions.FindOrCreateObjectInteractable(ChairRoom.gameObject, true, 3, loc._("Сесть", "Sit"), false,CanvasPosition:new Vector3(0,0.1f,1));
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
                     OAP.transform.localEulerAngles = new Vector3(90, 0, 0);
@@ -257,16 +257,54 @@ namespace MitaAI
             try
             {
                 var Lopata = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/Shovel 1");
-                sitBasement.name = "Lopata";
+               
                 oam = ObjectAnimationMita.Create(Lopata.gameObject, "Shovel take", "Взять лопату в руки");
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
                 oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
                 //oam.addEnqueAnimationAction("Mita Click_2");
                 items = Lopata.gameObject.AddComponent<Items>();
                 //"Armature/Hips/Spine/Chest/Neck2/Neck1/"
-                items.init(new Vector3(0, 0.8f, 0.1f), new Vector3(0, 180, 180), Vector3.one, "RightItem");
+                items.init(new Vector3(0.05f, 0.8f, -0.05f), new Vector3(0, 180, 180), Vector3.one, "RightItem");
                 oam.addSimpleAction((UnityAction)items.Take);
                 BackOAM = oam.setRevertAOM("Shovel return", "Вернуть лопату на место");
+                BackOAM.addSimpleAction((UnityAction)items.Free, false);
+            }
+            catch (Exception)
+            {
+
+            }
+
+            try
+            {
+                var cat = MitaCore.worldBasement.Find("House/Cat");
+                oam = ObjectAnimationMita.Create(cat.gameObject, "Cat take", "Взять кота на арбузе в руки");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
+                oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
+                //oam.addEnqueAnimationAction("Mita Click_2");
+                items = cat.gameObject.AddComponent<Items>();
+                //"Armature/Hips/Spine/Chest/Neck2/Neck1/"
+                items.init(new Vector3(-0.0488f, 0.0026f,-0.0568f), new Vector3(0,81.9526f,154.3421f), cat.localScale, "RightItem");
+                oam.addSimpleAction((UnityAction)items.Take);
+                BackOAM = oam.setRevertAOM("Cat return", "Вернуть кота на арбузе на место");
+                BackOAM.addSimpleAction((UnityAction)items.Free, false);
+            }
+            catch (Exception)
+            {
+
+            }
+
+            try
+            {
+                var GamepadPink = MitaCore.worldHouse.Find("World/House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/GamepadPink");
+                oam = ObjectAnimationMita.Create(GamepadPink.gameObject, "GamepadPink take", "Взять розовый геймпад");
+                oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
+                oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
+                //oam.addEnqueAnimationAction("Mita Click_2");
+                items = GamepadPink.gameObject.AddComponent<Items>();
+                //"Armature/Hips/Spine/Chest/Neck2/Neck1/"
+                items.init(new Vector3(-0.0488f, 0.0026f, -0.0568f), new Vector3(0, 81.9526f, 154.3421f), GamepadPink.localScale, "RightItem");
+                oam.addSimpleAction((UnityAction)items.Take);
+                BackOAM = oam.setRevertAOM("GamepadPink return", "Вернуть розовый геймпад");
                 BackOAM.addSimpleAction((UnityAction)items.Free, false);
             }
             catch (Exception)
@@ -414,7 +452,7 @@ namespace MitaAI
                 if (OAP != null)
                 {
 
-                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(0, 0.95f, 0.6f));
+                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(-0.7f, 0.4f,0.9f));
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
                     OAP.transform.localEulerAngles = new Vector3(0, 90, 90);

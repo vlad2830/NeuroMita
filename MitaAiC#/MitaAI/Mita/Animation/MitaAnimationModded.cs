@@ -91,10 +91,10 @@ namespace MitaAI.Mita
                             case characterType.Crazy:
                                 break;
                             case characterType.Cappy:
-                                idleAnimation = FindAnimationClipInControllerByName("Mita Hands Down Idle");
-                                idleWalkAnimation = FindAnimationClipInControllerByName("Mita Walk_7");
-                                setIdleAnimation("Mita Hands Down Idle");
-                                setIdleWalk("Mita Walk_7");
+                                //idleAnimation = FindAnimationClipInControllerByName("Mita Hands Down Idle");
+                                //idleWalkAnimation = FindAnimationClipInControllerByName("Mita Walk_7");
+                                //setIdleAnimation("Mita Hands Down Idle");
+                                //setIdleWalk("Mita Walk_7");
                                 break;
                             case characterType.Kind:
                                 break;
@@ -105,10 +105,10 @@ namespace MitaAI.Mita
                             case characterType.Cart_divan:
                                 break;
                             case characterType.Mila:
-                                idleWalkAnimation = FindAnimationClipInControllerByName("MitaWalkMila");
-                                idleAnimation = FindAnimationClipInControllerByName("Mila Stay T");
-                                setIdleWalk("MitaWalkMila");
-                                setIdleAnimation("Mila Stay T");
+                                //idleWalkAnimation = FindAnimationClipInControllerByName("MitaWalkMila");
+                                //idleAnimation = FindAnimationClipInControllerByName("Mila Stay T");
+                                //setIdleWalk("MitaWalkMila");
+                                //setIdleAnimation("Mila Stay T");
                                 break;
                             case characterType.Sleepy:
                                 break;

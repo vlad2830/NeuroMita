@@ -68,7 +68,7 @@ namespace MitaAI
                 await clientSocket.SendAsync(messageBytes, SocketFlags.None);
 
 
-                byte[] buffer = new byte[16384];
+                byte[] buffer = new byte[32000];
                 try
                 {
                     int bytesRead = await clientSocket.ReceiveAsync(buffer, SocketFlags.None);

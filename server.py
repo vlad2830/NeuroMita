@@ -42,7 +42,7 @@ class ChatServer:
             self.client_socket, addr = self.server_socket.accept()
             #logger.info(f"Подключен {addr}")
 
-            received_text = self.client_socket.recv(16384).decode("utf-8")
+            received_text = self.client_socket.recv(32000).decode("utf-8")
 
             # Логируем полученные данные
             #logger.info(f"Получено: {received_text}")

@@ -191,13 +191,13 @@ namespace MitaAI.Mita
                     MelonLogger.Msg($"Cont times {ContinueCounter}");
                     if (ContinueCounter < 3)
                     {
-                        CharacterMessages.sendSystemInfo($"У тебя осталось {3 - ContinueCounter} возможностей продолжить фразу");
-                        CharacterMessages.sendSystemMessage("Ты продолжаешь фразу или мысль");
+                        CharacterMessages.sendSystemInfo($"У тебя осталось {3 - ContinueCounter} возможностей продолжить фразу", MitaCore.Instance.currentCharacter);
+                        CharacterMessages.sendSystemMessage("Ты продолжаешь фразу или мысль",MitaCore.Instance.currentCharacter);
                     }
                     else
                     {
                         MelonLogger.Warning("tryied 4 continue");
-                        CharacterMessages.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен");
+                        CharacterMessages.sendSystemInfo("Ты не смогла продолжить фразу сразу, так как лимит в 3 continue подряд был превышен", MitaCore.Instance.currentCharacter);
                     }
                     break;
 
