@@ -467,8 +467,8 @@ namespace MitaAI
                     OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(-0.7f, 0.4f,0.9f));
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
 
-                    OAP.transform.localEulerAngles = new Vector3(0, 90, 90);
-                    OAP.transform.localPosition = new Vector3(-1.4f, 0.2f, 0);
+                    OAP.transform.localEulerAngles = new Vector3(0, 90, 94.2f);
+                    OAP.transform.localPosition = new Vector3(-1.4f, 0.32f, 0);
                 }
 
             }
