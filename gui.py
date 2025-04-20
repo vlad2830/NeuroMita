@@ -110,8 +110,8 @@ class ChatGUI:
         self.delete_all_sound_files()
         self.setup_ui()
 
-        #self.root.bind_class("Entry", "<Control-KeyPress>", self.keypress)
-        self.root.bind_class("Text", "<Control-KeyPress>", self.keypress)
+        self.root.bind_class("Entry", "<Control-KeyPress>", lambda e: self.keypress(e))
+        self.root.bind_class("Text", "<Control-KeyPress>", lambda e: self.keypress(e))
 
         try:
             self.load_mic_settings()
@@ -1308,9 +1308,10 @@ class ChatGUI:
                     command(entry.get())
 
             # Явная привязка горячих клавиш для Entry
-            entry.bind("<Control-v>", lambda e: self.cmd_paste(e.widget))
-            entry.bind("<Control-c>", lambda e: self.cmd_copy(e.widget))
-            entry.bind("<Control-x>", lambda e: self.cmd_cut(e.widget))
+            #entry.bind("<Control-v>", lambda e: self.cmd_paste(e.widget))
+            #entry.bind("<Control-c>", lambda e: self.cmd_copy(e.widget))
+            #entry.bind("<Control-x>", lambda e: self.cmd_cut(e.widget))
+
             entry.bind("<FocusOut>", lambda e: save_entry())
             entry.bind("<Return>", lambda e: save_entry())
 
@@ -1480,16 +1481,19 @@ class ChatGUI:
             self.cmd_cut(widget)
 
     def cmd_copy(self, widget):
+        print("123")
         # Обработчик команды копирования
         if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Copy>>")
 
     def cmd_cut(self, widget):
+
         # Обработчик команды вырезания
         if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Cut>>")
 
     def cmd_paste(self, widget):
+        print("555")
         # Обработчик команды вставки
         if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Paste>>")
