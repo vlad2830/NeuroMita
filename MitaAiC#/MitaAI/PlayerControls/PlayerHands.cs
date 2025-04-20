@@ -40,7 +40,7 @@ namespace MitaAI
 
             if (OldParents.ContainsKey(gameObject.GetInstanceID()))
             {
-                MelonLogger.Msg($"Found in dict, setting parent {OldParents[gameObject.GetInstanceID()].Item1} for {Item.name}");
+                MelonLogger.Msg($"Found in dict, setting parent {OldParents[gameObject.GetInstanceID()].Item1.name} for {Item.name}");
                 Item.transform.SetParent(OldParents[gameObject.GetInstanceID()].Item1);
                 Item.localPosition = OldParents[gameObject.GetInstanceID()].Item2;
                 Item.localEulerAngles = OldParents[gameObject.GetInstanceID()].Item3;

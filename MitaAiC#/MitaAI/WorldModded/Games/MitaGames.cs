@@ -31,7 +31,7 @@ namespace MitaAI
                 case MitaGame.Snows:
                     return TVModded.getSnowsString();
                 case MitaGame.Milk:
-                    return TVModded.getSnowsString();
+                    return TVModded.getMilkString();
 
             }
 

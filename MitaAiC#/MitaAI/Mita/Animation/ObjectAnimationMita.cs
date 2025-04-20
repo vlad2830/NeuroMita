@@ -509,7 +509,7 @@ namespace MitaAI
         #region Other
 
 
-        IEnumerator MagnetAfterDelay(MitaPerson mita, Transform transform, float seconds = 0f, bool offAfter = true, float secondsAfter = 1f)
+        IEnumerator MagnetAfterDelay(MitaPerson mita, Transform transform, float seconds = 0f, bool offAfter = true, float secondsAfter = 5f)
         {
 
             yield return new WaitForSeconds(seconds);

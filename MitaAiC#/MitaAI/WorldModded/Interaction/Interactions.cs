@@ -70,7 +70,7 @@ namespace MitaAI
                     oam1.addSimpleAction((UnityAction)comp.moveChair);
 
                     MelonLogger.Msg("Before FindOrCreateObjectInteractable");
-                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 1, "Сесть", false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
+                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 1, loc._("Сесть","Sit"), false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
                     obj.eventClick.AddListener((UnityAction)comp.moveChair);
                     obj.eventClick.AddListener((UnityAction)Hints.createExitButton);
                 }
@@ -127,7 +127,7 @@ namespace MitaAI
             {
                 sofaAP.transform.localEulerAngles = new Vector3(90, 0, 0);
                 sofaAP.transform.localPosition = new Vector3(0.8f, 1.4f, 0);
-                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 1, "Усесться", false, useParent: true);
+                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 1, loc._("Сесть", "Sit"), false, useParent: true);
                 objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
             }
 
@@ -213,7 +213,7 @@ namespace MitaAI
 
 
 
-            var objectInteractive = Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/RemoteTV").gameObject);
+            var objectInteractive = Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/RemoteTV").gameObject,tipText: loc._("Переключить TV", "Turn TV on\\off"));
             objectInteractive.eventClick.AddListener((UnityAction)TVModded.turnTV);
             objectInteractive.active = true;
 
@@ -223,7 +223,7 @@ namespace MitaAI
 
 
 
-            objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true,timeDeactivate:5);
+            objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true,timeDeactivate:5, loc._("Взять", "Take"));
             //var chairOIP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(objectInteractive.transform, "Interactive Aihastion");
             //objectInteractive.eventClick.AddListener((UnityAction)chairOIP.GetComponent<ObjectAnimationPlayer>().AnimationPlay);
             objectInteractive.active = true;
@@ -256,7 +256,7 @@ namespace MitaAI
             sofaChil.transform.localPosition = new Vector3(-0.4855f, 0.3255f, 0.0982f);
             sofaChil.transform.localRotation = Quaternion.Euler(10f, 90f, 90f);
             var objectAnimationPlayer = sofaChil.AddComponent<ObjectAnimationPlayer>();
-            var objectInteractive = Interactions.FindOrCreateObjectInteractable(sofa, true, 1, "Усесться");
+            var objectInteractive = Interactions.FindOrCreateObjectInteractable(sofa, true, 1, loc._("Усесться", "Sit"));
             objectAnimationPlayer.angleHeadRotate = 70;
             //Utils.CopyComponentValues(exampleComponent, objectInteractive);
 
@@ -282,7 +282,7 @@ namespace MitaAI
 
             console.GetComponent<Animator>().enabled = true;
             console.GetComponent<Outlinable>().enabled = true;
-            ObjectInteractive objectInteractive = Interactions.FindOrCreateObjectInteractable(console, true, 1, "Переключить");
+            ObjectInteractive objectInteractive = Interactions.FindOrCreateObjectInteractable(console, true, 1, loc._("Переключить", "Turn On\\Off"));
 
             objectInteractive.eventClick = new UnityEvent();
             objectInteractive.eventClick.AddListener((UnityAction)comp.changeActivation);

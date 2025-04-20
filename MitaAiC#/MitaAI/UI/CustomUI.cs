@@ -31,11 +31,17 @@ namespace MitaAI
         public CustomUI()
         {
             Instance = this;
+            disableAllToggles();
+
+
+        }
+        public void disableAllToggles(){
             foreach (characterType character in Enum.GetValues(typeof(characterType)))
             {
                 characterStates[character] = false;
             }
         }
+
         public void StartCustomUI()
         {
             MelonEvents.OnGUI.Subscribe(OnDrawMenu, 100);
@@ -53,7 +59,7 @@ namespace MitaAI
                 return;
             }
 
-            GUI.Box(new Rect(0, 0, menuWidth, menuHeight), "Mita AI Settings");
+            GUI.Box(new Rect(0, 0, menuWidth, menuHeight), loc._("Выбор Мит","Mita selection"));
 
             Event currentEvent = Event.current;
             if (currentEvent.type == EventType.MouseDown && currentEvent.button == 0)
@@ -61,26 +67,26 @@ namespace MitaAI
                 Vector2 mousePosition = new Vector2(currentEvent.mousePosition.x, currentEvent.mousePosition.y);
 
                 int yOffset = 30;
-                yOffset = ProcessCharacterToggle("Безумная", characterType.Crazy, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Добрая", characterType.Kind, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Коротковолосая", characterType.ShortHair, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Кепка", characterType.Cappy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle(loc._("Безумная","Crazy"), characterType.Crazy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle(loc._("Добрая","Kind"), characterType.Kind, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle(loc._("Коротковолосая","Shorthair"), characterType.ShortHair, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle(loc._("Кепка","Cappy"), characterType.Cappy, yOffset, mousePosition);
 
-                yOffset = ProcessCharacterToggle("Сонная", characterType.Sleepy, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Мила", characterType.Mila, yOffset, mousePosition);
-                yOffset = ProcessCharacterToggle("Страшная", characterType.Creepy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle(loc._("Сонная","Sleepy"), characterType.Sleepy, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle(loc._("Мила","Mila"), characterType.Mila, yOffset, mousePosition);
+                yOffset = ProcessCharacterToggle(loc._("Страшная","Creepy"), characterType.Creepy, yOffset, mousePosition);
 
             }
 
             int drawYOffset = 30;
-            drawYOffset = DrawToggle("Безумная", characterType.Crazy, drawYOffset);
-            drawYOffset = DrawToggle("Добрая", characterType.Kind, drawYOffset);
-            drawYOffset = DrawToggle("Коротковолосая", characterType.ShortHair, drawYOffset);
-            drawYOffset = DrawToggle("Кепка", characterType.Cappy, drawYOffset);
+            drawYOffset = DrawToggle(loc._("Безумная", "Crazy"), characterType.Crazy, drawYOffset);
+            drawYOffset = DrawToggle(loc._("Добрая", "Kind"), characterType.Kind, drawYOffset);
+            drawYOffset = DrawToggle(loc._("Коротковолосая", "Shorthair"), characterType.ShortHair, drawYOffset);
+            drawYOffset = DrawToggle(loc._("Кепка", "Cappy"), characterType.Cappy, drawYOffset);
 
-            drawYOffset = DrawToggle("Сонная", characterType.Sleepy, drawYOffset);
-            drawYOffset = DrawToggle("Мила", characterType.Mila, drawYOffset);
-            drawYOffset = DrawToggle("Страшная", characterType.Creepy, drawYOffset);
+            drawYOffset = DrawToggle(loc._("Сонная", "Sleepy"), characterType.Sleepy, drawYOffset);
+            drawYOffset = DrawToggle(loc._("Мила", "Mila"), characterType.Mila, drawYOffset);
+            drawYOffset = DrawToggle(loc._("Страшная", "Creepy"), characterType.Creepy, drawYOffset);
         }
 
         private int ProcessCharacterToggle(string label, characterType character, int yOffset, Vector2 mousePosition)
@@ -125,7 +131,7 @@ namespace MitaAI
                         else
                         {
                             MitaCore.Instance?.addChangeMita(mitaObject, character, true, false);
-                            CharacterMessages.sendSystemMessage($"{label} активирована", character);
+                            CharacterMessages.sendSystemMessage($"Ты только что прогрузилась на уровень", character);
                             CharacterMessages.sendInfoListeners($"{label} появилась на уровне", null, character, "Nobody");
                             MelonLogger.Msg($"{label} successfully activated");
                         }
@@ -134,7 +140,7 @@ namespace MitaAI
                     {
                         //MitaCore.Instance?.setCharacterState(character, character.None);
                         MitaCore.Instance?.removeMita(mitaObject, character);
-                        CharacterMessages.sendSystemMessage($"{label} полностью деактивирована", character);
+                        //CharacterMessages.sendSystemMessage($"{label} полностью деактивирована", character);
                         CharacterMessages.sendInfoListeners($"{label} удалена с уровня", null, character, "Nobody");
                         MelonLogger.Msg($"{label} fully deactivated");
                     }
@@ -195,7 +201,7 @@ namespace MitaAI
                     {
                         MitaCore.Instance?.addChangeMita(mitaObject, character, true, false);
                         mitaObject.SetActive(true);
-                        CharacterMessages.sendSystemMessage($"{character} активирована", character);
+                        CharacterMessages.sendSystemMessage($"Ты только что прогрузилась на уровень", character);
                         CharacterMessages.sendInfoListeners($"{character} появилась на уровне", null, character, "Nobody");
                     }
                 }
@@ -205,7 +211,7 @@ namespace MitaAI
                     if (mitaObject != null)
                     {
                         MitaCore.Instance?.removeMita(mitaObject, character);
-                        CharacterMessages.sendSystemMessage($"{character} полностью деактивирована", character);
+                        //CharacterMessages.sendSystemMessage($"{character} полностью деактивирована", character);
                         CharacterMessages.sendInfoListeners($"{character} удалена с уровня", null, character, "Nobody");
                     }
                 }

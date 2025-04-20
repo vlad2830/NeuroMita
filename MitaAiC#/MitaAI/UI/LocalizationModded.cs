@@ -18,9 +18,14 @@ namespace MitaAI
 {
 
 
-    public class LocalizationModder
+    public class LocalizationModded
     {
         public static string Language = "RU";
+
+        public static void init()
+        {
+            Language = Settings.Get<String>("Language");
+        }
 
         public static void setLanguage(string language)
         {
@@ -43,7 +48,7 @@ namespace MitaAI
     {
         public static string _(string ru = "", string en = "")
         {
-            switch (LocalizationModder.Language)
+            switch (LocalizationModded.Language)
             {
                 case "RU":
                     return ru;

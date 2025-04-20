@@ -9,7 +9,7 @@ namespace MitaAI
     public class Chair : MonoBehaviour
     {
         private bool isCloseToTable = true;
-        private float moveDistance = 0.3f; // Расстояние для перемещения
+        private float moveDistance = 0.4f; // Расстояние для перемещения
         private float animationDuration = 2; // Длительность анимации
 
         public void moveChair()

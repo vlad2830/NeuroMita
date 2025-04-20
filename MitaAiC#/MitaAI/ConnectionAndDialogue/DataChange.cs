@@ -254,7 +254,7 @@ namespace MitaAI
 
                     int limitmod = messageData2.ContainsKey("CC_Limit_mod") ? messageData2["CC_Limit_mod"].GetInt32() : 100;
 
-                    if (messageData2.ContainsKey("LANGUAGE")) LocalizationModder.setLanguage(messageData2["LANGUAGE"].GetString());
+                    if (messageData2.ContainsKey("LANGUAGE")) LocalizationModded.setLanguage(messageData2["LANGUAGE"].GetString());
 
                     CustomUI.isAllowed = messageData2.ContainsKey("MITAS_MENU") ? messageData2["MITAS_MENU"].GetBoolean() : false;
                     RadialMenu.isAllowed = messageData2.ContainsKey("EMOTION_MENU") ? messageData2["EMOTION_MENU"].GetBoolean() : false;

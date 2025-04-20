@@ -8,7 +8,10 @@ from gui import ChatGUI
 # Теперь делаю файлом с папкой, так как антивирусы ругаются)
 #pyinstaller --name NeuroMita --noconfirm --console --add-data "Prompts/*;Prompts" --add-data "Prompts/**/*;Prompts" Main.py
 
-
+# Скакать между версиями g4f
+#pip install --upgrade g4f==4.7.7
+#pip install --upgrade g4f==4.8.3
+#pip install --upgrade g4f
 
 #"""
 #Тестово, потом надо будет вот это вернуть

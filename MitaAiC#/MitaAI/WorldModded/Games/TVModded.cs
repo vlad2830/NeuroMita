@@ -123,7 +123,7 @@ namespace MitaAI
 
             minigamesTelevisionGame = UnityEngine.Object.FindObjectOfType<MinigamesTelevisionGame>();
             
-            CharacterMessages.sendSystemMessage($"TV game '{minigamesTelevisionController.textNeedNameGame}' is loading.");
+            CharacterMessages.sendSystemMessage($"TV game '{minigamesTelevisionController.textNeedNameGame}' is loading. Use <interaction> to sofa, if you want to play with him");
 
             while (minigamesTelevisionGame == null)
             {
@@ -199,7 +199,7 @@ namespace MitaAI
                 }
 
 
-                if (mT_Location4Fight.winG != scorePlayer) CharacterMessages.sendSystemMessage($"Player won round in the game of Milk fight.");
+                if (mT_Location4Fight.winG == scorePlayer) CharacterMessages.sendSystemMessage($"Player won round in the game of Milk fight.");
                 else CharacterMessages.sendSystemMessage($"You won round in the game of Milk fight.");
 
                 scorePlayer = mT_Location4Fight.winG;

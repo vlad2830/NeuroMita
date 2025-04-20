@@ -454,6 +454,7 @@ namespace MitaAI
             MelonLogger.Msg("OnInitializeMelon patch");
             MitaClothesModded.init(harmony);
             NetworkController.Initialize();
+            LocalizationModded.init();
             CustomUI customUI = new CustomUI();
             customUI.StartCustomUI();
         }

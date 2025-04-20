@@ -450,7 +450,7 @@ class ChatModel:
             return None
 
     def change_last_message_to_user_for_gemini(self, api_model, combined_messages):
-        if "gemini" in api_model and combined_messages[-1]["role"] == "system":
+        if "gemini" in api_model or "gemma" in api_model and combined_messages[-1]["role"] == "system":
             logger.info("gemini последнее системное сообщение на юзерское")
             combined_messages[-1]["role"] = "user"
             combined_messages[-1]["content"] = "[SYSTEM INFO]" + combined_messages[-1]["content"]

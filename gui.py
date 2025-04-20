@@ -110,7 +110,7 @@ class ChatGUI:
         self.delete_all_sound_files()
         self.setup_ui()
 
-        self.root.bind_class("Entry", "<Control-KeyPress>", self.keypress)
+        #self.root.bind_class("Entry", "<Control-KeyPress>", self.keypress)
         self.root.bind_class("Text", "<Control-KeyPress>", self.keypress)
 
         try:
@@ -1234,7 +1234,7 @@ class ChatGUI:
 
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = bool(value)
-        logger.info(f"Настройки изменены: {key} = {value}")
+        #logger.info(f"Настройки изменены: {key} = {value}")
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
