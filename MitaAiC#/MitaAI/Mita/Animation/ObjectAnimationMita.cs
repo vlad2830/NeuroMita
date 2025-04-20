@@ -4,12 +4,8 @@ using MelonLoader;
 using MitaAI.Mita;
 using Il2Cpp;
 using UnityEngine.Events;
-using UnityEngine.Playables;
-using System.Diagnostics;
+
 using System.Text.RegularExpressions;
-using static Il2CppRootMotion.FinalIK.AimPoser;
-using Il2CppSystem.Runtime.Serialization.Formatters.Binary;
-using System.Linq;
 
 namespace MitaAI
 {
@@ -327,8 +323,9 @@ namespace MitaAI
         
         
         // Обратное действие
-        public ObjectAnimationMita setRevertAOM(string Name,string Tip,string idleAnim = "Mita Idle_2",bool needWalking = false, bool NeedMovingToIdle = false, ObjectAnimationMita oamBackSepate = null)
+        public ObjectAnimationMita setRevertAOM(string Name,string Tip,string idleAnim = "Mita Idle_2",bool needWalking = false, bool NeedMovingToIdle = false)//, ObjectAnimationMita oamBackSepate = null)
         {
+            ObjectAnimationMita oamBackSepate = null;
             ObjectAnimationMita oamBack;
             if (oamBackSepate == null)
             {
@@ -528,30 +525,30 @@ namespace MitaAI
                 yield return new WaitForSeconds(seconds);
                 mita.MagnetOff();
             }
-           
+
 
         }
 
 
-        IEnumerator brootforceMagnetToOAM(MitaPerson mita,Transform transform,float seconds = 1f,float repeatTimer = 0.1f,bool offMagnetAfter = false)
+        IEnumerator brootforceMagnetToOAM(MitaPerson mita, Transform transform, float seconds = 1f, float repeatTimer = 0.1f, bool offMagnetAfter = false)
         {
 
             int i = 0;
             float times = (seconds / repeatTimer);
 
             mita.MagnetToTarget(transform);
-            while (i< times)
+            while (i < times)
             {
                 i++;
                 yield return new WaitForSeconds(repeatTimer);
                 mita.MagnetToTarget(transform);
             }
-            //if (offMagnetAfter) MitaCore.Instance.Mita.MagnetOff();
+            if (offMagnetAfter) MitaCore.Instance.Mita.MagnetOff();
 
         }
 
 
-#endregion
+        #endregion
 
 
         #region Test

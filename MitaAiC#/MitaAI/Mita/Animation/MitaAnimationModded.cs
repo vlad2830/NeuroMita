@@ -478,23 +478,27 @@ namespace MitaAI.Mita
             // Если запрещено двигаться
             if (MovementStylesNoMovingAtAll.Contains(MitaMovement.movementStyle))
             {
-                MitaCore.Instance.MitaLook.enabled = false;
+                MitaCore.Instance.MitaLook.activeBodyIK = false;
+                MitaCore.Instance.MitaLook.canRotateBody = false;
                 location34_Communication.ActivationCanWalk(false);
             }
             else if (MovementStylesNoBodyLooking.Contains(MitaMovement.movementStyle))
             {
+                MitaCore.Instance.MitaLook.activeBodyIK = true;
                 MitaCore.Instance.MitaLook.enabled = true;
                 MitaCore.Instance.MitaLook.canRotateBody = false;
                 location34_Communication.ActivationCanWalk(false);
             }
             else if (MovementStylesNoWalking.Contains(MitaMovement.movementStyle))
             {
+                MitaCore.Instance.MitaLook.activeBodyIK = true;
                 MitaCore.Instance.MitaLook.enabled = true;
                 MitaCore.Instance.MitaLook.canRotateBody = true;
                 location34_Communication.ActivationCanWalk(false);
             }
             else
             {
+                MitaCore.Instance.MitaLook.activeBodyIK = true;
                 MitaCore.Instance.MitaLook.canRotateBody = true;
                 MitaCore.Instance.MitaLook.enabled = true;
                 location34_Communication.ActivationCanWalk(true);

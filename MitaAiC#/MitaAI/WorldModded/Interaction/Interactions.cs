@@ -399,10 +399,12 @@ namespace MitaAI
                 Bed.name = "Bed";
                 oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face left", "Лечь на кровать лицом влево");
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
+
                 oam.setStartPos(new Vector3(-0.3f, -0.5f, 0.46f), new Vector3(277.3817f, 0, 180f));
                 oam.setIdleAnimation("Mita Fall Idle");
                 oam.addEnqueAnimationAction("Mita Fall Idle");
                 BackOAM = oam.setRevertAOM("Bed stend up", "Встать c кровати");
+
 
 
                 oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face right", "Лечь на кровать лицом в право (там может лечь игрок)");
@@ -410,7 +412,7 @@ namespace MitaAI
                 oam.setStartPos(new Vector3(0.4f,-0.53f, 0.85f), new Vector3(276.5924f, 0.4038f, 358.2999f));
                 oam.setIdleAnimation("Mita Fall Idle");
                 oam.addEnqueAnimationAction("Mita Fall Idle");
-                oam.setRevertAOM("Bed stend up", "Встать c кровати", oamBackSepate:BackOAM);
+                oam.setRevertAOM("Bed stend up", "Встать c кровати");//, oamBackSepate:BackOAM);
 
 
                 // 0,4 -0,53 0,85
