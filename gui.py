@@ -662,7 +662,7 @@ class ChatGUI:
                 success = self.pip_installer.install_package(
                     package_spec,
                     description=description,
-                    extra_args=["--force-reinstall"]
+                    extra_args=["--force-reinstall", "--upgrade"]
                 )
                 if success:
                     logger.info(f"Запланированное обновление g4f до {target_version} успешно завершено.")
