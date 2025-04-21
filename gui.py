@@ -662,7 +662,7 @@ class ChatGUI:
                 success = self.pip_installer.install_package(
                     package_spec,
                     description=description,
-                    extra_args=["--upgrade"]
+                    extra_args=["--force-reinstall"]
                 )
                 if success:
                     logger.info(f"Запланированное обновление g4f до {target_version} успешно завершено.")
@@ -2002,6 +2002,7 @@ class ChatGUI:
         else:
             logger.info(f"Модель {selected_model_id} уже инициализирована.")
             self.last_voice_model_selected = selected_model
+            self.local_voice.current_model = selected_model_id
 
     def show_model_loading_window(self, model):
         """Показывает окно загрузки модели с прогрессом"""
