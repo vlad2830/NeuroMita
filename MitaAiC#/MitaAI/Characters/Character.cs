@@ -14,13 +14,13 @@ namespace MitaAI
     [RegisterTypeInIl2Cpp]
     public class Character : MonoBehaviour
     {
-        public characterType character;
+        public characterType characterType;
         public bool isCartdige;
         public int PointsOrder = 0;
 
         public void init(characterType character)
         {
-            this.character = character;
+            this.characterType = character;
             CharacterControl.Characters.Add(this);
         }
         public void init_cartridge()
@@ -37,11 +37,11 @@ namespace MitaAI
             {
                 if (enabled)
                 {
-                    CharacterMessages.sendSystemMessage($"Тебя только что включили", character);
+                    CharacterMessages.sendSystemMessage($"Тебя только что включили", characterType);
                 }
                 else
                 {
-                    CharacterMessages.sendSystemInfo($"Тебя выключили", character);
+                    CharacterMessages.sendSystemInfo($"Тебя выключили", characterType);
                 }
             }
             
@@ -60,7 +60,7 @@ namespace MitaAI
     {
         public void init_GameMaster()
         {
-            character = characterType.GameMaster;
+            characterType = characterType.GameMaster;
             //CharacterControl.Characters.Add(this);
             CharacterControl.gameMaster = this;
         }

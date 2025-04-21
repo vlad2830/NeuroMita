@@ -63,7 +63,7 @@ namespace MitaAI
         private IEnumerator MovementSequence(float direction, GameObject targetObject)
         {
             // Первый этап: движение к центру
-            MitaAnimationModded.EnqueueAnimation("Walk");
+            //MitaAnimationModded.EnqueueAnimation("Walk");
 
             yield return MelonCoroutines.Start(MoveObject(targetObject.transform,direction * moveDistance,moveDuration));
 

@@ -56,9 +56,10 @@ namespace MitaAI
                 else
                 {
                     // Для других персонажей - вызываем внутренний метод охоты
-                    MitaAnimationModded.location34_Communication.ActivationCanWalk(false);
-                    MitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
-                    MitaAnimationModded.setIdleWalk("Mita WalkKnife");
+                    var mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter);
+                    mitaAnimationModded.location34_Communication.ActivationCanWalk(false);
+                    mitaAnimationModded.EnqueueAnimation("Mita TakeKnife_0");
+                    mitaAnimationModded.setIdleWalk("Mita WalkKnife");
                     MelonCoroutines.Start(hunting());
                 }
             }
@@ -122,10 +123,11 @@ namespace MitaAI
             else
             {
                 // Для других персонажей используем стандартную логику
-                MitaAnimationModded.setIdleWalk("Mita Walk_1");
+                var mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter);
+                mitaAnimationModded.setIdleWalk("Mita Walk_1");
                 MitaCore.Instance.knife.SetActive(false);
                 MitaMovement.movementStyle = MovementStyles.walkNear;
-                MitaAnimationModded.location34_Communication.ActivationCanWalk(true);
+                mitaAnimationModded.location34_Communication.ActivationCanWalk(true);
                 MitaState.SetCurrentState(MitaCore.Instance.currentCharacter,MitaStateType.normal);
                 MitaCore.Instance.MitaSharplyStopTimed(0.5f);
             }

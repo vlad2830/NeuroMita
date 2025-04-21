@@ -10,49 +10,84 @@ using UnityEngine.AI;
 using Il2CppRootMotion.FinalIK;
 using UnityEngine.Events;
 using Harmony;
+using System.Linq;
+using System.ComponentModel.Design;
 namespace MitaAI.Mita
 {
 
 
-    public static class MitaAnimationModded
+    public class MitaAnimationModded
     {
-        //static private Queue<(string,float,float)> animationQueue = new Queue<(string,float,float)>();
-        static private LinkedList<MitaActionAnimation> animationList = new LinkedList<MitaActionAnimation>();
-
-        static private bool isPlaying = false;
+       
         static private Il2CppAssetBundle bundle;
-        public static Animator_FunctionsOverride mitaAnimatorFunctions;
-        public static Location34_Communication location34_Communication;
         static AnimationClip idleAnimation;
         static AnimationClip idleWalkAnimation;
+
+        static Dictionary<Character,MitaAnimationModded> allMitaAnimationModded = new Dictionary<Character, MitaAnimationModded> { };
+        public static MitaAnimationModded getMitaAnimationModded(Character character) {
+             
+            if (!allMitaAnimationModded.ContainsKey(character))
+            {
+                MitaAnimationModded mitaAnimationModded = new MitaAnimationModded();
+                allMitaAnimationModded[character] = mitaAnimationModded;
+            }
+
+            return allMitaAnimationModded[character];
+
+
+        }
+        public static MitaAnimationModded getMitaAnimationModded(characterType character)
+        {
+            foreach (var item in Component.FindObjectsOfType<Character>())
+            {
+                if (item.characterType == character) return getMitaAnimationModded(item);
+            }
+
+            return null;
+
+        }
+
+
+
+        static private LinkedList<MitaActionAnimation> animationList = new LinkedList<MitaActionAnimation>();
+        private bool isPlaying = false;
+        public Animator_FunctionsOverride mitaAnimatorFunctions;
+        public Location34_Communication location34_Communication;
+
         // Основной метод для добавления анимации в очередь
-        public static RuntimeAnimatorController runtimeAnimatorController;
-        public static AnimatorOverrideController overrideController;
-        public static Animator animator;
-        static NavMeshAgent mitaNavMeshAgent;      
-        
+        public RuntimeAnimatorController runtimeAnimatorController;
+        public AnimatorOverrideController overrideController;
+        public Animator animator;
+        NavMeshAgent mitaNavMeshAgent;
+        Character_Look mitaLook;
         ///public static LookAtIK = 
 
-        public static GameObject bat;
-        public static GameObject pipe;
+        static public GameObject bat;
+        static public GameObject pipe;
 
-        const string initIdle = "Mita Idle_2";
-        const string initWalk = "Mita Walk_1";
-        static public string currentIdleAnim = "Mita Idle_2";
-        static public string currentWalkAnim = "Mita Walk_1";
+        string initIdle = "Mita Idle_2";
+        string initWalk = "Mita Walk_1";
+        public string currentIdleAnim = "Mita Idle_2";
+        public string currentWalkAnim = "Mita Walk_1";
 
-        static public void init(Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, bool changeAnimationController = true, bool changeAnimation = true, characterType character = characterType.None)
+
+
+        public static void init(Character character,Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, Character_Look _mitaLook, bool changeAnimationController = true, bool changeAnimation = true)
         {
-            // Получаем компонент Animator_FunctionsOverride из текущего объекта
-            mitaAnimatorFunctions = _mitaAnimatorFunctions;
-            location34_Communication = _location34_Communication;
+            //MitaAnimationModded mitaAnimationModded = new MitaAnimationModded();
+            //allMitaAnimationModded[character] = mitaAnimationModded;
+            var mitaAnimationModded = getMitaAnimationModded(character);
 
+            // Получаем компонент Animator_FunctionsOverride из текущего объекта
+            mitaAnimationModded.mitaAnimatorFunctions = _mitaAnimatorFunctions;
+            mitaAnimationModded.location34_Communication = _location34_Communication;
+            mitaAnimationModded.mitaLook = _mitaLook;
             if (bundle == null)
             {
                 bundle = MitaCore.bundle; //AssetBundleLoader.LoadAssetBundle("assetbundle");
             }
             
-            if (mitaAnimatorFunctions == null)
+            if (mitaAnimationModded.mitaAnimatorFunctions == null)
             {
                 MelonLogger.Msg("Animator_FunctionsOverride component not found on this object!");
             }
@@ -63,25 +98,25 @@ namespace MitaAI.Mita
               
                 if (changeAnimationController)
                 {
-                    runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
-                    overrideController = new AnimatorOverrideController(runtimeAnimatorController);
+                    mitaAnimationModded.runtimeAnimatorController = AssetBundleLoader.LoadAnimatorControllerByName(bundle, "Mita_1.controller");
+                    mitaAnimationModded.overrideController = new AnimatorOverrideController(mitaAnimationModded.runtimeAnimatorController);
 
-                    mitaAnimatorFunctions.animOver = overrideController;
+                    mitaAnimationModded.mitaAnimatorFunctions.animOver = mitaAnimationModded.overrideController;
 
                     MelonLogger.Msg("Change Animation controller");
-                    
 
-                    animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
-                    animator.runtimeAnimatorController = overrideController;
-                    animator.SetTrigger("NextLerp");
-                    animator.Rebind();
+
+                    mitaAnimationModded.animator = MitaCore.Instance.MitaPersonObject.GetComponent<Animator>();
+                    mitaAnimationModded.animator.runtimeAnimatorController = mitaAnimationModded.overrideController;
+                    mitaAnimationModded.animator.SetTrigger("NextLerp");
+                    mitaAnimationModded.animator.Rebind();
 
                     if (changeAnimation)
                     {
                         MelonLogger.Msg("changeAnimation Specific");
-                        idleAnimation = FindAnimationClipInControllerByName(initIdle);
+                        idleAnimation = mitaAnimationModded.FindAnimationClipInControllerByName(mitaAnimationModded.initIdle);
                         // Пока что так))
-                        switch (character)
+                        switch (character.characterType)
                         {
 
                             case characterType.Player:
@@ -125,18 +160,18 @@ namespace MitaAI.Mita
                 else
                 {
                     MelonLogger.Msg("No Change Animation controller");
-                    runtimeAnimatorController = animator.runtimeAnimatorController;
+                    mitaAnimationModded.runtimeAnimatorController = mitaAnimationModded.animator.runtimeAnimatorController;
                 }
                
-                foreach (var item in runtimeAnimatorController.animationClips)
+                foreach (var item in mitaAnimationModded.runtimeAnimatorController.animationClips)
                 {
                     setCustomAnimatiomEvents(item);
                 }
-                mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
+                mitaAnimationModded.mitaNavMeshAgent = MitaCore.Instance.MitaPersonObject.GetComponent<NavMeshAgent>();
 
                 if (changeAnimation){
-                    animator.Rebind();
-                    animator.Update(0);
+                    mitaAnimationModded.animator.Rebind();
+                    mitaAnimationModded.animator.Update(0);
                 }
                
 
@@ -181,7 +216,7 @@ namespace MitaAI.Mita
         }
 
 
-        public static string setAnimation(string response)
+        public string setAnimation(string response)
         {
             // Если запрещено двигаться
             //ObjectAnimationMita.finishWorkingOAM();
@@ -264,20 +299,20 @@ namespace MitaAI.Mita
                         
                         break;
                     case "Жест пальцами":
-                        MitaCore.Instance.MitaLook.LookOnPlayerAndRotate();
+                        mitaLook.LookOnPlayerAndRotate();
                         EnqueueAnimation("Mita FingersGesture");
                         break;
                     case "Кивнуть да":
-                        MitaCore.Instance.MitaLook.Nod(true);
+                        mitaLook.Nod(true);
                         break;
                     case "Кивнуть нет":
-                        MitaCore.Instance.MitaLook.Nod(false);
+                        mitaLook.Nod(false);
                         break;
                     case "Глянуть глазами в случайном направлении":
-                        MitaCore.Instance.MitaLook.EyesLookOffsetRandom(90);
+                        mitaLook.EyesLookOffsetRandom(90);
                         break;
                     case "Повернуться в случайном направлении":
-                        MitaCore.Instance.MitaLook.LookRandom();
+                        mitaLook.LookRandom();
                         break;
                     case "Развести руки":
                         //EnqueueAnimation("Mita StartShow Knifes");
@@ -471,7 +506,7 @@ namespace MitaAI.Mita
         };
 
         // Отвечает за перемещение и поворот миты.
-        public static void checkCanMoveRotateLook(bool ignoreInteractionCondition = false)
+        public void checkCanMoveRotateLook(bool ignoreInteractionCondition = false)
         {
             if (MitaState.GetCurrentState(MitaCore.Instance.currentCharacter) == MitaStateType.interaction && !ignoreInteractionCondition) return;
 
@@ -507,10 +542,11 @@ namespace MitaAI.Mita
 
         }
 
-        static public void EnqueueAnimation(string animName = "", float crossfadeLen = 0.25f,
-                                           float timeAfter = 0, bool makeFirst = false,
-                                           bool avoidStateSettings = false)
+        public void EnqueueAnimation(string animName = "", float crossfadeLen = 0.25f,
+                                   float timeAfter = 0, bool makeFirst = false,
+                                   bool avoidStateSettings = false)
         {
+
             HandleAnimationEnqueue(() =>
                 new MitaActionAnimation(
                     animName,
@@ -526,7 +562,44 @@ namespace MitaAI.Mita
             );
         }
 
-        static public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita,
+        public static void EnqueueAnimationCurrent(string animName = "", float crossfadeLen = 0.25f,
+                                           float timeAfter = 0, bool makeFirst = false,
+                                           bool avoidStateSettings = false)
+        {
+            getMitaAnimationModded(MitaCore.Instance.currentCharacter).HandleAnimationEnqueue(() =>
+                new MitaActionAnimation(
+                    animName,
+                    crossfadeLen,
+                    crossfadeLen,
+                    timeAfter,
+                    timeAfter,
+                    avoidStateSettings
+                ),
+                animName,
+                makeFirst,
+                $"Start Que cor from {animName}"
+            );
+        }
+        public static void EnqueueAnimationCurrent(ObjectAnimationMita objectAnimationMita,
+                                           float crossfadeLen = 0.25f, float timeAfter = 0,
+                                           float delayAfter = 0, bool makeFirst = false)
+        {
+            getMitaAnimationModded(MitaCore.Instance.currentCharacter).HandleAnimationEnqueue(() =>
+                new MitaActionAnimation(
+                    objectAnimationMita.mitaAmimatedName,
+                    objectAnimationMita.AnimationTransitionDuration,
+                    crossfadeLen,
+                    timeAfter,
+                    objectAnimationMita,
+                    delayAfter
+                ),
+                objectAnimationMita.mitaAmimatedName,
+                makeFirst,
+                $"Start Que cor from OAM {objectAnimationMita.mitaAmimatedName}",
+                "objectAnimationMita "
+            );
+        }
+        public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita,
                                            float crossfadeLen = 0.25f, float timeAfter = 0,
                                            float delayAfter = 0, bool makeFirst = false)
         {
@@ -546,7 +619,7 @@ namespace MitaAI.Mita
             );
         }
 
-        private static void HandleAnimationEnqueue(Func<MitaActionAnimation> animationFactory,
+        private void HandleAnimationEnqueue(Func<MitaActionAnimation> animationFactory,
                                                   string animationName,
                                                   bool makeFirst,
                                                   string startMessage,
@@ -567,7 +640,7 @@ namespace MitaAI.Mita
             }
         }
 
-        private static void AddAnimationToList(MitaActionAnimation animation, bool makeFirst)
+        private void AddAnimationToList(MitaActionAnimation animation, bool makeFirst)
         {
             if (makeFirst)
                 animationList.AddFirst(animation);
@@ -575,7 +648,7 @@ namespace MitaAI.Mita
                 animationList.AddLast(animation);
         }
 
-        private static void StartQueueProcessingIfNeeded(string startMessage)
+        private void StartQueueProcessingIfNeeded(string startMessage)
         {
             if (isPlaying) return;
 
@@ -584,7 +657,7 @@ namespace MitaAI.Mita
         }
 
 
-        static AnimationClip FindAnimationClipInControllerByName(string animationName)
+        AnimationClip FindAnimationClipInControllerByName(string animationName)
         {
             if (runtimeAnimatorController == null) return null;
 
@@ -604,7 +677,7 @@ namespace MitaAI.Mita
         
         
         // Корутина для последовательного проигрывания
-        static private IEnumerator ProcessQueue()
+        private IEnumerator ProcessQueue()
         {
             isPlaying = true;
 
@@ -645,7 +718,7 @@ namespace MitaAI.Mita
         }
         
         
-        static IEnumerator processObjectAnimationMita(MitaActionAnimation animObject)
+        IEnumerator processObjectAnimationMita(MitaActionAnimation animObject)
         {
             ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
             MelonLogger.Msg($"Now playing OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
@@ -660,7 +733,7 @@ namespace MitaAI.Mita
 
             MelonLogger.Msg($"Now ended walking OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
         }
-        static IEnumerator processAnimationMita(MitaActionAnimation animObject)
+        IEnumerator processAnimationMita(MitaActionAnimation animObject)
         {
 
             string animName = animObject.animName;
@@ -707,7 +780,7 @@ namespace MitaAI.Mita
 
         }
 
-        static public void resetToIdleAnimation(bool toInitAnim = true, bool total_clear = false,bool needEnque = false)
+        public void resetToIdleAnimation(bool toInitAnim = true, bool total_clear = false,bool needEnque = false)
         {
             string anim = toInitAnim ? initIdle : currentIdleAnim;
 
@@ -721,7 +794,7 @@ namespace MitaAI.Mita
             
 
         }
-        static public void setIdleAnimation(string animName)
+        public void setIdleAnimation(string animName)
         {
            
             if (!string.IsNullOrEmpty(animName))
@@ -745,7 +818,7 @@ namespace MitaAI.Mita
             }
 
         }   
-        static public void setIdleWalk(string animName)
+        public void setIdleWalk(string animName)
         {
 
             if (string.IsNullOrEmpty(animName)) return;
@@ -768,7 +841,7 @@ namespace MitaAI.Mita
         }
 
         // Очистка очереди (опционально)
-        static public void ClearQueue()
+        public void ClearQueue()
         {
             animationList.Clear();
             isPlaying = false;

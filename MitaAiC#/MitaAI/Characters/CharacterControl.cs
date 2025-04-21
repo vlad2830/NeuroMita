@@ -105,7 +105,7 @@ namespace MitaAI
         }
         public static string getObjectName(Character character)
         {
-            GameObject Mita = MitaCore.getMitaByEnum(character.character, true);
+            GameObject Mita = MitaCore.getMitaByEnum(character.characterType, true);
             string objectName = "";
             if (Mita != null) objectName += $", its game object {Mita.name}";
 
@@ -129,7 +129,7 @@ namespace MitaAI
             foreach (var character in activeCharacters)
             {
 
-                if (character.character == nextCharacter)
+                if (character.characterType == nextCharacter)
                 {
                     character.PointsOrder = activeCharacters.First().PointsOrder + 1 ;
                 }
@@ -152,8 +152,8 @@ namespace MitaAI
             {
 
                 string objectName = getObjectName(character);
-                message += $"\n{CharacterControl.extendCharsString(character.character)}{objectName})";
-                if (character.character == toWhom) message += "(you)";
+                message += $"\n{CharacterControl.extendCharsString(character.characterType)}{objectName})";
+                if (character.characterType == toWhom) message += "(you)";
             }
             message += "\n";
             return message;
@@ -194,7 +194,7 @@ namespace MitaAI
             foreach (var character in activeCharacters)
             {
                 //MelonLogger.Msg($"{character.character} found in activeCharacters");
-                characters.Add(character.character);
+                characters.Add(character.characterType);
             }
 
             

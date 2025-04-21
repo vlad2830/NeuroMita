@@ -92,7 +92,7 @@ namespace MitaAI
             movementStyle = MovementStyles.stay;
             MitaCore.Instance.location34_Communication.ActivationCanWalk(false);
             MelonCoroutines.Start(LookOnPlayer());
-            MitaAnimationModded.resetToIdleAnimation();
+            MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter).resetToIdleAnimation();
         }
         public static void ChoseStyle(string animName)
         {

@@ -68,7 +68,7 @@ namespace MitaAI
             PlayerAnimationModded.playerMove.dontMove = false;
             MitaCore.Instance.playerObject.transform.SetParent(MitaCore.Instance.playerControllerObject.transform);
             MelonLogger.Msg("Player throwned!");
-            MitaAnimationModded.resetToIdleAnimation();
+            MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter).resetToIdleAnimation();
         }
         static IEnumerator MitaKickEnd()
         {

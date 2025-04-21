@@ -216,7 +216,7 @@ namespace MitaAI
                     modifiedPart = MitaFaceAnimationModded.SetFaceStyle(modifiedPart);
                     modifiedPart = MitaClothesModded.ProcessClothes(modifiedPart);
                     modifiedPart = PlayerEffectsModded.ProcessPlayerEffects(modifiedPart);
-                    modifiedPart = MitaAnimationModded.setAnimation(modifiedPart);
+                    modifiedPart = MitaAnimationModded.getMitaAnimationModded(characterToSend).setAnimation(modifiedPart);
                     modifiedPart = AudioControl.ProcessMusic(modifiedPart);
                     modifiedPart = CommandProcessor.ProcesHint(modifiedPart);
                     modifiedPart = ObjectAnimationMita.ProcessInteraction(modifiedPart);

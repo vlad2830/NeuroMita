@@ -77,9 +77,12 @@ namespace MitaAI
 
                 if (MitaCore.Instance.MitaPersonObject != null) info += $"Your game object name is <{MitaCore.Instance.MitaPersonObject.name}>\n";
                 info += $"Current movement type: {MitaMovement.movementStyle.ToString()}\n";
-                if (MitaAnimationModded.currentIdleAnim != "") info += $"Current idle anim: {MitaAnimationModded.currentIdleAnim}\n";
-                if (MitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!\n";
-                if (MitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!\n";
+
+                var mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter);
+
+                if (mitaAnimationModded.currentIdleAnim != "") info += $"Current idle anim: {mitaAnimationModded.currentIdleAnim}\n";
+                if (mitaAnimationModded.currentIdleAnim == "Mita Fall Idle") info += "You are fall, use another idle animation if want to end this animaton!\n";
+                if (mitaAnimationModded.currentIdleAnim == "Mila CryNo") info += "You are sitting and crying, use another idle animation if want to end this animaton!\n";
 
                 info += $"Current emotion anim: {DialogueControl.currentEmotion}\n";
 

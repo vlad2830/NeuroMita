@@ -161,17 +161,11 @@ namespace MitaAI
 
                 if (changePosition) MitaPersonObject.transform.position = Vector3.zero;
 
-                if (MitaPersonObject.GetComponent<Character>() == null)
-                {
-                    var comp = MitaPersonObject.AddComponent<Character>();
-                    comp.init(character);
-                }
-
-                // Интеграция CharacterLogic
                 Character characterComponent = MitaPersonObject.GetComponent<Character>();
                 if (characterComponent == null)
                 {
-                    characterComponent.init(character); // Предполагается, что init инициализирует персонажа
+                    characterComponent = MitaPersonObject.AddComponent<Character>();
+                    characterComponent.init(character);
                 }
                 characterComponent.enabled = true;
 
@@ -200,9 +194,12 @@ namespace MitaAI
 
                     MelonLogger.Msg("MitaPersonObject is null");
                 };
-                MitaAnimationModded.mitaAnimatorFunctions = MitaAnimatorFunctions;
+
+                var mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(characterComponent);
+
+                mitaAnimationModded.mitaAnimatorFunctions = MitaAnimatorFunctions;
                 var animator = MitaPersonObject.GetComponent<Animator>();
-                MitaAnimationModded.animator = animator;
+                mitaAnimationModded.animator = animator;
 
 
                 MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
@@ -239,16 +236,17 @@ namespace MitaAI
 
                     MelonLogger.Msg($"5a0 {ex}");
                 }
-                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
+               
 
                 if (ChangeAnimationControler)
                 {
                     try
                     {
 
-                        MitaAnimationModded.animator.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
+                        mitaAnimationModded.animator.runtimeAnimatorController = mitaAnimationModded.runtimeAnimatorController;
                         //AnimatorOverrideController AOC = MitaAnimationModded.animator.runtimeAnimatorController as AnimatorOverrideController;
                         //AOC.runtimeAnimatorController = MitaAnimationModded.runtimeAnimatorController;
+                        MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
                     }
                     catch (Exception ex)
                     {
@@ -269,7 +267,7 @@ namespace MitaAI
                 }
 
 
-                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
+                
                 MelonLogger.Msg("666");
                 //MitaAnimationModded.overrideController = MitaAnimationModded.runtimeAnimatorController;
                 //location21_World.mitaTransform = MitaPersonObject.transform;
@@ -296,9 +294,9 @@ namespace MitaAI
                     location34_Communication.mitaAnimator = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
                     location34_Communication.mita = Mita;
 
-                    MitaAnimationModded.location34_Communication = location34_Communication;
-                    MitaAnimationModded.location34_Communication.mita = Mita;
-                    MitaAnimationModded.location34_Communication.mitaCanWalk = true;
+                    mitaAnimationModded.location34_Communication = location34_Communication;
+                    mitaAnimationModded.location34_Communication.mita = Mita;
+                    mitaAnimationModded.location34_Communication.mitaCanWalk = true;
                 }
                 catch (Exception ex)
                 {
@@ -309,12 +307,12 @@ namespace MitaAI
 
                 Settings.MitaType.Value = character;
                 Settings.Save();
-                MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
+               // MelonLogger.Msg($"AnimContr Status name {animator.runtimeAnimatorController.name}  count {animator.runtimeAnimatorController.animationClips.Length} ");
                 
                
 
                
-                MitaAnimationModded.init(MitaAnimatorFunctions, location34_Communication, ChangeAnimationControler, changeAnimation, character);
+                MitaAnimationModded.init(characterComponent, MitaAnimatorFunctions, location34_Communication, MitaLook, ChangeAnimationControler, changeAnimation);
 
 
                 
@@ -614,7 +612,7 @@ namespace MitaAI
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
-            MitaAnimationModded.init(MitaAnimatorFunctions, location34_Communication);
+            MitaAnimationModded.init(comp,MitaAnimatorFunctions, location34_Communication, MitaLook);
             Mita.AiShraplyStop();
 
             //GameObject eyeObject = Utils.TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");

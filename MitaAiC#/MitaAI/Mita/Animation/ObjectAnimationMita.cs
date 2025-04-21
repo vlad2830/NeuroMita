@@ -72,7 +72,7 @@ namespace MitaAI
                     if (allOAMs.TryGetValue(interaction, out var oam))
                     {
                         MelonLogger.Msg($"Found Interaction {oam.text} {oam.tip}");
-                        MitaAnimationModded.EnqueueAnimation(oam,delayAfter:0.5f);
+                        MitaAnimationModded.EnqueueAnimationCurrent(oam,delayAfter:0.5f);
                     }
                 }
                 return Regex.Replace(response, $@"<{command}>.*?</{command}>", "");
@@ -104,6 +104,8 @@ namespace MitaAI
 
         public GameObject AmimatedObject;
         public GameObject mitaPerson;
+
+        MitaAnimationModded mitaAnimationModded;
 
         public ObjectAnimationMita backAnimation;
         public bool isEndingObject = false;
@@ -386,7 +388,9 @@ namespace MitaAI
                 MitaCore.Instance.Mita.MagnetOff();
                 MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = true;
                 MitaState.SetCurrentState(MitaCore.Instance.currentCharacter, MitaStateType.interaction);
-                MitaAnimationModded.location34_Communication.ActivationCanWalk(false);
+
+                mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter);
+                mitaAnimationModded.location34_Communication.ActivationCanWalk(false);
 
                 if (needWalking)
                 {
@@ -446,24 +450,24 @@ namespace MitaAI
         }
         void EnqueAnimation()
         {
-            MitaAnimationModded.EnqueueAnimation(mitaAmimatedName, AnimationTransitionDuration,makeFirst:true,avoidStateSettings:true);
+            mitaAnimationModded.EnqueueAnimation(mitaAmimatedName, AnimationTransitionDuration,makeFirst:true,avoidStateSettings:true);
 
             
         }
         void SetIdleAnimation()
         {
-            
-            MitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
-            MitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition: true);
+
+            mitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
+            mitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition: true);
             if (NeedMovingToIdle) Utils.StartObjectAnimation(MitaCore.Instance.MitaPersonObject, transform.position, transform.eulerAngles, AnimationTransitionDuration+0.5f, false);
             MelonCoroutines.Start(MagnetAfterDelay(MitaCore.Instance.Mita, gameObject.transform, waitingAfterWalk, !magnetAfter));
         }
 
         void ResetIdleAnimation()
         {
-            
-            MitaAnimationModded.resetToIdleAnimation(needEnque:true);
-            MitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition:true);
+
+            mitaAnimationModded.resetToIdleAnimation(needEnque:true);
+            mitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition:true);
         }
         void ReturnToNormalState()
         {
@@ -471,8 +475,8 @@ namespace MitaAI
             backAnimation.commonInteractableObject.free(position);
 
             MitaCore.Instance.Mita.MagnetOff();
-            
-            MitaAnimationModded.location34_Communication.gameObject.active = true;
+
+            mitaAnimationModded.location34_Communication.gameObject.active = true;
 
             
 
