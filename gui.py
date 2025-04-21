@@ -9,11 +9,12 @@ from server import ChatServer
 from Silero import TelegramBotHandler
 
 import gettext
-
+from pathlib import Path
 import os
 import base64
 import json
 import glob
+from utils.ffmpeg_installer import install_ffmpeg
 
 import asyncio
 import threading
@@ -30,6 +31,12 @@ import sounddevice as sd
 from SpeechRecognition import SpeechRecognition
 
 import requests
+import importlib
+
+from LocalVoice import LocalVoice
+import time
+
+from utils.PipInstaller import PipInstaller 
 
 
 #gettext.bindtextdomain('NeuroMita', '/Translation')
@@ -47,6 +54,49 @@ def getTranslationVariant(ru_str, en_str=""):
 
 _ = getTranslationVariant  # Временно, мб
 
+
+LOCAL_VOICE_MODELS = [
+    {
+        "id": "low",
+        "name": "Edge-TTS + RVC",
+        "min_vram": 3,
+        "rec_vram": 4,
+        "gpu_vendor": ["NVIDIA", "AMD"],
+        "size_gb": 3
+    },
+    {
+        "id": "low+",
+        "name": "Silero + RVC",
+        "min_vram": 3,
+        "rec_vram": 4,
+        "gpu_vendor": ["NVIDIA"],
+        "size_gb": 3
+    },
+    {
+        "id": "medium",
+        "name": "Fish Speech",
+        "min_vram": 4,
+        "rec_vram": 6,
+        "gpu_vendor":  ["NVIDIA"],
+        "size_gb": 5
+    },
+    {
+        "id": "medium+",
+        "name": "Fish Speech+",
+        "min_vram": 4,
+        "rec_vram": 6,
+        "gpu_vendor":  ["NVIDIA"],
+        "size_gb": 10
+    },
+    {
+        "id": "medium+low",
+        "name": "Fish Speech+ + RVC",
+        "min_vram": 6,
+        "rec_vram": 8,
+        "gpu_vendor": ["NVIDIA"],
+        "size_gb": 15
+    }
+]
 
 class ChatGUI:
     def __init__(self):
@@ -87,7 +137,27 @@ class ChatGUI:
             logger.info("Не удалось удачно получить из системных переменных все данные", e)
             self.settings = SettingsManager("Settings/settings.json")
 
-        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.makeRequest)
+        try:
+            self.pip_installer = PipInstaller(
+                script_path="libs\python\python.exe",
+                libs_path="Lib",
+                update_log=logger.info
+            )
+            logger.info("PipInstaller успешно инициализирован.")
+        except Exception as e:
+            logger.error(f"Не удалось инициализировать PipInstaller: {e}", exc_info=True)
+            self.pip_installer = None # Устанавливаем в None, чтобы ChatModel мог это проверить
+
+        self._check_and_perform_pending_update()
+
+        self.local_voice = LocalVoice(self)
+        self.voiceover_method = self.settings.get("VOICEOVER_METHOD", "TG")
+        self.current_local_voice_id = self.settings.get("NM_CURRENT_VOICEOVER", None)
+        self.last_voice_model_selected = None
+        self.model_loading_cancelled = False
+
+
+        self.model = ChatModel(self, self.api_key, self.api_key_res, self.api_url, self.api_model, self.makeRequest, self.pip_installer)
         self.server = ChatServer(self, self.model)
         self.server_thread = None
         self.running = False
@@ -106,6 +176,9 @@ class ChatGUI:
 
         self.root = tk.Tk()
         self.root.title(_("Чат с NeuroMita","NeuroMita Chat"))
+
+        self.ffmpeg_install_popup = None 
+        self.root.after(100, self.check_and_install_ffmpeg) 
 
         self.delete_all_sound_files()
         self.setup_ui()
@@ -290,29 +363,67 @@ class ChatGUI:
         self.waiting_answer = False
         logger.info("Завершение получения фразы")
 
+    # region Modified by Atm4x
     def check_text_to_talk_or_send(self):
         """Периодическая проверка переменной self.textToTalk."""
-        if self.textToTalk:  #and not self.ConnectedToGame:
+
+        # Проверяем, включена ли озвучка глобально
+        # if not self.settings.get("SILERO_USE", True):
+        #     if self.textToTalk:
+        #         logger.debug("Озвучка выключена в настройках, очищаем текст.")
+        #         self.textToTalk = "" # Очищаем, чтобы не пытаться отправить
+        #     # Перезапуск проверки
+        #     self.root.after(100, self.check_text_to_talk_or_send)
+        #     return # Выходим, если озвучка выключена
+
+        # Если озвучка включена и есть текст
+        if self.textToTalk:
             logger.info(f"Есть текст для отправки: {self.textToTalk} id {self.id_sound}")
-            # Вызываем метод для отправки текста, если переменная не пуста
             if self.loop and self.loop.is_running():
                 try:
-                    if bool(self.settings.get("SILERO_USE")):
-                        logger.info("Цикл событий готов. Отправка текста.")
+                    # Получаем основной метод озвучки из настроек
+                    self.voiceover_method = self.settings.get("VOICEOVER_METHOD", "TG")
+
+                    if self.voiceover_method == "TG":
+                        logger.info("Используем Telegram (Silero/Miku) для озвучки")
+                        # Используем существующую логику для TG/MikuTTS
                         asyncio.run_coroutine_threadsafe(
                             self.run_send_and_receive(self.textToTalk, self.textSpeaker, self.id_sound),
                             self.loop
                         )
-                    self.textToTalk = ""  # Очищаем текст после отправки
+                        self.textToTalk = "" # Очищаем текст после отправки
+
+                    elif self.voiceover_method == "Local":
+                        # Получаем ID выбранной локальной модели из настроек
+                        selected_local_model_id = self.settings.get("NM_CURRENT_VOICEOVER", None)
+                        if selected_local_model_id: # Убедимся, что ID локальной модели выбран
+                            logger.info(f"Используем {selected_local_model_id} для локальной озвучки")
+                            # Проверяем, инициализирована ли модель
+                            if self.local_voice.is_model_initialized(selected_local_model_id):
+                                asyncio.run_coroutine_threadsafe(
+                                    self.run_local_voiceover(self.textToTalk),
+                                    self.loop
+                                )
+                                self.textToTalk = "" # Очищаем текст после отправки
+                            else:
+                                logger.warning(f"Модель {selected_local_model_id} выбрана, но не инициализирована. Озвучка не будет выполнена.")
+                                self.textToTalk = "" # Очищаем, чтобы не зациклиться
+                        else:
+                            logger.warning("Локальная озвучка выбрана, но конкретная модель не установлена/не выбрана.")
+                            self.textToTalk = "" # Очищаем, чтобы не зациклиться
+                    else:
+                         logger.warning(f"Неизвестный метод озвучки: {self.voiceover_method}")
+                         self.textToTalk = "" # Очищаем, чтобы не зациклиться
+
                     logger.info("Выполнено")
                 except Exception as e:
-                    logger.info(f"Ошибка при отправке текста: {e}")
-                    self.textToTalk = ""  # Очищаем текст в случае ошибки
+                    logger.error(f"Ошибка при отправке текста на озвучку: {e}")
+                    self.textToTalk = "" # Очищаем текст в случае ошибки
             else:
-                logger.info("Ошибка: Цикл событий не готов.")
+                logger.error("Ошибка: Цикл событий не готов.")
 
+        # --- Остальная часть функции без изменений (обработка микрофона) ---
         if bool(self.settings.get("MIC_INSTANT_SENT")):
-
             if not self.waiting_answer:
                 text_from_recognition = SpeechRecognition.receive_text()
                 user_input = self.user_entry.get("1.0", "end-1c")
@@ -328,7 +439,9 @@ class ChatGUI:
             self.user_input = self.user_entry.get("1.0", "end-1c").strip()
 
         # Перезапуск проверки через 100 миллисекунд
-        self.root.after(100, self.check_text_to_talk_or_send)  # Это обеспечит постоянную проверку
+        self.root.after(100, self.check_text_to_talk_or_send)
+
+    #endregion
 
     def send_instantly(self):
         """Мгновенная отправка распознанного текста"""
@@ -377,14 +490,14 @@ class ChatGUI:
                 self.load_chat_history()
 
     def setup_ui(self):
-        self.root.config(bg="#2c2c2c")  # Установите темный цвет фона для всего окна
+        self.root.config(bg="#1e1e1e")  # Установите темный цвет фона для всего окна
         self.root.geometry("1200x800")
 
-        main_frame = tk.Frame(self.root, bg="#2c2c2c")
+        main_frame = tk.Frame(self.root, bg="#1e1e1e")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # Первый столбец
-        left_frame = tk.Frame(main_frame, bg="#2c2c2c")
+        left_frame = tk.Frame(main_frame, bg="#1e1e1e")
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Настройка grid для left_frame
@@ -395,7 +508,7 @@ class ChatGUI:
         # Чат - верхняя часть (растягивается)
         self.chat_window = tk.Text(
             left_frame, height=30, width=40, state=tk.NORMAL,
-            bg="#1e1e1e", fg="#ffffff", insertbackground="white", wrap=tk.WORD,
+            bg="#151515", fg="#ffffff", insertbackground="white", wrap=tk.WORD,
             font=("Arial", 12)
         )
         self.chat_window.grid(row=0, column=0, sticky="nsew", padx=10, pady=(10, 0))
@@ -410,7 +523,7 @@ class ChatGUI:
         input_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=(20, 10))  # pady=(20, 10) — отступ сверху 20px
 
         self.user_entry = tk.Text(
-            input_frame, height=3, width=50, bg="#1e1e1e", fg="#ffffff",
+            input_frame, height=3, width=50, bg="#151515", fg="#ffffff",
             insertbackground="white", font=("Arial", 12)
         )
         self.user_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
@@ -428,7 +541,7 @@ class ChatGUI:
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         # Создаем канвас и скроллбар для правой секции
-        right_canvas = tk.Canvas(right_frame, bg="#2c2c2c", highlightthickness=0)
+        right_canvas = tk.Canvas(right_frame, bg="#1e1e1e", highlightthickness=0)
         right_scrollbar = ttk.Scrollbar(right_frame, orient="vertical", command=right_canvas.yview)
 
         # Настраиваем скроллбар и канвас
@@ -437,7 +550,7 @@ class ChatGUI:
         right_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Создаем фрейм внутри канваса для размещения всех элементов
-        settings_frame = tk.Frame(right_canvas, bg="#2c2c2c")
+        settings_frame = tk.Frame(right_canvas, bg="#1e1e1e")
         settings_frame_window = right_canvas.create_window((0, 0), window=settings_frame, anchor="nw",
                                                            tags="settings_frame")
 
@@ -482,8 +595,9 @@ class ChatGUI:
         self.setup_language_controls(settings_frame)
         self.setup_api_controls_new(settings_frame)
         self.setup_model_controls(settings_frame)
+        self.setup_g4f_controls(settings_frame)
         self.setup_general_settings_control(settings_frame)
-        self.setup_tg_controls(settings_frame)
+        self.setup_voiceover_controls(settings_frame) # Бывший setup_tg_controls()
         self.setup_microphone_controls(settings_frame)
 
         self.setup_mita_controls(settings_frame)
@@ -528,6 +642,132 @@ class ChatGUI:
             self.chat_window.insert(tk.END, f"{self.model.current_character.name}: ", "Mita")
             self.chat_window.insert(tk.END, f"{content}\n\n")
 
+    # region секция g4f
+    def _check_and_perform_pending_update(self):
+        """Проверяет, запланировано ли обновление g4f, и выполняет его."""
+        if not self.pip_installer:
+            logger.warning("PipInstaller не инициализирован, проверка отложенного обновления пропущена.")
+            return
+
+        update_pending = self.settings.get("G4F_UPDATE_PENDING", False)
+        target_version = self.settings.get("G4F_TARGET_VERSION", None)
+
+        if update_pending and target_version:
+            logger.info(f"Обнаружено запланированное обновление g4f до версии: {target_version}")
+            package_spec = f"g4f=={target_version}" if target_version != "latest" else "g4f"
+            description = f"Запланированное обновление g4f до {target_version}..."
+
+            success = False
+            try:
+                success = self.pip_installer.install_package(
+                    package_spec,
+                    description=description,
+                    extra_args=["--upgrade"]
+                )
+                if success:
+                    logger.info(f"Запланированное обновление g4f до {target_version} успешно завершено.")
+                    try:
+                        importlib.invalidate_caches()
+                        logger.info("Кэш импорта очищен после запланированного обновления.")
+                    except Exception as e_invalidate:
+                        logger.error(f"Ошибка при очистке кэша импорта после обновления: {e_invalidate}")
+                else:
+                    logger.error(f"Запланированное обновление g4f до {target_version} не удалось (ошибка pip).")
+            except Exception as e_install:
+                 logger.error(f"Исключение во время запланированного обновления g4f: {e_install}", exc_info=True)
+                 success = False # Явно указываем на неудачу
+
+            finally:
+                # --- ВАЖНО: Сбрасываем флаги независимо от успеха ---
+                logger.info("Сброс флагов запланированного обновления g4f.")
+                self.settings.set("G4F_UPDATE_PENDING", False)
+                self.settings.set("G4F_TARGET_VERSION", None) # Или ""
+                self.settings.save_settings()
+        else:
+            logger.info("Нет запланированных обновлений g4f.")
+
+    def setup_g4f_controls(self, parent):
+        """Создает секцию настроек для управления версией g4f."""
+        section = CollapsibleSection(parent, _("Настройки g4f", "g4f Settings"))
+        section.pack(fill=tk.X, padx=5, pady=5, expand=True)
+
+        version_frame = self.create_setting_widget(
+            parent=section.content_frame,
+            label=_('Версия g4f', 'g4f Version'),
+            setting_key='G4F_VERSION', # Этот ключ теперь просто хранит последнюю введенную/установленную версию
+            widget_type='entry',
+            default='0.4.7.7',
+            tooltip=_('Укажите версию g4f (например, 0.4.7.7 или latest). Обновление произойдет при следующем запуске.',
+                      'Specify the g4f version (e.g., 0.4.7.7 or latest). The update will occur on the next launch.')
+        )
+        self.g4f_version_entry = None
+        for widget in version_frame.winfo_children():
+            if isinstance(widget, tk.Entry):
+                self.g4f_version_entry = widget
+                break
+        if not self.g4f_version_entry:
+             logger.error("Не удалось найти виджет Entry для версии g4f!")
+        section.add_widget(version_frame)
+
+        # Кнопка теперь вызывает trigger_g4f_reinstall_schedule
+        button_frame = self.create_setting_widget(
+            parent=section.content_frame,
+            label=_('Запланировать обновление g4f', 'Schedule g4f Update'), # Текст кнопки изменен
+            setting_key='',
+            widget_type='button',
+            command=self.trigger_g4f_reinstall_schedule # Привязываем к новой функции
+        )
+        section.add_widget(button_frame)
+
+    def trigger_g4f_reinstall_schedule(self):
+        """
+        Считывает версию из поля ввода, сохраняет ее и флаг для обновления
+        при следующем запуске. Информирует пользователя.
+        """
+        logger.info("Запрос на планирование обновления g4f...")
+
+        target_version = None
+        if hasattr(self, 'g4f_version_entry') and self.g4f_version_entry:
+            target_version = self.g4f_version_entry.get().strip()
+            if not target_version:
+                messagebox.showerror(_("Ошибка", "Error"),
+                                     _("Пожалуйста, введите версию g4f или 'latest'.", "Please enter a g4f version or 'latest'."),
+                                     parent=self.root)
+                return
+        else:
+            logger.error("Виджет entry для версии g4f не найден.")
+            messagebox.showerror(_("Ошибка", "Error"),
+                                 _("Не найден элемент интерфейса для ввода версии.", "UI element for version input not found."),
+                                 parent=self.root)
+            return
+
+        try:
+            # Сохраняем целевую версию и устанавливаем флаг
+            self.settings.set("G4F_TARGET_VERSION", target_version)
+            self.settings.set("G4F_UPDATE_PENDING", True)
+            # Также обновим G4F_VERSION, чтобы в поле осталась введенная версия
+            self.settings.set("G4F_VERSION", target_version)
+            self.settings.save_settings()
+            logger.info(f"Обновление g4f до версии '{target_version}' запланировано на следующий запуск.")
+
+            # Информируем пользователя
+            messagebox.showinfo(
+                _("Запланировано", "Scheduled"),
+                _("Версия g4f '{version}' будет установлена/обновлена при следующем запуске программы.",
+                  "g4f version '{version}' will be installed/updated the next time the program starts.").format(version=target_version),
+                parent=self.root
+            )
+        except Exception as e:
+            logger.error(f"Ошибка при сохранении настроек для запланированного обновления: {e}", exc_info=True)
+            messagebox.showerror(
+                _("Ошибка сохранения", "Save Error"),
+                _("Не удалось сохранить настройки для обновления. Пожалуйста, проверьте логи.",
+                  "Failed to save settings for the update. Please check the logs."),
+                parent=self.root
+            )
+
+    # endregion
+
     def setup_status_indicators(self, parent):
         # Создаем фрейм для индикаторов
         status_frame = tk.Frame(parent, bg="#2c2c2c")
@@ -560,12 +800,14 @@ class ChatGUI:
         )
         self.silero_status_checkbox.pack(side=tk.LEFT, padx=5, pady=4)
 
-    def updateAll(self):
-        self.update_status_colors()
-        self.update_debug_info()
     def update_game_connection(self,is_connected):
         self.ConnectedToGame = is_connected
         self.game_connected_checkbox_var = tk.BooleanVar(value=is_connected)  # Статус подключения к игре
+
+    def updateAll(self):
+        self.update_status_colors()
+        self.update_debug_info()
+
     def update_status_colors(self):
         self.game_connected_checkbox_var = tk.BooleanVar(value=self.ConnectedToGame)  # Статус подключения к игре
         # Обновление цвета для подключения к игре
@@ -690,32 +932,157 @@ class ChatGUI:
 
         self.update_debug_info()  # Отобразить изначальное состояние переменных
 
-    def setup_tg_controls(self, parent):
-        # Основные настройки
-        mita_voice_config = [
-            {'label': _('Использовать озвучку', 'Use speech'), 'key': 'SILERO_USE', 'type': 'checkbutton',
-             'default': True},
-            {'label': _('Вариант озвучки', "Speech option"), 'key': 'LOCAL_OR_NET', 'type': 'combobox',
-             'options': ["TG", "Local"], 'default': "TG"},
-            {'label': _('Канал телеграмм', "Telegram channel"), 'key': 'AUDIO_BOT', 'type': 'combobox',
-             'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot"},
-            {'label': _('Максимальное ожидание', 'Max awaiting time'), 'key': 'SILERO_TIME', 'type': 'entry',
-             'default': 12,
-             'validation': self.validate_number},
+    #region MODIFIED BUT NOT CHECKED BY Atm4x
+    # Бывший setup_tg_controls()
+    def setup_voiceover_controls(self, parent):
+        voice_section = CollapsibleSection(parent, _("Настройка озвучки", "Voiceover Settings"))
+        voice_section.pack(fill=tk.X, padx=5, pady=5, expand=True)
+        self.voiceover_section = voice_section
+        self.voiceover_content_frame = voice_section.content_frame
+
+        try:
+            # Используем правильное имя self.header
+            header_bg = voice_section.header.cget("background") # ttk виджеты используют 'background'
+        except Exception as e:
+            logger.warning(f"Не удалось получить фон заголовка секции: {e}. Используется фоллбэк.")
+            header_bg = "#333333" # Фоллбэк из стиля Header.TFrame
+
+        # Помещаем в self.header
+        self.voiceover_section_warning_label = ttk.Label( # Используем ttk.Label для консистентности
+            voice_section.header,
+            text="⚠️",
+            background=header_bg, # Используем background
+            foreground="orange", # Используем foreground
+            font=("Arial", 10, "bold")
+            # style="Header.TLabel" # Можно добавить стиль, если нужно
+        )
+
+        use_voice_frame = tk.Frame(self.voiceover_content_frame, bg="#2c2c2c")
+        use_voice_frame.pack(fill=tk.X, pady=2)
+        self.create_setting_widget(
+            parent=use_voice_frame,
+            label=_('Использовать озвучку', 'Use speech'),
+            setting_key='SILERO_USE',
+            widget_type='checkbutton',
+            default_checkbutton=True,
+            command=lambda v: self.switch_voiceover_settings()
+        )
+
+        method_frame = tk.Frame(self.voiceover_content_frame, bg="#2c2c2c")
+
+        tk.Label(method_frame, text=_("Вариант озвучки:", "Voiceover Method:"), bg="#2c2c2c", fg="#ffffff", width=25, anchor='w').pack(side=tk.LEFT, padx=5)
+
+        self.voiceover_method_var = tk.StringVar(value=self.settings.get("VOICEOVER_METHOD", "TG"))
+        method_options = ["TG", "Local"] if os.environ.get("EXPERIMENTAL_FUNCTIONS", "0") == "1" else ["TG"]
+        method_combobox = ttk.Combobox(
+            method_frame,
+            textvariable=self.voiceover_method_var,
+            values=method_options,
+            state="readonly",
+            width=28
+        )
+        method_combobox.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        method_combobox.bind("<<ComboboxSelected>>",
+                             lambda e: [self._save_setting("VOICEOVER_METHOD", self.voiceover_method_var.get()),
+                                        self.switch_voiceover_settings()])
+        self.method_frame = method_frame
+
+        self.tg_settings_frame = tk.Frame(self.voiceover_content_frame, bg="#2c2c2c")
+
+        tg_config = [
+                {'label': _('Канал/Сервис', "Channel/Service"), 'key': 'AUDIO_BOT', 'type': 'combobox',
+                 'options': ["@silero_voice_bot", "@CrazyMitaAIbot"], 'default': "@silero_voice_bot",
+                 'tooltip': _("Выберите бота", "Select bot")},
+                {'label': _('Макс. ожидание (сек)', 'Max wait (sec)'), 'key': 'SILERO_TIME', 'type': 'entry', 'default': 12, 'validation': self.validate_number},
+                {'label': _('Настройки Telegram API', 'Telegram API Settings'), 'type': 'text'},
+                {'label': _('Telegram ID'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry', 'default': "", 'hide': bool(self.settings.get("HIDE_PRIVATE"))},
+                {'label': _('Telegram Hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry', 'default': "", 'hide': bool(self.settings.get("HIDE_PRIVATE"))},
+                {'label': _('Telegram Phone'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry', 'default': "", 'hide': bool(self.settings.get("HIDE_PRIVATE"))},
         ]
 
-        # ТГ
-        mita_voice_config.extend([
-            {'label': _('Настройки ТГ будут скрыты после перезапуска!', 'TG Settings will be hidden after restart!'),
-             'type': 'text'},
-            {'label': _('Telegram id'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry', 'default': "",
-             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
-            {'label': _('Telegram hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry', 'default': "",
-             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
-            {'label': _('Telegram number'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry', 'default': "",
-             'hide': bool(self.settings.get("HIDE_PRIVATE"))},
-        ])
-        self.create_settings_section(parent, _("Настройка озвучки", "Speech settings"), mita_voice_config)
+        self.tg_widgets = {}
+        for config in tg_config:
+            widget_frame = self.create_setting_widget(
+                parent=self.tg_settings_frame,
+                label=config['label'],
+                setting_key=config.get('key', ''),
+                widget_type=config.get('type', 'entry'),
+                options=config.get('options', None),
+                default=config.get('default', ''),
+                default_checkbutton=config.get('default_checkbutton', False),
+                validation=config.get('validation', None),
+                tooltip=config.get('tooltip', ""),
+                hide=config.get('hide', False),
+                command=config.get('command', None)
+            )
+            widget_key = config.get('key', config['label'])
+            self.tg_widgets[widget_key] = {'frame': widget_frame, 'config': config}
+
+        self.local_settings_frame = tk.Frame(self.voiceover_content_frame, bg="#2c2c2c")
+
+        local_model_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
+        local_model_frame.pack(fill=tk.X, pady=2)
+        tk.Label(local_model_frame, text=_("Локальная модель:", "Local Model:"), bg="#2c2c2c", fg="#ffffff", width=25, anchor='w').pack(side=tk.LEFT, padx=5)
+
+        self.local_model_status_label = tk.Label(local_model_frame, text="⚠️", bg="#2c2c2c", fg="orange", font=("Arial", 12, "bold"))
+        self.create_tooltip(self.local_model_status_label, _("Модель не инициализирована.\nВыберите модель для начала инициализации.", "Model not initialized.\nSelect the model to start initialization."))
+
+        installed_models = [model["name"] for model in LOCAL_VOICE_MODELS if self.local_voice.is_model_installed(model["id"])]
+        current_model_id = self.settings.get("NM_CURRENT_VOICEOVER", None)
+        current_model_name = ""
+        if current_model_id:
+            for m in LOCAL_VOICE_MODELS:
+                if m["id"] == current_model_id:
+                    current_model_name = m["name"]
+                    break
+
+        self.local_voice_combobox = ttk.Combobox(
+            local_model_frame,
+            values=installed_models,
+            state="readonly",
+            width=26
+        )
+        if current_model_name and current_model_name in installed_models:
+            self.local_voice_combobox.set(current_model_name)
+        elif installed_models:
+                self.local_voice_combobox.set(installed_models[0])
+                for m in LOCAL_VOICE_MODELS:
+                    if m["name"] == installed_models[0]:
+                        self.settings.set("NM_CURRENT_VOICEOVER", m["id"])
+                        self.settings.save_settings()
+                        self.current_local_voice_id = m["id"]
+                        break
+        else:
+                self.local_voice_combobox.set("")
+
+        self.local_voice_combobox.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
+        self.local_voice_combobox.bind("<<ComboboxSelected>>", self.on_local_voice_selected)
+        self.local_model_status_label.pack(side=tk.LEFT, padx=(2, 5))
+
+        local_chat_voice_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
+        local_chat_voice_frame.pack(fill=tk.X, pady=2)
+        self.create_setting_widget(
+            parent=local_chat_voice_frame,
+            label=_('Озвучивать в локальном чате', 'Voiceover in local chat'),
+            setting_key='VOICEOVER_LOCAL_CHAT',
+            widget_type='checkbutton',
+            default_checkbutton=False
+        )
+
+        install_button_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
+        install_button_frame.pack(fill=tk.X, pady=5)
+        install_button = tk.Button(
+            install_button_frame,
+            text=_("Управление локальными моделями", "Manage Local Models"),
+            command=self.open_local_model_installation_window,
+            bg="#8a2be2",
+            fg="#ffffff"
+        )
+        install_button.pack(pady=5)
+
+        self.switch_voiceover_settings()
+        self.check_triton_dependencies()
+    #endregion
 
     def setup_mita_controls(self, parent):
         # Основные настройки
@@ -1193,24 +1560,26 @@ class ChatGUI:
 
     # endregion
 
-    #region SettingGUI
-
+    #region SettingGUI - MODIFIED BUT NOT CHECKED
     def all_settings_actions(self, key, value):
-        ...
+        if key in ["SILERO_USE", "VOICEOVER_METHOD", "AUDIO_BOT"]:
+            self.switch_voiceover_settings()
+
         if key == "SILERO_TIME":
             self.bot_handler.silero_time_limit = int(value)
+
         if key == "AUDIO_BOT":
+            # Возвращаем старое сообщение
             if value.startswith("@CrazyMitaAIbot"):
                 messagebox.showinfo("Информация",
                                     "HАШ Слава Богу 🙏❤️СЛАВА @CrazyMitaAIbot🙏❤️АНГЕЛА ХРАНИТЕЛЯ КАЖДОМУ ИЗ ВАС 🙏❤️БОЖЕ ХРАНИ @CrazyMitaAIbot🙏❤️СПАСИБО ВАМ НАШИ МАЛЬЧИКИ ИЗ @CrazyMitaAIbot🙏🏼❤️",
                                     parent=self.root)
+
             if self.bot_handler:
-                self.bot_handler.tg_bot = value
-        #if key == "TG_BOT":
-        #   self.bot_handler.tg_bot_channel = value
+                 self.bot_handler.tg_bot = value
+
         elif key == "CHARACTER":
             self.model.current_character_to_change = value
-
 
         elif key == "NM_API_MODEL":
             self.model.api_model = value.strip()
@@ -1223,8 +1592,6 @@ class ChatGUI:
         elif key == "gpt4free_model":
             self.model.gpt4free_model = value.strip()
 
-
-
         elif key == "MODEL_MESSAGE_LIMIT":
             self.model.memory_limit = int(value)
         elif key == "MODEL_MESSAGE_ATTEMPTS_COUNT":
@@ -1232,11 +1599,11 @@ class ChatGUI:
         elif key == "MODEL_MESSAGE_ATTEMPTS_TIME":
             self.model.request_delay = float(value)
 
-
-
         elif key == "MIC_ACTIVE":
             SpeechRecognition.active = bool(value)
-        #logger.info(f"Настройки изменены: {key} = {value}")
+
+        # logger.info(f"Настройки изменены: {key} = {value}")
+    #endregion
 
     def create_settings_section(self, parent, title, settings_config):
         section = CollapsibleSection(parent, title)
@@ -1308,10 +1675,10 @@ class ChatGUI:
                     command(entry.get())
 
             # Явная привязка горячих клавиш для Entry
-            #entry.bind("<Control-v>", lambda e: self.cmd_paste(e.widget))
-            #entry.bind("<Control-c>", lambda e: self.cmd_copy(e.widget))
-            #entry.bind("<Control-x>", lambda e: self.cmd_cut(e.widget))
-
+            # entry.bind("<Control-v>", lambda e: self.cmd_paste(e.widget))
+            # entry.bind("<Control-c>", lambda e: self.cmd_copy(e.widget))
+            # entry.bind("<Control-x>", lambda e: self.cmd_cut(e.widget))
+            
             entry.bind("<FocusOut>", lambda e: save_entry())
             entry.bind("<Return>", lambda e: save_entry())
 
@@ -1487,7 +1854,6 @@ class ChatGUI:
             widget.event_generate("<<Copy>>")
 
     def cmd_cut(self, widget):
-
         # Обработчик команды вырезания
         if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Cut>>")
@@ -1545,3 +1911,759 @@ class ChatGUI:
                 logger.info(f"Удален файл: {file}")
             except Exception as e:
                 logger.info(f"Ошибка при удалении файла {file}: {e}")
+
+
+    # region LocalVoice Functions
+    async def run_local_voiceover(self, text):
+        """Асинхронный метод для вызова локальной озвучки."""
+        try:
+            character = self.model.current_character if hasattr(self.model, "current_character") else None
+            output_file = f"output_{int(time.time())}.wav"
+            absolute_audio_path = os.path.abspath(output_file)
+
+            result_path = await self.local_voice.voiceover(
+                text=text,
+                output_file=absolute_audio_path,
+                character=character
+            )
+
+            if result_path:
+                logger.info(f"Локальная озвучка сохранена в: {result_path}")
+                # Воспроизведение файла, если не подключены к игре И включена опция
+                if not self.ConnectedToGame and self.settings.get("VOICEOVER_LOCAL_CHAT"):
+                    await AudioHandler.handle_voice_file(result_path)
+                elif self.ConnectedToGame:
+                    self.patch_to_sound_file = result_path
+                    logger.info(f"Путь к файлу для игры: {self.patch_to_sound_file}")
+                else:
+                    logger.info("Озвучка в локальном чате отключена.")
+            else:
+                 logger.error("Локальная озвучка не удалась, файл не создан.")
+
+        except Exception as e:
+            logger.error(f"Ошибка при выполнении локальной озвучки: {e}")
+
+    def on_local_voice_selected(self, event=None):
+        """Обработчик выбора локальной модели озвучки"""
+        if not hasattr(self, 'local_voice_combobox'):
+             return
+
+        selected_model_name = self.local_voice_combobox.get()
+        if not selected_model_name:
+            self.update_local_model_status_indicator() # Обновляем на случай сброса
+            return
+
+        selected_model_id = None
+        selected_model = None
+        for model in LOCAL_VOICE_MODELS:
+            if model["name"] == selected_model_name:
+                selected_model = model
+                selected_model_id = model["id"]
+                break
+
+        if not selected_model_id:
+            messagebox.showerror(_("Ошибка", "Error"), _("Не удалось определить ID выбранной модели", "Could not determine ID of selected model"))
+            self.update_local_model_status_indicator() # Обновляем статус
+            return
+
+        # Проверка перезапуска (без изменений)
+        if selected_model_id in ["medium+", "medium+low"] and self.local_voice.first_compiled == False:
+            to_open = messagebox.askyesno(
+                _("Внимание", "Warning"),
+                _("Невозможно перекомпилировать модель Fish Speech в Fish Speech+ - требуется перезапуск программы. \n\n Перезапустить?",
+                  "Cannot recompile Fish Speech model to Fish Speech+ - program restart required. \n\n Restart?")
+            )
+            if not to_open:
+                if self.last_voice_model_selected:
+                    self.local_voice_combobox.set(self.last_voice_model_selected["name"])
+                else:
+                    self.local_voice_combobox.set('')
+                    self.settings.set("NM_CURRENT_VOICEOVER", None)
+                    self.settings.save_settings()
+                self.update_local_model_status_indicator() # Обновляем статус
+                return
+            else:
+                import sys, subprocess
+                python = sys.executable
+                script = os.path.abspath(sys.argv[0])
+                subprocess.Popen([python, script] + sys.argv[1:])
+                self.root.destroy()
+                return
+
+
+        self.settings.set("NM_CURRENT_VOICEOVER", selected_model_id)
+        self.settings.save_settings()
+        self.current_local_voice_id = selected_model_id
+
+        # Обновляем индикатор и решаем, нужна ли инициализация
+        self.update_local_model_status_indicator()
+        if not self.local_voice.is_model_initialized(selected_model_id):
+            self.show_model_loading_window(selected_model)
+        else:
+            logger.info(f"Модель {selected_model_id} уже инициализирована.")
+            self.last_voice_model_selected = selected_model
+
+    def show_model_loading_window(self, model):
+        """Показывает окно загрузки модели с прогрессом"""
+        model_id = model["id"]
+        model_name = model["name"]
+
+        # Создаем новое окно
+        loading_window = tk.Toplevel(self.root)
+        loading_window.title(_("Загрузка модели", "Loading model") + f" {model_name}")
+        loading_window.geometry("400x300")
+        loading_window.configure(bg="#2c2c2c")
+        loading_window.resizable(False, False)
+        loading_window.transient(self.root) # Делаем модальным относительно главного окна
+        loading_window.grab_set() # Захватываем фокус
+
+        # Добавляем элементы интерфейса
+        tk.Label(
+            loading_window,
+            text=_("Инициализация модели", "Initializing model") + f" {model_name}",
+            font=("Arial", 12, "bold"),
+            bg="#2c2c2c",
+            fg="#ffffff"
+        ).pack(pady=(20, 10))
+
+        tk.Label(
+            loading_window,
+            text=_("Пожалуйста, подождите...", "Please wait..."),
+            bg="#2c2c2c",
+            fg="#ffffff"
+        ).pack(pady=(0, 20))
+
+        # Прогресс-бар (неопределенный)
+        progress = ttk.Progressbar(
+            loading_window,
+            orient="horizontal",
+            length=350,
+            mode="indeterminate"
+        )
+        progress.pack(pady=10)
+        progress.start(10) # Запускаем анимацию прогресс-бара
+
+        # Статус загрузки
+        status_var = tk.StringVar(value=_("Инициализация...", "Initializing..."))
+        status_label = tk.Label(
+            loading_window,
+            textvariable=status_var,
+            bg="#2c2c2c",
+            fg="#ffffff"
+        )
+        status_label.pack(pady=5)
+
+        # Кнопка отмены
+        cancel_button = tk.Button(
+            loading_window,
+            text=_("Отменить", "Cancel"),
+            command=lambda: self.cancel_model_loading(loading_window),
+            bg="#8a2be2",
+            fg="#ffffff"
+        )
+        cancel_button.pack(pady=10)
+
+        # Флаг отмены
+        self.model_loading_cancelled = False
+
+        # Запускаем инициализацию модели в отдельном потоке
+        loading_thread = threading.Thread(
+            target=self.init_model_thread,
+            args=(model_id, loading_window, status_var, progress), # Передаем progress
+            daemon=True
+        )
+        loading_thread.start()
+
+    def cancel_model_loading(self, loading_window):
+        """Отменяет загрузку модели"""
+        logger.info("Загрузка модели отменена пользователем.")
+        self.model_loading_cancelled = True
+        if loading_window.winfo_exists():
+             loading_window.destroy()
+
+        # Возвращаемся к предыдущей модели в комбобоксе, если она была
+        restored_model_id = None
+        if self.last_voice_model_selected:
+            if hasattr(self, 'local_voice_combobox') and self.local_voice_combobox.winfo_exists():
+                self.local_voice_combobox.set(self.last_voice_model_selected["name"])
+            restored_model_id = self.last_voice_model_selected["id"]
+            self.settings.set("NM_CURRENT_VOICEOVER", restored_model_id)
+            self.current_local_voice_id = restored_model_id
+        else:
+            if hasattr(self, 'local_voice_combobox') and self.local_voice_combobox.winfo_exists():
+                self.local_voice_combobox.set('')
+            self.settings.set("NM_CURRENT_VOICEOVER", None)
+            self.current_local_voice_id = None
+
+        self.settings.save_settings()
+        # Обновляем индикатор для восстановленной (или отсутствующей) модели
+        self.update_local_model_status_indicator()
+
+
+    def init_model_thread(self, model_id, loading_window, status_var, progress):
+        """Поток инициализации модели"""
+        try:
+            # Обновляем статус (используем after для безопасности с Tkinter)
+            self.root.after(0, lambda: status_var.set(_("Загрузка настроек...", "Loading settings...")))
+
+            success = False
+            # Защищаемся от отмены
+            if not self.model_loading_cancelled:
+                self.root.after(0, lambda: status_var.set(_("Инициализация модели...", "Initializing model...")))
+                # Инициализируем модель
+                success = self.local_voice.initialize_model(model_id, init=True) # init=True для тестовой генерации
+
+            # Проверяем окно перед обновлением UI
+            if not loading_window.winfo_exists():
+                logger.info("Окно загрузки было закрыто до завершения инициализации.")
+                return
+
+            # Если инициализация завершилась успешно и не была отменена
+            if success and not self.model_loading_cancelled:
+                self.root.after(0, lambda: self.finish_model_loading(model_id, loading_window))
+            elif not self.model_loading_cancelled:
+                # Если произошла ошибка во время инициализации
+                error_message = _("Не удалось инициализировать модель. Проверьте логи.", "Failed to initialize model. Check logs.")
+                self.root.after(0, lambda: [
+                    status_var.set(_("Ошибка инициализации!", "Initialization Error!")),
+                    progress.stop(),
+                    messagebox.showerror(_("Ошибка инициализации", "Initialization Error"), error_message, parent=loading_window),
+                    self.cancel_model_loading(loading_window) # Используем cancel для сброса состояния
+                ])
+        except Exception as e:
+            logger.error(f"Критическая ошибка в потоке инициализации модели {model_id}: {e}", exc_info=True)
+            # Проверяем окно перед показом ошибки
+            if loading_window.winfo_exists() and not self.model_loading_cancelled:
+                error_message = _("Критическая ошибка при инициализации модели: ", "Critical error during model initialization: ") + str(e)
+                self.root.after(0, lambda: [
+                    status_var.set(_("Ошибка!", "Error!")),
+                    progress.stop(),
+                    messagebox.showerror(_("Ошибка", "Error"), error_message, parent=loading_window),
+                    self.cancel_model_loading(loading_window) # Используем cancel для сброса состояния
+                ])
+
+    def finish_model_loading(self, model_id, loading_window):
+        """Завершает процесс загрузки модели"""
+        logger.info(f"Модель {model_id} успешно инициализирована.")
+        if loading_window.winfo_exists():
+            loading_window.destroy()
+
+        self.local_voice.current_model = model_id
+
+        for model in LOCAL_VOICE_MODELS:
+            if model["id"] == model_id:
+                self.last_voice_model_selected = model
+                break
+
+        messagebox.showinfo(
+            _("Успешно", "Success"),
+            _("Модель {} успешно инициализирована!", "Model {} initialized successfully!").format(model_id)
+        )
+        # Обновляем UI (комбобокс и индикатор)
+        self.update_local_voice_combobox()
+
+    def update_local_model_status_indicator(self):
+        if hasattr(self, 'local_model_status_label') and self.local_model_status_label.winfo_exists():
+            show_combobox_indicator = False
+            current_model_id_combo = self.settings.get("NM_CURRENT_VOICEOVER", None)
+
+            if current_model_id_combo:
+                model_installed_combo = self.local_voice.is_model_installed(current_model_id_combo)
+                if model_installed_combo:
+                    if not self.local_voice.is_model_initialized(current_model_id_combo):
+                        show_combobox_indicator = True
+                else:
+                    show_combobox_indicator = True
+
+            if show_combobox_indicator:
+                if not self.local_model_status_label.winfo_manager():
+                    self.local_model_status_label.pack(side=tk.LEFT, padx=(2, 5))
+            else:
+                if self.local_model_status_label.winfo_manager():
+                    self.local_model_status_label.pack_forget()
+
+        show_section_warning = False
+        if (hasattr(self, 'voiceover_section_warning_label') and
+            self.voiceover_section_warning_label.winfo_exists() and
+            hasattr(self, 'voiceover_section') and
+            self.voiceover_section.winfo_exists()):
+
+            voiceover_method = self.settings.get("VOICEOVER_METHOD", "TG")
+            current_model_id_section = self.settings.get("NM_CURRENT_VOICEOVER", None)
+
+            if voiceover_method == "Local" and current_model_id_section:
+                model_installed_section = self.local_voice.is_model_installed(current_model_id_section)
+                if model_installed_section:
+                    if not self.local_voice.is_model_initialized(current_model_id_section):
+                        show_section_warning = True
+                else:
+                    show_section_warning = True
+
+            # Используем правильные имена атрибутов
+            title_widget = getattr(self.voiceover_section, 'title_label', None)
+            header_widget = getattr(self.voiceover_section, 'header', None) # Исправлено на 'header'
+
+            if header_widget and header_widget.winfo_exists():
+                if show_section_warning:
+                    # Пакуем ПЕРЕД title_label, если он существует
+                    if title_widget and title_widget.winfo_exists():
+                        self.voiceover_section_warning_label.pack(
+                            in_=header_widget, # Указываем родителя
+                            side=tk.LEFT,
+                            before=title_widget, # Помещаем перед текстом
+                            padx=(0, 3) # Отступ справа
+                        )
+                    else:
+                        # Если title_label нет, пакуем после стрелки (arrow_label)
+                        arrow_widget = getattr(self.voiceover_section, 'arrow_label', None)
+                        if arrow_widget and arrow_widget.winfo_exists():
+                             self.voiceover_section_warning_label.pack(
+                                in_=header_widget,
+                                side=tk.LEFT,
+                                after=arrow_widget, # Помещаем после стрелки
+                                padx=(3, 3) # Отступы с обеих сторон
+                            )
+                        else:
+                            # Фоллбэк: просто пакуем слева
+                            self.voiceover_section_warning_label.pack(
+                                in_=header_widget,
+                                side=tk.LEFT,
+                                padx=(3, 3)
+                            )
+                else:
+                    # Скрываем виджет, если он показан
+                    if self.voiceover_section_warning_label.winfo_manager():
+                        self.voiceover_section_warning_label.pack_forget()
+            else:
+                 # Если header не найден, скрываем на всякий случай
+                 if self.voiceover_section_warning_label.winfo_manager():
+                        self.voiceover_section_warning_label.pack_forget()
+
+    def switch_voiceover_settings(self, selected_method=None):
+        use_voice = self.settings.get("SILERO_USE", True)
+        current_method = self.settings.get("VOICEOVER_METHOD", "TG")
+
+        if not hasattr(self, 'voiceover_content_frame'):
+            logger.error("Не найден родительский фрейм 'voiceover_content_frame' для настроек озвучки!")
+            return
+
+        # Сначала скрыть все специфичные фреймы (включая method_frame)
+        if hasattr(self, 'method_frame') and self.method_frame.winfo_exists():
+             if self.method_frame.winfo_manager():
+                 self.method_frame.pack_forget()
+        if hasattr(self, 'tg_settings_frame') and self.tg_settings_frame.winfo_exists():
+            if self.tg_settings_frame.winfo_manager():
+                self.tg_settings_frame.pack_forget()
+        if hasattr(self, 'local_settings_frame') and self.local_settings_frame.winfo_exists():
+            if self.local_settings_frame.winfo_manager():
+                self.local_settings_frame.pack_forget()
+
+        # Если озвучка выключена, ничего больше не показываем
+        if not use_voice:
+            return
+
+        # Показываем фрейм выбора метода озвучки
+        if hasattr(self, 'method_frame'):
+             self.method_frame.pack(fill=tk.X, padx=5, pady=0, in_=self.voiceover_content_frame) # Пакуем в основной контент
+
+        # Показываем фрейм для выбранного метода
+        if current_method == "TG":
+            if hasattr(self, 'tg_settings_frame'):
+                self.tg_settings_frame.pack(fill=tk.X, padx=5, pady=0, in_=self.voiceover_content_frame)
+        elif current_method == "Local":
+            if hasattr(self, 'local_settings_frame'):
+                self.local_settings_frame.pack(fill=tk.X, padx=5, pady=0, in_=self.voiceover_content_frame)
+                self.update_local_voice_combobox()
+                self.update_local_model_status_indicator()
+
+        self.voiceover_method = current_method
+        self.check_triton_dependencies()
+
+    def update_tg_widgets_visibility(self):
+        # if not hasattr(self, 'tg_widgets'):
+        #     return
+
+        # for key, data in self.tg_widgets.items():
+        #     widget_frame = data['frame']
+        #     config = data['config']
+        #     show_widget = True
+
+        #     if 'condition_key' in config:
+        #         condition_value = self.settings.get(config['condition_key'])
+        #         # Условие изменено: показываем API только если выбран @silero_voice_bot
+        #         if 'condition_value' in config and condition_value != config['condition_value']:
+        #              show_widget = False
+
+        #     if widget_frame.winfo_exists():
+        #         if show_widget:
+        #             if not widget_frame.winfo_manager():
+        #                 widget_frame.pack(fill=tk.X, pady=2)
+        #         else:
+        #             if widget_frame.winfo_manager():
+        #                 widget_frame.pack_forget()
+        pass
+
+
+    def update_local_voice_combobox(self):
+        """Обновляет комбобокс списком установленных локальных моделей и статус инициализации."""
+        if not hasattr(self, 'local_voice_combobox') or not self.local_voice_combobox.winfo_exists():
+            return
+
+        installed_models_names = [model["name"] for model in LOCAL_VOICE_MODELS if self.local_voice.is_model_installed(model["id"])]
+        current_values = list(self.local_voice_combobox['values'])
+
+        if installed_models_names != current_values:
+             self.local_voice_combobox['values'] = installed_models_names
+             logger.info(f"Обновлен список локальных моделей: {installed_models_names}")
+
+        current_model_id = self.settings.get("NM_CURRENT_VOICEOVER", None)
+        current_model_name = ""
+        if current_model_id:
+            for model in LOCAL_VOICE_MODELS:
+                if model["id"] == current_model_id:
+                    current_model_name = model["name"]
+                    break
+
+        # Установка значения в комбобокс (логика без изменений)
+        if current_model_name and current_model_name in installed_models_names:
+            if self.local_voice_combobox.get() != current_model_name:
+                 self.local_voice_combobox.set(current_model_name)
+        elif installed_models_names:
+             if self.local_voice_combobox.get() != installed_models_names[0]:
+                 self.local_voice_combobox.set(installed_models_names[0])
+                 for model in LOCAL_VOICE_MODELS:
+                     if model["name"] == installed_models_names[0]:
+                         if self.settings.get("NM_CURRENT_VOICEOVER") != model["id"]:
+                             self.settings.set("NM_CURRENT_VOICEOVER", model["id"])
+                             self.settings.save_settings()
+                             self.current_local_voice_id = model["id"]
+                         break
+        else:
+            if self.local_voice_combobox.get() != '':
+                self.local_voice_combobox.set('')
+            if self.settings.get("NM_CURRENT_VOICEOVER") is not None:
+                self.settings.set("NM_CURRENT_VOICEOVER", None)
+                self.settings.save_settings()
+                self.current_local_voice_id = None
+
+        # Обновляем индикатор статуса после обновления комбобокса
+        self.update_local_model_status_indicator()
+        self.check_triton_dependencies()
+
+
+    def check_triton_dependencies(self):
+        """Проверяет зависимости Triton и отображает предупреждение, если нужно."""
+        # Удаляем старое предупреждение, если оно есть
+        if hasattr(self, 'triton_warning_label') and self.triton_warning_label.winfo_exists():
+            self.triton_warning_label.destroy()
+            delattr(self, 'triton_warning_label')
+
+        # Проверяем только если выбрана локальная озвучка и фрейм существует
+        if self.settings.get("VOICEOVER_METHOD") != "Local":
+            return
+        if not hasattr(self, 'local_settings_frame') or not self.local_settings_frame.winfo_exists():
+             return
+
+        triton_found = False
+        try:
+            # Пробуем просто импортировать triton
+            import triton
+            triton_found = True
+            logger.debug("Зависимости Triton найдены (через import triton).")
+
+        except ImportError as e:
+            logger.warning(f"Зависимости Triton не найдены! Ошибка импорта: {e}")
+        except Exception as e: # Ловим другие возможные ошибки при импорте
+            logger.error(f"Неожиданная ошибка при проверке Triton: {e}", exc_info=True)
+
+
+        # if not triton_found:
+        #     # Добавляем предупреждение в интерфейс локальных настроек
+        #     self.triton_warning_label = tk.Label(
+        #         self.local_settings_frame, # Добавляем в фрейм локальных настроек
+        #         text=_("⚠️ Triton не найден! Модели medium+ и medium+low могут не работать.",
+        #                "⚠️ Triton not found! Models medium+ and medium+low might not work."),
+        #         bg="#400000", # Темно-красный фон
+        #         fg="#ffffff",
+        #         font=("Arial", 9, "bold"),
+        #         wraplength=350 # Перенос текста
+        #     )
+        #     # Вставляем перед комбобоксом
+        #     if hasattr(self, 'local_voice_combobox') and self.local_voice_combobox.winfo_exists():
+        #          # Ищем фрейм, содержащий комбобокс
+        #          combobox_parent = self.local_voice_combobox.master
+        #          self.triton_warning_label.pack(in_=self.local_settings_frame, before=combobox_parent, pady=3, fill=tk.X)
+        #     else: # Если комбобокса нет, просто пакуем в конец фрейма
+        #          self.triton_warning_label.pack(in_=self.local_settings_frame, pady=3, fill=tk.X)
+
+
+    def open_local_model_installation_window(self):
+        """Открывает новое окно для управления установкой локальных моделей."""
+        try:
+            # Динамический импорт, чтобы избежать ошибки, если файла нет
+            from voice_model_settings import VoiceModelSettingsWindow
+            import os
+
+            config_dir = "Settings"
+            os.makedirs(config_dir, exist_ok=True)
+
+            def on_save_callback(settings_data):
+                """Обработчик события сохранения настроек из окна установки."""
+                installed_models_ids = settings_data.get("installed_models", [])
+                logger.info(f"Сохранены установленные модели (из окна установки): {installed_models_ids}")
+
+                # Обновляем статус моделей в LocalVoice (перезагрузка модулей)
+                self.refresh_local_voice_modules()
+
+                # Обновляем UI главного окна
+                self.update_local_voice_combobox()
+
+                # Проверяем, осталась ли текущая выбранная модель установленной
+                current_model_id = self.settings.get("NM_CURRENT_VOICEOVER", None)
+                if current_model_id and current_model_id not in installed_models_ids:
+                    logger.warning(f"Текущая модель {current_model_id} была удалена. Сбрасываем выбор.")
+                    # Если есть другие установленные, выбираем первую, иначе сбрасываем
+                    new_model_id = installed_models_ids[0] if installed_models_ids else None
+                    self.settings.set("NM_CURRENT_VOICEOVER", new_model_id)
+                    self.settings.save_settings()
+                    self.current_local_voice_id = new_model_id
+                    self.update_local_voice_combobox() # Обновляем комбобокс еще раз
+
+            # Создаем дочернее окно Toplevel БЕЗ grab_set и transient
+            install_window = tk.Toplevel(self.root)
+            # install_window.transient(self.root) # --- УБРАНО ---
+            # install_window.grab_set() # --- УБРАНО ---
+            install_window.title(_("Управление локальными моделями", "Manage Local Models")) # Добавим заголовок
+
+            # Инициализируем окно настроек моделей
+            VoiceModelSettingsWindow(
+                master=install_window, # Передаем дочернее окно как родителя
+                config_dir=config_dir,
+                on_save_callback=on_save_callback,
+                local_voice=self.local_voice,
+                check_installed_func=self.check_module_installed,
+            )
+        except ImportError:
+             logger.error("Не найден модуль voice_model_settings.py. Установка моделей недоступна.")
+             messagebox.showerror(_("Ошибка", "Error"), _("Не найден файл voice_model_settings.py", "voice_model_settings.py not found."))
+        except Exception as e:
+            logger.error(f"Ошибка при открытии окна установки моделей: {e}", exc_info=True)
+            messagebox.showerror(_("Ошибка", "Error"), _("Не удалось открыть окно установки моделей.", "Failed to open model installation window."))
+
+
+    def refresh_local_voice_modules(self):
+        """Обновляет импорты модулей в LocalVoice без перезапуска программы."""
+        import importlib
+        import sys
+        logger.info("Попытка обновления модулей локальной озвучки...")
+
+        # Список модулей для перезагрузки/импорта
+        modules_to_check = {
+            "tts_with_rvc": "TTS_RVC",
+            "fish_speech_lib.inference": "FishSpeech",
+            "triton": None # Просто проверяем наличие
+        }
+        # Пути, где могут лежать модули (добавляем Lib)
+        lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Lib")
+        if lib_path not in sys.path:
+            sys.path.insert(0, lib_path) # Добавляем в начало, чтобы иметь приоритет
+
+        for module_name, class_name in modules_to_check.items():
+            try:
+                if module_name in sys.modules:
+                    logger.debug(f"Перезагрузка модуля: {module_name}")
+                    importlib.reload(sys.modules[module_name])
+                else:
+                    logger.debug(f"Импорт модуля: {module_name}")
+                    imported_module = importlib.import_module(module_name)
+
+                # Обновляем ссылку в LocalVoice, если нужно
+                if class_name:
+                     actual_class = getattr(sys.modules[module_name], class_name)
+                     if module_name == "tts_with_rvc":
+                         self.local_voice.tts_rvc_module = actual_class
+                     elif module_name == "fish_speech_lib.inference":
+                         self.local_voice.fish_speech_module = actual_class
+
+                logger.info(f"Модуль {module_name} успешно обработан.")
+            except ImportError:
+                logger.warning(f"Модуль {module_name} не найден или не установлен.")
+                # Сбрасываем ссылку в LocalVoice, если модуль не найден
+                if module_name == "tts_with_rvc":
+                    self.local_voice.tts_rvc_module = None
+                elif module_name == "fish_speech_lib.inference":
+                    self.local_voice.fish_speech_module = None
+            except Exception as e:
+                 logger.error(f"Ошибка при обработке модуля {module_name}: {e}", exc_info=True)
+
+        # Обновляем проверку зависимостей Triton в UI
+        self.check_triton_dependencies()
+
+
+    def check_module_installed(self, module_name):
+        """Проверяет, установлен ли модуль (более надежно)."""
+        import importlib.util
+        import sys
+        import os
+
+        # Сначала стандартная проверка
+        spec = importlib.util.find_spec(module_name)
+        if spec is not None:
+            logger.debug(f"Модуль {module_name} найден через find_spec.")
+            return True
+
+        # Дополнительная проверка в папке Lib
+        lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Lib")
+        potential_path = os.path.join(lib_path, module_name.replace('.', os.sep))
+
+        if os.path.isdir(potential_path) or os.path.exists(potential_path + ".py"):
+             logger.debug(f"Модуль {module_name} найден в папке Lib: {potential_path}")
+             needs_remove = False
+             if lib_path not in sys.path:
+                 sys.path.insert(0, lib_path)
+                 needs_remove = True
+             try:
+                 importlib.import_module(module_name)
+                 if needs_remove:
+                     sys.path.remove(lib_path)
+                 return True
+             except ImportError:
+                 if needs_remove:
+                     sys.path.remove(lib_path)
+                 logger.debug(f"Модуль {module_name} найден в Lib, но не импортируется.")
+                 return False 
+             except Exception as e:
+                 if needs_remove:
+                     sys.path.remove(lib_path)
+                 logger.warning(f"Ошибка при тестовом импорте {module_name} из Lib: {e}")
+                 return False
+
+        logger.debug(f"Модуль {module_name} не найден.")
+        return False
+
+
+    def check_available_vram(self):
+        """Проверка доступной видеопамяти (заглушка)."""
+        logger.warning("Проверка VRAM не реализована, возвращается фиктивное значение.")
+        try:
+            # Попытка получить информацию через nvidia-smi
+            # import subprocess
+            # result = subprocess.run(['nvidia-smi', '--query-gpu=memory.free', '--format=csv,noheader,nounits'], capture_output=True, text=True, check=True)
+            # free_vram_mb = int(result.stdout.strip().split('\n')[0])
+            # return free_vram_mb / 1024 
+            return 100 # Возвращаем заглушку 100 GB
+        except Exception as e:
+            logger.error(f"Ошибка при попытке проверки VRAM: {e}")
+            return 4 # Возвращаем минимальное значение в случае ошибки
+
+    # endregion
+
+    # region ffmpeg installations tools
+    def _show_ffmpeg_installing_popup(self):
+        """Показывает неблокирующее окно 'Установка FFmpeg...'."""
+        if self.ffmpeg_install_popup and self.ffmpeg_install_popup.winfo_exists():
+            return # Окно уже открыто
+
+        self.ffmpeg_install_popup = tk.Toplevel(self.root)
+        self.ffmpeg_install_popup.title("FFmpeg")
+        self.ffmpeg_install_popup.config(bg="#1e1e1e", padx=20, pady=15)
+        self.ffmpeg_install_popup.resizable(False, False)
+        # Убираем кнопки свернуть/развернуть (может не работать на всех ОС)
+        self.ffmpeg_install_popup.attributes('-toolwindow', True)
+
+        label = tk.Label(
+            self.ffmpeg_install_popup,
+            text="Идет установка FFmpeg...\nПожалуйста, подождите.",
+            bg="#1e1e1e", fg="#ffffff", font=("Arial", 12)
+        )
+        label.pack()
+
+        # Центрируем окно относительно главного
+        self.ffmpeg_install_popup.update_idletasks() # Обновляем размеры окна
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (self.ffmpeg_install_popup.winfo_width() // 2)
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (self.ffmpeg_install_popup.winfo_height() // 2)
+        self.ffmpeg_install_popup.geometry(f"+{x}+{y}")
+
+        self.ffmpeg_install_popup.transient(self.root) # Делаем зависимым от главного
+        # self.ffmpeg_install_popup.grab_set() # НЕ делаем модальным
+
+    def _close_ffmpeg_installing_popup(self):
+        """Закрывает окно 'Установка FFmpeg...'."""
+        if self.ffmpeg_install_popup and self.ffmpeg_install_popup.winfo_exists():
+            self.ffmpeg_install_popup.destroy()
+            self.ffmpeg_install_popup = None
+
+    def _show_ffmpeg_error_popup(self):
+        """Показывает МОДАЛЬНОЕ окно ошибки установки FFmpeg."""
+        error_popup = tk.Toplevel(self.root)
+        error_popup.title("Ошибка установки FFmpeg")
+        error_popup.config(bg="#1e1e1e", padx=20, pady=15)
+        error_popup.resizable(False, False)
+        error_popup.attributes('-toolwindow', True)
+
+        message = (
+            "Не удалось автоматически установить FFmpeg.\n\n"
+            "Он необходим для некоторых функций программы (например, обработки аудио).\n\n"
+            "Пожалуйста, скачайте FFmpeg вручную с официального сайта:\n"
+            f"{"https://ffmpeg.org/download.html"}\n\n"
+            f"Распакуйте архив и поместите файл 'ffmpeg.exe' в папку программы:\n"
+            f"{Path(".").resolve()}"
+        )
+
+        label = tk.Label(
+            error_popup,
+            text=message,
+            bg="#1e1e1e", fg="#ffffff", font=("Arial", 11),
+            justify=tk.LEFT # Выравнивание текста по левому краю
+        )
+        label.pack(pady=(0, 10))
+
+        ok_button = tk.Button(
+            error_popup, text="OK", command=error_popup.destroy,
+            bg="#9370db", fg="#ffffff", font=("Arial", 10), width=10
+        )
+        ok_button.pack()
+
+        # Центрируем и делаем модальным
+        error_popup.update_idletasks()
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - (error_popup.winfo_width() // 2)
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - (error_popup.winfo_height() // 2)
+        error_popup.geometry(f"+{x}+{y}")
+
+        error_popup.transient(self.root) # Зависимость от главного окна
+        error_popup.grab_set()          # Перехват событий (делает модальным)
+        self.root.wait_window(error_popup) # Ожидание закрытия этого окна
+
+    # --- ЛОГИКА ПРОВЕРКИ И УСТАНОВКИ В ОТДЕЛЬНОМ ПОТОКЕ ---
+
+    def _ffmpeg_install_thread_target(self):
+        """Функция, выполняемая в отдельном потоке для установки FFmpeg."""
+        # Показываем окно "Установка..." (через mainloop)
+        self.root.after(0, self._show_ffmpeg_installing_popup)
+
+        print("Starting FFmpeg installation attempt...")
+        success = install_ffmpeg()
+        print(f"FFmpeg installation attempt finished. Success: {success}")
+
+        # Закрываем окно "Установка..." (через mainloop)
+        self.root.after(0, self._close_ffmpeg_installing_popup)
+
+        # Если неудача, показываем окно ошибки (через mainloop)
+        if not success:
+            self.root.after(0, self._show_ffmpeg_error_popup)
+
+    def check_and_install_ffmpeg(self):
+        """Проверяет наличие ffmpeg.exe и запускает установку в потоке, если его нет."""
+        ffmpeg_path = Path(".") / "ffmpeg.exe"
+        print(f"Checking for FFmpeg at: {ffmpeg_path}")
+
+        if not ffmpeg_path.exists():
+            print("FFmpeg not found. Starting installation process in a separate thread.")
+            # Запускаем установку в отдельном потоке, чтобы не блокировать UI
+            install_thread = threading.Thread(target=self._ffmpeg_install_thread_target, daemon=True)
+            # daemon=True позволяет программе завершиться, даже если этот поток еще работает
+            install_thread.start()
+        else:
+            print("FFmpeg found. No installation needed.")
+
+    # endregion
