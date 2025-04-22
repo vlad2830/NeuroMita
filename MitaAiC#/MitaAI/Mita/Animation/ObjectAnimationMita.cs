@@ -103,7 +103,10 @@ namespace MitaAI
         public CommonInteractableObject commonInteractableObject;
 
         public GameObject AmimatedObject;
-        public GameObject mitaPerson;
+        public GameObject mitaPersonObject;
+        MitaPerson mitaPerson;
+        characterType mitaCharacter;
+
 
         MitaAnimationModded mitaAnimationModded;
 
@@ -194,7 +197,7 @@ namespace MitaAI
             // Дебаг, так проще вернуть
             
    
-            mitaPerson = MitaCore.Instance.MitaPersonObject;
+            mitaPersonObject = MitaCore.Instance.MitaPersonObject;
             AmimatedObject = transform.parent.gameObject;
 
             aiMovePoint = new GameObject();
@@ -362,8 +365,9 @@ namespace MitaAI
             mitaAIMovePoint.eventFinish.RemoveAllListeners();
         }
 
-        public void Play()
+        public void Play(MitaPerson _mitaPerson = null, characterType _mitaCharacter = characterType.None)
         {
+            MelonLogger.Msg($"OAM {gameObject.name} Play");
             try
             {
                 try
@@ -385,11 +389,21 @@ namespace MitaAI
                 }
 
                 currentOAMc = this;
-                MitaCore.Instance.Mita.MagnetOff();
-                MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = true;
-                MitaState.SetCurrentState(MitaCore.Instance.currentCharacter, MitaStateType.interaction);
 
-                mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter);
+                if (_mitaPerson == null) mitaPerson = MitaCore.Instance.Mita;
+                else mitaPerson = _mitaPerson;
+
+                if (_mitaCharacter == characterType.None) _mitaCharacter = MitaCore.Instance.currentCharacter;
+                else mitaCharacter = _mitaCharacter;
+
+                mitaPersonObject = MitaCore.getMitaByEnum(mitaCharacter,true);
+
+
+                mitaPerson.MagnetOff();
+                mitaPersonObject.GetComponent<Rigidbody>().isKinematic = true;
+                MitaState.SetCurrentState(mitaCharacter, MitaStateType.interaction);
+
+                mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(mitaCharacter);
                 mitaAnimationModded.location34_Communication.ActivationCanWalk(false);
 
                 if (needWalking)
@@ -398,20 +412,20 @@ namespace MitaAI
 
                     //Отправляет Миту в Путь
                     MelonLogger.Msg("Start Play Anim Object Mita");
-                    mitaAIMovePoint.mita = MitaCore.Instance.Mita;
+                    mitaAIMovePoint.mita = mitaPerson;
 
 
 
                     try
                     {
-                        MitaCore.Instance.Mita.AiWalkToTargetRotate(aiMovePoint.transform, mitaAIMovePoint.eventFinish);
+                        _mitaPerson.AiWalkToTargetRotate(aiMovePoint.transform, mitaAIMovePoint.eventFinish);
                     }
                     catch (Exception ex2)
                     {
                         MelonLogger.Error($"Error AiWalkToTargetTranform {ex2}");
                     }
 
-                    if (!isEndingObject) commonInteractableObject.setTaken(MitaCore.Instance.currentCharacter,position);
+                    if (!isEndingObject) commonInteractableObject.setTaken(mitaCharacter,position);
                 }
                 else
                 {
@@ -459,8 +473,8 @@ namespace MitaAI
 
             mitaAnimationModded.setIdleAnimation(mitaAmimatedNameIdle);
             mitaAnimationModded.checkCanMoveRotateLook(ignoreInteractionCondition: true);
-            if (NeedMovingToIdle) Utils.StartObjectAnimation(MitaCore.Instance.MitaPersonObject, transform.position, transform.eulerAngles, AnimationTransitionDuration+0.5f, false);
-            MelonCoroutines.Start(MagnetAfterDelay(MitaCore.Instance.Mita, gameObject.transform, waitingAfterWalk, !magnetAfter));
+            if (NeedMovingToIdle) Utils.StartObjectAnimation(mitaPersonObject, transform.position, transform.eulerAngles, AnimationTransitionDuration+0.5f, false);
+            MelonCoroutines.Start(MagnetAfterDelay(mitaPerson, gameObject.transform, waitingAfterWalk, !magnetAfter));
         }
 
         void ResetIdleAnimation()
@@ -474,15 +488,15 @@ namespace MitaAI
 
             backAnimation.commonInteractableObject.free(position);
 
-            MitaCore.Instance.Mita.MagnetOff();
+            mitaPerson.MagnetOff();
 
             mitaAnimationModded.location34_Communication.gameObject.active = true;
 
             
 
-            MitaState.SetCurrentState(MitaCore.Instance.currentCharacter,MitaStateType.normal);
+            MitaState.SetCurrentState(mitaCharacter,MitaStateType.normal);
 
-            MitaCore.Instance.MitaPersonObject.GetComponent<Rigidbody>().isKinematic = false;
+            mitaPerson.GetComponent<Rigidbody>().isKinematic = false;
         }
         void commonAction()
         {

@@ -59,7 +59,9 @@ namespace MitaAI.Mita
         public AnimatorOverrideController overrideController;
         public Animator animator;
         NavMeshAgent mitaNavMeshAgent;
+        characterType mitaCharacter;
         Character_Look mitaLook;
+        MitaPerson mitaPerson;
         ///public static LookAtIK = 
 
         static public GameObject bat;
@@ -72,16 +74,18 @@ namespace MitaAI.Mita
 
 
 
-        public static void init(Character character,Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, Character_Look _mitaLook, bool changeAnimationController = true, bool changeAnimation = true)
+        public static void init(Character character,Animator_FunctionsOverride _mitaAnimatorFunctions, Location34_Communication _location34_Communication, Character_Look _mitaLook,MitaPerson _mitaPerson, bool changeAnimationController = true, bool changeAnimation = true)
         {
             //MitaAnimationModded mitaAnimationModded = new MitaAnimationModded();
             //allMitaAnimationModded[character] = mitaAnimationModded;
             var mitaAnimationModded = getMitaAnimationModded(character);
 
             // Получаем компонент Animator_FunctionsOverride из текущего объекта
+            mitaAnimationModded.mitaCharacter = character.characterType;
             mitaAnimationModded.mitaAnimatorFunctions = _mitaAnimatorFunctions;
             mitaAnimationModded.location34_Communication = _location34_Communication;
             mitaAnimationModded.mitaLook = _mitaLook;
+            mitaAnimationModded.mitaPerson = _mitaPerson;
             if (bundle == null)
             {
                 bundle = MitaCore.bundle; //AssetBundleLoader.LoadAssetBundle("assetbundle");
@@ -173,9 +177,10 @@ namespace MitaAI.Mita
                     mitaAnimationModded.animator.Rebind();
                     mitaAnimationModded.animator.Update(0);
                 }
-               
 
-                
+                mitaAnimationModded.checkCanMoveRotateLook(true);
+
+
             }
             catch (Exception ex)
             {
@@ -183,6 +188,8 @@ namespace MitaAI.Mita
                 MelonLogger.Msg("Error custom controller"+ex);
             }
             
+            
+
         }
 
         
@@ -397,7 +404,7 @@ namespace MitaAI.Mita
 
                         try
                         {
-                            if (MitaCore.Instance.currentCharacter == characterType.Kind)
+                            if (mitaCharacter == characterType.Kind)
                             {
                                 // Если активен Kind персонаж, используем трубу
                                 if (pipe == null){
@@ -508,34 +515,34 @@ namespace MitaAI.Mita
         // Отвечает за перемещение и поворот миты.
         public void checkCanMoveRotateLook(bool ignoreInteractionCondition = false)
         {
-            if (MitaState.GetCurrentState(MitaCore.Instance.currentCharacter) == MitaStateType.interaction && !ignoreInteractionCondition) return;
+            if (MitaState.GetCurrentState(mitaCharacter) == MitaStateType.interaction && !ignoreInteractionCondition) return;
 
             // Если запрещено двигаться
             if (MovementStylesNoMovingAtAll.Contains(MitaMovement.movementStyle))
             {
-                MitaCore.Instance.MitaLook.activeBodyIK = false;
-                MitaCore.Instance.MitaLook.canRotateBody = false;
+                mitaLook.activeBodyIK = false;
+                mitaLook.canRotateBody = false;
                 location34_Communication.ActivationCanWalk(false);
             }
             else if (MovementStylesNoBodyLooking.Contains(MitaMovement.movementStyle))
             {
-                MitaCore.Instance.MitaLook.activeBodyIK = true;
-                MitaCore.Instance.MitaLook.enabled = true;
-                MitaCore.Instance.MitaLook.canRotateBody = false;
+                mitaLook.activeBodyIK = true;
+                mitaLook.enabled = true;
+                mitaLook.canRotateBody = false;
                 location34_Communication.ActivationCanWalk(false);
             }
             else if (MovementStylesNoWalking.Contains(MitaMovement.movementStyle))
             {
-                MitaCore.Instance.MitaLook.activeBodyIK = true;
-                MitaCore.Instance.MitaLook.enabled = true;
-                MitaCore.Instance.MitaLook.canRotateBody = true;
+                mitaLook.activeBodyIK = true;
+                mitaLook.enabled = true;
+                mitaLook.canRotateBody = true;
                 location34_Communication.ActivationCanWalk(false);
             }
             else
             {
-                MitaCore.Instance.MitaLook.activeBodyIK = true;
-                MitaCore.Instance.MitaLook.canRotateBody = true;
-                MitaCore.Instance.MitaLook.enabled = true;
+                mitaLook.activeBodyIK = true;
+                mitaLook.canRotateBody = true;
+                mitaLook.enabled = true;
                 location34_Communication.ActivationCanWalk(true);
 
             }
@@ -722,7 +729,7 @@ namespace MitaAI.Mita
         {
             ObjectAnimationMita objectAnimationMita = animObject.ObjectAnimationMita;
             MelonLogger.Msg($"Now playing OAM: {objectAnimationMita.name} {objectAnimationMita.tip}");
-            objectAnimationMita.Play();
+            objectAnimationMita.Play(mitaPerson, mitaCharacter);
 
 
             float beforeWalk = Time.unscaledTime;

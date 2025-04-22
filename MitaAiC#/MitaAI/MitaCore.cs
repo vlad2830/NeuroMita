@@ -277,7 +277,7 @@ namespace MitaAI
                     location34_Communication = MitaObject.GetComponentInChildren<Location34_Communication>();
                     
 
-                    if (location34_Communication == null ) location34_Communication = GameObject.Instantiate(Loc34_Template, MitaObject.transform).GetComponent< Location34_Communication>();
+                    if (location34_Communication == null ) location34_Communication = GameObject.Instantiate(Loc34_Template, MitaObject.transform).GetComponent<Location34_Communication>();
 
                     location34_Communication.gameObject.GetComponentInChildren<CapsuleCollider>().transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
                 }
@@ -312,7 +312,7 @@ namespace MitaAI
                
 
                
-                MitaAnimationModded.init(characterComponent, MitaAnimatorFunctions, location34_Communication, MitaLook, ChangeAnimationControler, changeAnimation);
+                MitaAnimationModded.init(characterComponent, MitaAnimatorFunctions, location34_Communication, MitaLook, Mita, ChangeAnimationControler, changeAnimation);
 
 
                 
@@ -612,7 +612,7 @@ namespace MitaAI
 
             MitaLook = MitaObject.transform.Find("MitaPerson Mita/IKLifeCharacter").gameObject.GetComponent<Character_Look>();
             MitaAnimatorFunctions = MitaPersonObject.GetComponent<Animator_FunctionsOverride>();
-            MitaAnimationModded.init(comp,MitaAnimatorFunctions, location34_Communication, MitaLook);
+            MitaAnimationModded.init(comp,MitaAnimatorFunctions, location34_Communication, MitaLook, Mita);
             Mita.AiShraplyStop();
 
             //GameObject eyeObject = Utils.TryfindChild(MitaPersonObject.transform, "Armature/Hips/Spine/Chest/Neck2/Neck1/Head/Right Eye");
