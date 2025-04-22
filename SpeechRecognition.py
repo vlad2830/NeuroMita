@@ -8,7 +8,7 @@ import speech_recognition as sr
 import sounddevice as sd
 from collections import deque
 from threading import Lock
-
+from Logger import logger
 class AudioState:
     def __init__(self):
         self.is_recording = False
@@ -108,7 +108,7 @@ class SpeechRecognition:
 
                 except sr.WaitTimeoutError:
                     if SpeechRecognition.TIMEOUT_MESSAGE:
-                        logger.info("Таймаут ожидания речи...")
+                        ...#logger.info("Таймаут ожидания речи...")
                 except sr.UnknownValueError:
                     ...
                     #logger.info("Речь не распознана")

@@ -375,7 +375,7 @@ class TelegramBotHandler:
                     return True
 
             except Exception as e:
-                print(f"Ошибка при выполнении команды {command}: {str(e)}")
+                logger.info(f"Ошибка при выполнении команды {command}: {str(e)}")
                 if attempts < max_attempts:
                     await asyncio.sleep(retry_delay)
 

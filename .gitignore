@@ -168,7 +168,8 @@ cython_debug/
 /.vs
 /.vs
 /har_and_cookies
-/libs
 /Models
+/libs
+/Settings
 vec-768-layer-12.onnx
-Settings/installed_models.txt
+ffmpeg.exe
