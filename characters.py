@@ -66,7 +66,6 @@ class CrazyMita(Character):
         self.fixed_prompts = []
         self.crazy_mita_prompts()
 
-
     def load_history(self):
         data = super().load_history()
 
@@ -89,7 +88,6 @@ class CrazyMita(Character):
 
     def process_response(self, response: str):
         super().process_response(response)
-
 
         response = self._detect_secret_exposure(response)
 

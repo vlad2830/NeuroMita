@@ -4,7 +4,6 @@ import time
 import requests
 import tiktoken
 from openai import OpenAI
-from g4f.client import Client as g4fClient
 #from huggingface_hub import HfApi
 #from mistralai import Mistral as MistralClient
 
@@ -13,13 +12,13 @@ import re
 from Logger import logger
 from characters import *
 from character import GameMaster,SpaceCartridge,DivanCartridge
-
-
+from utils.PipInstaller import PipInstaller
+import importlib 
 from utils import *
 
 
 class ChatModel:
-    def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request):
+    def __init__(self, gui, api_key, api_key_res, api_url, api_model, api_make_request, pip_installer: PipInstaller):
 
         # Временное решение, чтобы возвращать работоспособность старого формата
 
@@ -27,6 +26,19 @@ class ChatModel:
         self.OldSystem = False
 
         self.gui = gui
+
+        self.pip_installer = pip_installer # Сохраняем установщик
+
+        # Инициализация переменных g4f
+        self.g4fClient = None
+        self.g4f_available = False
+        self._initialize_g4f() 
+
+        # try:
+        #     from g4f.client import Client as g4fClient
+        # except:
+        #     logger.info("Не установлен G4F, устанавливаю стабильную версию g4f==0.4.7.7")
+        #     #pip install --upgrade g4f==0.4.7.7
 
         try:
             self.api_key = api_key
@@ -36,8 +48,8 @@ class ChatModel:
             self.gpt4free_model = self.gui.settings.get("gpt4free_model")
             self.makeRequest = api_make_request
 
-            self.g4fClient = g4fClient()
-            logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
+            # self.g4fClient = g4fClient()
+            # logger.info(f"g4fClient успешно инициализирован. Какой же кайф, будто бы теперь без None живем")
 
             #self.hugging_face_client = HfApi()
             #self.mistral_client = MistralClient()
@@ -94,20 +106,126 @@ class ChatModel:
         self.max_request_attempts = int(self.gui.settings.get("MODEL_MESSAGE_ATTEMPTS_COUNT", 5))
         self.request_delay = float(self.gui.settings.get("MODEL_MESSAGE_ATTEMPTS_TIME", 0.20))
 
+    def _initialize_g4f(self):
+        """Пытается импортировать g4f, установить если не найден, и инициализировать клиент."""
+        logger.info("Проверка и инициализация g4f (после возможного обновления при запуске)...")
+        try:
+            from g4f.client import Client as g4fClient
+            logger.info("g4f найден (при проверке), попытка инициализации клиента...")
+            try:
+                self.g4fClient = g4fClient()
+                self.g4f_available = True
+                logger.info("g4fClient успешно инициализирован.")
+            except Exception as e:
+                logger.error(f"Ошибка при инициализации g4fClient: {e}")
+                self.g4fClient = None
+                self.g4f_available = False
+        except ImportError:
+            logger.info("Модуль g4f не найден (при проверке). Попытка первоначальной установки...")
+
+            target_version = self.gui.settings.get("G4F_VERSION", "4.7.7")
+            package_spec = f"g4f=={target_version}" if target_version != "latest" else "g4f"
+
+            if self.pip_installer:
+                success = self.pip_installer.install_package(
+                    package_spec,
+                    description=f"Первоначальная установка g4f версии {target_version}..."
+                )
+                if success:
+                    logger.info("Первоначальная установка g4f (файлы) прошла успешно. Очистка кэша импорта...")
+                    try:
+                        importlib.invalidate_caches()
+                        logger.info("Кэш импорта очищен.")
+                    except Exception as e_invalidate:
+                         logger.error(f"Ошибка при очистке кэша импорта: {e_invalidate}")
+
+                    logger.info("Повторная попытка импорта и инициализации...")
+                    try:
+                        from g4f.client import Client as g4fClient
+                        logger.info("Повторный импорт g4f успешен. Попытка инициализации клиента...")
+                        try:
+                            self.g4fClient = g4fClient()
+                            self.g4f_available = True
+                            logger.info("g4fClient успешно инициализирован после установки.")
+                        except Exception as e:
+                            logger.error(f"Ошибка при инициализации g4fClient после установки: {e}")
+                            self.g4fClient = None
+                            self.g4f_available = False
+                    except ImportError:
+                        logger.error("Не удалось импортировать g4f даже после успешной установки и очистки кэша.")
+                        self.g4fClient = None
+                        self.g4f_available = False
+                    except Exception as e_import_after:
+                         logger.error(f"Непредвиденная ошибка при повторном импорте/инициализации g4f: {e_import_after}")
+                         self.g4fClient = None
+                         self.g4f_available = False
+                else:
+                    logger.error("Первоначальная установка g4f не удалась (ошибка pip).")
+                    self.g4fClient = None
+                    self.g4f_available = False
+            else:
+                logger.error("Экземпляр PipInstaller не передан в ChatModel, установка g4f невозможна.")
+                self.g4fClient = None
+                self.g4f_available = False
+        except Exception as e_initial:
+             logger.error(f"Непредвиденная ошибка при первичной инициализации g4f: {e_initial}")
+             self.g4fClient = None
+             self.g4f_available = False
+
     def init_characters(self):
         """
         Инициализирует возможных персонажей
         """
-        self.crazy_mita_character = CrazyMita("Crazy", "/speaker mita", "CrazyMita", True)
-        self.cappy_mita_character = CappyMita("Cappy", "/speaker cap", "CapMita", True)
-        self.cart_space = SpaceCartridge("Cart_portal", "/speaker  wheatley", "Player", True)
-        self.kind_mita_character = KindMita("Kind", "/speaker kind", "KindMita", True)
-        self.shorthair_mita_character = ShortHairMita("ShortHair", "/speaker  shorthair", "ShortHairMita", True)
-        self.mila_character = MilaMita("Mila", "/speaker mila", "MilaMita", True)
-        self.sleepy_character = SleepyMita("Sleepy", "/speaker dream", "SleepyMita", True)
-        self.cart_divan = DivanCartridge("Cart_divan", "/speaker engineer", "Player", True)
-        self.creepy_character = CreepyMita("Creepy", "/speaker ghost", "GhostMita", True)  #Спикер на рандом поставил
-        self.GameMaster = GameMaster("GameMaster", "/speaker dryad", "PhoneMita", True)  # Спикер на рандом поставил
+        self.crazy_mita_character = CrazyMita("Crazy", 
+                                              "/speaker mita", 
+                                              short_name="CrazyMita",
+                                              miku_tts_name="CrazyMita", 
+                                              silero_turn_off_video=True)
+        self.cappy_mita_character = CappyMita("Cappy", 
+                                              "/speaker cap", 
+                                              short_name="CappieMita",
+                                              miku_tts_name="CapMita", 
+                                              silero_turn_off_video=True)
+        self.cart_space = SpaceCartridge("Cart_portal", 
+                                         "/speaker  wheatley", 
+                                         short_name="CrazyMita", # TODO: чето подобрать
+                                         miku_tts_name="Player", 
+                                         silero_turn_off_video=True)
+        self.kind_mita_character = KindMita("Kind", 
+                                            "/speaker kind", 
+                                            short_name="MitaKind",
+                                            miku_tts_name="KindMita", 
+                                            silero_turn_off_video=True)
+        self.shorthair_mita_character = ShortHairMita("ShortHair", 
+                                                      "/speaker  shorthair", 
+                                                      short_name="ShorthairMita",
+                                                      miku_tts_name="ShortHairMita", 
+                                                      silero_turn_off_video=True)
+        self.mila_character = MilaMita("Mila", 
+                                       "/speaker mila", 
+                                       short_name="Mila",
+                                       miku_tts_name="MilaMita", 
+                                       silero_turn_off_video=True)
+        self.sleepy_character = SleepyMita("Sleepy", 
+                                           "/speaker dream",
+                                           short_name="SleepyMita",
+                                           miku_tts_name="SleepyMita", 
+                                           silero_turn_off_video=True)
+        self.cart_divan = DivanCartridge("Cart_divan", 
+                                         "/speaker engineer", 
+                                         short_name="CrazyMita", # TODO: чето подобрать
+                                         miku_tts_name="Player", 
+                                         silero_turn_off_video=True)
+        self.creepy_character = CreepyMita("Creepy", 
+                                           "/speaker ghost", 
+                                           short_name="GhostMita", # TODO: вместо крипи будет гост
+                                           miku_tts_name="GhostMita", 
+                                           silero_turn_off_video=True)  #Спикер на рандом поставил
+        self.GameMaster = GameMaster("GameMaster", 
+                                     "/speaker dryad", 
+                                     short_name="CrazyMita", # TODO: чето подобрать
+                                     miku_tts_name="PhoneMita", 
+                                     silero_turn_off_video=True)  # Спикер на рандом поставил
 
         # Словарь для сопоставления имен персонажей с их объектами
         self.characters = {

@@ -11,13 +11,14 @@ import re
 
 
 class Character:
-    def __init__(self, name: str, silero_command: str, miku_tts_name: str = "Player", silero_turn_off_video=False, ):
+    def __init__(self, name: str, silero_command: str, short_name: str, miku_tts_name: str = "Player", silero_turn_off_video=False, ):
 
         self.fsm = None
         self.name = name
         self.silero_command = silero_command
         self.silero_turn_off_video = silero_turn_off_video
         self.miku_tts_name = miku_tts_name
+        self.short_name = short_name
 
         self.fixed_prompts: List[PromptPart] = []
         self.float_prompts: List[PromptPart] = []
