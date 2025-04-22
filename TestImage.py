@@ -49,9 +49,9 @@ response = requests.post(
 
 # Вывод результата
 if response.status_code == 200:
-    print("Ответ от API:")
-    print(response.json())
+    logger.info("Ответ от API:")
+    logger.info(response.json())
 else:
-    print("Ошибка при выполнении запроса:")
-    print(f"Код статуса: {response.status_code}")
-    print(f"Ответ: {response.text}")
+    logger.info("Ошибка при выполнении запроса:")
+    logger.info(f"Код статуса: {response.status_code}")
+    logger.info(f"Ответ: {response.text}")

@@ -10,7 +10,7 @@ import json
 import threading 
 import tkinter.messagebox
 from docs import DocsManager
-
+from Logger import logger
 model_descriptions = {
     "low": "Быстрая модель, комбинация Edge-TTS для генерации речи и RVC для преобразования голоса. Низкие требования.",
     "low+": "Комбинация Silero TTS для генерации речи и RVC для преобразования голоса. Требования схожи с low.",
@@ -71,7 +71,7 @@ default_description_text = "Наведите курсор на элемент и
 try:
     from utils.GpuUtils import check_gpu_provider, get_cuda_devices, get_gpu_name_by_id
 except ImportError:
-    print("Предупреждение: Модуль GpuUtils не найден. Функции определения GPU не будут работать.")
+    logger.info("Предупреждение: Модуль GpuUtils не найден. Функции определения GPU не будут работать.")
     def check_gpu_provider(): return None
     def get_cuda_devices(): return []
 
@@ -258,7 +258,7 @@ class VoiceCollapsibleSection(ttk.Frame): # Используем ttk.Frame дл�
                      value = widget.get()
                 values[key] = value
             except Exception as e:
-                print(f"Ошибка получения значения для {key}: {e}")
+                logger.info(f"Ошибка получения значения для {key}: {e}")
                 values[key] = None
         return values
 
@@ -295,11 +295,11 @@ class VoiceModelSettingsWindow:
                     first_device_id = self.detected_cuda_devices[0]
                     self.gpu_name = get_gpu_name_by_id(first_device_id)
                     if self.gpu_name:
-                        print(f"Обнаружена GPU: {self.gpu_name}")
+                        logger.info(f"Обнаружена GPU: {self.gpu_name}")
                     else:
-                        print(f"Не удалось получить имя для GPU {first_device_id}")
+                        logger.info(f"Не удалось получить имя для GPU {first_device_id}")
                 except Exception as e:
-                    print(f"Предупреждение: Не удалось получить имя GPU: {e}")
+                    logger.info(f"Предупреждение: Не удалось получить имя GPU: {e}")
 
         self.description_label_widget = None
         self.settings_sections = {}
@@ -553,7 +553,7 @@ class VoiceModelSettingsWindow:
                     with open(self.installed_models_file, "r", encoding="utf-8") as f:
                         self.installed_models.update(line.strip() for line in f if line.strip())
             except Exception as e:
-                print(f"Ошибка загрузки состояния установленных моделей из {self.installed_models_file}: {e}")
+                logger.info(f"Ошибка загрузки состояния установленных моделей из {self.installed_models_file}: {e}")
 
         # 2. Получение базовой структуры по умолчанию
         default_model_structure = self.get_default_model_structure()
@@ -570,7 +570,7 @@ class VoiceModelSettingsWindow:
                 with open(self.settings_values_file, "r", encoding="utf-8") as f:
                     saved_values = json.load(f)
         except Exception as e:
-            print(f"Ошибка загрузки сохраненных значений из {self.settings_values_file}: {e}")
+            logger.info(f"Ошибка загрузки сохраненных значений из {self.settings_values_file}: {e}")
             saved_values = {}
 
         # 5. Создание финальной структуры: начинаем с адаптированных дефолтов
@@ -588,7 +588,7 @@ class VoiceModelSettingsWindow:
                             setting.setdefault("options", {})["default"] = model_saved_values[setting_key]
 
         self.local_voice_models = merged_model_structure
-        print("Загрузка и адаптация настроек завершена.") 
+        logger.info("Загрузка и адаптация настроек завершена.") 
 
     def save_settings(self):
         try:
@@ -596,7 +596,7 @@ class VoiceModelSettingsWindow:
                 for model_id in sorted(list(self.installed_models)):
                     f.write(f"{model_id}\n")
         except Exception as e:
-            print(f"Ошибка сохранения состояния установленных моделей в {self.installed_models_file}: {e}")
+            logger.info(f"Ошибка сохранения состояния установленных моделей в {self.installed_models_file}: {e}")
 
         settings_to_save = {}
         for model_id, section in self.settings_sections.items():
@@ -604,14 +604,14 @@ class VoiceModelSettingsWindow:
                 try:
                     settings_to_save[model_id] = section.get_values()
                 except Exception as e:
-                    print(f"Ошибка при сборе значений из UI для модели '{model_id}': {e}")
+                    logger.info(f"Ошибка при сборе значений из UI для модели '{model_id}': {e}")
 
         if settings_to_save:
             try:
                 with open(self.settings_values_file, "w", encoding="utf-8") as f:
                     json.dump(settings_to_save, f, indent=4, ensure_ascii=False)
             except Exception as e:
-                print(f"Ошибка сохранения значений настроек в {self.settings_values_file}: {e}")
+                logger.info(f"Ошибка сохранения значений настроек в {self.settings_values_file}: {e}")
 
         if self.on_save_callback:
             callback_data = {
@@ -634,7 +634,7 @@ class VoiceModelSettingsWindow:
                 or "1070" in gpu_name_upper
                 or "1080" in gpu_name_upper
             ):
-                print(f"Обнаружена GPU {self.gpu_name}, принудительно используется FP32 для совместимых настроек.")
+                logger.info(f"Обнаружена GPU {self.gpu_name}, принудительно используется FP32 для совместимых настроек.")
                 force_fp32 = True
         elif detected_vendor == "AMD":
             force_fp32 = True
@@ -687,9 +687,9 @@ class VoiceModelSettingsWindow:
                 if force_fp32 and is_half_setting:
                      options["default"] = "False" # Принудительно ставим False
                      setting["locked"] = True     # Блокируем настройку
-                     print(f"  - Принудительно '{setting_key}' = False и заблокировано.")
+                     logger.info(f"  - Принудительно '{setting_key}' = False и заблокировано.")
                 elif is_half_setting:
-                    print(f"  - '{setting_key}' = True - Доступен.")
+                    logger.info(f"  - '{setting_key}' = True - Доступен.")
 
                 if widget_type == "combobox" and "default" in options and "values" in options:
                     current_values = options["values"]
@@ -713,7 +713,7 @@ class VoiceModelSettingsWindow:
             if isinstance(all_saved_data, dict):
                 parameters = all_saved_data.get(model_id, {})
         except Exception as e:
-            print(f"Ошибка чтения файла настроек {settings_file}: {e}")
+            logger.info(f"Ошибка чтения файла настроек {settings_file}: {e}")
         return parameters
 
     # --- ИСПРАВЛЕННЫЙ МЕТОД ИНИЦИАЛИЗАЦИИ ---
@@ -972,7 +972,7 @@ class VoiceModelSettingsWindow:
         self.triton_checks_performed = False # Флаг, что проверка была выполнена
 
         if platform.system() != "Windows":
-            print("Проверка зависимостей Triton актуальна только для Windows.")
+            logger.info("Проверка зависимостей Triton актуальна только для Windows.")
             return
 
         try:
@@ -981,41 +981,41 @@ class VoiceModelSettingsWindow:
 
             # --- Проверка CUDA ---
             cuda_result = find_cuda()
-            print(f"CUDA find_cuda() result: {cuda_result}")
+            logger.info(f"CUDA find_cuda() result: {cuda_result}")
             if isinstance(cuda_result, (tuple, list)) and len(cuda_result) >= 1:
                 cuda_path = cuda_result[0]
                 self.cuda_found = cuda_path is not None and os.path.exists(str(cuda_path)) 
             else:
                 self.cuda_found = False
-            print(f"CUDA Check: Found={self.cuda_found}")
+            logger.info(f"CUDA Check: Found={self.cuda_found}")
 
             # --- Проверка WinSDK ---
             winsdk_result = find_winsdk(False)
-            print(f"WinSDK find_winsdk() result: {winsdk_result}") 
+            logger.info(f"WinSDK find_winsdk() result: {winsdk_result}") 
             if isinstance(winsdk_result, (tuple, list)) and len(winsdk_result) >= 1:
                 winsdk_paths = winsdk_result[0]
                 self.winsdk_found = isinstance(winsdk_paths, list) and bool(winsdk_paths)
             else:
                 self.winsdk_found = False
-            print(f"WinSDK Check: Found={self.winsdk_found}")
+            logger.info(f"WinSDK Check: Found={self.winsdk_found}")
 
             # --- Проверка MSVC ---
             msvc_result = find_msvc(False)
-            print(f"MSVC find_msvc() result: {msvc_result}")
+            logger.info(f"MSVC find_msvc() result: {msvc_result}")
             if isinstance(msvc_result, (tuple, list)) and len(msvc_result) >= 1:
                 msvc_paths = msvc_result[0]
                 self.msvc_found = isinstance(msvc_paths, list) and bool(msvc_paths)
             else:
                 self.msvc_found = False
-            print(f"MSVC Check: Found={self.msvc_found}")
+            logger.info(f"MSVC Check: Found={self.msvc_found}")
 
             self.triton_checks_performed = True
 
         except ImportError:
-            print("Triton не установлен. Невозможно проверить зависимости CUDA/WinSDK/MSVC.")
+            logger.info("Triton не установлен. Невозможно проверить зависимости CUDA/WinSDK/MSVC.")
             self.triton_installed = False
         except Exception as e:
-            print(f"Ошибка при проверке зависимостей Triton: {e}")
+            logger.info(f"Ошибка при проверке зависимостей Triton: {e}")
 
     # Адаптированный метод create_model_panel
     def create_model_panel(self, parent, model_data):
@@ -1126,7 +1126,7 @@ class VoiceModelSettingsWindow:
         force_unsupported = force_unsupported_str.lower() in ['true', '1', 't', 'y', 'yes']
 
         if force_unsupported:
-            print("INFO: RTX_FORCE_UNSUPPORTED=1 - Имитация неподходящей GPU для RTX 30+.")
+            logger.info("INFO: RTX_FORCE_UNSUPPORTED=1 - Имитация неподходящей GPU для RTX 30+.")
             return False
 
         if self.detected_gpu_vendor != "NVIDIA" or not self.gpu_name:
@@ -1180,7 +1180,7 @@ class VoiceModelSettingsWindow:
                 try:
                     success = self.local_voice.download_model(model_id)
                 except Exception as e:
-                    print(f"Ошибка в потоке загрузки для {model_id}: {e}")
+                    logger.info(f"Ошибка в потоке загрузки для {model_id}: {e}")
                 finally:
                     if self.master.winfo_exists():
                         self.master.after(0, lambda: self.handle_download_result(success, model_id))
@@ -1188,16 +1188,16 @@ class VoiceModelSettingsWindow:
             install_thread = threading.Thread(target=install_thread_func, daemon=True)
             install_thread.start()
         else:
-            print("Внимание: LocalVoice не доступен, используется имитация установки")
+            logger.info("Внимание: LocalVoice не доступен, используется имитация установки")
             self.master.after(2000 + hash(model_id)%1000, lambda: self.handle_download_result(True, model_id))
 
     def handle_download_result(self, success, model_id):
         button_widget = self.download_buttons.get(model_id)
         if success:
             self.installed_models.add(model_id)
-            print(f"Модель {model_id} установлена. Перезагрузка и адаптация настроек...")
+            logger.info(f"Модель {model_id} установлена. Перезагрузка и адаптация настроек...")
             self.load_settings()
-            print("Настройки перезагружены.")
+            logger.info("Настройки перезагружены.")
 
             # Обновляем кнопку уже после перезагрузки настроек
             button_widget = self.download_buttons.get(model_id)
@@ -1213,9 +1213,9 @@ class VoiceModelSettingsWindow:
                      "models_data": self.local_voice_models 
                  }
                  self.on_save_callback(callback_data)
-            print(f"Обработка установки {model_id} завершена.")
+            logger.info(f"Обработка установки {model_id} завершена.")
         else:
-            print(f"Ошибка установки модели {model_id}.")
+            logger.info(f"Ошибка установки модели {model_id}.")
             if button_widget and button_widget.winfo_exists():
                 # Используем tk.NORMAL для состояния кнопки при ошибке
                 button_widget.config(text="Ошибка", state=tk.NORMAL)
@@ -1226,7 +1226,7 @@ class VoiceModelSettingsWindow:
                 for model_id in sorted(list(self.installed_models)):
                     f.write(f"{model_id}\n")
         except Exception as e:
-            print(f"Ошибка сохранения списка установленных моделей в {self.installed_models_file}: {e}")
+            logger.info(f"Ошибка сохранения списка установленных моделей в {self.installed_models_file}: {e}")
 
     def show_setting_description(self, key):
         if self.description_label_widget and self.description_label_widget.winfo_exists():

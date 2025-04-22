@@ -168,3 +168,8 @@ cython_debug/
 /.vs
 /.vs
 /har_and_cookies
+/Models
+/libs
+/Settings
+vec-768-layer-12.onnx
+ffmpeg.exe

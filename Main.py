@@ -5,7 +5,7 @@ from gui import ChatGUI
 import os
 import sys
 import re
-
+from Logger import logger
 import tkinter as tk # Пример импорта для вашего GUI
 
 from dotenv import load_dotenv
@@ -13,9 +13,9 @@ ENV_FILENAME = "features.env"
 loaded = load_dotenv(dotenv_path=ENV_FILENAME)
 
 if loaded:
-    print(f"Переменные окружения успешно загружены из файла: {ENV_FILENAME}")
+    logger.info(f"Переменные окружения успешно загружены из файла: {ENV_FILENAME}")
 else:
-    print(f"Файл окружения '{ENV_FILENAME}' не найден по пути: {ENV_FILENAME}. Используются системные переменные или значения по умолчанию.")
+    logger.info(f"Файл окружения '{ENV_FILENAME}' не найден по пути: {ENV_FILENAME}. Используются системные переменные или значения по умолчанию.")
 
 # region Для исправления проблем с импортом динамично подгружаемых пакетов:
 import timeit
@@ -39,7 +39,7 @@ libs_dir = os.path.join(os.path.dirname(sys.executable), "Lib")
 if not os.path.exists(libs_dir):
     os.makedirs(libs_dir)
 
-print(libs_dir)
+logger.info(libs_dir)
 sys.path.insert(0, libs_dir)
 
 
@@ -55,7 +55,7 @@ if os.path.exists(config_path):
     with open(config_path, "w", encoding="utf-8") as f:
         f.write(patched_source)
 
-    print("Патч успешно применён к configs.py")
+    logger.info("Патч успешно применён к configs.py")
 
 audio_path = os.path.join(libs_dir, "tts_with_rvc", "lib", "audio.py")
 if os.path.exists(audio_path):
@@ -72,7 +72,7 @@ if os.path.exists(audio_path):
     with open(audio_path, "w", encoding="utf-8") as f:
         f.write(patched_source)
 
-    print("Патч успешно применён к audio.py")
+    logger.info("Патч успешно применён к audio.py")
 
 # Патч для triton windows_utils.py
 windows_utils_path = os.path.join(libs_dir, "triton", "windows_utils.py")
@@ -88,9 +88,9 @@ if os.path.exists(windows_utils_path):
     with open(windows_utils_path, "w", encoding="utf-8") as f:
         f.write(patched_source)
         
-    print("Патч успешно применён к windows_utils.py")
+    logger.info("Патч успешно применён к windows_utils.py")
 else:
-    print(f"Файл {windows_utils_path} не найден")
+    logger.info(f"Файл {windows_utils_path} не найден")
 
 
 # Патч для compiler.py
@@ -107,9 +107,9 @@ if os.path.exists(compiler_path):
     with open(compiler_path, "w", encoding="utf-8") as f:
         f.write(patched_source)
         
-    print("Патч успешно применён к compiler.py")
+    logger.info("Патч успешно применён к compiler.py")
 else:
-    print(f"Файл {compiler_path} не найден")
+    logger.info(f"Файл {compiler_path} не найден")
 
 
 build_py_path = os.path.join(libs_dir, "triton", "runtime", "build.py")
@@ -134,7 +134,7 @@ def ensure_project_root():
     
     if not os.path.exists(project_root_file):
         open(project_root_file, 'w').close() # Создать пустой файл
-        print(f"Файл '{project_root_file}' создан.")
+        logger.info(f"Файл '{project_root_file}' создан.")
 
 ensure_project_root()
 

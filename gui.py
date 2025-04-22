@@ -594,8 +594,10 @@ class ChatGUI:
         self.setup_status_indicators(settings_frame)
         self.setup_language_controls(settings_frame)
         self.setup_api_controls_new(settings_frame)
-        self.setup_model_controls(settings_frame)
+
+        #self.setup_model_controls(settings_frame)
         self.setup_g4f_controls(settings_frame)
+
         self.setup_general_settings_control(settings_frame)
         self.setup_voiceover_controls(settings_frame) # Бывший setup_tg_controls()
         self.setup_microphone_controls(settings_frame)
@@ -691,9 +693,35 @@ class ChatGUI:
         section = CollapsibleSection(parent, _("Настройки g4f", "g4f Settings"))
         section.pack(fill=tk.X, padx=5, pady=5, expand=True)
 
+
+        use_g4f = self.create_setting_widget(
+            parent=section.content_frame,
+            label=_('Использовать gpt4free', 'Use gpt4free'),
+            setting_key='gpt4free', # Этот ключ теперь просто хранит последнюю введенную/установленную версию
+            widget_type='checkbutton',
+            default_checkbutton=False,
+            #tooltip=_('Укажите версию g4f (например, 0.4.7.7 или latest). Обновление произойдет при следующем запуске.',
+            #          'Specify the g4f version (e.g., 0.4.7.7 or latest). The update will occur on the next launch.')
+        )
+        section.add_widget(use_g4f)
+
+        model_g4f = self.create_setting_widget(
+            parent=section.content_frame,
+            label=_('Модель gpt4free', 'model gpt4free'),
+            setting_key='gpt4free_model', # Этот ключ теперь просто хранит последнюю введенную/установленную версию
+            widget_type='entry',
+            default="gemini-1.5-flash",
+        )
+        section.add_widget(model_g4f)
+       # {'label': , 'key': 'gpt4free', 'type': 'checkbutton',
+       #      'default_checkbutton': False},
+      #      {'label': _('gpt4free | Модель gpt4free', 'gpt4free | model gpt4free'), 'key': 'gpt4free_model',
+      #       'type': 'entry', 'default': "gemini-1.5-flash"},
+
+
         version_frame = self.create_setting_widget(
             parent=section.content_frame,
-            label=_('Версия g4f', 'g4f Version'),
+            label=_('Версия gpt4free', 'gpt4free Version'),
             setting_key='G4F_VERSION', # Этот ключ теперь просто хранит последнюю введенную/установленную версию
             widget_type='entry',
             default='0.4.7.7',
@@ -1066,7 +1094,7 @@ class ChatGUI:
             label=_('Озвучивать в локальном чате', 'Voiceover in local chat'),
             setting_key='VOICEOVER_LOCAL_CHAT',
             widget_type='checkbutton',
-            default_checkbutton=False
+            default_checkbutton=True
         )
 
         install_button_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
@@ -1848,7 +1876,7 @@ class ChatGUI:
             self.cmd_cut(widget)
 
     def cmd_copy(self, widget):
-        print("123")
+        logger.info("123")
         # Обработчик команды копирования
         if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Copy>>")
@@ -1859,7 +1887,7 @@ class ChatGUI:
             widget.event_generate("<<Cut>>")
 
     def cmd_paste(self, widget):
-        print("555")
+        logger.info("555")
         # Обработчик команды вставки
         if isinstance(widget, (tk.Entry, ttk.Entry, tk.Text)):
             widget.event_generate("<<Paste>>")
@@ -2642,9 +2670,9 @@ class ChatGUI:
         # Показываем окно "Установка..." (через mainloop)
         self.root.after(0, self._show_ffmpeg_installing_popup)
 
-        print("Starting FFmpeg installation attempt...")
+        logger.info("Starting FFmpeg installation attempt...")
         success = install_ffmpeg()
-        print(f"FFmpeg installation attempt finished. Success: {success}")
+        logger.info(f"FFmpeg installation attempt finished. Success: {success}")
 
         # Закрываем окно "Установка..." (через mainloop)
         self.root.after(0, self._close_ffmpeg_installing_popup)
@@ -2656,15 +2684,15 @@ class ChatGUI:
     def check_and_install_ffmpeg(self):
         """Проверяет наличие ffmpeg.exe и запускает установку в потоке, если его нет."""
         ffmpeg_path = Path(".") / "ffmpeg.exe"
-        print(f"Checking for FFmpeg at: {ffmpeg_path}")
+        logger.info(f"Checking for FFmpeg at: {ffmpeg_path}")
 
         if not ffmpeg_path.exists():
-            print("FFmpeg not found. Starting installation process in a separate thread.")
+            logger.info("FFmpeg not found. Starting installation process in a separate thread.")
             # Запускаем установку в отдельном потоке, чтобы не блокировать UI
             install_thread = threading.Thread(target=self._ffmpeg_install_thread_target, daemon=True)
             # daemon=True позволяет программе завершиться, даже если этот поток еще работает
             install_thread.start()
         else:
-            print("FFmpeg found. No installation needed.")
+            logger.info("FFmpeg found. No installation needed.")
 
     # endregion

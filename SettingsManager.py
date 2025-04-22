@@ -239,7 +239,7 @@ class CollapsibleSection(ttk.Frame):
                 option add *TCombobox*Listbox.highlightThickness 0
             """)
         except Exception as e:
-            print(f"Ошибка при настройке выпадающего списка: {e}")
+            logger.info(f"Ошибка при настройке выпадающего списка: {e}")
         
         # Checkbox styling
         style.configure("Dark.TCheckbutton", 

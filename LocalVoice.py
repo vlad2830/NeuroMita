@@ -32,7 +32,7 @@ from utils.PipInstaller import PipInstaller
 
 import json
 from docs import DocsManager
-
+from Logger import logger
 last_used_tts_rvc = None
 tts_rvc = None
 fish_speech_tts = None
@@ -69,7 +69,7 @@ class LocalVoice:
         self.provider = self.check_gpu_provider()
 
         if self.provider in ["AMD"] or self.amd_test:
-            print("KMP_DUPLICATE_LIB_OK = TRUE")
+            logger.info("KMP_DUPLICATE_LIB_OK = TRUE")
             os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
         self.cuda_found = False
@@ -83,21 +83,21 @@ class LocalVoice:
             from tts_with_rvc import TTS_RVC
             self.tts_rvc_module = TTS_RVC
         except ImportError:
-            print("Модуль tts_with_rvc не установлен")
+            logger.info("Модуль tts_with_rvc не установлен")
 
 
         try:
             from fish_speech_lib.inference import FishSpeech
             self.fish_speech_module = FishSpeech
         except ImportError:
-            print("Модуль fish_speech_lib не установлен")
+            logger.info("Модуль fish_speech_lib не установлен")
 
 
         try:
             import zonos123
             self.zonos_module = zonos123
         except ImportError:
-            print("Модуль zonos не установлен")
+            logger.info("Модуль zonos не установлен")
 
         if getattr(sys, 'frozen', False):
             base_dir = os.path.dirname(sys.executable)
@@ -119,7 +119,7 @@ class LocalVoice:
                 self.current_model = "low"
                 return True
             except Exception as ex:
-                print("error:", ex)
+                logger.info("error:", ex)
                 return False
         elif model_id == "low+": # Добавлен блок
             try:
@@ -130,7 +130,7 @@ class LocalVoice:
                 self.current_model = "low+"
                 return True
             except Exception as ex:
-                print("error:", ex)
+                logger.info("error:", ex)
                 return False
 
         elif model_id == "medium":
@@ -141,7 +141,7 @@ class LocalVoice:
                 self.current_model = "medium"
                 return True
             except Exception as ex:
-                print("error:", ex)
+                logger.info("error:", ex)
                 return False
         elif model_id == "medium+":
             try:
@@ -154,7 +154,7 @@ class LocalVoice:
                 self.current_model = "medium+"
                 return True
             except Exception as ex:
-                print("error:", ex)
+                logger.info("error:", ex)
                 return False
 
         elif model_id == "medium+low":
@@ -168,7 +168,7 @@ class LocalVoice:
                 self.current_model = "medium+low"
                 return True
             except Exception as ex:
-                print("error:", ex)
+                logger.info("error:", ex)
                 return False
         # elif model_id == "high":
         #     return self.download_zonos()
@@ -176,7 +176,7 @@ class LocalVoice:
             try:
                 raise ValueError(f"Неизвестный идентификатор модели: {model_id}")
             except Exception as ex:
-                print("error:", ex)
+                logger.info("error:", ex)
                 return False
             
     def _check_system_dependencies(self):
@@ -191,60 +191,60 @@ class LocalVoice:
         libs_path_abs = os.path.abspath("Lib")
         if libs_path_abs not in sys.path:
             sys.path.insert(0, libs_path_abs)
-            print(f"Добавлен путь {libs_path_abs} в sys.path для поиска Triton")
+            logger.info(f"Добавлен путь {libs_path_abs} в sys.path для поиска Triton")
 
         try:
             import triton
             from triton.windows_utils import find_cuda, find_winsdk, find_msvc
             self.triton_installed = True
-            print("Triton импортирован успешно.")
+            logger.info("Triton импортирован успешно.")
 
             try:
                 cuda_result = find_cuda()
-                print(f"CUDA find_cuda() result: {cuda_result}")
+                logger.info(f"CUDA find_cuda() result: {cuda_result}")
                 if isinstance(cuda_result, (tuple, list)) and len(cuda_result) >= 1:
                     cuda_path = cuda_result[0]
                     self.cuda_found = cuda_path is not None and os.path.exists(str(cuda_path))
                 else:
                     self.cuda_found = False
             except Exception as e_cuda:
-                 print(f"Ошибка при проверке CUDA: {e_cuda}")
+                 logger.info(f"Ошибка при проверке CUDA: {e_cuda}")
                  self.cuda_found = False
-            print(f"CUDA Check: Found={self.cuda_found}")
+            logger.info(f"CUDA Check: Found={self.cuda_found}")
 
             try:
                 winsdk_result = find_winsdk(False)
-                print(f"WinSDK find_winsdk() result: {winsdk_result}")
+                logger.info(f"WinSDK find_winsdk() result: {winsdk_result}")
                 if isinstance(winsdk_result, (tuple, list)) and len(winsdk_result) >= 1:
                     winsdk_paths = winsdk_result[0]
                     self.winsdk_found = isinstance(winsdk_paths, list) and bool(winsdk_paths)
                 else:
                     self.winsdk_found = False
             except Exception as e_winsdk:
-                 print(f"Ошибка при проверке WinSDK: {e_winsdk}")
+                 logger.info(f"Ошибка при проверке WinSDK: {e_winsdk}")
                  self.winsdk_found = False
-            print(f"WinSDK Check: Found={self.winsdk_found}")
+            logger.info(f"WinSDK Check: Found={self.winsdk_found}")
 
             try:
                 msvc_result = find_msvc(False)
-                print(f"MSVC find_msvc() result: {msvc_result}")
+                logger.info(f"MSVC find_msvc() result: {msvc_result}")
                 if isinstance(msvc_result, (tuple, list)) and len(msvc_result) >= 1:
                     msvc_paths = msvc_result[0]
                     self.msvc_found = isinstance(msvc_paths, list) and bool(msvc_paths)
                 else:
                     self.msvc_found = False
             except Exception as e_msvc:
-                 print(f"Ошибка при проверке MSVC: {e_msvc}")
+                 logger.info(f"Ошибка при проверке MSVC: {e_msvc}")
                  self.msvc_found = False
-            print(f"MSVC Check: Found={self.msvc_found}")
+            logger.info(f"MSVC Check: Found={self.msvc_found}")
 
             self.triton_checks_performed = True
 
         except ImportError:
-            print("Triton не установлен или не найден в sys.path. Невозможно проверить зависимости CUDA/WinSDK/MSVC.")
+            logger.info("Triton не установлен или не найден в sys.path. Невозможно проверить зависимости CUDA/WinSDK/MSVC.")
             self.triton_installed = False
         except Exception as e:
-            print(f"Общая ошибка при проверке зависимостей Triton: {e}")
+            logger.info(f"Общая ошибка при проверке зависимостей Triton: {e}")
             traceback.print_exc()
             self.triton_installed = self.is_triton_installed()
             self.triton_checks_performed = False
@@ -264,32 +264,32 @@ class LocalVoice:
                         self._title_font = tkFont.Font(name=title_font_name)
                         # Если шрифт существует, просто обновим его параметры (если нужно)
                         self._title_font.config(family="Segoe UI", size=12, weight="bold")
-                        print(f"Используется существующий шрифт: {title_font_name}")
+                        logger.info(f"Используется существующий шрифт: {title_font_name}")
                     except tk.TclError:
                         # Если не существует, создаем
                         self._title_font = tkFont.Font(name=title_font_name, family="Segoe UI", size=12, weight="bold")
-                        print(f"Создан новый шрифт: {title_font_name}")
+                        logger.info(f"Создан новый шрифт: {title_font_name}")
 
                     try:
                         self._status_font_prog = tkFont.Font(name=status_font_name)
                         self._status_font_prog.config(family="Segoe UI", size=9)
-                        print(f"Используется существующий шрифт: {status_font_name}")
+                        logger.info(f"Используется существующий шрифт: {status_font_name}")
                     except tk.TclError:
                         self._status_font_prog = tkFont.Font(name=status_font_name, family="Segoe UI", size=9)
-                        print(f"Создан новый шрифт: {status_font_name}")
+                        logger.info(f"Создан новый шрифт: {status_font_name}")
 
                     try:
                         self._log_font = tkFont.Font(name=log_font_name)
                         self._log_font.config(family="Consolas", size=9)
-                        print(f"Используется существующий шрифт: {log_font_name}")
+                        logger.info(f"Используется существующий шрифт: {log_font_name}")
                     except tk.TclError:
                         self._log_font = tkFont.Font(name=log_font_name, family="Consolas", size=9)
-                        print(f"Создан новый шрифт: {log_font_name}")
+                        logger.info(f"Создан новый шрифт: {log_font_name}")
 
                     self._installation_fonts_created = True
 
                 except tk.TclError as e:
-                    print(f"Критическая ошибка при создании/получении шрифтов: {e}")
+                    logger.info(f"Критическая ошибка при создании/получении шрифтов: {e}")
                     return None
 
             
@@ -394,7 +394,7 @@ class LocalVoice:
             }
 
         except Exception as e:
-            print(f"Ошибка при создании окна установки: {e}")
+            logger.info(f"Ошибка при создании окна установки: {e}")
             traceback.print_exc()
             if progress_window and progress_window.winfo_exists():
                 try:
@@ -450,7 +450,7 @@ class LocalVoice:
                 button_font = tkFont.Font(name=dlg_button_font_name, family="Segoe UI", size=9, weight="bold")
 
         except tk.TclError as e:
-            print(f"Критическая ошибка при создании/получении шрифтов для диалога: {e}")
+            logger.info(f"Критическая ошибка при создании/получении шрифтов для диалога: {e}")
             main_font, bold_font, status_font, button_font = None, None, None, None 
 
         # Создание окна
@@ -534,14 +534,14 @@ class LocalVoice:
 
         # Функции для кнопок
         def on_refresh():
-            print("Обновление статуса зависимостей...")
+            logger.info("Обновление статуса зависимостей...")
             # Блокируем кнопки на время проверки
             refresh_button.config(state=tk.DISABLED, text="Проверка...")
             dialog.update()
             self._check_system_dependencies()
             update_status_display() # Обновляем отображение в диалоге
             refresh_button.config(state=tk.NORMAL, text="Обновить статус")
-            print("Статус обновлен.")
+            logger.info("Статус обновлен.")
 
         def on_docs():
             self.docs_manager.open_doc("installation_guide.html") 
@@ -856,7 +856,7 @@ class LocalVoice:
             return True
 
         except Exception as e:
-            print(f"Критическая ошибка при установке Triton: {e}")
+            logger.info(f"Критическая ошибка при установке Triton: {e}")
             traceback.print_exc()
             try:
                 if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
@@ -865,7 +865,7 @@ class LocalVoice:
                     gui_elements["update_status"]("Критическая ошибка установки!")
                     gui_elements["window"].after(10000, gui_elements["window"].destroy)
             except Exception as e_inner:
-                 print(f"Ошибка при попытке обновить лог в окне прогресса: {e_inner}")
+                 logger.info(f"Ошибка при попытке обновить лог в окне прогресса: {e_inner}")
             return False
         finally:
              try:
@@ -873,7 +873,7 @@ class LocalVoice:
                      # Не закрываем здесь, так как есть after(5000) выше
                      pass
              except Exception as e_final:
-                 print(f"Ошибка при закрытии окна прогресса: {e_final}")
+                 logger.info(f"Ошибка при закрытии окна прогресса: {e_final}")
 
     def download_edge_tts_rvc(self):
         """Загружает Edge-TTS + RVC модель"""
@@ -1025,7 +1025,7 @@ class LocalVoice:
             return True
 
         except Exception as e:
-            print(f"Ошибка при установке Edge-TTS + RVC: {e}")
+            logger.info(f"Ошибка при установке Edge-TTS + RVC: {e}")
             traceback.print_exc()
             if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
                 try:
@@ -1169,7 +1169,7 @@ class LocalVoice:
             return True
 
         except Exception as e:
-            print(f"Ошибка при установке Fish Speech: {e}")
+            logger.info(f"Ошибка при установке Fish Speech: {e}")
             traceback.print_exc()
             if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
                 try:
@@ -1198,8 +1198,8 @@ class LocalVoice:
             self.index_path = os.path.join(os.path.abspath(self.clone_voice_folder), f"{short_name}.index")
             self.clone_voice_filename = os.path.join(os.path.abspath(self.clone_voice_folder), f"{short_name}.wav")
             self.clone_voice_text = os.path.join(os.path.abspath(self.clone_voice_folder), f"{short_name}.txt")
-            print(f"Используем модель персонажа: {self.pth_path if self.pth_path else 'не указана'}")
-            print(f"Используем .index файл персонажа: {self.index_path if self.index_path else 'не указан'}")
+            logger.info(f"Используем модель персонажа: {self.pth_path if self.pth_path else 'не указана'}")
+            logger.info(f"Используем .index файл персонажа: {self.index_path if self.index_path else 'не указан'}")
 
         # Проверяем, инициализирована ли текущая модель
         if self.current_model == "low" and not self.is_model_initialized("low"):
@@ -1242,10 +1242,10 @@ class LocalVoice:
         """
         try:
             if not os.path.exists(input_path):
-                print(f"Файл {input_path} не найден при попытке конвертации.")
+                logger.info(f"Файл {input_path} не найден при попытке конвертации.")
                 return None
 
-            print(f"Начинаю конвертацию {input_path} в {output_path} с помощью ffmpeg")
+            logger.info(f"Начинаю конвертацию {input_path} в {output_path} с помощью ffmpeg")
 
             (
                 ffmpeg
@@ -1262,10 +1262,10 @@ class LocalVoice:
                 .run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
             )
 
-            print(f"Конвертация завершена: {output_path}")
+            logger.info(f"Конвертация завершена: {output_path}")
             return output_path
         except Exception as e:
-            print(f"Ошибка при конвертации WAV в стерео: {e}")
+            logger.info(f"Ошибка при конвертации WAV в стерео: {e}")
             return None
     # endregion
     async def voiceover_edge_tts_rvc(self, text, TEST_WITH_DONE_AUDIO: str = None):
@@ -1279,14 +1279,14 @@ class LocalVoice:
                 elif self.current_model == "medium+low":
                     model_to_init = "medium+low"
                 if model_to_init:
-                    print(f"Предупреждение: Экземпляр TTS_RVC не инициализирован для модели {self.current_model}. Попытка инициализации...")
+                    logger.info(f"Предупреждение: Экземпляр TTS_RVC не инициализирован для модели {self.current_model}. Попытка инициализации...")
                     if not self.initialize_model(model_to_init):
                         raise Exception(f"Не удалось инициализировать компонент TTS_RVC для модели {self.current_model}")
                 else:
                     raise Exception(f"Неожиданный вызов voiceover_edge_tts_rvc для модели {self.current_model}, которая не использует RVC.")
             settings = self.load_model_settings(self.current_model)
             if not settings:
-                print(f"Предупреждение: Не найдены настройки для модели {self.current_model}. Используются значения по умолчанию.")
+                logger.info(f"Предупреждение: Не найдены настройки для модели {self.current_model}. Используются значения по умолчанию.")
 
             is_combined_model = self.current_model == "medium+low"
 
@@ -1311,10 +1311,10 @@ class LocalVoice:
 
             if use_index_file:
                 self.current_tts_rvc.set_index_path(self.index_path)
-                print("Используем индексную базу для RVC:", self.index_path)
+                logger.info("Используем индексную базу для RVC:", self.index_path)
             else:
                 self.current_tts_rvc.set_index_path("")
-                print("Не используем индексную базу для RVC.")
+                logger.info("Не используем индексную базу для RVC.")
 
             f0method_override = settings.get(f0method_key, None)
 
@@ -1351,24 +1351,24 @@ class LocalVoice:
                     self.current_tts_rvc.set_model(self.pth_path)
 
             if not TEST_WITH_DONE_AUDIO:
-                print(f"Начинаем генерацию аудио RVC (TTS) для текста: {text[:50]}...")
+                logger.info(f"Начинаем генерацию аудио RVC (TTS) для текста: {text[:50]}...")
                 if not is_combined_model:
                     inference_params["tts_rate"] = tts_rate
                 output_file_rvc = self.current_tts_rvc(text=text, **inference_params)
             else:
-                print(f"Обрабатываем существующее аудио RVC: {TEST_WITH_DONE_AUDIO}")
+                logger.info(f"Обрабатываем существующее аудио RVC: {TEST_WITH_DONE_AUDIO}")
                 output_file_rvc = self.current_tts_rvc.voiceover_file(
                     input_path=TEST_WITH_DONE_AUDIO,
                     **inference_params
                 )
 
-            print(f"Аудио сгенерировано RVC, путь: {output_file_rvc}")
+            logger.info(f"Аудио сгенерировано RVC, путь: {output_file_rvc}")
 
             if not output_file_rvc or not os.path.exists(output_file_rvc) or os.path.getsize(output_file_rvc) == 0:
-                print(f"Внимание: сгенерированный RVC файл {output_file_rvc} отсутствует или имеет нулевой размер!")
+                logger.info(f"Внимание: сгенерированный RVC файл {output_file_rvc} отсутствует или имеет нулевой размер!")
                 return None
             
-            print(f"RVC файл создан успешно, размер: {os.path.getsize(output_file_rvc)} байт")
+            logger.info(f"RVC файл создан успешно, размер: {os.path.getsize(output_file_rvc)} байт")
 
             stereo_output_file = output_file_rvc.replace(".wav", "_stereo.wav")
             final_output_path = output_file_rvc
@@ -1380,17 +1380,17 @@ class LocalVoice:
             converted_file = await self.convert_wav_to_stereo(output_file_rvc, stereo_output_file, atempo=atempo_value)
 
             if converted_file and os.path.exists(converted_file):
-                print(f"Файл успешно конвертирован в стерео: {stereo_output_file}")
+                logger.info(f"Файл успешно конвертирован в стерео: {stereo_output_file}")
                 final_output_path = stereo_output_file
                 try:
                     os.remove(output_file_rvc)
-                    print(f"Удален промежуточный файл: {output_file_rvc}")
+                    logger.info(f"Удален промежуточный файл: {output_file_rvc}")
                 except OSError as error:
-                    print(f"Не удалось удалить промежуточный файл {output_file_rvc}: {error}")
+                    logger.info(f"Не удалось удалить промежуточный файл {output_file_rvc}: {error}")
             else:
-                print("Не удалось конвертировать файл в стерео формат, используется исходный RVC файл.")
+                logger.info("Не удалось конвертировать файл в стерео формат, используется исходный RVC файл.")
 
-            print(f"Озвучка создана: {final_output_path}")
+            logger.info(f"Озвучка создана: {final_output_path}")
             if self.parent.ConnectedToGame == True and TEST_WITH_DONE_AUDIO is None:
                 self.parent.patch_to_sound_file = final_output_path
                 
@@ -1398,7 +1398,7 @@ class LocalVoice:
         except Exception as error:
             import traceback
             traceback.print_exc()
-            print(f"Ошибка при создании озвучки с Edge-TTS + RVC ({self.current_model}): {error}")
+            logger.info(f"Ошибка при создании озвучки с Edge-TTS + RVC ({self.current_model}): {error}")
             return None
 
     def _preprocess_text_to_ssml(self, text: str):
@@ -1480,13 +1480,13 @@ class LocalVoice:
 
             settings = self.load_model_settings("low+")
             if not settings:
-                print("Предупреждение: Не найдены настройки для модели low+. Используются значения по умолчанию.")
+                logger.info("Предупреждение: Не найдены настройки для модели low+. Используются значения по умолчанию.")
 
             silero_put_accent = settings.get("silero_put_accent", True)
             silero_put_yo = settings.get("silero_put_yo", True)
             speaker = character_speaker
 
-            print(f"Начинаем генерацию аудио Silero для SSML: {ssml_text[:100]}...")
+            logger.info(f"Начинаем генерацию аудио Silero для SSML: {ssml_text[:100]}...")
             audio_tensor = self.current_silero_model.apply_tts(
                 ssml_text=ssml_text,
                 speaker=speaker,
@@ -1502,9 +1502,9 @@ class LocalVoice:
             sf.write(temp_wav, audio_numpy, self.current_silero_sample_rate)
 
             if not os.path.exists(temp_wav) or os.path.getsize(temp_wav) == 0:
-                 print(f"Внимание: сгенерированный Silero файл {temp_wav} отсутствует или имеет нулевой размер!")
+                 logger.info(f"Внимание: сгенерированный Silero файл {temp_wav} отсутствует или имеет нулевой размер!")
                  return None
-            print(f"Silero файл создан успешно: {temp_wav}, размер: {os.path.getsize(temp_wav)} байт")
+            logger.info(f"Silero файл создан успешно: {temp_wav}, размер: {os.path.getsize(temp_wav)} байт")
 
             base_rvc_pitch_from_settings = float(settings.get("pitch", 6))
             final_rvc_pitch = base_rvc_pitch_from_settings - (6 - character_base_rvc_pitch)
@@ -1527,7 +1527,7 @@ class LocalVoice:
                 # Пытаемся получить short_name из переданного объекта character
                 rvc_model_short_name = str(getattr(active_character_for_rvc_path, 'short_name', None))
                 if not rvc_model_short_name:
-                    print(f"Предупреждение: Не удалось получить short_name из объекта character. Используется имя по умолчанию 'Mila'.")
+                    logger.info(f"Предупреждение: Не удалось получить short_name из объекта character. Используется имя по умолчанию 'Mila'.")
                     rvc_model_short_name = "Mila"
             else:
                 # Если character не передан, используем имя по умолчанию
@@ -1536,7 +1536,7 @@ class LocalVoice:
             self.pth_path = os.path.join(os.path.abspath(self.clone_voice_folder), f"{rvc_model_short_name}.{model_ext}")
             self.index_path = os.path.join(os.path.abspath(self.clone_voice_folder), f"{rvc_model_short_name}.index")
 
-            print(f"Выбрана RVC модель: {rvc_model_short_name}, Путь: {self.pth_path}")
+            logger.info(f"Выбрана RVC модель: {rvc_model_short_name}, Путь: {self.pth_path}")
 
             if not os.path.exists(self.pth_path):
                  # Можно добавить обработку ошибки или fallback на дефолтную модель, если основная не найдена
@@ -1551,10 +1551,10 @@ class LocalVoice:
 
             if use_index_file and self.index_path and os.path.exists(self.index_path):
                 self.current_tts_rvc.set_index_path(self.index_path)
-                print("Используем индексную базу для RVC:", self.index_path)
+                logger.info("Используем индексную базу для RVC:", self.index_path)
             else:
                 self.current_tts_rvc.set_index_path("")
-                print("Не используем индексную базу для RVC (файл не найден или отключен).")
+                logger.info("Не используем индексную базу для RVC (файл не найден или отключен).")
 
             rvc_params = {
                 "pitch": final_rvc_pitch,
@@ -1568,20 +1568,20 @@ class LocalVoice:
             if f0method_override:
                 rvc_params["f0method"] = f0method_override
 
-            print(f"Текущая модель: {self.current_tts_rvc.current_model}")
-            print(f"Обрабатываем аудио RVC: {temp_wav} с питчем {final_rvc_pitch}")
+            logger.info(f"Текущая модель: {self.current_tts_rvc.current_model}")
+            logger.info(f"Обрабатываем аудио RVC: {temp_wav} с питчем {final_rvc_pitch}")
             output_file_rvc = self.current_tts_rvc.voiceover_file(
                 input_path=temp_wav,
                 **rvc_params
             )
 
-            print(f"Аудио сгенерировано RVC, путь: {output_file_rvc}")
+            logger.info(f"Аудио сгенерировано RVC, путь: {output_file_rvc}")
 
             if not output_file_rvc or not os.path.exists(output_file_rvc) or os.path.getsize(output_file_rvc) == 0:
-                print(f"Внимание: сгенерированный RVC файл {output_file_rvc} отсутствует или имеет нулевой размер!")
+                logger.info(f"Внимание: сгенерированный RVC файл {output_file_rvc} отсутствует или имеет нулевой размер!")
                 return None
 
-            print(f"RVC файл создан успешно, размер: {os.path.getsize(output_file_rvc)} байт")
+            logger.info(f"RVC файл создан успешно, размер: {os.path.getsize(output_file_rvc)} байт")
 
             stereo_output_file = output_file_rvc.replace(".wav", "_stereo.wav")
             final_output_path = output_file_rvc
@@ -1590,17 +1590,17 @@ class LocalVoice:
             converted_file = await self.convert_wav_to_stereo(output_file_rvc, stereo_output_file, atempo=atempo_value)
 
             if converted_file and os.path.exists(converted_file):
-                print(f"Файл успешно конвертирован в стерео: {stereo_output_file}")
+                logger.info(f"Файл успешно конвертирован в стерео: {stereo_output_file}")
                 final_output_path = stereo_output_file
                 try:
                     os.remove(output_file_rvc)
-                    print(f"Удален промежуточный файл RVC: {output_file_rvc}")
+                    logger.info(f"Удален промежуточный файл RVC: {output_file_rvc}")
                 except OSError as error:
-                    print(f"Не удалось удалить промежуточный файл RVC {output_file_rvc}: {error}")
+                    logger.info(f"Не удалось удалить промежуточный файл RVC {output_file_rvc}: {error}")
             else:
-                print("Не удалось конвертировать файл в стерео формат, используется исходный RVC файл.")
+                logger.info("Не удалось конвертировать файл в стерео формат, используется исходный RVC файл.")
 
-            print(f"Озвучка создана: {final_output_path}")
+            logger.info(f"Озвучка создана: {final_output_path}")
             if hasattr(self, 'parent') and getattr(self.parent, 'ConnectedToGame', False):
                 self.parent.patch_to_sound_file = final_output_path
 
@@ -1609,15 +1609,15 @@ class LocalVoice:
         except Exception as error:
             import traceback
             traceback.print_exc()
-            print(f"Ошибка при создании озвучки с Silero + RVC: {error}")
+            logger.info(f"Ошибка при создании озвучки с Silero + RVC: {error}")
             return None
         finally:
             if temp_wav and os.path.exists(temp_wav):
                 try:
                     os.remove(temp_wav)
-                    print(f"Удален временный файл Silero: {temp_wav}")
+                    logger.info(f"Удален временный файл Silero: {temp_wav}")
                 except OSError as e:
-                    print(f"Не удалось удалить временный файл Silero {temp_wav}: {e}")
+                    logger.info(f"Не удалось удалить временный файл Silero {temp_wav}: {e}")
 
     async def voiceover_fish_speech(self, text, compile=False, with_rvc=False):
         if self.fish_speech_module is None:
@@ -1625,13 +1625,13 @@ class LocalVoice:
 
         try:
             if not self.current_fish_speech:
-                print(f"Предупреждение: Экземпляр FishSpeech не инициализирован для модели {self.current_model}. Попытка инициализации...")
+                logger.info(f"Предупреждение: Экземпляр FishSpeech не инициализирован для модели {self.current_model}. Попытка инициализации...")
                 if not self.initialize_model(self.current_model):
                     raise Exception(f"Не удалось инициализировать модель FishSpeech для {self.current_model}")
 
             settings = self.load_model_settings(self.current_model)
             if not settings:
-                print(f"Предупреждение: Не найдены настройки для модели {self.current_model}. Используются значения по умолчанию.")
+                logger.info(f"Предупреждение: Не найдены настройки для модели {self.current_model}. Используются значения по умолчанию.")
 
             is_combined_model = self.current_model == "medium+low"
 
@@ -1652,20 +1652,20 @@ class LocalVoice:
             reference_text = ""
             if self.clone_voice_filename and os.path.exists(self.clone_voice_filename):
                 reference_audio_path = self.clone_voice_filename
-                print(f"Используем референс аудио: {reference_audio_path}")
+                logger.info(f"Используем референс аудио: {reference_audio_path}")
                 if self.clone_voice_text and os.path.exists(self.clone_voice_text):
                     try:
                         with open(self.clone_voice_text, "r", encoding="utf-8") as file:
                             reference_text = file.read().strip()
-                        print(f"Используем референс текст: '{reference_text[:50]}...'")
+                        logger.info(f"Используем референс текст: '{reference_text[:50]}...'")
                     except Exception as error:
-                        print(f"Ошибка чтения файла референс текста {self.clone_voice_text}: {error}")
+                        logger.info(f"Ошибка чтения файла референс текста {self.clone_voice_text}: {error}")
                 else:
-                    print(f"Предупреждение: Файл референс текста не найден или не указан ({self.clone_voice_text}).")
+                    logger.info(f"Предупреждение: Файл референс текста не найден или не указан ({self.clone_voice_text}).")
             else:
-                print(f"Предупреждение: Файл референс аудио не найден или не указан ({self.clone_voice_filename}). Генерация без клонирования голоса.")
+                logger.info(f"Предупреждение: Файл референс аудио не найден или не указан ({self.clone_voice_filename}). Генерация без клонирования голоса.")
 
-            print(f"Начинаем генерацию аудио FishSpeech для текста: {text[:50]}...")
+            logger.info(f"Начинаем генерацию аудио FishSpeech для текста: {text[:50]}...")
             sample_rate, audio_data = self.current_fish_speech(
                 text=text,
                 reference_audio=reference_audio_path,
@@ -1690,10 +1690,10 @@ class LocalVoice:
             sf.write(raw_output_path, audio_data, sample_rate, format='WAV')
 
             if not os.path.exists(raw_output_path) or os.path.getsize(raw_output_path) == 0:
-                print(f"Внимание: сгенерированный FishSpeech файл {raw_output_path} отсутствует или имеет нулевой размер!")
+                logger.info(f"Внимание: сгенерированный FishSpeech файл {raw_output_path} отсутствует или имеет нулевой размер!")
                 return None
 
-            print(f"FishSpeech файл создан успешно: {raw_output_path}, размер: {os.path.getsize(raw_output_path)} байт")
+            logger.info(f"FishSpeech файл создан успешно: {raw_output_path}, размер: {os.path.getsize(raw_output_path)} байт")
 
             stereo_output_filename = raw_output_filename.replace("_raw", "_stereo")
             stereo_output_path = os.path.abspath(os.path.join(temp_dir, stereo_output_filename))
@@ -1703,40 +1703,40 @@ class LocalVoice:
             processed_output_path = raw_output_path
 
             if converted_file and os.path.exists(converted_file):
-                print(f"Файл успешно конвертирован в стерео: {stereo_output_path}")
+                logger.info(f"Файл успешно конвертирован в стерео: {stereo_output_path}")
                 processed_output_path = stereo_output_path
                 try:
                     os.remove(raw_output_path)
-                    print(f"Удален промежуточный файл: {raw_output_path}")
+                    logger.info(f"Удален промежуточный файл: {raw_output_path}")
                 except OSError as error:
-                    print(f"Не удалось удалить промежуточный файл {raw_output_path}: {error}")
+                    logger.info(f"Не удалось удалить промежуточный файл {raw_output_path}: {error}")
             else:
-                print("Не удалось конвертировать файл в стерео формат, используется исходный FishSpeech файл.")
+                logger.info("Не удалось конвертировать файл в стерео формат, используется исходный FishSpeech файл.")
 
             final_output_path = processed_output_path
 
             if with_rvc:
-                print(f"Применяем RVC к файлу: {final_output_path}")
+                logger.info(f"Применяем RVC к файлу: {final_output_path}")
                 if not self.current_tts_rvc:
-                    print(f"Предупреждение: Экземпляр TTS_RVC не инициализирован для модели {self.current_model}. Попытка инициализации...")
+                    logger.info(f"Предупреждение: Экземпляр TTS_RVC не инициализирован для модели {self.current_model}. Попытка инициализации...")
                     if not self.initialize_model(self.current_model):
                         raise Exception(f"Не удалось инициализировать компонент RVC для модели {self.current_model}")
 
                 rvc_output_path = await self.voiceover_edge_tts_rvc(text=None, TEST_WITH_DONE_AUDIO=final_output_path)
 
                 if rvc_output_path and os.path.exists(rvc_output_path):
-                    print(f"RVC обработка завершена: {rvc_output_path}")
+                    logger.info(f"RVC обработка завершена: {rvc_output_path}")
                     if final_output_path != rvc_output_path:
                         try:
                             os.remove(final_output_path)
-                            print(f"Удален промежуточный файл перед RVC: {final_output_path}")
+                            logger.info(f"Удален промежуточный файл перед RVC: {final_output_path}")
                         except OSError as error:
-                            print(f"Не удалось удалить промежуточный файл {final_output_path}: {error}")
+                            logger.info(f"Не удалось удалить промежуточный файл {final_output_path}: {error}")
                     final_output_path = rvc_output_path
                 else:
-                    print("Ошибка во время обработки RVC. Возвращается результат до RVC.")
+                    logger.info("Ошибка во время обработки RVC. Возвращается результат до RVC.")
 
-            print(f"Итоговая озвучка создана: {final_output_path}")
+            logger.info(f"Итоговая озвучка создана: {final_output_path}")
 
             if self.parent and hasattr(self.parent, 'patch_to_sound_file'):
                 self.parent.patch_to_sound_file = final_output_path
@@ -1746,7 +1746,7 @@ class LocalVoice:
         except Exception as error:
             import traceback
             traceback.print_exc()
-            print(f"Ошибка при создании озвучки с Fish Speech ({self.current_model}): {error}")
+            logger.info(f"Ошибка при создании озвучки с Fish Speech ({self.current_model}): {error}")
             return None
         
     async def voiceover_zonos(self, text, output_file="output.wav"):
@@ -1758,7 +1758,7 @@ class LocalVoice:
             self.create_dummy_wav(output_file)
             return output_file
         except Exception as e:
-            print(f"Ошибка при создании озвучки с Zonos: {e}")
+            logger.info(f"Ошибка при создании озвучки с Zonos: {e}")
             return None
 
     def create_dummy_wav(self, output_file):
@@ -1779,7 +1779,7 @@ class LocalVoice:
     async def play(self, file_path):
         """Проигрывает WAV файл."""
         if not os.path.exists(file_path):
-            print(f"Файл {file_path} не найден")
+            logger.info(f"Файл {file_path} не найден")
             return False
 
         def play_func():
@@ -1871,7 +1871,7 @@ class LocalVoice:
                         return all_settings[model_id]
             return {}
         except Exception as e:
-            print(f"Ошибка при загрузке настроек модели {model_id}: {e}")
+            logger.info(f"Ошибка при загрузке настроек модели {model_id}: {e}")
             return {}
     #endregion
 
@@ -1892,7 +1892,7 @@ class LocalVoice:
     def initialize_model(self, model_id, init=False):
         """Инициализирует модель с указанным ID и параметрами из настроек"""
         if model_id not in ["low", "low+", "medium", "medium+", "medium+low"]: 
-            print(f"Неизвестный ID модели: {model_id}")
+            logger.info(f"Неизвестный ID модели: {model_id}")
             return False
 
         if self.is_model_initialized(model_id):
@@ -1901,13 +1901,13 @@ class LocalVoice:
         # Загружаем настройки для модели
         settings = self.load_model_settings(model_id)
         if not settings and model_id != "low+":
-             print(f"Предупреждение: Не найдены настройки для модели {model_id}. Используются значения по умолчанию.")
+             logger.info(f"Предупреждение: Не найдены настройки для модели {model_id}. Используются значения по умолчанию.")
         
         try:
             if model_id == "low":
                 # Edge-TTS + RVC
                 if self.tts_rvc_module is None:
-                    print("Модуль tts_with_rvc не установлен")
+                    logger.info("Модуль tts_with_rvc не установлен")
                     return False
                     
                 # Получаем параметры из настроек
@@ -1968,19 +1968,19 @@ class LocalVoice:
                                     rms_mix_rate=rms_mix_rate
                                 )
                         except Exception as e:
-                            print(f"Ошибка при инициализации модели с тестовым текстом: {e}")
+                            logger.info(f"Ошибка при инициализации модели с тестовым текстом: {e}")
                             return False
                     
                     self.current_model = model_id
                     self.add_to_initialized(model_id)
                     return True
                 else:
-                    print(f"Не найден файл модели по пути: {self.pth_path}")
+                    logger.info(f"Не найден файл модели по пути: {self.pth_path}")
                     return False
                     
             elif model_id == "low+": # Добавлен блок инициализации low+
                 if self.tts_rvc_module is None:
-                    print("Модуль tts_with_rvc не установлен (необходим для low+)")
+                    logger.info("Модуль tts_with_rvc не установлен (необходим для low+)")
                     return False
 
                 # Инициализация RVC части 
@@ -2001,7 +2001,7 @@ class LocalVoice:
                 if self.pth_path and os.path.exists(self.pth_path):
                     model_path_to_use = self.pth_path
                 elif not os.path.exists(default_pth_path):
-                     print(f"Не найден файл RVC модели по умолчанию: {default_pth_path}")
+                     logger.info(f"Не найден файл RVC модели по умолчанию: {default_pth_path}")
                      return False
 
                 if self.current_tts_rvc == None:
@@ -2010,10 +2010,10 @@ class LocalVoice:
                             model_path=model_path_to_use, device=rvc_device, f0_method=rvc_f0_method
                         )
                         self.current_tts_rvc.set_voice("ru-RU-SvetlanaNeural")
-                        print("RVC компонент для low+ инициализирован.")
+                        logger.info("RVC компонент для low+ инициализирован.")
                     except Exception as e:
-                        print(f"Ошибка инициализации RVC компонента для low+: {e}")
-                        traceback.print_exc()
+                        logger.error(f"Ошибка инициализации RVC компонента для low+: {e}")
+                        #traceback.print_exc()
                         return False
 
 
@@ -2025,7 +2025,7 @@ class LocalVoice:
                 self.current_silero_model = None
                 try:
                     import torch
-                    print(f"Загрузка модели Silero ({language}/{model_id_silero}) из torch.hub...")
+                    logger.info(f"Загрузка модели Silero ({language}/{model_id_silero}) из torch.hub...")
 
                     model, _ = torch.hub.load(repo_or_dir='snakers4/silero-models',
                                               model='silero_tts',
@@ -2034,18 +2034,18 @@ class LocalVoice:
                                               trust_repo=True)
 
                     # Перемещаем модель на нужное устройство
-                    print("SILERO LOCAL: Перемещаем модель на нужное устройство", silero_device)
+                    logger.info("SILERO LOCAL: Перемещаем модель на нужное устройство", silero_device)
                     model.to(silero_device)
                     self.current_silero_model = model
                     self.current_silero_sample_rate = silero_sample_rate
-                    print(f"Silero компонент для low+ инициализирован на устройстве {silero_device}.")
+                    logger.info(f"Silero компонент для low+ инициализирован на устройстве {silero_device}.")
 
                 except Exception as e:
-                    print(f"Ошибка инициализации Silero компонента для low+: {e}")
-                    traceback.print_exc()
+                    logger.error(f"Ошибка инициализации Silero компонента для low+: {e}")
+                    #traceback.print_exc()
 
                     try:
-                        print("Попытка очистить кэш torch.hub и загрузить Silero снова...")
+                        logger.info("Попытка очистить кэш torch.hub и загрузить Silero снова...")
 
                         model, _ = torch.hub.load(repo_or_dir='snakers4/silero-models',
                                                   model='silero_tts',
@@ -2054,14 +2054,14 @@ class LocalVoice:
                                                   force_reload=True, # Принудительная перезагрузка
                                                   trust_repo=True)
                         
-                        print("SILERO LOCAL: Перемещаем модель на нужное устройство", silero_device)
+                        logger.info("SILERO LOCAL: Перемещаем модель на нужное устройство", silero_device)
                         model.to(silero_device)
                         self.current_silero_model = model
                         self.current_silero_sample_rate = silero_sample_rate
-                        print(f"Silero компонент успешно загружен после перезагрузки на {silero_device}.")
+                        logger.info(f"Silero компонент успешно загружен после перезагрузки на {silero_device}.")
                     except Exception as e2:
-                        print(f"Повторная ошибка инициализации Silero компонента для low+: {e2}")
-                        traceback.print_exc()
+                        logger.error(f"Повторная ошибка инициализации Silero компонента для low+: {e2}")
+                        #traceback.print_exc()
                         return False # Если и вторая попытка не удалась, выходим
 
                 # Если нужна инициализация с тестовым текстом
@@ -2084,21 +2084,21 @@ class LocalVoice:
                         asyncio.set_event_loop(loop)
                         loop.run_until_complete(self.voiceover_silero_rvc(init_text))
                         loop.close()
-                        print(f"Тестовый прогон для {model_id} завершен.")
+                        logger.info(f"Тестовый прогон для {model_id} завершен.")
                     except Exception as e:
-                        print(f"Ошибка при инициализации модели {model_id} с тестовым текстом: {e}")
-                        traceback.print_exc()
+                        logger.error(f"Ошибка при инициализации модели {model_id} с тестовым текстом: {e}")
+                        #traceback.print_exc()
                         # return False # Не прерываем
 
                 self.current_model = model_id
                 self.add_to_initialized(model_id)
-                print(f"Модель {model_id} успешно инициализирована.")
+                logger.info(f"Модель {model_id} успешно инициализирована.")
                 return True
 
             elif model_id == "medium":
                 # Fish Speech
                 if self.fish_speech_module is None:
-                    print("Модуль fish_speech_lib не установлен")
+                    logger.info("Модуль fish_speech_lib не установлен")
                     return False
                     
                 # Получаем параметры из настроек
@@ -2153,7 +2153,7 @@ class LocalVoice:
                         os.makedirs("temp", exist_ok=True)
                         sf.write(output_path, audio_data, sample_rate, format='WAV')
                     except Exception as e:
-                        print(f"Ошибка при инициализации Fish Speech с тестовым текстом: {e}")
+                        logger.info(f"Ошибка при инициализации Fish Speech с тестовым текстом: {e}")
                         return False
                 
                 self.current_model = model_id
@@ -2163,11 +2163,11 @@ class LocalVoice:
             elif model_id == "medium+":
                 # Fish Speech+
                 if self.fish_speech_module is None:
-                    print("Модуль fish_speech_lib не установлен")
+                    logger.info("Модуль fish_speech_lib не установлен")
                     return False
                     
                 if not self.is_triton_installed():
-                    print("Модуль triton не установлен, требуется для Fish Speech+")
+                    logger.info("Модуль triton не установлен, требуется для Fish Speech+")
                     return False
                     
                 # Получаем параметры из настроек
@@ -2222,24 +2222,24 @@ class LocalVoice:
                             os.makedirs("temp", exist_ok=True)
                             sf.write(output_path, audio_data, sample_rate, format='WAV')
                         except Exception as e:
-                            print(f"Ошибка при инициализации Fish Speech+ с тестовым текстом: {e}")
+                            logger.info(f"Ошибка при инициализации Fish Speech+ с тестовым текстом: {e}")
                             return False
                     
                     self.current_model = model_id
                     self.add_to_initialized(model_id)
                     return True
                 except Exception as e:
-                    print(f"Ошибка при инициализации Fish Speech+: {e}")
+                    logger.info(f"Ошибка при инициализации Fish Speech+: {e}")
                     return False
                     
             elif model_id == "medium+low":
                 # Fish Speech+ + RVC
                 if self.fish_speech_module is None or self.tts_rvc_module is None:
-                    print("Не хватает необходимых модулей для medium+low")
+                    logger.info("Не хватает необходимых модулей для medium+low")
                     return False
                     
                 if not self.is_triton_installed():
-                    print("Модуль triton не установлен, требуется для Fish Speech+")
+                    logger.info("Модуль triton не установлен, требуется для Fish Speech+")
                     return False
                     
                 # Получаем параметры для Fish Speech+ из настроек
@@ -2282,7 +2282,7 @@ class LocalVoice:
                             f0_method=rvc_f0method
                         )
                     else:
-                        print("Не удалось найти файл модели RVC")
+                        logger.info("Не удалось найти файл модели RVC")
                         return False
                     
                     # Если нужна инициализация с тестовым текстом
@@ -2339,23 +2339,23 @@ class LocalVoice:
                             
                             # Проверяем результат
                             if not os.path.exists(output_path):
-                                print(f"Ошибка при инициализации RVC: файл {output_path} не создан")
+                                logger.info(f"Ошибка при инициализации RVC: файл {output_path} не создан")
                                 return False
                         except Exception as e:
-                            print(f"Ошибка при инициализации Fish Speech+ + RVC: {e}")
+                            logger.info(f"Ошибка при инициализации Fish Speech+ + RVC: {e}")
                             return False
                     
                     self.current_model = model_id
                     self.add_to_initialized(model_id)
                     return True
                 except Exception as e:
-                    print(f"Ошибка при инициализации Fish Speech+ + RVC: {e}")
+                    logger.info(f"Ошибка при инициализации Fish Speech+ + RVC: {e}")
                     return False
         
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print(f"Непредвиденная ошибка при инициализации модели {model_id}: {e}")
+            logger.info(f"Непредвиденная ошибка при инициализации модели {model_id}: {e}")
             return False
     #endregion
 

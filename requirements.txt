@@ -69,6 +69,7 @@ yarl==1.18.3
 emoji
 nodriver
 platformdirs
+dotenv
 
 # atm4x reqs
 
