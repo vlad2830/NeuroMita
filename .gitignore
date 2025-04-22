@@ -168,3 +168,7 @@ cython_debug/
 /.vs
 /.vs
 /har_and_cookies
+/libs
+/Models
+vec-768-layer-12.onnx
+Settings/installed_models.txt
