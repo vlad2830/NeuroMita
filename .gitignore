@@ -173,3 +173,4 @@ cython_debug/
 /Settings
 vec-768-layer-12.onnx
 ffmpeg.exe
+ffmpeg_download_temp.zip
