@@ -284,6 +284,21 @@ namespace MitaAI.Mita
                     }
 
                     break;
+                case "телепортироваться к":
+
+                    try
+                    {
+                        Transform newPosition = GameObject.Find(secondCommand).transform;
+                        mitaCore.Mita.MitaTeleport(newPosition);
+                        CharacterMessages.sendSystemInfo($"Ты телепортировалась в {secondCommand}");
+                    }
+                    catch (Exception ex)
+                    {
+                        MelonLogger.Error($"Tried to teleport to point {secondCommand} {ex}");
+                        CharacterMessages.sendSystemInfo($"точки {secondCommand} не нашлось");
+                    }
+
+                    break;
 
                 case "lookat":
                     if (secondCommand.Contains("Player") || secondCommand.Contains("player")) secondCommand = "HeadPlayer";
