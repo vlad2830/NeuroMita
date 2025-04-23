@@ -38,8 +38,6 @@ tts_rvc = None
 fish_speech_tts = None
 last_compile = None
 
-
-
 class LocalVoice:
     def __init__(self, parent=None):
         self.first_compiled = None
@@ -658,7 +656,7 @@ class LocalVoice:
 
 
             success = installer.install_package(
-                "triton-windows<3.3",
+                "triton-windows<3.3.0",
                 description="Установка библиотеки Triton...",
                 extra_args=["--upgrade"]
             )
@@ -690,6 +688,15 @@ class LocalVoice:
                         update_log("Патч успешно применен к build.py")
                     else:
                         update_log("Патч для build.py уже применен или строка не найдена.")
+
+                    old_line = 'cc_cmd = [cc, src, "-O3", "-shared", "-fPIC", "-Wno-psabi", "-o", out]'
+                    new_line = 'cc_cmd = [cc, src, "-O3", "-shared", "-Wno-psabi", "-o", out]'
+                    if old_line in source:
+                        patched_source = source.replace(old_line, new_line)
+                        with open(build_py_path, "w", encoding="utf-8") as f: f.write(patched_source)
+                        update_log("Патч (удаление -fPIC) успешно применен к build.py")
+                    else:
+                        update_log("Патч (удаление -fPIC) для build.py уже применен или строка не найдена.")
                 except Exception as e: update_log(f"Ошибка при патче build.py: {e}")
             else: update_log("Предупреждение: файл build.py не найден, пропускаем патч")
 
@@ -726,6 +733,21 @@ class LocalVoice:
                         update_log("Патч для compiler.py уже применен или строка не найдена.")
                 except Exception as e: update_log(f"Ошибка при патче compiler.py: {e}")
             else: update_log("Предупреждение: файл compiler.py не найден, пропускаем патч")
+            update_log("Применение патча к cache.py...")
+            cache_py_path = os.path.join(libs_path_abs, "triton", "runtime", "cache.py")
+            if os.path.exists(cache_py_path):
+                try:
+                    with open(cache_py_path, "r", encoding="utf-8") as f: source = f.read()
+                    old_line = 'temp_dir = os.path.join(self.cache_dir, f"tmp.pid_{pid}_{rnd_id}")'
+                    new_line = 'temp_dir = os.path.join(self.cache_dir, f"tmp.pid_{str(pid)[:5]}_{str(rnd_id)[:5]}")'
+                    if old_line in source:
+                        patched_source = source.replace(old_line, new_line)
+                        with open(cache_py_path, "w", encoding="utf-8") as f: f.write(patched_source)
+                        update_log("Патч успешно применен к cache.py")
+                    else:
+                        update_log("Патч для cache.py уже применен или строка не найдена.")
+                except Exception as e: update_log(f"Ошибка при патче cache.py: {e}")
+            else: update_log("Предупреждение: файл cache.py не найден, пропускаем патч")
 
             # --- Проверка зависимостей и диалог ---
             update_progress(80)
@@ -908,7 +930,7 @@ class LocalVoice:
                 update_status("Установка PyTorch с поддержкой CUDA 12.4...")
                 update_progress(20)
                 success = installer.install_package(
-                    ["torch", "torchaudio"],
+                    ["torch==2.6.0", "torchaudio==2.6.0"],
                     description="Установка PyTorch с поддержкой CUDA 12.4...",
                     extra_args=["--index-url", "https://download.pytorch.org/whl/cu124"]
                 )
@@ -1074,7 +1096,7 @@ class LocalVoice:
                 update_status("Установка PyTorch с поддержкой CUDA 12.4...")
                 update_progress(20)
                 success = installer.install_package(
-                    ["torch", "torchaudio"],
+                    ["torch==2.6.0", "torchaudio==2.6.0"],
                     description="Установка PyTorch с поддержкой CUDA 12.4...",
                     extra_args=["--index-url", "https://download.pytorch.org/whl/cu124"]
                 )
