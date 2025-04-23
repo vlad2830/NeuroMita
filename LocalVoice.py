@@ -942,7 +942,7 @@ class LocalVoice:
                     return False
                 update_progress(50)
             else:
-                update_progress(50) # Пропускаем шаг PyTorch, но двигаем прогресс
+                update_progress(50) 
 
             update_status("Установка зависимостей...")
             success = installer.install_package(
