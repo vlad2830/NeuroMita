@@ -10,6 +10,7 @@ using UnityEngine.AI;
 using Il2CppRootMotion.FinalIK;
 using UnityEngine.Events;
 using MitaAI.Mita;
+using static UnityEngine.TextEditor;
 
 namespace MitaAI
 {
@@ -25,12 +26,20 @@ namespace MitaAI
 
     }
 
-    public static class MitaMovement
+    public class MitaMovement
     {
-        public static MovementStyles movementStyle = MovementStyles.walkNear;
+        private static Dictionary<characterType, MovementStyles> movementStyles = new Dictionary<characterType, MovementStyles>();       
 
-
-        public static string SetMovementStyle(string response)
+        public static MovementStyles GetMovementStyle(characterType characterType) { 
+            
+            if (movementStyles.ContainsKey(characterType)) return movementStyles[characterType];
+            else movementStyles[characterType] = MovementStyles.walkNear;
+            return movementStyles[characterType];
+        }
+        public static void setMovementStyle(characterType characterType, MovementStyles style) { movementStyles[characterType] = style; }
+       
+        
+        public static string FindMovementStyle(characterType characterType,string response)
         {
             // Регулярное выражение для извлечения эмоций
             string pattern = @"<m>(.*?)</m>";
@@ -44,38 +53,40 @@ namespace MitaAI
                 // Если эмоция найдена, устанавливаем её в переменную faceStyle
                 MovementStyle = match.Groups[1].Value;
             }
-            try
-            {
-                // Проверка на наличие объекта Mita перед применением эмоции
-                if (MitaCore.Instance.Mita == null || MitaCore.Instance.Mita.gameObject == null)
+            try { 
+            
+                var Mita = MitaCore.getMitaByEnum(characterType);
+            // Проверка на наличие объекта Mita перед применением эмоции
+                if (Mita == null)
                 {
+
                     MelonLogger.Error("Mita object is null or Mita.gameObject is not active.");
                     return cleanedResponse; // Возвращаем faceStyle и очищенный текст
                 }
+                ObjectAnimationMita.finishWorkingOAM();
+                var MitaAnimation = MitaAnimationModded.getMitaAnimationModded(characterType);
                 // Устанавливаем лицо, если оно найдено
                 switch (MovementStyle)
                 {
                     case "Следовать рядом с игроком":
-                        movementStyle = MovementStyles.walkNear;
-                        MitaCore.Instance.location34_Communication.ActivationCanWalk(true);
+                        movementStyles[characterType] = MovementStyles.walkNear;
+                        MitaAnimation.location34_Communication.ActivationCanWalk(true);
                         break;
                     case "Следовать за игроком":
-                        movementStyle = MovementStyles.follow;
-                        MitaCore.Instance.location34_Communication.ActivationCanWalk(false);
-                        MelonCoroutines.Start(FollowPlayer());
-                        MelonCoroutines.Start(LookOnPlayer());
+                        movementStyles[characterType] = MovementStyles.follow;
+                        MitaAnimation.location34_Communication.ActivationCanWalk(false);
+                        MelonCoroutines.Start(FollowPlayer(MitaAnimation));
+                        MelonCoroutines.Start(LookOnPlayer(MitaAnimation));
                         break;
                     case "Стоять на месте":
-                        MitaSetStaing();
+                        MitaSetStaing(characterType);
                         break;
                     case "NoClip":
-                        movementStyle = MovementStyles.noclip;
-                        MitaCore.Instance.location34_Communication.ActivationCanWalk(false);
-                        MelonCoroutines.Start(FollowPlayerNoclip());
+                        movementStyles[characterType] = MovementStyles.noclip;
+                        MitaAnimation.location34_Communication.ActivationCanWalk(false);
+                        MelonCoroutines.Start(FollowPlayerNoclip(characterType));
                         break;
                     default:
-                        //Mita.FaceColorUpdate();
-                        //Mita.FaceLayer(0);
                         break;
                 }
             }
@@ -87,44 +98,44 @@ namespace MitaAI
             // Возвращаем кортеж: лицо и очищенный текст
             return cleanedResponse;
         }
-        public static void MitaSetStaing()
+        public static void MitaSetStaing(characterType characterType)
         {
-            movementStyle = MovementStyles.stay;
-            MitaCore.Instance.location34_Communication.ActivationCanWalk(false);
-            MelonCoroutines.Start(LookOnPlayer());
-            MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter).resetToIdleAnimation();
+            movementStyles[characterType] = MovementStyles.stay;
+
+            var MitaAnim = MitaAnimationModded.getMitaAnimationModded(characterType);
+            MitaAnim.location34_Communication.ActivationCanWalk(false);
+            MelonCoroutines.Start(LookOnPlayer(MitaAnim));
+            MitaAnim.resetToIdleAnimation();
         }
-        public static void ChoseStyle(string animName)
+        public static void ChoseStyle(characterType characterType,string animName)
         {
 
             if (animName.Contains("sit") || animName.Contains("Sit"))
             {
-                movementStyle = MovementStyles.sitting;
+                movementStyles[characterType] = MovementStyles.sitting;
             }
             else if(animName.Contains("Fall") || animName.Contains("Fall"))
             {
-                movementStyle = MovementStyles.layingOnTheFloorAsDead;
+                movementStyles[characterType] = MovementStyles.layingOnTheFloorAsDead;
                 
             }
             else
             {
-                movementStyle = MovementStyles.walkNear;
+                movementStyles[characterType] = MovementStyles.walkNear;
             }
-           // else if (movementStyle == MovementStyles.sitting)
-            //{
-              //  movementStyle = MovementStyles.walkNear;
-           // }
+
         }
 
-        public static IEnumerator LookOnPlayer()
+        public static IEnumerator LookOnPlayer(MitaAnimationModded mitaAnimationModded)
         {
-            while (movementStyle != MovementStyles.walkNear)
+
+            while (movementStyles[mitaAnimationModded.mitaCharacter] != MovementStyles.walkNear)
             {
-                if (!MitaCore.Instance.Mita.GetComponent<NavMeshAgent>().enabled)
+                if (!mitaAnimationModded.mitaPerson.GetComponentInChildren<NavMeshAgent>().enabled)
                 {
                     try
                     {
-                        MitaCore.Instance.MitaLook.LookOnPlayerAndRotate();
+                        mitaAnimationModded.mitaLook.LookOnPlayerAndRotate();
                     }
                     catch (Exception e)
                     {
@@ -141,19 +152,19 @@ namespace MitaAI
         }
 
 
-        public static IEnumerator FollowPlayer(float distance = 1f)
+        public static IEnumerator FollowPlayer(MitaAnimationModded MitaAnimation, float distance = 1f)
         {
 
-            while (movementStyle == MovementStyles.follow)
+            while (movementStyles[MitaAnimation.mitaCharacter] == MovementStyles.follow)
             {
-                if (MitaCore.Instance.getDistanceToPlayer() > distance)
+                if (MitaCore.Instance.getDistanceToPlayer(MitaCore.getMitaByEnum(MitaAnimation.mitaCharacter)) > distance)
                 {
-                    MitaCore.Instance.Mita.AiWalkToTarget(MitaCore.Instance.playerPersonObject.transform);
+                    MitaAnimation.mitaPerson.AiWalkToTarget(MitaCore.Instance.playerPersonObject.transform);
 
                 }
                 else
                 {
-                    MitaCore.Instance.Mita.AiShraplyStop();
+                    MitaAnimation.mitaPerson.AiShraplyStop();
                     yield return new WaitForSeconds(2f);
                 }
 
@@ -162,32 +173,33 @@ namespace MitaAI
 
 
         }
-        public static IEnumerator FollowPlayerNoclip(float distance = 1.1f)
+        public static IEnumerator FollowPlayerNoclip(characterType mitaCharacter, float distance = 1.1f)
         {
             MelonLogger.Msg("Begin noClip");
-            MitaCore.Instance.MitaPersonObject.GetComponent<CapsuleCollider>().enabled = false;
-            while (movementStyle == MovementStyles.noclip && MitaCore.Instance.getDistanceToPlayer() > distance)
+            var MitaPersonObject = MitaCore.getMitaByEnum(mitaCharacter);
+            MitaPersonObject.GetComponent<CapsuleCollider>().enabled = false;
+            while (movementStyles[mitaCharacter] == MovementStyles.noclip && MitaCore.Instance.getDistanceToPlayer(MitaPersonObject) > distance)
             {
 
-                yield return MelonCoroutines.Start(MoveToPositionNoClip(25));
+                yield return MelonCoroutines.Start(MoveToPositionNoClip(mitaCharacter, MitaPersonObject, 25));
 
                 yield return new WaitForSeconds(1f);
             }
-            MitaCore.Instance.MitaPersonObject.GetComponent<CapsuleCollider>().enabled = true;
+            MitaPersonObject.GetComponent<CapsuleCollider>().enabled = true;
 
         }
-        private static IEnumerator MoveToPositionNoClip(float speed)
+        private static IEnumerator MoveToPositionNoClip(characterType characterType, GameObject MitaPersonObject, float speed)
         {
-            while (movementStyle == MovementStyles.noclip && MitaCore.Instance.getDistanceToPlayer() > 0.9f)
+            while (movementStyles[characterType] == MovementStyles.noclip && MitaCore.Instance.getDistanceToPlayer(MitaPersonObject) > 0.9f)
             {
                 Vector3 targetPosition = MitaCore.Instance.playerPerson.gameObject.transform.position;
                 // Двигаем персонажа напрямую к цели (без учета препятствий)
-                MitaCore.Instance.MitaPersonObject.transform.position = Vector3.MoveTowards(MitaCore.Instance.MitaPersonObject.transform.position, targetPosition, speed * Time.deltaTime);
+                MitaPersonObject.transform.position = Vector3.MoveTowards(MitaCore.Instance.MitaPersonObject.transform.position, targetPosition, speed * Time.deltaTime);
 
                 // Можно добавить поворот персонажа в направлении движения (опционально)
-                Vector3 direction = (targetPosition - MitaCore.Instance.MitaPersonObject.transform.position).normalized;
+                Vector3 direction = (targetPosition - MitaPersonObject.transform.position).normalized;
                 if (direction != Vector3.zero)
-                    MitaCore.Instance.MitaPersonObject.transform.rotation = Quaternion.LookRotation(direction);
+                    MitaPersonObject.transform.rotation = Quaternion.LookRotation(direction);
 
                 yield return null; // Ждем следующий кадр
             }

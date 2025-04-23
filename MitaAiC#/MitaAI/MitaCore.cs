@@ -823,10 +823,14 @@ namespace MitaAI
         }
 
 
-        public float getDistanceToPlayer()
+        public float getDistanceToPlayer(GameObject mitaPersonObject = null)
         {
-            if (MitaPersonObject == null || playerObject == null) { return 0f; }
-            return Utils.getDistanceBetweenObjects(MitaPersonObject, playerObject);
+            if (mitaPersonObject == null) mitaPersonObject = MitaPersonObject;
+
+            if (playerObject == null) { return 0f; }
+
+
+            return Utils.getDistanceBetweenObjects(mitaPersonObject, playerObject);
 
 
         }

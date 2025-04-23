@@ -61,7 +61,7 @@ namespace MitaAI
             while (PlayerAnimationModded.currentPlayerMovement == PlayerMovementType.taken)
             {
                 float playerSize = MitaCore.Instance.playerObject.transform.localScale.x;
-                MitaCore.Instance.playerObject.transform.localPosition = new UnityEngine.Vector3(-0.7f,-1.2f,-0.7f)*playerSize; //-0,7 -1,2 -0,7
+                MitaCore.Instance.playerObject.transform.localPosition = new UnityEngine.Vector3(-0.7f, -1.2f, -0.7f) * playerSize; //-0,7 -1,2 -0,7
                 yield return null;
             }
             MitaCore.Instance.playerObject.GetComponent<Rigidbody>().useGravity = true;
@@ -72,9 +72,9 @@ namespace MitaAI
         }
         static IEnumerator MitaKickEnd()
         {
-            MelonCoroutines.Start( PlayerEffectsModded.AddRemoveBloodEffect(5));
+            MelonCoroutines.Start(PlayerEffectsModded.AddRemoveBloodEffect(5));
             yield return new WaitForSeconds(1.5667f);
-            
+
             MitaAnimationModded.bat.active = false;
         }
 
@@ -82,7 +82,8 @@ namespace MitaAI
         {
             MelonLogger.Msg($"HandleCustomEvent called with event: {eventName}");
 
-            if (eventName.StartsWith("MENU|")){
+            if (eventName.StartsWith("MENU|"))
+            {
                 UINeuroMita.MenuEventsCases(eventName);
             }
 
@@ -130,7 +131,7 @@ namespace MitaAI
         }
 
         // Если долго на что-то смотрит
-        public static void LongWatching(string objectName,float time)
+        public static void LongWatching(string objectName, float time)
         {
             if (DisableEvents) return;
 
@@ -138,7 +139,7 @@ namespace MitaAI
             MelonLogger.Msg("Event LongWatching");
 
 
-            CharacterMessages.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}",false);
+            CharacterMessages.sendSystem($"Игрок на протяжении {time} секунд смотрел на {objectName}", false);
 
         }
 
@@ -170,7 +171,7 @@ namespace MitaAI
             Rooms mitaRoom = MitaCore.Instance.GetRoomID(MitaCore.Instance.MitaPersonObject.transform);
             string message = $"Игрок только что перешел комнаты в {room} из комнаты {lastRoom}, а ты сейчас находишься в комнате {mitaRoom}. " +
                 $"Реагируй резко, только если это обоснованно, в общем случае можешь это не заметить или продолжить по теме разговора";
-            
+
             //if (mitaRoom != room) message += $"";
 
 
@@ -197,7 +198,7 @@ namespace MitaAI
             if (Utils.Random(1, 7)) HelloMessage += ", можешь удивить его новым цветом волос";
 
 
-            CharacterMessages.sendSystemMessage(HelloMessage,character);
+            CharacterMessages.sendSystemMessage(HelloMessage, character);
         }
 
         public static void playerKilled()
@@ -270,7 +271,7 @@ namespace MitaAI
             }
         }
     }
-    
+
     [HarmonyLib.HarmonyPatch]
     public static class Safe
     {
@@ -286,12 +287,12 @@ namespace MitaAI
         [HarmonyLib.HarmonyPatch(typeof(Basement_Safe), "RightPassword")]
         [HarmonyLib.HarmonyPostfix]
         private static void Postfix2()
-        { 
-            
-            CharacterMessages.sendSystemMessage("Игрок открыл сейф"); 
-   
+        {
+
+            CharacterMessages.sendSystemMessage("Игрок открыл сейф");
+
         }
     }
- 
+
 
 }

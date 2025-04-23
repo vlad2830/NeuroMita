@@ -94,7 +94,7 @@ namespace MitaAI
             MelonLogger.Msg("DisplayResponseAndEmotion");
 
 
-            string modifiedResponse = MitaMovement.SetMovementStyle(response);
+            string modifiedResponse = MitaMovement.FindMovementStyle(characterToSend,response);
 
             AudioClip audioClip = null;
 

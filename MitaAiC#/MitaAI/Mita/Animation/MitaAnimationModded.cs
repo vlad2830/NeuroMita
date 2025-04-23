@@ -58,10 +58,10 @@ namespace MitaAI.Mita
         public RuntimeAnimatorController runtimeAnimatorController;
         public AnimatorOverrideController overrideController;
         public Animator animator;
-        NavMeshAgent mitaNavMeshAgent;
-        characterType mitaCharacter;
-        Character_Look mitaLook;
-        MitaPerson mitaPerson;
+        public NavMeshAgent mitaNavMeshAgent;
+        public characterType mitaCharacter;
+        public Character_Look mitaLook;
+        public MitaPerson mitaPerson;
         ///public static LookAtIK = 
 
         static public GameObject bat;
@@ -296,7 +296,7 @@ namespace MitaAI.Mita
                         setIdleAnimation("Mita Tired");
                         break;
                     case "Притвориться отключенной и упасть":
-                        MitaMovement.movementStyle = MovementStyles.layingOnTheFloorAsDead;
+                        MitaMovement.setMovementStyle(MitaCore.Instance.currentCharacter,MovementStyles.layingOnTheFloorAsDead);
                         EnqueueAnimation("Mita Fall Start");
                         setIdleAnimation("Mita Fall Idle");
 
@@ -380,7 +380,8 @@ namespace MitaAI.Mita
                     case "Сесть и плакать":
                         EnqueueAnimation("Mila CryNo");
                         setIdleAnimation("Mila CryNo");
-                        MitaMovement.movementStyle = MovementStyles.cryingOnTheFloor;
+                        
+                        MitaMovement.setMovementStyle(MitaCore.Instance.currentCharacter,MovementStyles.cryingOnTheFloor);
                         break;
                     case "Дружески ударить":
                         EnqueueAnimation("Mila Kick");
@@ -517,21 +518,22 @@ namespace MitaAI.Mita
         {
             if (MitaState.GetCurrentState(mitaCharacter) == MitaStateType.interaction && !ignoreInteractionCondition) return;
 
+            var currentMovementStyle = MitaMovement.GetMovementStyle(MitaCore.Instance.currentCharacter);
             // Если запрещено двигаться
-            if (MovementStylesNoMovingAtAll.Contains(MitaMovement.movementStyle))
+            if (MovementStylesNoMovingAtAll.Contains(currentMovementStyle))
             {
                 mitaLook.activeBodyIK = false;
                 mitaLook.canRotateBody = false;
                 location34_Communication.ActivationCanWalk(false);
             }
-            else if (MovementStylesNoBodyLooking.Contains(MitaMovement.movementStyle))
+            else if (MovementStylesNoBodyLooking.Contains(currentMovementStyle))
             {
                 mitaLook.activeBodyIK = true;
                 mitaLook.enabled = true;
                 mitaLook.canRotateBody = false;
                 location34_Communication.ActivationCanWalk(false);
             }
-            else if (MovementStylesNoWalking.Contains(MitaMovement.movementStyle))
+            else if (MovementStylesNoWalking.Contains(currentMovementStyle))
             {
                 mitaLook.activeBodyIK = true;
                 mitaLook.enabled = true;
@@ -715,7 +717,7 @@ namespace MitaAI.Mita
 
             }
 
-            MitaMovement.ChoseStyle(currentIdleAnim);
+            MitaMovement.ChoseStyle(MitaCore.Instance.currentCharacter,currentIdleAnim);
             checkCanMoveRotateLook();
             MelonLogger.Msg($"Ended quque currentIdleAnim {currentIdleAnim}");
             animator.CrossFade("Idle",0.25f);
@@ -811,7 +813,7 @@ namespace MitaAI.Mita
                     currentIdleAnim = animName;
                     AnimationClip anim = FindAnimationClipInControllerByName(animName);
                     location34_Communication.mitaAnimationIdle = anim;
-                    MitaMovement.ChoseStyle(animName);
+                    MitaMovement.ChoseStyle(MitaCore.Instance.currentCharacter,animName);
                     checkCanMoveRotateLook();
                     mitaAnimatorFunctions.ReAnimationClip(initIdle, anim);
 

@@ -126,7 +126,7 @@ namespace MitaAI
                 var mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter);
                 mitaAnimationModded.setIdleWalk("Mita Walk_1");
                 MitaCore.Instance.knife.SetActive(false);
-                MitaMovement.movementStyle = MovementStyles.walkNear;
+                MitaMovement.setMovementStyle(MitaCore.Instance.currentCharacter,MovementStyles.walkNear);
                 mitaAnimationModded.location34_Communication.ActivationCanWalk(true);
                 MitaState.SetCurrentState(MitaCore.Instance.currentCharacter,MitaStateType.normal);
                 MitaCore.Instance.MitaSharplyStopTimed(0.5f);

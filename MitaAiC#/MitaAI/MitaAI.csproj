@@ -350,6 +350,7 @@
 		<Compile Include="Utils\Utils.cs" />
 		<Compile Include="Utils\ComponentCopier.cs" />
 		<Compile Include="WorldModded\Interaction\CommonInteractableObject.cs" />
+		<Compile Include="WorldModded\Interaction\ObjectInterective.cs" />
 		<Compile Include="WorldModded\Interaction\Objects\Chair.cs" />
 		<Compile Include="WorldModded\Interaction\Objects\Items.cs" />
 		<Compile Include="WorldModded\Other\LookAtPlayer.cs" />

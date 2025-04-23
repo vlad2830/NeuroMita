@@ -127,7 +127,7 @@ namespace MitaAI.Mita
                     ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.Mita.AiWalkToTargetTranform(loc, null);
                     location34_Communication.indexSwitchAnimation = 1;
-                    MitaMovement.MitaSetStaing();
+                    MitaMovement.MitaSetStaing(MitaCore.Instance.currentCharacter);
                     break;
 
                 case "телепортироваться к случайной точке":
@@ -136,7 +136,7 @@ namespace MitaAI.Mita
                     CharacterMessages.sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
                     mitaCore.Mita.MitaTeleport(loc);
                     location34_Communication.indexSwitchAnimation = 1;
-                    MitaMovement.MitaSetStaing();
+                    MitaMovement.MitaSetStaing(MitaCore.Instance.currentCharacter);
                     break;
 
                 case "телепортироваться к игроку":
@@ -255,16 +255,17 @@ namespace MitaAI.Mita
 
                     try
                     {
+                        ObjectAnimationMita.finishWorkingOAM();
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.AiWalkToTarget(newPosition);
                         CharacterMessages.sendSystemInfo($"Ты пошла к {secondCommand}");
-                        MitaMovement.MitaSetStaing();
+                        MitaMovement.MitaSetStaing(MitaCore.Instance.currentCharacter);
                     }
                     catch (Exception ex)
                     {
                         MelonLogger.Error($"Tried to go to point {secondCommand} {ex}");
                         CharacterMessages.sendSystemInfo($"точки {secondCommand} не нашлось");
-                        MitaMovement.MitaSetStaing();
+                        MitaMovement.MitaSetStaing(MitaCore.Instance.currentCharacter);
                     }
 
                     break;
@@ -273,6 +274,7 @@ namespace MitaAI.Mita
 
                     try
                     {
+                        ObjectAnimationMita.finishWorkingOAM();
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.MitaTeleport(newPosition);
                         CharacterMessages.sendSystemInfo($"Ты телепортировалась в {secondCommand}");
@@ -288,6 +290,7 @@ namespace MitaAI.Mita
 
                     try
                     {
+                        ObjectAnimationMita.finishWorkingOAM();
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.MitaTeleport(newPosition);
                         CharacterMessages.sendSystemInfo($"Ты телепортировалась в {secondCommand}");

@@ -81,18 +81,14 @@ namespace MitaAI
             endLastPlayersCIAs();
             addCIA(this);
 
-            var obj = GetComponent<ObjectInteractive>();
-            if (obj != null)
-            {
-                obj.active = false;
+            //var obj = GetComponentInChildren<ObjectInteractive>();
+            //if (obj != null)
+            //{
+              //  obj.active = false;
 
-            }
+            //}
         
-            var OAM = GetComponent<ObjectAnimationMita>();
-            if (OAM != null) { 
-                OAM.enabled = false;
-            }
-
+   
 
 
         }
@@ -109,12 +105,12 @@ namespace MitaAI
                 addCIA(this);
             }
 
-            var obj = GetComponents<ObjectInteractive>();
-            foreach (var objectInteractive in obj) {
-                objectInteractive.active = false;
-            }
+            //var obj = GetComponentsInChildren<ObjectInteractive>();
+            //foreach (var objectInteractive in obj)
+            //{
+            //  objectInteractive.active = false;
+            //}
 
-       
 
 
         }

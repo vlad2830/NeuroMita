@@ -6,6 +6,8 @@ using Il2Cpp;
 using UnityEngine.Events;
 
 using System.Text.RegularExpressions;
+using UnityEngine.TextCore.Text;
+using static MelonLoader.MelonLogger;
 
 namespace MitaAI
 {
@@ -16,18 +18,18 @@ namespace MitaAI
         private const float InteractionDistanceVisible = 15f;
 
 
-        static ObjectAnimationMita currentOAMc;
+        static Dictionary<characterType, ObjectAnimationMita> currentMitasOAMc = new Dictionary<characterType, ObjectAnimationMita>();
         static Dictionary<string,ObjectAnimationMita> allOAMs = new Dictionary<string, ObjectAnimationMita>();
 
         static string command = "interaction";
 
-        public static string interactionGetCurrentInfo()
+        public static string interactionGetCurrentInfo(characterType character)
         {
             string info = "";
 
-            if (currentOAMc != null) {
-                info += $"Currently interacting with {currentOAMc.AmimatedObject.name} - {currentOAMc.tip}";
-                info += $"To end this interaction, use <{command}>{currentOAMc.backAnimation.name}</{command}> or move to some point.";
+            if (currentMitasOAMc.ContainsKey(character)) {
+                info += $"Currently interacting with {currentMitasOAMc[character].AmimatedObject.name} - {currentMitasOAMc[character].tip}";
+                info += $"To end this interaction, use <{command}>{currentMitasOAMc[character].backAnimation.name}</{command}> or move to some point.";
                 info += $"Attention: all move commands will finish iteraction! Thus use finishing they only intentionally!";
             }
             if (allOAMs.Count>0)
@@ -46,11 +48,11 @@ namespace MitaAI
                     if (oam.Value.commonInteractableObject.isTaken(oam.Value.position))
                     {
                         // TODO сделать лучше
-                        info += $"\n Name: '{oam.Key}' distance :{distance.ToString("F2")} is taken by {oam.Value.commonInteractableObject.taker}";
+                        info += $"\n Name: '{oam.Key}' distance :{distance.ToString("F2")} is taken by {oam.Value.commonInteractableObject.taker}, you cannot interact with it";
                         continue;
                     }
 
-                    info += $"\n Name with tags: '<{command}>{oam.Key}</{command}>' Desctiption: {oam.Value.tip} distance :{distance.ToString("F2")}";
+                    info += $"\n Name with REQUIRED tags: '<{command}>{oam.Key}</{command}>' Desctiption: {oam.Value.tip} distance :{distance.ToString("F2")}";
                     
                 }
             }
@@ -90,11 +92,12 @@ namespace MitaAI
 
         public static void finishWorkingOAM()
         {
-            if (currentOAMc == null) return;
+            var MitaCharacter = MitaCore.Instance.currentCharacter;
+            if (!currentMitasOAMc.ContainsKey(MitaCharacter)) return;
 
-            if (currentOAMc.backAnimation != null)
+            if (currentMitasOAMc[MitaCharacter].backAnimation != null)
             {
-                if (currentOAMc.backAnimation.isEndingObject) currentOAMc.backAnimation.Play();
+                if (currentMitasOAMc[MitaCharacter].backAnimation.isEndingObject) currentMitasOAMc[MitaCharacter].backAnimation.Play();
 
                 MelonLogger.Msg("Ending working OAM");
             }
@@ -155,10 +158,6 @@ namespace MitaAI
         public MitaAIMovePoint mitaAIMovePoint;
 
         string advancedActionName = "";
-
-        public static ObjectAnimationMita CurrentOAMc { get => currentOAMc; set => currentOAMc = value; }
-
-
 
 
         public static ObjectAnimationMita Create(GameObject parent,string name, string tip = "",bool needWalking = true, bool NeedMovingToIdle = true,bool isEndingObject = false,string position = "center", UnityAction freeCase = null)
@@ -372,11 +371,11 @@ namespace MitaAI
             {
                 try
                 {
-                    if (currentOAMc != null)
+                    if (currentMitasOAMc.ContainsKey(_mitaCharacter))
                     {
-                        if (currentOAMc.backAnimation != null && currentOAMc.hasObjectMoving)
+                        if (currentMitasOAMc[_mitaCharacter].backAnimation != null && currentMitasOAMc[_mitaCharacter].hasObjectMoving)
                         {
-                            currentOAMc.backAnimation.MoveRotateObject();
+                            currentMitasOAMc[_mitaCharacter].backAnimation.MoveRotateObject();
                         }
 
 
@@ -388,7 +387,7 @@ namespace MitaAI
                     MelonLogger.Error($"Error Play Anim Object Mita {ex1}"); 
                 }
 
-                currentOAMc = this;
+                currentMitasOAMc[_mitaCharacter] = this;
 
                 if (_mitaPerson == null) mitaPerson = MitaCore.Instance.Mita;
                 else mitaPerson = _mitaPerson;

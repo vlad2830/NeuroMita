@@ -76,7 +76,7 @@ namespace MitaAI
             {
 
                 if (MitaCore.Instance.MitaPersonObject != null) info += $"Your game object name is <{MitaCore.Instance.MitaPersonObject.name}>\n";
-                info += $"Current movement type: {MitaMovement.movementStyle.ToString()}\n";
+                info += $"Current movement type: {MitaMovement.GetMovementStyle(MitaCore.Instance.currentCharacter).ToString()}\n";
 
                 var mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(MitaCore.Instance.currentCharacter);
 
@@ -159,7 +159,7 @@ namespace MitaAI
 
                 try
                 {
-                    info += ObjectAnimationMita.interactionGetCurrentInfo();
+                    info += ObjectAnimationMita.interactionGetCurrentInfo(MitaCore.Instance.currentCharacter);
                     
                 }
                 catch (Exception ex)
