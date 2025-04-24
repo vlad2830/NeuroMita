@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
+using Il2CppColorful;
 
 namespace MitaAI
 {
@@ -174,6 +175,7 @@ namespace MitaAI
                 var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
                 OAP.angleHeadRotate = rotation;
                 OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
+                if (PlayerAnimations.ContainsKey("Player Stand")) OAP.animationStop = PlayerAnimations["Player Stand"];
                 return OAP;
             }
 
@@ -484,11 +486,12 @@ namespace MitaAI
         {
             Hints.freeExitButton();
             endLastCIAs();
-            playerMove.AnimationStop();
+            
         }
         public static void UnstackPlayer(bool teleportToZero = true)
         {
             stopAnim();
+            playerMove.AnimationStop();
             if (teleportToZero) MitaCore.Instance.playerObject.transform.position = Vector3.zero;
         }
 

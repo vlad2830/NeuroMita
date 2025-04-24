@@ -134,6 +134,7 @@ namespace MitaAI
                 sofaAP.transform.localPosition = new Vector3(0.8f, 1.4f, 0);
                 objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 1, loc._("Сесть", "Sit"), false, useParent: true);
                 objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
+                objSofa.eventClick.AddListener((UnityAction)Hints.createExitButton);
             }
 
 
@@ -205,7 +206,7 @@ namespace MitaAI
 
                     OI = Interactions.FindOrCreateObjectInteractable(ChairRoom.gameObject, true, 3, loc._("Сесть", "Sit"), false,CanvasPosition:new Vector3(0,0.1f,1));
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
-
+                    OI.eventClick.AddListener((UnityAction)Hints.createExitButton);
                     OAP.transform.localEulerAngles = new Vector3(90, 0, 0);
                     OAP.transform.localPosition = new Vector3(0, 0.8f, 0);///new Vector3(-16.2971f, 6.3132f, -2.9776f);
                 } 
@@ -238,7 +239,7 @@ namespace MitaAI
             {
                 var Vedro = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/Bucket");
                 sitBasement.name = "Vedro";
-                oam = ObjectAnimationMita.Create(Vedro.gameObject, "Bucket wear", "Надеть ведро на голову");
+                oam = ObjectAnimationMita.Create(Vedro.gameObject, "Bucket wear", "Надеть ведро на голову",NeedMovingToIdle:false);
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
                 oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
                 oam.addEnqueAnimationAction("Mita Click_2");
@@ -258,7 +259,7 @@ namespace MitaAI
             {
                 var Lopata = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/Shovel 1");
                
-                oam = ObjectAnimationMita.Create(Lopata.gameObject, "Shovel take", "Взять лопату в руки");
+                oam = ObjectAnimationMita.Create(Lopata.gameObject, "Shovel take", "Взять лопату в руки", NeedMovingToIdle: false);
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
                 oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
                 //oam.addEnqueAnimationAction("Mita Click_2");
@@ -277,7 +278,7 @@ namespace MitaAI
             try
             {
                 var cat = MitaCore.worldBasement.Find("House/Cat");
-                oam = ObjectAnimationMita.Create(cat.gameObject, "Cat take", "Взять кота на арбузе в руки");
+                oam = ObjectAnimationMita.Create(cat.gameObject, "Cat take", "Взять кота на арбузе в руки", NeedMovingToIdle: false);
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
                 oam.setStartPos(new Vector3(0f, 0f, 0f), new Vector3(0, 0, 0));
                 //oam.addEnqueAnimationAction("Mita Click_2");
@@ -340,7 +341,7 @@ namespace MitaAI
 
 
 
-            initCornerSofa(MitaCore.worldHouse);
+            
             initConsole(MitaCore.worldBasement);
 
 
@@ -359,6 +360,8 @@ namespace MitaAI
                 
             }
             catch (Exception) { }
+
+
 
 
             try
@@ -382,7 +385,7 @@ namespace MitaAI
             {
                 var SofaBasement = MitaCore.worldBasement.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Basement/CornerSofaBasic");
                 SofaBasement.name = "SofaBasement";
-                oam = ObjectAnimationMita.Create(SofaBasement.gameObject, "SofaBasement lie down", "Лечь на диван");
+                oam = ObjectAnimationMita.Create(SofaBasement.gameObject, "SofaBasement lie down", "Лечь на диван", NeedMovingToIdle: false);
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.6f));
                 oam.setStartPos(new Vector3(-0.35f, -0.6273f, 0.6582f), new Vector3(0, 90, 265));
                 oam.setIdleAnimation("Mita Fall Idle");
@@ -397,7 +400,7 @@ namespace MitaAI
             {
                 var Bed = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bed");
                 Bed.name = "Bed";
-                oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face left", "Лечь на кровать лицом влево");
+                oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face left", "Лечь на кровать лицом влево", NeedMovingToIdle: false);
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
 
                 oam.setStartPos(new Vector3(-0.3f, -0.5f, 0.46f), new Vector3(277.3817f, 0, 180f));
@@ -407,7 +410,7 @@ namespace MitaAI
 
 
 
-                oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face right", "Лечь на кровать лицом в право (там может лечь игрок)");
+                oam = ObjectAnimationMita.Create(Bed.gameObject, "Bed lie down face right", "Лечь на кровать лицом в право (там может лечь игрок)", NeedMovingToIdle: false);
                 oam.setAiMovePoint(new Vector3(0f, 0.0f, 0.0f));
                 oam.setStartPos(new Vector3(0.4f,-0.53f, 0.85f), new Vector3(276.5924f, 0.4038f, 358.2999f));
                 oam.setIdleAnimation("Mita Fall Idle");
@@ -448,6 +451,7 @@ namespace MitaAI
 
                     OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Сесть", "Sit"), false);
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
+                    OI.eventClick.AddListener((UnityAction)Hints.createExitButton);
 
                     OAP.transform.localEulerAngles = new Vector3(270, 0, 180f);
                     OAP.transform.localPosition = new Vector3(0, -0.75f, 0);///new Vector3(-16.2971f, 6.3132f, -2.9776f);
@@ -455,7 +459,32 @@ namespace MitaAI
 
             }
             catch (Exception) { }
+            
+            try
+            {
+                MelonLogger.Msg("initCornerSofa");
+                sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair");
+                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "center",rotation:60);
+                OAP.transform.localPosition = new Vector3(0, 0.95f, 0.13f);
+                OAP.transform.localEulerAngles = new Vector3(90, 0,0);
 
+                OI = Interactions.FindOrCreateObjectInteractable(sofa.gameObject, true, 1, loc._("Усесться", "Sit"), CanvasPosition: new Vector3(0, 0, 1));
+                OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
+                OI.eventClick.AddListener((UnityAction)Hints.createExitButton);
+                //Utils.CopyComponentValues(exampleComponent, objectInteractive);
+
+                // objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
+                //                objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player Sit");
+                //              objectAnimationPlayer.animationStop = PlayerAnimationModded.getPlayerAnimationClip("Player Stand");
+                //            objectInteractive.eventClick.AddListener((UnityAction)objectAnimationPlayer.AnimationPlay);
+
+
+            }
+            catch (Exception)
+            {
+
+
+            }
 
             try
             {
@@ -466,6 +495,7 @@ namespace MitaAI
 
                     OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(-0.7f, 0.4f,0.9f));
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
+                    OI.eventClick.AddListener((UnityAction)Hints.createExitButton);
 
                     OAP.transform.localEulerAngles = new Vector3(0, 90, 94.2f);
                     OAP.transform.localPosition = new Vector3(-1.4f, 0.32f, 0);
@@ -476,27 +506,7 @@ namespace MitaAI
 
         }
 
-        public static void initCornerSofa(Transform world)
-        {
-            MelonLogger.Msg("initCornerSofa");
-            GameObject sofa = Utils.TryfindChild(world, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair");
-            GameObject sofaChil = new GameObject("OI");
-            sofaChil.transform.parent = sofa.transform;
-            sofaChil.transform.localPosition = new Vector3(-0.4855f, 0.3255f, 0.0982f);
-            sofaChil.transform.localRotation = Quaternion.Euler(10f, 90f, 90f);
-            var objectAnimationPlayer = sofaChil.AddComponent<ObjectAnimationPlayer>();
-            var objectInteractive = Interactions.FindOrCreateObjectInteractable(sofa, true, 1, loc._("Усесться", "Sit"),CanvasPosition:new Vector3(0,0,1));
-            objectAnimationPlayer.angleHeadRotate = 70;
-            //Utils.CopyComponentValues(exampleComponent, objectInteractive);
 
-            objectAnimationPlayer.animationStart = PlayerAnimationModded.getPlayerAnimationClip("Player StartSit1");
-            objectAnimationPlayer.animationLoop = PlayerAnimationModded.getPlayerAnimationClip("Player Sit");
-            objectAnimationPlayer.animationStop = PlayerAnimationModded.getPlayerAnimationClip("Player Stand");
-            objectInteractive.eventClick.AddListener((UnityAction)objectAnimationPlayer.AnimationPlay);
-
-            //GameObject GameAihastion = Utils.TryfindChild(world, "Quests/Quest 1/Game Aihastion");
-
-        }
         public static void initConsole(Transform worldBasement)
         {
             GameObject console = Utils.TryfindChild(MitaCore.worldBasement, "Act/Console");
@@ -511,9 +521,8 @@ namespace MitaAI
 
             console.GetComponent<Animator>().enabled = true;
             console.GetComponent<Outlinable>().enabled = true;
-            ObjectInteractive objectInteractive = Interactions.FindOrCreateObjectInteractable(console, true, 1, loc._("Переключить", "Turn On\\Off"));
+            ObjectInteractive objectInteractive = Interactions.FindOrCreateObjectInteractable(console, true, 3, loc._("Переключить", "Turn On\\Off"));
 
-            objectInteractive.eventClick = new UnityEvent();
             objectInteractive.eventClick.AddListener((UnityAction)comp.changeActivation);
 
         }

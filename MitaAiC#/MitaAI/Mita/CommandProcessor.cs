@@ -429,6 +429,7 @@ namespace MitaAI.Mita
             else
             {
                 MelonLogger.Msg($"Unknown command: {command}");
+                CharacterMessages.sendSystemInfo($"command {command} not found. Maybe tag <p> is not correct");
             }
         }
 
