@@ -117,7 +117,7 @@ _INSTALLATION_GUIDE_HTML = """
          <p>При необходимости установки:</p>
          <ul>
             <li>Убедитесь, что версия драйвера NVIDIA совместима с выбранной версией CUDA Toolkit.</li>
-            <li><a href="https://developer.nvidia.com/cuda-toolkit-archive" target="_blank" rel="noopener noreferrer">Архив загрузок CUDA Toolkit</a> (Рекомендуются версии 11.8 или 12.x, совместимые с используемыми библиотеками PyTorch/Triton).</li>
+            <li><a href="https://developer.nvidia.com/cuda-toolkit-archive" target="_blank" rel="noopener noreferrer">Архив загрузок CUDA Toolkit</a> (Рекомендуются версии 12.4, но скоро будет 12.6).</li>
             <li>Загрузите и установите выбранную версию.</li>
         </ul>
     </div>
@@ -129,7 +129,7 @@ _INSTALLATION_GUIDE_HTML = """
             <li>Запустите приложение повторно.</li>
             <li>В случае возникновения ошибок при инициализации, изучите вывод в консоли для получения детальной информации об ошибках.</li>
             <li>В случае, если при инициализации модели выдаёт ошибку, попробуйте запустить файл <strong>init_triton.bat</strong> в корневой папке с приложением мода.</li>
-            <li>Если ошибка продолжает попадаться, сообщите об этой ошибке в <a href="https://github.com/VinerX/NeuroMita/issues"  target="_blank" rel="noopener noreferrer">Issues</a> или в <a href="https://discord.gg/Tu5MPFxM4P">официальном Discor сообществе.</a></li>
+            <li>Если ошибка продолжает попадаться, сообщите об этой ошибке в <a href="https://github.com/VinerX/NeuroMita/issues"  target="_blank" rel="noopener noreferrer">Issues</a> или в <a href="https://discord.gg/Tu5MPFxM4P">официальном Discord сообществе.</a></li>
         </ol>
     </div>
 </body>

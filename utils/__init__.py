@@ -23,6 +23,7 @@ def load_text_from_file(filename):
     logger.info(f"Загружаю {filename}")
     try:
         # Получаем абсолютный путь к директории скрипта
+        # Atm4x says: У меня видимо из-за этого тоже промпты слетели все 
         script_dir = os.path.dirname(os.path.abspath(__file__))
 
         # Если скрипт в папке 'utils', поднимаемся на уровень выше
