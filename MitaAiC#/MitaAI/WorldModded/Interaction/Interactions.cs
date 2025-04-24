@@ -633,7 +633,7 @@ namespace MitaAI
                 //cirle.transform.localScale = Vector3.one * 1.5f;
 
                 caseInfo.gameObject.active = true;
-                caseInfo.active = true;
+                caseInfo.active = false;
                 var text = caseInfo.GetComponentInChildren<Text>();
                 if (text != null && tipText != null)
                 {
@@ -643,14 +643,14 @@ namespace MitaAI
                     try
                     {
                         caseInfo.Start();
-
+                        
                     }
                     catch { }
 
                     Utils.setTextTimed(text, tipText);
                 }
-                caseInfoTransform.gameObject.active = false;
-                MelonCoroutines.Start(Utils.OnOffObjectActiveAfterTime(caseInfoTransform.gameObject,true,3));
+                //caseInfo.gameObject.active = false;
+                //MelonCoroutines.Start(Utils.OnOffObjectActiveAfterTime(caseInfoTransform.gameObject,true,3));
 
 
 

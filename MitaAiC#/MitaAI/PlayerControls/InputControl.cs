@@ -323,16 +323,15 @@ namespace MitaAI.PlayerControls
         private static void CreateInputComponent()
         {
             // Создаем объект InputField
-            InputFieldComponent = new GameObject("InputFieldComponent");
 
-            inputField = InputFieldComponent.AddComponent<InputField>();
             var _interface = GameObject.Find("Interface");
             if (_interface == null)
             {
                 MelonLogger.Msg("Interface not found!");
                 return;
             }
-
+            InputFieldComponent = new GameObject("InputFieldComponent");
+            inputField = InputFieldComponent.AddComponent<InputField>();
             InputFieldComponent.transform.parent = _interface.transform;
 
             var rect = InputFieldComponent.AddComponent<RectTransform>();
@@ -343,10 +342,27 @@ namespace MitaAI.PlayerControls
             rect.pivot = new Vector2(0.5f, 0);
 
             var image = InputFieldComponent.AddComponent<UnityEngine.UI.Image>();
-            Sprite blackSprite = CreateBlackSprite(100, 100);
-            image.sprite = blackSprite;
+            //Sprite blackSprite = CreateBlackSprite(100, 100);
+            try
+            {
+                
+                var gamecontrolle = GameObject.Find("GameController").transform;
+                MelonLogger.Msg(1);
+                var SubtitlesFrame = gamecontrolle.Find("Interface/SubtitlesFrame");
+                MelonLogger.Msg(2);
+                var sprite =SubtitlesFrame.GetComponent<Image>().sprite;
+                MelonLogger.Msg(3);
+                image.sprite = sprite;
+                
+                image.color = new Color(0f, 0f, 0f, 0.7f);
+            }
+            catch (Exception)
+            {
+                image.color = new Color(0f, 0f, 0f, 0.3f);
+            }
 
-            image.color = new Color(0f, 0f, 0f, 0.7f);
+
+            
             inputField.image = image;
             inputField.onValueChanged.AddListener(new Action<string>(OnInputValueChanged));
             var TextLegacy = new GameObject("TextLegacy");
@@ -366,7 +382,7 @@ namespace MitaAI.PlayerControls
             }
 
             inputField.textComponent = TextLegacy.GetComponent<Text>();
-            inputField.text = "Введи текст";
+            inputField.text = loc._("Введи текст","Enter text");
             inputField.textComponent.color = Color.yellow;
             inputField.textComponent.alignment = TextAnchor.MiddleCenter;
 

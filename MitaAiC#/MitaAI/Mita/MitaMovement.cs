@@ -63,25 +63,29 @@ namespace MitaAI
                     MelonLogger.Error("Mita object is null or Mita.gameObject is not active.");
                     return cleanedResponse; // Возвращаем faceStyle и очищенный текст
                 }
-                ObjectAnimationMita.finishWorkingOAM();
+                
                 var MitaAnimation = MitaAnimationModded.getMitaAnimationModded(characterType);
                 // Устанавливаем лицо, если оно найдено
                 switch (MovementStyle)
                 {
                     case "Следовать рядом с игроком":
+                        ObjectAnimationMita.finishWorkingOAM();
                         movementStyles[characterType] = MovementStyles.walkNear;
                         MitaAnimation.location34_Communication.ActivationCanWalk(true);
                         break;
                     case "Следовать за игроком":
+                        ObjectAnimationMita.finishWorkingOAM();
                         movementStyles[characterType] = MovementStyles.follow;
                         MitaAnimation.location34_Communication.ActivationCanWalk(false);
                         MelonCoroutines.Start(FollowPlayer(MitaAnimation));
                         MelonCoroutines.Start(LookOnPlayer(MitaAnimation));
                         break;
                     case "Стоять на месте":
+                        ObjectAnimationMita.finishWorkingOAM();
                         MitaSetStaing(characterType);
                         break;
                     case "NoClip":
+                        ObjectAnimationMita.finishWorkingOAM();
                         movementStyles[characterType] = MovementStyles.noclip;
                         MitaAnimation.location34_Communication.ActivationCanWalk(false);
                         MelonCoroutines.Start(FollowPlayerNoclip(characterType));
@@ -114,7 +118,7 @@ namespace MitaAI
             {
                 movementStyles[characterType] = MovementStyles.sitting;
             }
-            else if(animName.Contains("Fall") || animName.Contains("Fall"))
+            else if(animName.Contains("fall") || animName.Contains("Fall"))
             {
                 movementStyles[characterType] = MovementStyles.layingOnTheFloorAsDead;
                 
