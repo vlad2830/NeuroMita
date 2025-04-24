@@ -280,11 +280,11 @@ class CollapsibleSection(ttk.Frame):
         self.configure(style="Dark.TFrame")
 
     def toggle(self, event=None):
-        self.is_collapsed = not self.is_collapsed
         if self.is_collapsed:
             self.collapse()
         else:
             self.expand()
+        self.is_collapsed = not self.is_collapsed
 
     def collapse(self):
         self.arrow_label.config(text="▶")
