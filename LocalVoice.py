@@ -963,10 +963,10 @@ class LocalVoice:
                 package_url = None
                 desc = ""
                 if self.provider in ["NVIDIA"]:
-                    package_url = "git+https://github.com/Atm4x/tts-with-rvc.git#egg=tts_with_rvc"
+                    package_url = "tts_with_rvc"
                     desc = "Установка основной библиотеки tts-with-rvc (NVIDIA)..."
                 elif self.provider in ["AMD"]:
-                    package_url = "git+https://github.com/Atm4x/tts-with-rvc.git@onnx#egg=tts_with_rvc_onnx"
+                    package_url = "tts_with_rvc_onnx[dml]"
                     desc = "Установка основной библиотеки tts-with-rvc (AMD)..."
                 else:
                     update_log(f"Ошибка: не найдена подходящая видеокарта: {self.provider}")
@@ -1121,7 +1121,7 @@ class LocalVoice:
                         update_log("--------------------------------")
 
                     success = installer.install_package(
-                        "git+https://github.com/Atm4x/Fish-speech-pipeline#egg=fish_speech_lib",
+                        "fish_speech_lib",
                         description="Установка библиотеки Fish Speech..."
                     )
 
