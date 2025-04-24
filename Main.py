@@ -30,6 +30,8 @@ import filecmp
 import transformers.models.auto.modeling_auto
 import modulefinder
 import sunau
+import xml.etree
+import xml.etree.ElementTree
 
 import os
 
@@ -120,13 +122,39 @@ if os.path.exists(compiler_path):
     # Заменяем путь к tcc.exe
     patched_source = source.replace(
         'cc = os.path.join(sysconfig.get_paths()["platlib"], "triton", "runtime", "tcc", "tcc.exe")',
-        f'cc = os.path.join("{libs_dir}", "triton", "runtime", "tcc", "tcc.exe")'
+        f'cc = os.path.join(r"{libs_dir}", "triton", "runtime", "tcc", "tcc.exe")'
     )
 
     with open(build_py_path, "w", encoding="utf-8") as f:
         f.write(patched_source)
                         
-    
+cache_py_path = os.path.join(libs_dir, "triton", "runtime", "cache.py")
+if os.path.exists(cache_py_path):
+    with open(cache_py_path, "r", encoding="utf-8") as f:
+        source = f.read()
+
+    old_line = 'temp_dir = os.path.join(self.cache_dir, f"tmp.pid_{pid}_{rnd_id}")'
+    new_line = 'temp_dir = os.path.join(self.cache_dir, f"tmp.pid_{str(pid)[:5]}_{str(rnd_id)[:5]}")'
+
+    # Выполняем замену
+    patched_source = source.replace(old_line, new_line)
+
+    # Записываем измененный файл
+    with open(cache_py_path, "w", encoding="utf-8") as f:
+        f.write(patched_source)
+
+# ВРЕМЕННО ПОКА НЕ ВЫЙДЕТ ПАТЧ
+build_py_path = os.path.join(libs_dir, "triton", "runtime", "build.py")
+if os.path.exists(build_py_path):
+    with open(build_py_path, "r", encoding="utf-8") as f:
+        source = f.read()
+    old_line = 'cc_cmd = [cc, src, "-O3", "-shared", "-fPIC", "-Wno-psabi", "-o", out]'
+    new_line = 'cc_cmd = [cc, src, "-O3", "-shared", "-Wno-psabi", "-o", out]'
+
+    patched_source = source.replace(old_line, new_line)
+
+    with open(build_py_path, "w", encoding="utf-8") as f:
+        f.write(patched_source)
 
 
 def ensure_project_root():
