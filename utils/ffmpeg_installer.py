@@ -4,6 +4,7 @@ import os
 import shutil
 from pathlib import Path
 import sys
+from Logger import logger
 
 def install_ffmpeg(target_directory=".",
                    url="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"):
@@ -32,7 +33,7 @@ def install_ffmpeg(target_directory=".",
 
     # --- 1. Check if ffmpeg.exe already exists ---
     if target_ffmpeg_path.exists():
-        print(f"'{ffmpeg_exe_name}' already exists in '{target_dir}'. Skipping installation.")
+        logger.info(f"'{ffmpeg_exe_name}' already exists in '{target_dir}'. Skipping installation.")
         return True
 
     # --- 2. Download the zip file ---
@@ -40,8 +41,8 @@ def install_ffmpeg(target_directory=".",
     zip_filename = "ffmpeg_download_temp.zip"
     zip_filepath = target_dir / zip_filename
 
-    print(f"Target directory: {target_dir}")
-    print(f"Downloading FFmpeg from {url}...")
+    logger.info(f"Target directory: {target_dir}")
+    logger.info(f"Downloading FFmpeg from {url}...")
     try:
         # Use stream=True for potentially large files and add a timeout
         response = requests.get(url, stream=True, timeout=60)
@@ -51,23 +52,23 @@ def install_ffmpeg(target_directory=".",
             # Download in chunks
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        print(f"Download complete: '{zip_filepath}'")
+        logger.info(f"Download complete: '{zip_filepath}'")
 
     except requests.exceptions.RequestException as e:
-        print(f"Error downloading file: {e}")
+        logger.info(f"Error downloading file: {e}")
         # Clean up potentially incomplete download
         if zip_filepath.exists():
             os.remove(zip_filepath)
         return False
     except Exception as e:
-        print(f"An unexpected error occurred during download: {e}")
+        logger.info(f"An unexpected error occurred during download: {e}")
         if zip_filepath.exists():
             os.remove(zip_filepath)
         return False
 
     # --- 3. Extract ONLY ffmpeg.exe ---
     extracted = False
-    print(f"Extracting '{ffmpeg_exe_name}'...")
+    logger.info(f"Extracting '{ffmpeg_exe_name}'...")
     try:
         with zipfile.ZipFile(zip_filepath, 'r') as zip_ref:
             # Find the specific file within the zip archive
@@ -77,29 +78,29 @@ def install_ffmpeg(target_directory=".",
             possible_paths = [m.filename for m in zip_ref.infolist() if m.filename.endswith(ffmpeg_exe_name) and not m.is_dir()]
 
             if not possible_paths:
-                print(f"Error: '{ffmpeg_exe_name}' not found within the zip file '{zip_filepath}'.")
+                logger.info(f"Error: '{ffmpeg_exe_name}' not found within the zip file '{zip_filepath}'.")
                 return False # Failure, ffmpeg.exe not found
 
             # Prefer a path that includes '/bin/' if multiple matches exist
             bin_path = next((p for p in possible_paths if '/bin/' in p), None)
             ffmpeg_path_in_zip = bin_path if bin_path else possible_paths[0] # Fallback to the first match
 
-            print(f"Found '{ffmpeg_exe_name}' at: '{ffmpeg_path_in_zip}' inside the zip.")
+            logger.info(f"Found '{ffmpeg_exe_name}' at: '{ffmpeg_path_in_zip}' inside the zip.")
 
             # Extract the single file directly to the target path
             # We open the file within the zip and write its contents to the target file
             with zip_ref.open(ffmpeg_path_in_zip) as source, open(target_ffmpeg_path, 'wb') as target:
                 shutil.copyfileobj(source, target) # Efficiently copy file object contents
 
-            print(f"Successfully extracted '{ffmpeg_exe_name}' to '{target_ffmpeg_path}'")
+            logger.info(f"Successfully extracted '{ffmpeg_exe_name}' to '{target_ffmpeg_path}'")
             extracted = True
             return True # Success
 
     except zipfile.BadZipFile:
-        print(f"Error: Downloaded file '{zip_filepath}' is not a valid zip file.")
+        logger.info(f"Error: Downloaded file '{zip_filepath}' is not a valid zip file.")
         return False # Failure
     except Exception as e:
-        print(f"An error occurred during extraction: {e}")
+        logger.info(f"An error occurred during extraction: {e}")
         # If extraction failed but ffmpeg.exe was partially created, remove it
         if target_ffmpeg_path.exists():
              try:
@@ -110,27 +111,27 @@ def install_ffmpeg(target_directory=".",
     finally:
         # --- 4. Clean up the downloaded zip file ---
         if zip_filepath.exists():
-            print(f"Deleting temporary file '{zip_filepath}'...")
+            logger.info(f"Deleting temporary file '{zip_filepath}'...")
             try:
                 os.remove(zip_filepath)
-                print("Temporary file deleted.")
+                logger.info("Temporary file deleted.")
             except OSError as e:
-                print(f"Warning: Could not delete temporary file '{zip_filepath}': {e}")
+                logger.info(f"Warning: Could not delete temporary file '{zip_filepath}': {e}")
 
 # --- Example Usage ---
 if __name__ == "__main__":
-    print(f"Current working directory: {Path.cwd()}")
-    print(f"Python executable directory: {Path(sys.executable).parent}")
+    logger.info(f"Current working directory: {Path.cwd()}")
+    logger.info(f"Python executable directory: {Path(sys.executable).parent}")
 
     # Install ffmpeg.exe directly into the current working directory
     success = install_ffmpeg()
 
     if success:
-        print("\nFFmpeg installation check successful.")
+        logger.info("\nFFmpeg installation check successful.")
         # Verify it exists
         if (Path.cwd() / "ffmpeg.exe").exists():
-            print("'ffmpeg.exe' is present in the current working directory.")
+            logger.info("'ffmpeg.exe' is present in the current working directory.")
         else:
-             print("Verification failed: 'ffmpeg.exe' not found where expected.")
+             logger.info("Verification failed: 'ffmpeg.exe' not found where expected.")
     else:
-        print("\nFFmpeg installation failed.")
+        logger.info("\nFFmpeg installation failed.")

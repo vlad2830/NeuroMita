@@ -5,6 +5,7 @@ import queue
 import threading
 import time
 import tkinter as tk
+from Logger import logger
 
 class PipInstaller:
     def __init__(self, script_path, libs_path="Lib", update_status=None, update_log=None, progress_window=None):
@@ -12,8 +13,8 @@ class PipInstaller:
         self.libs_path = libs_path
         self.libs_path_abs = os.path.abspath(libs_path)
         # Функции обратного вызова для обновления GUI (или просто print, если GUI нет)
-        self.update_status = update_status if update_status else lambda msg: print(f"Status: {msg}")
-        self.update_log = update_log if update_log else lambda msg: print(f"Log: {msg}")
+        self.update_status = update_status if update_status else lambda msg: logger.info(f"Status: {msg}")
+        self.update_log = update_log if update_log else lambda msg: logger.info(f"Log: {msg}")
         self.progress_window = progress_window # Для проверки существования окна в _run_pip_process
 
         self._ensure_libs_path()
