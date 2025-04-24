@@ -366,6 +366,13 @@ namespace MitaAI
 
         public void Play(MitaPerson _mitaPerson = null, characterType _mitaCharacter = characterType.None)
         {
+            if (commonInteractableObject.isTaken(position))
+            {
+                CharacterMessages.sendSystemInfo($"Interaction error: {position} of {name} is already taken by {commonInteractableObject.taker[position]}");
+                return;
+            }
+
+
             MelonLogger.Msg($"OAM {gameObject.name} Play");
             try
             {

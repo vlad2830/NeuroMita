@@ -99,7 +99,22 @@ namespace MitaAI
             obj.SetActive(!obj.activeSelf);
             MelonLogger.Msg($"GameObject {obj.name} is now {(obj.activeSelf ? "active" : "inactive")}");
         }
+        public static IEnumerator OnOffObjectActiveAfterTime(GameObject obj,bool on, float delay = 5f)
+        {
+            // Проверяем, не null ли объект
+            if (obj == null)
+            {
+                MelonLogger.Msg("GameObject is null. Cannot toggle.");
+                yield break;
+            }
 
+            // Ждём заданное время
+            yield return new WaitForSeconds(delay);
+
+            // Переключаем активность объекта
+            obj.SetActive(on);
+            MelonLogger.Msg($"GameObject {obj.name} is now {(obj.activeSelf ? "active" : "inactive")}");
+        }
 
         public static GameObject TryfindChild(Transform parent, string path)
         {

@@ -649,8 +649,8 @@ namespace MitaAI
 
                     Utils.setTextTimed(text, tipText);
                 }
-                //caseInfo.gameObject.active = false;
-                //Utils.ToggleObjectActiveAfterTime(caseInfo.gameObject,0);
+                caseInfoTransform.gameObject.active = false;
+                MelonCoroutines.Start(Utils.OnOffObjectActiveAfterTime(caseInfoTransform.gameObject,true,3));
 
 
 
