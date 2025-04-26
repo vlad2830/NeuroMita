@@ -199,41 +199,53 @@ class LocalVoice:
         original_current_model = self.current_model
         model_id_to_clear = None
 
-        # Определяем model_id по имени пакета для сброса состояния
         if removed_package_name == "tts-with-rvc":
-            # Этот пакет используется low и low+
-            if self.current_model in ["low", "low+"]: self.current_model = None
-            if "low" in self.initialized_models: self.initialized_models.remove("low")
-            if "low+" in self.initialized_models: self.initialized_models.remove("low+")
-            if self.current_tts_rvc: self.current_tts_rvc = None
-            if self.current_silero_model: self.current_silero_model = None # low+ использует silero
+            if self.current_model in ["low", "low+"]: 
+                self.current_model = None
+            if "low" in self.initialized_models: 
+                self.initialized_models.remove("low")
+            if "low+" in self.initialized_models: 
+                self.initialized_models.remove("low+")
+            if self.current_tts_rvc: 
+                self.current_tts_rvc = None
+            if self.current_silero_model: 
+                self.current_silero_model = None 
+
             self.tts_rvc_module = None
-            model_id_to_clear = "low/low+" # Условное обозначение
+            model_id_to_clear = "low/low+" 
         elif removed_package_name == "fish-speech-lib":
-            # Этот пакет используется medium, medium+, medium+low
-            if self.current_model in ["medium", "medium+", "medium+low"]: self.current_model = None
-            if "medium" in self.initialized_models: self.initialized_models.remove("medium")
-            # Не удаляем medium+ и medium+low из initialized, т.к. удалялся только fish-speech
-            if self.current_fish_speech: self.current_fish_speech = None
+            if self.current_model in ["medium", "medium+", "medium+low"]: 
+                self.current_model = None
+            if "medium" in self.initialized_models: 
+                self.initialized_models.remove("medium")
+            if self.current_fish_speech: 
+                self.current_fish_speech = None
+
             self.fish_speech_module = None
             model_id_to_clear = "medium"
+
         elif removed_package_name == "triton-windows":
-            # Этот пакет используется medium+, medium+low
-            if self.current_model in ["medium+", "medium+low"]: self.current_model = None
-            if "medium+" in self.initialized_models: self.initialized_models.remove("medium+")
-            if "medium+low" in self.initialized_models: self.initialized_models.remove("medium+low")
+            if self.current_model in ["medium+", "medium+low"]: 
+                self.current_model = None
+            if "medium+" in self.initialized_models: 
+                self.initialized_models.remove("medium+")
+            if "medium+low" in self.initialized_models: 
+                self.initialized_models.remove("medium+low")
+
             self.triton_installed = False
             self.triton_checks_performed = False
-            self.cuda_found = False; self.winsdk_found = False; self.msvc_found = False
+            self.cuda_found = False
+            self.winsdk_found = False
+            self.msvc_found = False
             self.triton_module = False
             model_id_to_clear = "triton"
 
-        # Общие действия
-        if model_id_to_clear: logger.info(f"Состояние для компонента '{model_id_to_clear}' сброшено.")
-        if original_current_model and original_current_model == self.current_model: # Если модель не была сброшена выше
-             pass # Оставляем текущую модель, если удалялся не ее основной компонент
+        if model_id_to_clear: 
+            logger.info(f"Состояние для компонента '{model_id_to_clear}' сброшено.")
+        if original_current_model and original_current_model == self.current_model:
+            pass 
         elif original_current_model and original_current_model != self.current_model:
-             logger.info(f"Текущая модель сброшена (была {original_current_model}).")
+            logger.info(f"Текущая модель сброшена (была {original_current_model}).")
 
         try: importlib.invalidate_caches()
         except Exception: pass
@@ -426,8 +438,10 @@ class LocalVoice:
                 y = parent_win.winfo_y() + (parent_win.winfo_height() // 2) - (progress_window.winfo_height() // 2)
                 progress_window.geometry(f"+{x}+{y}")
             else:
-                 screen_width = progress_window.winfo_screenwidth(); screen_height = progress_window.winfo_screenheight()
-                 x = (screen_width // 2) - (progress_window.winfo_width() // 2); y = (screen_height // 2) - (progress_window.winfo_height() // 2)
+                 screen_width = progress_window.winfo_screenwidth()
+                 screen_height = progress_window.winfo_screenheight()
+                 x = (screen_width // 2) - (progress_window.winfo_width() // 2)
+                 y = (screen_height // 2) - (progress_window.winfo_height() // 2)
                  progress_window.geometry(f'+{x}+{y}')
 
             progress_window.grab_set() # Модальное окно
@@ -476,74 +490,130 @@ class LocalVoice:
                     self._status_font_prog_action = tkFont.Font(name=status_font_name, family="Segoe UI", size=9)
                     self._log_font_action = tkFont.Font(name=log_font_name, family="Consolas", size=9)
                     self._action_fonts_created = True
-                except tk.TclError as e: logger.info(f"Ошибка шрифтов окна действия: {e}"); return None
-            title_font = self._title_font_action; status_font_prog = self._status_font_prog_action; log_font = self._log_font_action
-            bg_color="#1e1e1e"; fg_color="#ffffff"; log_bg_color="#101010"; log_fg_color="#cccccc"; button_bg="#333333"
+                except tk.TclError as e: 
+                    logger.info(f"Ошибка шрифтов окна действия: {e}")
+                    return None
+            
+            title_font = self._title_font_action
+            status_font_prog = self._status_font_prog_action
+            log_font = self._log_font_action
+
+            bg_color="#1e1e1e"
+            fg_color="#ffffff"
+            log_bg_color="#101010"
+            log_fg_color="#cccccc"
+            button_bg="#333333"
 
             progress_window = tk.Toplevel(self.parent.root if self.parent and hasattr(self.parent, 'root') else None)
-            progress_window.title(title); progress_window.geometry("700x400")
-            progress_window.configure(bg=bg_color); progress_window.resizable(False, False); progress_window.attributes('-topmost', True)
+            progress_window.title(title)
+            progress_window.geometry("700x400")
+            progress_window.configure(bg=bg_color)
+            progress_window.resizable(False, False)
+            progress_window.attributes('-topmost', True)
+
             tk.Label(progress_window, text=title, font=title_font, bg=bg_color, fg=fg_color).pack(pady=10)
-            info_frame = tk.Frame(progress_window, bg=bg_color); info_frame.pack(fill=tk.X, padx=10)
+
+            info_frame = tk.Frame(progress_window, bg=bg_color)
+            info_frame.pack(fill=tk.X, padx=10)
+
             status_label = tk.Label(info_frame, text=initial_status, anchor="w", font=status_font_prog, bg=bg_color, fg=fg_color)
             status_label.pack(side=tk.LEFT, pady=5, fill=tk.X, expand=True)
-            log_frame = tk.Frame(progress_window, bg=bg_color); log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            log_frame = tk.Frame(progress_window, bg=bg_color)
+            log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
             log_text = tk.Text(log_frame, height=15, bg=log_bg_color, fg=log_fg_color, wrap=tk.WORD, font=log_font, relief=tk.FLAT, borderwidth=1, highlightthickness=0, insertbackground=fg_color)
             log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            
             scrollbar = tk.Scrollbar(log_frame, command=log_text.yview, relief=tk.FLAT, troughcolor=bg_color, bg=button_bg, activebackground="#555", elementborderwidth=0, borderwidth=0)
-            scrollbar.pack(side=tk.RIGHT, fill=tk.Y); log_text.config(yscrollcommand=scrollbar.set); log_text.config(state=tk.DISABLED)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            log_text.config(yscrollcommand=scrollbar.set)
+            log_text.config(state=tk.DISABLED)
             progress_window.update_idletasks()
+
             parent_win = self.parent.root if self.parent and hasattr(self.parent, 'root') else None
             if parent_win and parent_win.winfo_exists():
                 x = parent_win.winfo_x() + (parent_win.winfo_width() // 2) - (progress_window.winfo_width() // 2)
                 y = parent_win.winfo_y() + (parent_win.winfo_height() // 2) - (progress_window.winfo_height() // 2)
                 progress_window.geometry(f"+{x}+{y}")
             else:
-                 screen_width = progress_window.winfo_screenwidth(); screen_height = progress_window.winfo_screenheight()
-                 x = (screen_width // 2) - (progress_window.winfo_width() // 2); y = (screen_height // 2) - (progress_window.winfo_height() // 2)
-                 progress_window.geometry(f'+{x}+{y}')
+                screen_width = progress_window.winfo_screenwidth()
+                screen_height = progress_window.winfo_screenheight()
+                x = (screen_width // 2) - (progress_window.winfo_width() // 2)
+                y = (screen_height // 2) - (progress_window.winfo_height() // 2)
+                progress_window.geometry(f'+{x}+{y}')
             progress_window.grab_set()
             def update_status(message):
-                 if progress_window and progress_window.winfo_exists(): status_label.config(text=message); progress_window.update()
+                if progress_window and progress_window.winfo_exists():
+                    status_label.config(text=message)
+                    progress_window.update()
             def update_log(text):
                  if progress_window and progress_window.winfo_exists():
-                    log_text.config(state=tk.NORMAL); log_text.insert(tk.END, text + "\n"); log_text.see(tk.END)
-                    log_text.config(state=tk.DISABLED); progress_window.update()
+                    log_text.config(state=tk.NORMAL)
+                    log_text.insert(tk.END, text + "\n")
+                    log_text.see(tk.END)
+                    log_text.config(state=tk.DISABLED)
+                    
+                    progress_window.update()
             return {"window": progress_window, "update_status": update_status, "update_log": update_log}
-        except Exception as e: logger.error(f"Ошибка создания окна действия: {e}"); traceback.print_exc(); return None
+        except Exception as e: 
+            logger.error(f"Ошибка создания окна действия: {e}")
+            traceback.print_exc()
+            return None
     
     # region Окна предупреждений:
     def _show_vc_redist_warning_dialog(self):
         """Отображает диалоговое окно с предупреждением об установке VC Redist
         и предлагает повторить попытку импорта."""
-        self._dialog_choice = None # Сбрасываем выбор перед показом окна
+        self._dialog_choice = None 
 
-        bg_color = "#1e1e1e"; fg_color = "#ffffff"; button_bg = "#333333"
-        button_fg = "#ffffff"; button_active_bg = "#555555"; warning_color = "orange"
-        retry_button_bg = "#4CAF50" # Зеленый для кнопки "Попробовать снова"
+        bg_color = "#1e1e1e"
+        fg_color = "#ffffff"
+        button_bg = "#333333"
+        button_fg = "#ffffff"
+        button_active_bg = "#555555"
+        warning_color = "orange"
+        retry_button_bg = "#4CAF50" 
 
         try:
+
             dlg_main_font_name = "VCRedistDialogMainFont"
             dlg_bold_font_name = "VCRedistDialogBoldFont"
             dlg_button_font_name = "VCRedistDialogButtonFont"
-            try: main_font = tkFont.Font(name=dlg_main_font_name); main_font.config(family="Segoe UI", size=10)
-            except tk.TclError: main_font = tkFont.Font(name=dlg_main_font_name, family="Segoe UI", size=10)
-            try: bold_font = tkFont.Font(name=dlg_bold_font_name); bold_font.config(family="Segoe UI", size=11, weight="bold")
-            except tk.TclError: bold_font = tkFont.Font(name=dlg_bold_font_name, family="Segoe UI", size=11, weight="bold")
-            try: button_font = tkFont.Font(name=dlg_button_font_name); button_font.config(family="Segoe UI", size=9, weight="bold")
-            except tk.TclError: button_font = tkFont.Font(name=dlg_button_font_name, family="Segoe UI", size=9, weight="bold")
+
+            try: 
+                main_font = tkFont.Font(name=dlg_main_font_name)
+                main_font.config(family="Segoe UI", size=10)
+            except tk.TclError: 
+                main_font = tkFont.Font(name=dlg_main_font_name, family="Segoe UI", size=10)
+            try: 
+                bold_font = tkFont.Font(name=dlg_bold_font_name)
+                bold_font.config(family="Segoe UI", size=11, weight="bold")
+            except tk.TclError: 
+                bold_font = tkFont.Font(name=dlg_bold_font_name, family="Segoe UI", size=11, weight="bold")
+            try: 
+                button_font = tkFont.Font(name=dlg_button_font_name)
+                button_font.config(family="Segoe UI", size=9, weight="bold")
+            except tk.TclError: 
+                button_font = tkFont.Font(name=dlg_button_font_name, family="Segoe UI", size=9, weight="bold")
+
         except tk.TclError as e:
             logger.info(f"Критическая ошибка шрифтов для диалога VC Redist: {e}")
             main_font, bold_font, button_font = None, None, None
 
         dialog = tk.Toplevel(self.parent.root if self.parent and hasattr(self.parent, 'root') else None)
         dialog.title("⚠️ Ошибка загрузки Triton")
-        dialog.configure(bg=bg_color); dialog.resizable(False, False); dialog.attributes('-topmost', True)
 
-        top_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=10); top_frame.pack(fill=tk.X)
+        dialog.configure(bg=bg_color)
+        dialog.resizable(False, False)
+        dialog.attributes('-topmost', True)
+
+        top_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=10)
+        top_frame.pack(fill=tk.X)
+
         tk.Label(top_frame, text="Ошибка импорта Triton (DLL Load Failed)", font=bold_font, bg=bg_color, fg=warning_color).pack(anchor='w')
 
-        info_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=5); info_frame.pack(fill=tk.X)
+        info_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=5)
+        info_frame.pack(fill=tk.X)
         info_text = (
             "Не удалось загрузить библиотеку для Triton (возможно, отсутствует VC++ Redistributable).\n"
             "Установите последнюю версию VC++ Redistributable (x64) с сайта Microsoft\n"
@@ -551,7 +621,8 @@ class LocalVoice:
         )
         tk.Label(info_frame, text=info_text, font=main_font, bg=bg_color, fg=fg_color, justify=tk.LEFT).pack(anchor='w')
 
-        button_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=15); button_frame.pack(fill=tk.X)
+        button_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=15)
+        button_frame.pack(fill=tk.X)
 
         # --- Функции для кнопок ---
         def on_retry():
@@ -566,7 +637,7 @@ class LocalVoice:
             except Exception as e_docs: logger.info(f"Не удалось открыть документацию: {e_docs}")
 
         def on_close():
-            self._dialog_choice = "close" # Явно указываем, что пользователь закрыл
+            self._dialog_choice = "close"
             dialog.destroy()
 
         # --- Создание кнопок ---
@@ -593,11 +664,13 @@ class LocalVoice:
             y = parent_win.winfo_y() + (parent_win.winfo_height() // 2) - (dialog.winfo_height() // 2)
             dialog.geometry(f"+{x}+{y}")
         else:
-            screen_width = dialog.winfo_screenwidth(); screen_height = dialog.winfo_screenheight()
-            x = (screen_width // 2) - (dialog.winfo_width() // 2); y = (screen_height // 2) - (dialog.winfo_height() // 2)
+            screen_width = dialog.winfo_screenwidth()
+            screen_height = dialog.winfo_screenheight()
+            x = (screen_width // 2) - (dialog.winfo_width() // 2)
+            y = (screen_height // 2) - (dialog.winfo_height() // 2)
             dialog.geometry(f'+{x}+{y}')
 
-        dialog.protocol("WM_DELETE_WINDOW", on_close) # Обрабатываем закрытие крестиком
+        dialog.protocol("WM_DELETE_WINDOW", on_close) 
         dialog.grab_set()
         dialog.wait_window()
 
@@ -606,7 +679,7 @@ class LocalVoice:
 
     def _show_triton_init_warning_dialog(self):
         """Отображает диалоговое окно с предупреждением о зависимостях Triton."""
-        self._dialog_choice = None # Сбрасываем выбор
+        self._dialog_choice = None
 
         # Цвета и шрифты
         bg_color = "#1e1e1e"
@@ -863,7 +936,8 @@ class LocalVoice:
             return uninstall_success and cleanup_success
 
         except Exception as e:
-            logger.error(f"Критическая ошибка при удалении {component_name}: {e}"); traceback.print_exc()
+            logger.error(f"Критическая ошибка при удалении {component_name}: {e}")
+            traceback.print_exc()
             if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
                 try:
                     gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}\n{traceback.format_exc()}")
