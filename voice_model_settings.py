@@ -11,6 +11,8 @@ import threading
 import tkinter.messagebox
 from docs import DocsManager
 from Logger import logger
+import traceback
+
 model_descriptions = {
     "low": "Быстрая модель, комбинация Edge-TTS для генерации речи и RVC для преобразования голоса. Низкие требования.",
     "low+": "Комбинация Silero TTS для генерации речи и RVC для преобразования голоса. Требования схожи с low.",
@@ -74,6 +76,70 @@ except ImportError:
     logger.info("Предупреждение: Модуль GpuUtils не найден. Функции определения GPU не будут работать.")
     def check_gpu_provider(): return None
     def get_cuda_devices(): return []
+
+class Tooltip:
+    """
+    Creates a tooltip for a given widget.
+    """
+    def __init__(self, widget, text, delay=500, wraplength=250):
+        self.widget = widget
+        self.text = text
+        self.delay = delay
+        self.wraplength = wraplength 
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+        self._id_var = tk.StringVar() 
+
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+        self.widget.bind("<ButtonPress>", self.leave)
+
+    def enter(self, event=None):
+        self.schedule()
+
+    def leave(self, event=None):
+        self.unschedule()
+        self.hidetip()
+
+    def schedule(self):
+        self.unschedule()
+        self._id_var.set(self.widget.after(self.delay, self.showtip))
+
+    def unschedule(self):
+        scheduled_id = self._id_var.get()
+        if scheduled_id:
+            self.widget.after_cancel(scheduled_id)
+            self._id_var.set('')
+
+    def showtip(self, event=None):
+        self.hidetip()
+        if not self.widget.winfo_exists(): 
+             return
+        # Calculate position
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+
+        self.tipwindow = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        tw.wm_attributes("-topmost", True)
+
+        label = tk.Label(tw, text=self.text, justify=tk.LEFT,
+                       background="#ffffe0", relief=tk.SOLID, borderwidth=1,
+                       wraplength=self.wraplength, font=("Segoe UI", 8),
+                       padx=4, pady=2)
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            try:
+                if tw.winfo_exists():
+                    tw.destroy()
+            except tk.TclError:
+                pass
 
 
 class VoiceCollapsibleSection(ttk.Frame): # Используем ttk.Frame для стиля
@@ -303,7 +369,7 @@ class VoiceModelSettingsWindow:
 
         self.description_label_widget = None
         self.settings_sections = {}
-        self.download_buttons = {}
+        self.model_action_buttons = {}
         self.installed_models = set()
         self.scrollable_frame_settings = None
         self.placeholder_label_settings = None
@@ -313,13 +379,13 @@ class VoiceModelSettingsWindow:
         self.models_scrollable_area = None
         self.local_voice_models = []
 
+        self.load_installed_models_state()
         self.load_settings()
         
         self.docs_manager = DocsManager()
         self._check_system_dependencies()
 
         self._initialize_custom_ttk_styles()
-
         self._initialize_layout()
         self._create_model_panels()
         self.display_installed_models_settings()
@@ -484,7 +550,7 @@ class VoiceModelSettingsWindow:
                 ]
             },
             {
-                "id": "medium", "name": "Fish Speech", "min_vram": 4, "rec_vram": 6, "gpu_vendor": ["NVIDIA"], "size_gb": 5,
+                "id": "medium", "name": "Fish Speech", "min_vram": 3, "rec_vram": 6, "gpu_vendor": ["NVIDIA"], "size_gb": 5,
                  "settings": [
                     {"key": "device", "label": "Устройство", "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
                     {"key": "half", "label": "Half-precision", "type": "combobox", "options": {"values": ["False", "True"], "default": "False"}},
@@ -497,7 +563,7 @@ class VoiceModelSettingsWindow:
                 ]
             },
             {
-                "id": "medium+", "name": "Fish Speech+", "min_vram": 4, "rec_vram": 6, "gpu_vendor": ["NVIDIA"], "size_gb": 10,
+                "id": "medium+", "name": "Fish Speech+", "min_vram": 3, "rec_vram": 6, "gpu_vendor": ["NVIDIA"], "size_gb": 10,
                 "rtx30plus": True,
                  "settings": [
                     {"key": "device", "label": "Устройство", "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
@@ -511,7 +577,7 @@ class VoiceModelSettingsWindow:
                  ]
             },
             {
-                "id": "medium+low", "name": "Fish Speech+ + RVC", "min_vram": 6, "rec_vram": 8, "gpu_vendor": ["NVIDIA"], "size_gb": 15,
+                "id": "medium+low", "name": "Fish Speech+ + RVC", "min_vram": 5, "rec_vram": 8, "gpu_vendor": ["NVIDIA"], "size_gb": 15,
                 "rtx30plus": True,
                 "settings": [
                     {"key": "fsprvc_fsp_device", "label": "[FSP] Устройство", "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
@@ -535,35 +601,67 @@ class VoiceModelSettingsWindow:
             }
         ]
 
+    # def load_settings(self):
+    #     self.installed_models = set()
+    #     if self.local_voice and self.check_installed_func:
+    #         for model_data in self.get_default_model_structure():
+    #             model_id = model_data.get("id")
+    #             if model_id:
+    #                 if model_id == "low" and self.check_installed_func("tts_with_rvc"): self.installed_models.add(model_id)
+    #                 elif model_id == "low+" and self.check_installed_func("tts_with_rvc"): self.installed_models.add(model_id)
+    #                 elif model_id == "medium" and self.check_installed_func("fish_speech_lib"): self.installed_models.add(model_id)
+    #                 elif model_id == "medium+" and self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton"): self.installed_models.add(model_id)
+    #                 elif model_id == "medium+low" and self.check_installed_func("tts_with_rvc") and self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton"): self.installed_models.add(model_id)
+
+    #     else:
+    #         try:
+    #             if os.path.exists(self.installed_models_file):
+    #                 with open(self.installed_models_file, "r", encoding="utf-8") as f:
+    #                     self.installed_models.update(line.strip() for line in f if line.strip())
+    #         except Exception as e:
+    #             logger.info(f"Ошибка загрузки состояния установленных моделей из {self.installed_models_file}: {e}")
+
+    #     # 2. Получение базовой структуры по умолчанию
+    #     default_model_structure = self.get_default_model_structure()
+
+    #     # 3. Адаптация базовой структуры под окружение (GPU/OS) перед загрузкой сохраненных значений
+    #     adapted_default_structure = self.finalize_model_settings(
+    #         default_model_structure, self.detected_gpu_vendor, self.detected_cuda_devices
+    #     )
+
+    #     # 4. Загрузка сохраненных пользовательских значений из JSON
+    #     saved_values = {}
+    #     try:
+    #         if os.path.exists(self.settings_values_file):
+    #             with open(self.settings_values_file, "r", encoding="utf-8") as f:
+    #                 saved_values = json.load(f)
+    #     except Exception as e:
+    #         logger.info(f"Ошибка загрузки сохраненных значений из {self.settings_values_file}: {e}")
+    #         saved_values = {}
+
+    #     # 5. Создание финальной структуры: начинаем с адаптированных дефолтов
+    #     merged_model_structure = copy.deepcopy(adapted_default_structure)
+
+    #     # 6. Наложение сохраненных значений поверх адаптированных дефолтов
+    #     for model_data in merged_model_structure:
+    #         model_id = model_data.get("id")
+    #         if model_id in saved_values:
+    #             model_saved_values = saved_values[model_id]
+    #             if isinstance(model_saved_values, dict):
+    #                 for setting in model_data.get("settings", []):
+    #                     setting_key = setting.get("key")
+    #                     if setting_key in model_saved_values:
+    #                         setting.setdefault("options", {})["default"] = model_saved_values[setting_key]
+
+    #     self.local_voice_models = merged_model_structure
+    #     logger.info("Загрузка и адаптация настроек завершена.") 
+
     def load_settings(self):
-        self.installed_models = set()
-        if self.local_voice and self.check_installed_func:
-            for model_data in self.get_default_model_structure():
-                model_id = model_data.get("id")
-                if model_id:
-                    if model_id == "low" and self.check_installed_func("tts_with_rvc"): self.installed_models.add(model_id)
-                    elif model_id == "low+" and self.check_installed_func("tts_with_rvc"): self.installed_models.add(model_id)
-                    elif model_id == "medium" and self.check_installed_func("fish_speech_lib"): self.installed_models.add(model_id)
-                    elif model_id == "medium+" and self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton"): self.installed_models.add(model_id)
-                    elif model_id == "medium+low" and self.check_installed_func("tts_with_rvc") and self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton"): self.installed_models.add(model_id)
-
-        else:
-            try:
-                if os.path.exists(self.installed_models_file):
-                    with open(self.installed_models_file, "r", encoding="utf-8") as f:
-                        self.installed_models.update(line.strip() for line in f if line.strip())
-            except Exception as e:
-                logger.info(f"Ошибка загрузки состояния установленных моделей из {self.installed_models_file}: {e}")
-
-        # 2. Получение базовой структуры по умолчанию
+        # self.installed_models УЖЕ ЗАГРУЖЕН в load_installed_models_state
         default_model_structure = self.get_default_model_structure()
-
-        # 3. Адаптация базовой структуры под окружение (GPU/OS) перед загрузкой сохраненных значений
         adapted_default_structure = self.finalize_model_settings(
             default_model_structure, self.detected_gpu_vendor, self.detected_cuda_devices
         )
-
-        # 4. Загрузка сохраненных пользовательских значений из JSON
         saved_values = {}
         try:
             if os.path.exists(self.settings_values_file):
@@ -572,11 +670,7 @@ class VoiceModelSettingsWindow:
         except Exception as e:
             logger.info(f"Ошибка загрузки сохраненных значений из {self.settings_values_file}: {e}")
             saved_values = {}
-
-        # 5. Создание финальной структуры: начинаем с адаптированных дефолтов
         merged_model_structure = copy.deepcopy(adapted_default_structure)
-
-        # 6. Наложение сохраненных значений поверх адаптированных дефолтов
         for model_data in merged_model_structure:
             model_id = model_data.get("id")
             if model_id in saved_values:
@@ -586,36 +680,59 @@ class VoiceModelSettingsWindow:
                         setting_key = setting.get("key")
                         if setting_key in model_saved_values:
                             setting.setdefault("options", {})["default"] = model_saved_values[setting_key]
-
         self.local_voice_models = merged_model_structure
-        logger.info("Загрузка и адаптация настроек завершена.") 
+        logger.info("Загрузка и адаптация настроек завершена.")
+
+    def load_installed_models_state(self):
+        """Загружает список установленных моделей из файла."""
+        self.installed_models = set()
+        # Загружаем из файла только для инициализации, если check_installed_func недоступен
+        if not self.local_voice or not self.check_installed_func:
+            try:
+                if os.path.exists(self.installed_models_file):
+                    with open(self.installed_models_file, "r", encoding="utf-8") as f:
+                        self.installed_models.update(line.strip() for line in f if line.strip())
+                    logger.info(f"Загружен список установленных моделей из файла: {self.installed_models}")
+            except Exception as e:
+                logger.info(f"Ошибка загрузки состояния из {self.installed_models_file}: {e}")
+        else:
+             # Если есть функция проверки, используем ее для актуального состояния
+             logger.info("Проверка установленных моделей через check_installed_func...")
+             for model_data in self.get_default_model_structure(): # Используем дефолтную структуру для перебора ID
+                 model_id = model_data.get("id")
+                 if model_id:
+                     # Проверяем компоненты, необходимые для каждой модели
+                     is_installed = False
+                     if model_id == "low": is_installed = self.check_installed_func("tts_with_rvc")
+                     elif model_id == "low+": is_installed = self.check_installed_func("tts_with_rvc") # Silero обычно не требует отдельной установки
+                     elif model_id == "medium": is_installed = self.check_installed_func("fish_speech_lib")
+                     elif model_id == "medium+": is_installed = self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton")
+                     elif model_id == "medium+low": is_installed = self.check_installed_func("tts_with_rvc") and self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton")
+
+                     if is_installed:
+                         self.installed_models.add(model_id)
+             logger.info(f"Актуальный список установленных моделей: {self.installed_models}")
 
     def save_settings(self):
-        try:
-            with open(self.installed_models_file, "w", encoding="utf-8") as f:
-                for model_id in sorted(list(self.installed_models)):
-                    f.write(f"{model_id}\n")
-        except Exception as e:
-            logger.info(f"Ошибка сохранения состояния установленных моделей в {self.installed_models_file}: {e}")
-
+        # НЕ сохраняем installed_models.txt здесь
         settings_to_save = {}
         for model_id, section in self.settings_sections.items():
+            # Сохраняем настройки только если модель все еще установлена
             if model_id in self.installed_models and section.winfo_exists():
                 try:
                     settings_to_save[model_id] = section.get_values()
                 except Exception as e:
                     logger.info(f"Ошибка при сборе значений из UI для модели '{model_id}': {e}")
-
         if settings_to_save:
             try:
                 with open(self.settings_values_file, "w", encoding="utf-8") as f:
                     json.dump(settings_to_save, f, indent=4, ensure_ascii=False)
             except Exception as e:
                 logger.info(f"Ошибка сохранения значений настроек в {self.settings_values_file}: {e}")
-
+        # Вызываем колбэк только если он есть
         if self.on_save_callback:
             callback_data = {
-                 "installed_models": list(self.installed_models),
+                 "installed_models": list(self.installed_models), # Передаем актуальный список
                  "models_data": self.local_voice_models
             }
             self.on_save_callback(callback_data)
@@ -1019,18 +1136,13 @@ class VoiceModelSettingsWindow:
 
     # Адаптированный метод create_model_panel
     def create_model_panel(self, parent, model_data):
-        panel_bg = "#2a2a2e"
-        text_color = "#b0b0b0"
-        title_color = "#ffffff"
-        border_color = "#444444"
-        button_bg = "#555555"
-        button_fg = "white"
-        button_active_bg = "#666666"
+        panel_bg = "#2a2a2e"; text_color = "#b0b0b0"; title_color = "#ffffff"
+        border_color = "#444444"; button_fg = "white"
+        install_button_bg = "#555555"; install_button_active_bg = "#666666"
+        uninstall_button_bg = "#ac3939"; uninstall_button_active_bg = "#bf4a4a" # Красный для удаления
         button_disabled_fg = "#999999"
-        warning_color_amd = "#FF6A6A"
-        # --- Цвета для значка RTX ---
-        rtx_warning_color = "orange"  # Оранжевый (если GPU не подходит)
-        rtx_ok_color = "lightgreen" # Зеленый (если GPU подходит)
+        warning_color_amd = "#FF6A6A"; rtx_warning_color = "orange"; rtx_ok_color = "lightgreen"
+        medium_warning_color = "orange" # Цвет для иконки предупреждения medium
 
         model_id = model_data["id"]
         model_name = model_data["name"]
@@ -1041,34 +1153,53 @@ class VoiceModelSettingsWindow:
         panel.bind("<Enter>", lambda e, k=model_id: self.show_model_description(k))
         panel.bind("<Leave>", self.clear_description)
 
-        # --- Заголовок и значок RTX (с динамическим цветом) ---
+        # --- Title Frame ---
         title_frame = tk.Frame(panel, bg=panel_bg)
         title_frame.pack(pady=(5, 2), padx=10, fill=tk.X)
-
         title_label = tk.Label(title_frame, text=model_name, font=("Segoe UI", 10, "bold"), bg=panel_bg, fg=title_color, anchor='w')
         title_label.pack(side=tk.LEFT, anchor='w')
+        title_label.bind("<Enter>", lambda e, k=model_id: self.show_model_description(k)) # Bind title too
+        title_label.bind("<Leave>", self.clear_description)
 
+        # --- Warning Icon for "medium" model with Tooltip ---
+        if model_id == "medium":
+            warning_icon_medium = tk.Label(
+                title_frame, text="⚠️",
+                font=("Segoe UI", 9), # Slightly smaller than title
+                bg=panel_bg, fg=medium_warning_color, anchor='w',
+                cursor="question_arrow" # Indicate interactivity
+            )
+            warning_icon_medium.pack(side=tk.LEFT, padx=(3, 0), anchor='w')
+            medium_tooltip_text = (
+                "Модель 'Fish Speech' не рекомендуется для большинства пользователей.\n\n"
+                "Для стабильной скорости генерации требуется мощная видеокарта, "
+                "минимальные \"играбельные\" GPU: GeForce RTX 2080 Ti / RTX 2070 Super / GTX 1080 Ti и подобные, "
+                "использование на более слабых GPU может привести к очень медленной работе.\n\n"
+                "Владельцам RTX30+ рекомендуется использовать модели \"Fish Speech+\", "
+                "остальным рекомендуется использовать модель \"Silero + RVC\""
+            )
+            Tooltip(warning_icon_medium, medium_tooltip_text, wraplength=300) # Create tooltip for the icon
+
+        # --- RTX 30+ Icon (if needed) ---
         if requires_rtx30plus:
             gpu_meets_requirement = self.is_gpu_rtx30_or_40()
             icon_color = rtx_ok_color if gpu_meets_requirement else rtx_warning_color
-
-            rtx_icon_label = tk.Label(
-                title_frame,
-                text="⚠️ RTX 30+",
-                font=("Segoe UI", 7, "bold"),
-                bg=panel_bg,
-                fg=icon_color,
-                anchor='w'
-            )
+            rtx_icon_label = tk.Label(title_frame, text="RTX 30+", font=("Segoe UI", 7, "bold"), bg=panel_bg, fg=icon_color, anchor='w')
             rtx_icon_label.pack(side=tk.LEFT, padx=(5, 0), anchor='w')
+            # Optional: Add tooltip for RTX icon too
+            rtx_tooltip_text = "Требуется GPU NVIDIA RTX 30xx/40xx для оптимальной производительности." if not gpu_meets_requirement else "Ваша GPU подходит для этой модели."
+            Tooltip(rtx_icon_label, rtx_tooltip_text)
 
-        # --- Информация о VRAM и GPU ---
+        # --- Info Label (VRAM, GPU Support) ---
         vram_text = f"VRAM: {model_data.get('min_vram', '?')}GB - {model_data.get('rec_vram', '?')}GB"
         gpu_req_text = f"GPU: {', '.join(supported_vendors)}" if supported_vendors else "GPU: Any"
         info_label = tk.Label(panel, text=f"{vram_text} | {gpu_req_text}", font=("Segoe UI", 8), bg=panel_bg, fg=text_color, anchor='w')
         info_label.pack(pady=(0, 5), padx=10, fill=tk.X)
+        # Bind info label to general model description as well
+        info_label.bind("<Enter>", lambda e, k=model_id: self.show_model_description(k))
+        info_label.bind("<Leave>", self.clear_description)
 
-        # --- Логика блокировки AMD и предупреждения ---
+        # --- AMD Warning (if needed) ---
         allow_unsupported_gpu = os.environ.get("ALLOW_UNSUPPORTED_GPU", "0") == "1"
         is_amd_user = self.detected_gpu_vendor == "AMD"
         is_amd_supported = "AMD" in supported_vendors
@@ -1079,42 +1210,51 @@ class VoiceModelSettingsWindow:
             warning_label_amd = tk.Label(panel, text="Может не работать на AMD!", font=("Segoe UI", 8, "bold"), bg=panel_bg, fg=warning_color_amd, anchor='w')
             warning_label_amd.pack(pady=(0, 5), padx=10, fill=tk.X)
 
-        # --- Кнопка ---
+        # --- Install/Uninstall Button ---
         button_frame = tk.Frame(panel, bg=panel_bg)
         button_frame.pack(pady=(2, 6), padx=10, fill=tk.X)
         button_frame.columnconfigure(0, weight=1)
 
         is_installed = model_id in self.installed_models
-        download_text = "Установлено" if is_installed else "Установить"
+        action_button = None
 
-        can_interact = True
         if is_installed:
-            can_interact = False
-        elif is_gpu_unsupported_amd and not allow_unsupported_gpu:
-            can_interact = False
-            download_text = "Несовместимо с AMD"
+            action_button = tk.Button(
+                button_frame, text="Удалить",
+                command=lambda mid=model_id, mname=model_name: self.confirm_and_start_uninstall(mid, mname),
+                bg=uninstall_button_bg, fg=button_fg,
+                activebackground=uninstall_button_active_bg, activeforeground=button_fg,
+                relief="flat", bd=0,
+                font=("Segoe UI", 8, "bold"),
+                padx=5, pady=5, state=tk.NORMAL
+            )
+        else:
+            install_text = "Установить"
+            can_install = True
+            if is_gpu_unsupported_amd and not allow_unsupported_gpu:
+                can_install = False
+                install_text = "Несовместимо с AMD"
 
-        download_state_tk = tk.NORMAL if can_interact else tk.DISABLED
+            install_state_tk = tk.NORMAL if can_install else tk.DISABLED
+            action_button = tk.Button(
+                button_frame, text=install_text,
+                state=install_state_tk,
+                bg=install_button_bg, fg=button_fg,
+                activebackground=install_button_active_bg, activeforeground=button_fg,
+                disabledforeground=button_disabled_fg,
+                relief="flat", bd=0,
+                font=("Segoe UI", 8, "bold"),
+                padx=5, pady=5
+            )
+            if can_install:
+                action_button.configure(command=lambda mid=model_id, btn=action_button, mdata=model_data: self.confirm_and_start_download(mid, btn, mdata))
 
-        download_button = tk.Button(
-            button_frame, text=download_text,
-            state=download_state_tk,
-            bg=button_bg, fg=button_fg,
-            activebackground=button_active_bg, activeforeground=button_fg,
-            disabledforeground=button_disabled_fg,
-            relief="flat", bd=0,
-            font=("Segoe UI", 8, "bold"),
-            padx=5, pady=5
-        )
-        self.download_buttons[model_id] = download_button
-
-        if can_interact:
-            download_button.configure(command=lambda mid=model_id, btn=download_button, mdata=model_data: self.confirm_and_start_download(mid, btn, mdata))
-
-        download_button.grid(row=0, column=0, sticky="ew")
+        if action_button:
+            self.model_action_buttons[model_id] = action_button
+            action_button.grid(row=0, column=0, sticky="ew")
 
         return panel
-    
+
     def is_gpu_rtx30_or_40(self):
         """
         Проверяет, является ли обнаруженная GPU NVIDIA RTX 30xx или 40xx,
@@ -1169,6 +1309,43 @@ class VoiceModelSettingsWindow:
         if proceed_to_download:
             self.start_download(model_id, button_widget)
 
+    def confirm_and_start_uninstall(self, model_id, model_name):
+        """Запрашивает подтверждение и проверяет инициализацию перед удалением."""
+        if not self.local_voice:
+            logger.error("LocalVoice не инициализирован, удаление невозможно.")
+            tkinter.messagebox.showerror("Ошибка", "Компонент LocalVoice не доступен.", parent=self.master)
+            return
+
+        # Проверка, инициализирована ли модель
+        try:
+            if hasattr(self.local_voice, 'is_model_initialized') and self.local_voice.is_model_initialized(model_id):
+                logger.warning(f"Попытка удаления инициализированной модели: {model_id}")
+                tkinter.messagebox.showerror(
+                    "Модель Активна",
+                    f"Модель '{model_name}' сейчас используется или инициализирована.\n\n"
+                    "Пожалуйста, перезапустите приложение полностью, чтобы освободить ресурсы, "
+                    "прежде чем удалять эту модель.",
+                    parent=self.master
+                )
+                return # Не продолжаем
+        except Exception as e:
+             logger.error(f"Ошибка при проверке инициализации модели {model_id}: {e}")
+             # Продолжаем с осторожностью или прерываем? Лучше прервать.
+             tkinter.messagebox.showerror("Ошибка Проверки", f"Не удалось проверить статус модели '{model_name}'. Удаление отменено.", parent=self.master)
+             return
+
+        # Запрос подтверждения
+        confirm = tkinter.messagebox.askyesno(
+            f"Подтверждение Удаления",
+            f"Вы уверены, что хотите удалить модель '{model_name}'?\n\n"
+            "Будут удалены основной пакет модели и все зависимости, которые больше не используются другими установленными моделями (кроме g4f).\n\n"
+            "Это действие необратимо!",
+            icon='warning', parent=self.master
+        )
+
+        if confirm:
+            self.start_uninstall(model_id)
+
     def start_download(self, model_id, button_widget):
         if button_widget and button_widget.winfo_exists():
             # Используем состояние tk.DISABLED
@@ -1190,6 +1367,50 @@ class VoiceModelSettingsWindow:
         else:
             logger.info("Внимание: LocalVoice не доступен, используется имитация установки")
             self.master.after(2000 + hash(model_id)%1000, lambda: self.handle_download_result(True, model_id))
+
+    def start_uninstall(self, model_id):
+        button_widget = self.model_action_buttons.get(model_id)
+        if button_widget and button_widget.winfo_exists():
+            button_widget.config(text="Удаление...", state=tk.DISABLED)
+
+        if not self.local_voice:
+            logger.error("LocalVoice не найден для удаления.")
+            if button_widget and button_widget.winfo_exists(): button_widget.config(text="Ошибка", state=tk.NORMAL)
+            return
+
+        target_uninstall_func = None
+        # Определяем, какую функцию удаления вызвать в LocalVoice
+        if model_id in ["low", "low+"]:
+            target_uninstall_func = self.local_voice.uninstall_edge_tts_rvc
+        elif model_id == "medium":
+            target_uninstall_func = self.local_voice.uninstall_fish_speech
+        elif model_id in ["medium+", "medium+low"]:
+            # Для этих моделей удаляем только компонент Triton
+            target_uninstall_func = self.local_voice.uninstall_triton_component
+        else:
+            logger.error(f"Неизвестный model_id для удаления: {model_id}")
+            if button_widget and button_widget.winfo_exists(): button_widget.config(text="Ошибка", state=tk.NORMAL)
+            return
+
+        if not hasattr(self.local_voice, target_uninstall_func.__name__):
+             logger.error(f"Метод {target_uninstall_func.__name__} не найден в LocalVoice.")
+             if button_widget and button_widget.winfo_exists(): button_widget.config(text="Ошибка", state=tk.NORMAL)
+             return
+
+        # Запускаем выбранную функцию удаления в потоке
+        def uninstall_thread_func():
+            success = False
+            try:
+                success = target_uninstall_func() # Вызываем нужную функцию
+            except Exception as e:
+                logger.error(f"Ошибка в потоке удаления для {model_id}: {e}")
+                logger.error(traceback.format_exc())
+            finally:
+                if self.master.winfo_exists():
+                    self.master.after(0, lambda: self.handle_uninstall_result(success, model_id))
+
+        uninstall_thread = threading.Thread(target=uninstall_thread_func, daemon=True)
+        uninstall_thread.start()
 
     def handle_download_result(self, success, model_id):
         button_widget = self.download_buttons.get(model_id)
@@ -1219,6 +1440,64 @@ class VoiceModelSettingsWindow:
             if button_widget and button_widget.winfo_exists():
                 # Используем tk.NORMAL для состояния кнопки при ошибке
                 button_widget.config(text="Ошибка", state=tk.NORMAL)
+
+    def handle_uninstall_result(self, success, model_id):
+        """Обновляет интерфейс после завершения удаления."""
+        button_widget = self.model_action_buttons.get(model_id)
+        model_data = next((m for m in self.local_voice_models if m["id"] == model_id), None)
+
+        if success:
+            logger.info(f"Удаление модели {model_id} завершено успешно.")
+            if model_id in self.installed_models:
+                self.installed_models.remove(model_id)
+
+            # Обновляем кнопку: меняем на "Установить"
+            if button_widget and button_widget.winfo_exists() and model_data:
+                install_text = "Установить"
+                can_install = True
+                # Проверяем совместимость с GPU заново
+                supported_vendors = model_data.get('gpu_vendor', [])
+                allow_unsupported_gpu = os.environ.get("ALLOW_UNSUPPORTED_GPU", "0") == "1"
+                is_amd_user = self.detected_gpu_vendor == "AMD"
+                is_amd_supported = "AMD" in supported_vendors
+                is_gpu_unsupported_amd = is_amd_user and not is_amd_supported
+                if is_gpu_unsupported_amd and not allow_unsupported_gpu:
+                    can_install = False
+                    install_text = "Несовместимо с AMD"
+
+                install_state_tk = tk.NORMAL if can_install else tk.DISABLED
+                button_widget.config(
+                    text=install_text,
+                    state=install_state_tk,
+                    command=lambda mid=model_id, btn=button_widget, mdata=model_data: self.confirm_and_start_download(mid, btn, mdata),
+                    bg="#555555", # Цвет кнопки установки
+                    activebackground="#666666"
+                )
+            else:
+                 logger.warning(f"Не удалось найти кнопку для модели {model_id} после удаления.")
+
+            # Удаляем секцию настроек
+            if model_id in self.settings_sections:
+                section = self.settings_sections.pop(model_id)
+                if section and section.winfo_exists():
+                    section.destroy()
+
+            # Обновляем отображение, если больше нет установленных моделей
+            if not self.installed_models:
+                 self.display_installed_models_settings() # Покажет плейсхолдер
+
+            self.save_installed_models_list() # Сохраняем обновленный список
+            if self.on_save_callback:
+                 callback_data = {"installed_models": list(self.installed_models), "models_data": self.local_voice_models}
+                 self.on_save_callback(callback_data)
+            self._update_settings_scrollregion() # Обновляем прокрутку
+
+        else:
+            logger.error(f"Ошибка при удалении модели {model_id}.")
+            tkinter.messagebox.showerror("Ошибка Удаления", f"Не удалось удалить модель '{model_id}'.\nСм. лог для подробностей.", parent=self.master)
+            # Восстанавливаем кнопку "Удалить"
+            if button_widget and button_widget.winfo_exists():
+                button_widget.config(text="Удалить", state=tk.NORMAL)
 
     def save_installed_models_list(self):
         try:

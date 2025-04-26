@@ -26,6 +26,7 @@ from tkinter import ttk
 from tkinter import messagebox
 
 from utils import SH
+import sys
 
 import sounddevice as sd
 from SpeechRecognition import SpeechRecognition
@@ -69,7 +70,7 @@ LOCAL_VOICE_MODELS = [
         "name": "Silero + RVC",
         "min_vram": 3,
         "rec_vram": 4,
-        "gpu_vendor": ["NVIDIA"],
+        "gpu_vendor": ["NVIDIA", "AMD"],
         "size_gb": 3
     },
     {
@@ -154,6 +155,11 @@ class ChatGUI:
         self.voiceover_method = self.settings.get("VOICEOVER_METHOD", "TG")
         self.current_local_voice_id = self.settings.get("NM_CURRENT_VOICEOVER", None)
         self.last_voice_model_selected = None
+        if self.current_local_voice_id:
+             for model_info in LOCAL_VOICE_MODELS:
+                 if model_info["id"] == self.current_local_voice_id:
+                     self.last_voice_model_selected = model_info
+                     break
         self.model_loading_cancelled = False
 
 
@@ -204,6 +210,8 @@ class ChatGUI:
 
         # Запуск проверки переменной textToTalk через after
         self.root.after(150, self.check_text_to_talk_or_send)
+
+        self.root.after(500, self.initialize_last_local_model_on_startup)
 
     def start_asyncio_loop(self):
         """Запускает цикл событий asyncio в отдельном потоке."""
@@ -1001,7 +1009,7 @@ class ChatGUI:
         tk.Label(method_frame, text=_("Вариант озвучки:", "Voiceover Method:"), bg="#2c2c2c", fg="#ffffff", width=25, anchor='w').pack(side=tk.LEFT, padx=5)
 
         self.voiceover_method_var = tk.StringVar(value=self.settings.get("VOICEOVER_METHOD", "TG"))
-        method_options = ["TG", "Local"] if os.environ.get("EXPERIMENTAL_FUNCTIONS", "0") == "1" else ["TG"]
+        method_options = ["TG", "Local"] #if os.environ.get("EXPERIMENTAL_FUNCTIONS", "0") == "1" else ["TG"] # Вернем локальную озвучку всем
         method_combobox = ttk.Combobox(
             method_frame,
             textvariable=self.voiceover_method_var,
@@ -1015,6 +1023,7 @@ class ChatGUI:
                                         self.switch_voiceover_settings()])
         self.method_frame = method_frame
 
+        # === Настройки Telegram ===
         self.tg_settings_frame = tk.Frame(self.voiceover_content_frame, bg="#2c2c2c")
 
         tg_config = [
@@ -1047,8 +1056,10 @@ class ChatGUI:
             widget_key = config.get('key', config['label'])
             self.tg_widgets[widget_key] = {'frame': widget_frame, 'config': config}
 
+        # === Настройки локальной озвучки ===
         self.local_settings_frame = tk.Frame(self.voiceover_content_frame, bg="#2c2c2c")
 
+        # --- Выбор модели ---
         local_model_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
         local_model_frame.pack(fill=tk.X, pady=2)
         tk.Label(local_model_frame, text=_("Локальная модель:", "Local Model:"), bg="#2c2c2c", fg="#ffffff", width=25, anchor='w').pack(side=tk.LEFT, padx=5)
@@ -1088,6 +1099,30 @@ class ChatGUI:
         self.local_voice_combobox.bind("<<ComboboxSelected>>", self.on_local_voice_selected)
         self.local_model_status_label.pack(side=tk.LEFT, padx=(2, 5))
 
+        load_last_model_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
+        load_last_model_frame.pack(fill=tk.X, pady=2)
+        self.create_setting_widget(
+            parent=load_last_model_frame,
+            label=_('Автозагрузка модели', 'Autoload model'),
+            setting_key='LOCAL_VOICE_LOAD_LAST',
+            widget_type='checkbutton',
+            default_checkbutton=False, 
+            tooltip=_('Загружает последнюю выбранную локальную модель при старте программы.',
+                      'Loads the last selected local model when the program starts.')
+        )
+
+        delete_audio_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
+        delete_audio_frame.pack(fill=tk.X, pady=2)
+        self.create_setting_widget(
+            parent=delete_audio_frame,
+            label=_('Удалять аудио', 'Delete audio'),
+            setting_key='LOCAL_VOICE_DELETE_AUDIO', 
+            widget_type='checkbutton',
+            default_checkbutton=True, 
+            tooltip=_('Удалять аудиофайл локальной озвучки после его воспроизведения или отправки.',
+                      'Delete the local voiceover audio file after it has been played or sent.')
+        )
+
         local_chat_voice_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
         local_chat_voice_frame.pack(fill=tk.X, pady=2)
         self.create_setting_widget(
@@ -1098,6 +1133,7 @@ class ChatGUI:
             default_checkbutton=True
         )
 
+        # --- Кнопка управления моделями ---
         install_button_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
         install_button_frame.pack(fill=tk.X, pady=5)
         install_button = tk.Button(
@@ -1109,6 +1145,7 @@ class ChatGUI:
         )
         install_button.pack(pady=5)
 
+        # --- Переключаем видимость настроек ---
         self.switch_voiceover_settings()
         self.check_triton_dependencies()
     #endregion
@@ -1929,10 +1966,15 @@ class ChatGUI:
     # region LocalVoice Functions
     async def run_local_voiceover(self, text):
         """Асинхронный метод для вызова локальной озвучки."""
+        result_path = None # Инициализируем переменную
         try:
             character = self.model.current_character if hasattr(self.model, "current_character") else None
-            output_file = f"output_{int(time.time())}.wav"
+            # Создаем уникальное имя файла
+            output_file = f"MitaVoices/output_{uuid.uuid4()}.wav"
             absolute_audio_path = os.path.abspath(output_file)
+
+            # Убедимся, что директория существует
+            os.makedirs(os.path.dirname(absolute_audio_path), exist_ok=True)
 
             result_path = await self.local_voice.voiceover(
                 text=text,
@@ -1944,7 +1986,7 @@ class ChatGUI:
                 logger.info(f"Локальная озвучка сохранена в: {result_path}")
                 # Воспроизведение файла, если не подключены к игре И включена опция
                 if not self.ConnectedToGame and self.settings.get("VOICEOVER_LOCAL_CHAT"):
-                    await AudioHandler.handle_voice_file(result_path)
+                    await AudioHandler.handle_voice_file(result_path, False)
                 elif self.ConnectedToGame:
                     self.patch_to_sound_file = result_path
                     logger.info(f"Путь к файлу для игры: {self.patch_to_sound_file}")
@@ -1955,6 +1997,20 @@ class ChatGUI:
 
         except Exception as e:
             logger.error(f"Ошибка при выполнении локальной озвучки: {e}")
+        finally:
+            # Проверяем настройку удаления и наличие пути к файлу
+            if result_path and self.settings.get("LOCAL_VOICE_DELETE_AUDIO", True):
+                 # Добавляем небольшую задержку перед удалением, если файл только что воспроизводился
+                 if not self.ConnectedToGame and self.settings.get("VOICEOVER_LOCAL_CHAT"):
+                     await asyncio.sleep(0.5) # Небольшая пауза на всякий случай
+                 try:
+                    if os.path.exists(result_path):
+                        os.remove(result_path)
+                        logger.info(f"Удален файл озвучки: {result_path}")
+                    else:
+                         logger.warning(f"Попытка удалить файл озвучки, но он уже не существует: {result_path}")
+                 except OSError as e_remove:
+                    logger.error(f"Ошибка при удалении файла озвучки {result_path}: {e_remove}")
 
     def on_local_voice_selected(self, event=None):
         """Обработчик выбора локальной модели озвучки"""
@@ -2164,17 +2220,59 @@ class ChatGUI:
 
         self.local_voice.current_model = model_id
 
+        # Обновляем last_voice_model_selected ТОЛЬКО при успешной инициализации
+        self.last_voice_model_selected = None
         for model in LOCAL_VOICE_MODELS:
             if model["id"] == model_id:
                 self.last_voice_model_selected = model
                 break
 
+        # Сохраняем ID успешно загруженной модели как текущую
+        self.settings.set("NM_CURRENT_VOICEOVER", model_id)
+        self.settings.save_settings()
+        self.current_local_voice_id = model_id # Обновляем и внутреннюю переменную
+
         messagebox.showinfo(
             _("Успешно", "Success"),
-            _("Модель {} успешно инициализирована!", "Model {} initialized successfully!").format(model_id)
+            _("Модель {} успешно инициализирована!", "Model {} initialized successfully!").format(model_id),
+            parent=self.root # Указываем родителя для модальности
         )
         # Обновляем UI (комбобокс и индикатор)
         self.update_local_voice_combobox()
+
+    def initialize_last_local_model_on_startup(self):
+        """Проверяет настройку и инициализирует последнюю локальную модель при запуске."""
+        if self.settings.get("LOCAL_VOICE_LOAD_LAST", False):
+            logger.info("Проверка автозагрузки последней локальной модели...")
+            last_model_id = self.settings.get("NM_CURRENT_VOICEOVER", None)
+
+            if last_model_id:
+                logger.info(f"Найдена последняя модель для автозагрузки: {last_model_id}")
+                model_to_load = None
+                for model in LOCAL_VOICE_MODELS:
+                    if model["id"] == last_model_id:
+                        model_to_load = model
+                        break
+
+                if model_to_load:
+                    if self.local_voice.is_model_installed(last_model_id):
+                        if not self.local_voice.is_model_initialized(last_model_id):
+                            logger.info(f"Модель {last_model_id} установлена, но не инициализирована. Запуск инициализации...")
+                            # Используем существующее окно загрузки
+                            self.show_model_loading_window(model_to_load)
+                        else:
+                            logger.info(f"Модель {last_model_id} уже инициализирована.")
+                            # Убедимся, что last_voice_model_selected актуален
+                            self.last_voice_model_selected = model_to_load
+                            self.update_local_voice_combobox() # Обновим UI на всякий случай
+                    else:
+                        logger.warning(f"Модель {last_model_id} выбрана для автозагрузки, но не установлена.")
+                else:
+                    logger.warning(f"Не найдена информация для модели с ID: {last_model_id}")
+            else:
+                logger.info("Нет сохраненной последней локальной модели для автозагрузки.")
+        else:
+            logger.info("Автозагрузка локальной модели отключена.")
 
     def update_local_model_status_indicator(self):
         if hasattr(self, 'local_model_status_label') and self.local_model_status_label.winfo_exists():
@@ -2513,48 +2611,56 @@ class ChatGUI:
         # Обновляем проверку зависимостей Triton в UI
         self.check_triton_dependencies()
 
-
     def check_module_installed(self, module_name):
-        """Проверяет, установлен ли модуль (более надежно)."""
-        import importlib.util
-        import sys
-        import os
+        """Проверяет, установлен ли модуль, фокусируясь на результате find_spec."""
+        logger.info(f"Проверка установки модуля: {module_name}")
+        spec = None
+        try:
+            spec = importlib.util.find_spec(module_name)
 
-        # Сначала стандартная проверка
-        spec = importlib.util.find_spec(module_name)
-        if spec is not None:
-            logger.debug(f"Модуль {module_name} найден через find_spec.")
-            return True
+            if spec is None:
+                logger.info(f"Модуль {module_name} НЕ найден через find_spec.")
+                return False
+            else:
+                # Спецификация найдена, проверяем загрузчик
+                if spec.loader is not None:
+                    # Дополнительная проверка: попробуем получить __spec__ явно
+                    try:
+                        # Пытаемся импортировать модуль, чтобы проверить __spec__
+                        # Это может быть медленно, но надежнее
+                        module = importlib.import_module(module_name)
+                        if hasattr(module, '__spec__') and module.__spec__ is not None:
+                            logger.info(f"Модуль {module_name} найден (find_spec + loader + import).")
+                            return True
+                        else:
+                            logger.warning(f"Модуль {module_name} импортирован, но __spec__ is None или отсутствует. Считаем не установленным корректно.")
+                            # Очищаем из sys.modules, если импорт был частичным
+                            if module_name in sys.modules:
+                                try: del sys.modules[module_name]
+                                except KeyError: pass
+                            return False
+                    except ImportError as ie:
+                         logger.warning(f"Модуль {module_name} найден find_spec, но не импортируется: {ie}. Считаем не установленным.")
+                         return False
+                    except ValueError as ve: # Ловим ValueError при импорте
+                         logger.warning(f"Модуль {module_name} найден find_spec, но ошибка ValueError при импорте: {ve}. Считаем не установленным.")
+                         return False
+                    except Exception as e_import: # Ловим другие ошибки импорта
+                         logger.error(f"Неожиданная ошибка при импорте {module_name} после find_spec: {e_import}")
+                         return False
+                else:
+                    # Спецификация есть, но нет загрузчика
+                    logger.warning(f"Модуль {module_name} найден через find_spec, но loader is None. Считаем не установленным корректно.")
+                    return False
 
-        # Дополнительная проверка в папке Lib
-        lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Lib")
-        potential_path = os.path.join(lib_path, module_name.replace('.', os.sep))
-
-        if os.path.isdir(potential_path) or os.path.exists(potential_path + ".py"):
-             logger.debug(f"Модуль {module_name} найден в папке Lib: {potential_path}")
-             needs_remove = False
-             if lib_path not in sys.path:
-                 sys.path.insert(0, lib_path)
-                 needs_remove = True
-             try:
-                 importlib.import_module(module_name)
-                 if needs_remove:
-                     sys.path.remove(lib_path)
-                 return True
-             except ImportError:
-                 if needs_remove:
-                     sys.path.remove(lib_path)
-                 logger.debug(f"Модуль {module_name} найден в Lib, но не импортируется.")
-                 return False 
-             except Exception as e:
-                 if needs_remove:
-                     sys.path.remove(lib_path)
-                 logger.warning(f"Ошибка при тестовом импорте {module_name} из Lib: {e}")
-                 return False
-
-        logger.debug(f"Модуль {module_name} не найден.")
-        return False
-
+        except ValueError as e:
+            # Ловим ValueError именно от find_spec (хотя теперь это менее вероятно)
+            logger.warning(f"Ошибка ValueError при find_spec для {module_name}: {e}. Считаем не установленным корректно.")
+            return False
+        except Exception as e:
+            # Другие возможные ошибки при find_spec
+            logger.error(f"Неожиданная ошибка при вызове find_spec для {module_name}: {e}")
+            return False
 
     def check_available_vram(self):
         """Проверка доступной видеопамяти (заглушка)."""
