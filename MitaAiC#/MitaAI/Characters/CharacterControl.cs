@@ -1,18 +1,7 @@
-using Il2Cpp;
 using MelonLoader;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
 using UnityEngine;
-using static Il2CppRootMotion.FinalIK.InteractionObject;
-
 using UnityEngine.UI;
-using Il2CppSteamworks;
-using Il2CppSystem.Runtime.Remoting.Messaging;
+
 namespace MitaAI
 {
     public enum characterType
