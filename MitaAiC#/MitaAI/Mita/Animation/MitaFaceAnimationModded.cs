@@ -204,7 +204,7 @@ namespace MitaAI.Mita
 
 
             GameObject heartNeon = RightEye.Find("HeartNeon")?.gameObject;
-            GameObject heartNeonL = LeftEye.Find("HeartNeon")?.gameObject;
+            GameObject heartNeonL = LeftEye.Find("HeartNeonL")?.gameObject;
 
             MelonLogger.Msg("setLoveEye 2");
 
@@ -213,10 +213,13 @@ namespace MitaAI.Mita
                 heartNeon = GameObject.Instantiate(TotalInitialization.HeartNeonTemplate, RightEye);
                 heartNeon.transform.localPosition = new Vector3(0,0.025f,0);
                 heartNeon.transform.localEulerAngles = new Vector3(90,0,0);
+                heartNeon.name = "HeartNeon";
+
 
                 heartNeonL = GameObject.Instantiate(TotalInitialization.HeartNeonTemplate, LeftEye);
                 heartNeonL.transform.localPosition = new Vector3(0, 0.025f, 0);
                 heartNeonL.transform.localEulerAngles = new Vector3(90, 0, 0);
+                heartNeonL.name = "heartNeonL";
             }
             MelonLogger.Msg("setLoveEye 3");
 

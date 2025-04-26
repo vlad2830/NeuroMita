@@ -23,7 +23,8 @@ def load_text_from_file(filename):
     logger.info(f"Загружаю {filename}")
     try:
         # Получаем абсолютный путь к директории скрипта
-        base_dir = os.path.dirname("OpenMita")
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # Текущая папка скрипта
+        base_dir = os.path.join(script_dir, "OpenMita")  # Путь к папке OpenMita
 
         # Формируем полный путь к файлу
         filepath = os.path.join(base_dir, filename)
