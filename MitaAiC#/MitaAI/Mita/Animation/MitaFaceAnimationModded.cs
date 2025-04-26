@@ -180,7 +180,7 @@ namespace MitaAI.Mita
                 Glasess = GameObject.Instantiate(TotalInitialization.Glasses, MitaPersonObject.transform.Find("Armature/Hips/Spine/Chest/Neck2/Neck1/Head").transform);
                 Glasess.transform.localPosition = new Vector3(0,0.085f,0.125f);
                 Glasess.transform.localEulerAngles = new Vector3(270, 0, 0);
-
+                Glasess.name = "Mita'sGlasses";
                 // TO DO Чекнуть поворот
 
                 Glasess.transform.Find("Mita'sGlassesLeftEar").transform.SetLocalPositionAndRotation(new Vector3(-0.0787f,0,0), Quaternion.identity);
@@ -219,7 +219,7 @@ namespace MitaAI.Mita
                 heartNeonL = GameObject.Instantiate(TotalInitialization.HeartNeonTemplate, LeftEye);
                 heartNeonL.transform.localPosition = new Vector3(0, 0.025f, 0);
                 heartNeonL.transform.localEulerAngles = new Vector3(90, 0, 0);
-                heartNeonL.name = "heartNeonL";
+                heartNeonL.name = "HeartNeonL";
             }
             MelonLogger.Msg("setLoveEye 3");
 
