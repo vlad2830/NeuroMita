@@ -11,6 +11,8 @@ using UnityEngine;
 using static Il2CppRootMotion.FinalIK.InteractionObject;
 
 using UnityEngine.UI;
+using Il2CppSteamworks;
+using Il2CppSystem.Runtime.Remoting.Messaging;
 namespace MitaAI
 {
     public enum characterType
@@ -378,6 +380,10 @@ namespace MitaAI
             // Добавляем отправителя в список говорящих
             int CharCount = characters.Count;
             int TotalLimit = (int)Math.Ceiling(CharCount * limitMod / 100f);
+
+
+            // Сорян, но к 11 версии не успеваю
+            return;
 
             if (OrderFieldExists())
             {

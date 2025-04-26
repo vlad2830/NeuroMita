@@ -28,8 +28,8 @@ namespace MitaAI
             string info = "";
 
             if (currentMitasOAMc.ContainsKey(character)) {
-                info += $"Currently interacting with {currentMitasOAMc[character].AmimatedObject.name} - {currentMitasOAMc[character].tip}";
-                info += $"To end this interaction, use <{command}>{currentMitasOAMc[character].backAnimation.name}</{command}> or move to some point.";
+                info += $"You are Currently interacting with '{currentMitasOAMc[character].AmimatedObject.name}' - that has tip '{currentMitasOAMc[character].tip}'";
+                info += $", to end this interaction, use <{command}>{currentMitasOAMc[character].backAnimation.name}</{command}> or move to some point. ";
                 info += $"Attention: all move commands will finish iteraction! Thus use finishing they only intentionally!";
             }
             if (allOAMs.Count>0)

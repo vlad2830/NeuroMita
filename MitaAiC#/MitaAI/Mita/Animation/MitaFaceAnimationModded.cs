@@ -149,7 +149,14 @@ namespace MitaAI.Mita
 
                     default:
                         //Mita.FaceColorUpdate();
-                        MitaCore.Instance.Mita.FaceLayer(0);
+                        try
+                        {
+                            MitaCore.Instance.Mita.FaceLayer(0);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        
                         break;
                 }
             }

@@ -486,12 +486,12 @@ namespace MitaAI
         {
             Hints.freeExitButton();
             endLastCIAs();
-            
+            playerMove.AnimationStop(); 
         }
         public static void UnstackPlayer(bool teleportToZero = true)
         {
             stopAnim();
-            playerMove.AnimationStop();
+            
             if (teleportToZero) MitaCore.Instance.playerObject.transform.position = Vector3.zero;
         }
 

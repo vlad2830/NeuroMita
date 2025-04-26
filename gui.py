@@ -1023,6 +1023,7 @@ class ChatGUI:
                  'tooltip': _("Выберите бота", "Select bot")},
                 {'label': _('Макс. ожидание (сек)', 'Max wait (sec)'), 'key': 'SILERO_TIME', 'type': 'entry', 'default': 12, 'validation': self.validate_number},
                 {'label': _('Настройки Telegram API', 'Telegram API Settings'), 'type': 'text'},
+                 {'label': _('Будет скрыто после перезапуска','Will be hidden after restart')},
                 {'label': _('Telegram ID'), 'key': 'NM_TELEGRAM_API_ID', 'type': 'entry', 'default': "", 'hide': bool(self.settings.get("HIDE_PRIVATE"))},
                 {'label': _('Telegram Hash'), 'key': 'NM_TELEGRAM_API_HASH', 'type': 'entry', 'default': "", 'hide': bool(self.settings.get("HIDE_PRIVATE"))},
                 {'label': _('Telegram Phone'), 'key': 'NM_TELEGRAM_PHONE', 'type': 'entry', 'default': "", 'hide': bool(self.settings.get("HIDE_PRIVATE"))},
@@ -1153,6 +1154,10 @@ class ChatGUI:
     def setup_game_master_controls(self, parent):
         # Основные настройки
         common_config = [
+            {'label': _('Лимит речей нпс %', 'Limit NPC convesationg'), 'key': 'CC_Limit_mod', 'type': 'entry',
+             'default': 100, 'tooltip': _('Сколько от кол-ва персонажей может отклоняться повтор речей нпс',
+                                          'How long NPC can talk ignoring player')},
+            {'label': _('ГеймМастер - экспериментальная функция', 'GameMaster is experimental feature'), 'type': 'text'},
             {'label': _('ГеймМастер включен', 'GameMaster is on'), 'key': 'GM_ON', 'type': 'checkbutton',
              'default_checkbutton': False, 'tooltip': 'Помогает вести диалоги, в теории устраняя проблемы'},
             #{'label': _('ГеймМастер зачитывается', 'GameMaster write in game'), 'key': 'GM_READ', 'type': 'checkbutton',
@@ -1164,9 +1169,7 @@ class ChatGUI:
              'type': 'entry',
              'default': 2,
              'tooltip': _('Пример: 3 Означает, что через каждые две фразы ГМ напишет свое сообщение', 'Example: 3 means that after 2 phreses GM will write his message')},
-            {'label': _('Лимит речей нпс %', 'Limit NPC convesationg'), 'key': 'CC_Limit_mod', 'type': 'entry',
-             'default': 100, 'tooltip': _('Сколько от кол-ва персонажей может отклоняться повтор речей нпс',
-                                          'How long NPC can talk ignoring player')}
+
         ]
         self.create_settings_section(parent,
                                      _("Настройки Мастера игры и Диалогов", "GameMaster and Dialogues settings"),
@@ -1181,7 +1184,7 @@ class ChatGUI:
             {'label': _('Резервные ключи', 'Reserve keys'), 'key': 'NM_API_KEY_RES', 'type': 'text',
              'hide': bool(self.settings.get("HIDE_PRIVATE")), 'default': ""},
             {'label': _('Через Request', 'Using Request'), 'key': 'NM_API_REQ', 'type': 'checkbutton'},
-            {'label': _('Спец Структура Гемини', 'Special Gemini Case'), 'key': 'GEMINI_CASE', 'type': 'checkbutton',
+            {'label': _('Гемини для ProxiAPI', 'Gemini for ProxiAPI'), 'key': 'GEMINI_CASE', 'type': 'checkbutton',
              'default_checkbutton': False}
         ]
         self.create_settings_section(parent,
@@ -1221,24 +1224,6 @@ class ChatGUI:
         if not new_value.isdigit():  # Проверяем, что это число
             return False
         return 0 <= int(new_value) <= 60  # Проверяем, что в пределах диапазона
-
-    def pack_unpack(self, var, frame):
-        """
-        Показывает или скрывает фрейм в зависимости от состояния var.
-        """
-        if var.get():
-            frame.pack(fill=tk.X, padx=10, pady=10)
-        else:
-            frame.pack_forget()
-
-    def toggle_makeRequest(self, change_to_opposite=True):
-        if change_to_opposite:
-            self.makeRequest = not self.makeRequest
-
-        if self.makeRequest:
-            self.makeRequest_entry.config(text="Сейчас режим прокси Gemini")
-        else:
-            self.makeRequest_entry.config(text="Сейчас обычный режим")
 
     def save_api_settings(self):
         """Собирает данные из полей ввода и сохраняет только непустые значения, не перезаписывая существующие."""

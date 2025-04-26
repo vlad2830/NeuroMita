@@ -75,7 +75,7 @@ namespace MitaAI
                     oam1.addSimpleAction((UnityAction)comp.moveChair);
 
                     MelonLogger.Msg("Before FindOrCreateObjectInteractable");
-                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 1, loc._("Сесть","Sit"), false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
+                    var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 5, loc._("Сесть","Sit"), false, useParent: true,CanvasPosition:new Vector3(0,0.9f,0.5f));
                     obj.eventClick.AddListener((UnityAction)comp.moveChair);
                     obj.eventClick.AddListener((UnityAction)Hints.createExitButton);
                 }
@@ -521,8 +521,9 @@ namespace MitaAI
 
             console.GetComponent<Animator>().enabled = true;
             console.GetComponent<Outlinable>().enabled = true;
-            ObjectInteractive objectInteractive = Interactions.FindOrCreateObjectInteractable(console, true, 3, loc._("Переключить", "Turn On\\Off"));
-
+            ObjectInteractive objectInteractive = Interactions.FindOrCreateObjectInteractable(console, true, 5, loc._("Переключить", "Turn On\\Off"));
+            objectInteractive.deactiveObject = false;
+            objectInteractive.destroyComponent = false;
             objectInteractive.eventClick.AddListener((UnityAction)comp.changeActivation);
 
         }
