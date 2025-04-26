@@ -22,11 +22,12 @@ def load_text_from_file(filename):
 
     logger.info(f"Загружаю {filename}")
     try:
-        # Получаем абсолютный путь к директории скрипта
-        base_dir = os.path.dirname("OpenMita")
 
-        # Формируем полный путь к файлу
-        filepath = os.path.join(base_dir, filename)
+        # Получаем корневую папку проекта (E:\Games\OpenAI_API_TEST\OpenMita)
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        # Формируем путь БЕЗ повторного добавления "OpenMita"
+        filepath = os.path.join(project_root, filename)
         filepath = os.path.normpath(filepath)
 
         # Проверяем, существует ли файл
