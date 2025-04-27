@@ -494,8 +494,12 @@ namespace MitaAI
         }
         void ReturnToNormalState()
         {
-
-            backAnimation.commonInteractableObject.free(position);
+            try
+            {
+                backAnimation.commonInteractableObject.free(position);
+            }
+            catch (Exception e) { }
+            
 
             mitaPerson.MagnetOff();
 

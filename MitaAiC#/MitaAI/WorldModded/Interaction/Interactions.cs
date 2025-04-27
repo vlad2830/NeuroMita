@@ -326,6 +326,7 @@ namespace MitaAI
 
 
             objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true,timeDeactivate:5, loc._("Взять", "Take"));
+            objectInteractive.transform.SetParent(MitaCore.worldHouse,true);
             //var chairOIP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(objectInteractive.transform, "Interactive Aihastion");
             //objectInteractive.eventClick.AddListener((UnityAction)chairOIP.GetComponent<ObjectAnimationPlayer>().AnimationPlay);
             objectInteractive.active = true;

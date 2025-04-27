@@ -241,41 +241,48 @@ namespace MitaAI
             MelonLogger.Msg($"Finished HandleIl2CppComponent for {il2cppComponent?.GetType().Name}.");
         }
 
-
-
         private static Dictionary<Transform, object> activeAnimations = new Dictionary<Transform, object>();
+        private static Dictionary<Transform, Queue<AnimationRequest>> pendingAnimations = new Dictionary<Transform, Queue<AnimationRequest>>();
+
+        private struct AnimationRequest
+        {
+            public Vector3 position;
+            public Vector3 rotation;
+            public float duration;
+            public bool delta;
+        }
 
         public static void StartObjectAnimation(GameObject targetObject, Vector3 position, Vector3 rotation, float duration, bool delta = true)
         {
             if (targetObject == null) return;
 
             Transform targetTransform = targetObject.transform;
+            var request = new AnimationRequest { position = position, rotation = rotation, duration = duration, delta = delta };
 
             // Если для этого объекта уже есть активная анимация
-            if (activeAnimations.TryGetValue(targetTransform, out object runningCoroutine))
+            if (activeAnimations.ContainsKey(targetTransform))
             {
-                // Останавливаем текущую анимацию
-                MelonCoroutines.Stop(runningCoroutine);
-
-                // Немедленно завершаем предыдущую анимацию
-                if (delta)
+                // Добавляем в очередь вместо прерывания
+                if (!pendingAnimations.TryGetValue(targetTransform, out Queue<AnimationRequest> queue))
                 {
-                    targetTransform.localPosition += position;
-                    targetTransform.localRotation *= Quaternion.Euler(rotation);
+                    queue = new Queue<AnimationRequest>();
+                    pendingAnimations[targetTransform] = queue;
                 }
-                else
-                {
-                    targetTransform.localPosition = position;
-                    targetTransform.localRotation = Quaternion.Euler(rotation);
-                }
+                queue.Enqueue(request);
             }
+            else
+            {
+                // Нет активной анимации - запускаем сразу
+                StartNewAnimation(targetTransform, request);
+            }
+        }
 
-            // Запускаем новую анимацию
-            object newCoroutine = delta ?
-                MelonCoroutines.Start(AnimateObjectByDelta(targetTransform, position, rotation, duration)) :
-                MelonCoroutines.Start(AnimateObjectToFinalPos(targetTransform, position, rotation, duration));
+        private static void StartNewAnimation(Transform targetTransform, AnimationRequest request)
+        {
+            object newCoroutine = request.delta ?
+                MelonCoroutines.Start(AnimateObjectByDelta(targetTransform, request.position, request.rotation, request.duration)) :
+                MelonCoroutines.Start(AnimateObjectToFinalPos(targetTransform, request.position, request.rotation, request.duration));
 
-            // Запоминаем новую корутину
             activeAnimations[targetTransform] = newCoroutine;
         }
 
@@ -308,8 +315,7 @@ namespace MitaAI
             targetTransform.localPosition = targetPosition;
             targetTransform.localRotation = targetRotation;
 
-            // Удаляем запись о завершенной анимации
-            activeAnimations.Remove(targetTransform);
+            OnAnimationComplete(targetTransform);
         }
 
         private static IEnumerator AnimateObjectToFinalPos(Transform targetTransform,
@@ -341,31 +347,37 @@ namespace MitaAI
             targetTransform.localPosition = targetPosition;
             targetTransform.localRotation = targetRotation;
 
-            // Удаляем запись о завершенной анимации
+            OnAnimationComplete(targetTransform);
+        }
+
+        private static void OnAnimationComplete(Transform targetTransform)
+        {
+            // Удаляем из активных анимаций
             activeAnimations.Remove(targetTransform);
-        }
 
-        // Метод для принудительной остановки всех анимаций (опционально)
-        public static void StopAllAnimations()
-        {
-            foreach (var pair in activeAnimations)
+            // Проверяем очередь ожидающих анимаций
+            if (pendingAnimations.TryGetValue(targetTransform, out Queue<AnimationRequest> queue) && queue.Count > 0)
             {
-                MelonCoroutines.Stop(pair.Value);
+                var nextRequest = queue.Dequeue();
+                StartNewAnimation(targetTransform, nextRequest);
+
+                // Если очередь пуста, удаляем её
+                if (queue.Count == 0)
+                {
+                    pendingAnimations.Remove(targetTransform);
+                }
             }
-            activeAnimations.Clear();
         }
 
-        // Метод для остановки анимации конкретного объекта (опционально)
-        public static void StopAnimation(GameObject targetObject)
+        // Метод для очистки всех анимаций (опционально)
+        public static void ClearAllAnimations()
         {
-            if (targetObject == null) return;
-
-            Transform targetTransform = targetObject.transform;
-            if (activeAnimations.TryGetValue(targetTransform, out object coroutine))
+            foreach (var coroutine in activeAnimations.Values)
             {
                 MelonCoroutines.Stop(coroutine);
-                activeAnimations.Remove(targetTransform);
             }
+            activeAnimations.Clear();
+            pendingAnimations.Clear();
         }
     
 
