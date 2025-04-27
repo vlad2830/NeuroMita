@@ -9,12 +9,12 @@ from Logger import logger
 class AudioHandler:
 
     @classmethod
-    async def handle_voice_file(cls, file_path):
+    async def handle_voice_file(cls, file_path, delete :bool = True):
         """Проигрывает звуковой файл (MP3 или OGG)."""
         try:
             logger.info(f"Проигрываю файл: {file_path}")
             await cls.play_audio_with_pygame(file_path)
-            if os.path.exists(file_path):
+            if os.path.exists(file_path) and delete:
                 try:
                     await asyncio.sleep(0.02)
                     os.remove(file_path)

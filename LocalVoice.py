@@ -28,7 +28,9 @@ import soundfile as sf
 
 import re
 from xml.sax.saxutils import escape
-from utils.PipInstaller import PipInstaller
+
+from packaging.utils import canonicalize_name, NormalizedName
+from utils.PipInstaller import PipInstaller, DependencyResolver
 
 import json
 from docs import DocsManager
@@ -70,6 +72,9 @@ class LocalVoice:
             logger.info("KMP_DUPLICATE_LIB_OK = TRUE")
             os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
+        self.known_main_packages = ["tts-with-rvc", "fish-speech-lib", "triton-windows"]
+        self.protected_package = "g4f"
+
         self.cuda_found = False
         self.winsdk_found = False
         self.msvc_found = False
@@ -104,7 +109,19 @@ class LocalVoice:
             base_dir = os.path.dirname(__file__)
             alt_base_dir = base_dir
 
-        self._check_system_dependencies()
+        try: 
+            self._check_system_dependencies()
+        except:
+            print("Triton не установлен корректно.")
+
+    def uninstall_edge_tts_rvc(self):
+        return self._uninstall_component("EdgeTTS+RVC", "tts-with-rvc")
+
+    def uninstall_fish_speech(self):
+        return self._uninstall_component("Fish Speech", "fish-speech-lib")
+
+    def uninstall_triton_component(self):
+        return self._uninstall_component("Triton", "triton-windows")
 
     def download_model(self, model_id):
         """Загрузка модели по её идентификатору"""
@@ -176,75 +193,133 @@ class LocalVoice:
             except Exception as ex:
                 logger.info("error:", ex)
                 return False
-            
+
+    def _cleanup_after_uninstall(self, removed_package_name: str):
+        logger.info(f"Очистка состояния LocalVoice после удаления пакета: {removed_package_name}")
+        original_current_model = self.current_model
+        model_id_to_clear = None
+
+        if removed_package_name == "tts-with-rvc":
+            if self.current_model in ["low", "low+"]: 
+                self.current_model = None
+            if "low" in self.initialized_models: 
+                self.initialized_models.remove("low")
+            if "low+" in self.initialized_models: 
+                self.initialized_models.remove("low+")
+            if self.current_tts_rvc: 
+                self.current_tts_rvc = None
+            if self.current_silero_model: 
+                self.current_silero_model = None 
+
+            self.tts_rvc_module = None
+            model_id_to_clear = "low/low+" 
+        elif removed_package_name == "fish-speech-lib":
+            if self.current_model in ["medium", "medium+", "medium+low"]: 
+                self.current_model = None
+            if "medium" in self.initialized_models: 
+                self.initialized_models.remove("medium")
+            if self.current_fish_speech: 
+                self.current_fish_speech = None
+
+            self.fish_speech_module = None
+            model_id_to_clear = "medium"
+
+        elif removed_package_name == "triton-windows":
+            if self.current_model in ["medium+", "medium+low"]: 
+                self.current_model = None
+            if "medium+" in self.initialized_models: 
+                self.initialized_models.remove("medium+")
+            if "medium+low" in self.initialized_models: 
+                self.initialized_models.remove("medium+low")
+
+            self.triton_installed = False
+            self.triton_checks_performed = False
+            self.cuda_found = False
+            self.winsdk_found = False
+            self.msvc_found = False
+            self.triton_module = False
+            model_id_to_clear = "triton"
+
+        if model_id_to_clear: 
+            logger.info(f"Состояние для компонента '{model_id_to_clear}' сброшено.")
+        if original_current_model and original_current_model == self.current_model:
+            pass 
+        elif original_current_model and original_current_model != self.current_model:
+            logger.info(f"Текущая модель сброшена (была {original_current_model}).")
+
+        try: importlib.invalidate_caches()
+        except Exception: pass
+
     def _check_system_dependencies(self):
-        """Проверяет наличие CUDA, Windows SDK и MSVC с помощью triton (исправлено)."""
+        """Проверяет наличие CUDA, Windows SDK и MSVC с помощью triton.
+        Предполагается, что вызывающий код обработает ImportError при импорте triton."""
         self.cuda_found = False
         self.winsdk_found = False
         self.msvc_found = False
         self.triton_installed = False
         self.triton_checks_performed = False
 
-
         libs_path_abs = os.path.abspath("Lib")
         if libs_path_abs not in sys.path:
             sys.path.insert(0, libs_path_abs)
             logger.info(f"Добавлен путь {libs_path_abs} в sys.path для поиска Triton")
 
-        try:
-            import triton
-            from triton.windows_utils import find_cuda, find_winsdk, find_msvc
-            self.triton_installed = True
-            logger.info("Triton импортирован успешно.")
+        # Попытка импорта (ImportError ловится выше в download_triton)
+        import triton
+        from triton.windows_utils import find_cuda, find_winsdk, find_msvc
 
+        self.triton_installed = True # Импорт успешен
+        logger.info("Triton импортирован успешно внутри _check_system_dependencies.")
+
+        # --- Проверка CUDA, WinSDK, MSVC с обработкой ошибок ---
+        try:
+            # CUDA
             try:
                 cuda_result = find_cuda()
                 logger.info(f"CUDA find_cuda() result: {cuda_result}")
                 if isinstance(cuda_result, (tuple, list)) and len(cuda_result) >= 1:
                     cuda_path = cuda_result[0]
                     self.cuda_found = cuda_path is not None and os.path.exists(str(cuda_path))
-                else:
-                    self.cuda_found = False
+                else: self.cuda_found = False
             except Exception as e_cuda:
-                 logger.info(f"Ошибка при проверке CUDA: {e_cuda}")
-                 self.cuda_found = False
+                logger.warning(f"Ошибка при проверке CUDA: {e_cuda}") # Warning, т.к. не критично для самой проверки
+                self.cuda_found = False
             logger.info(f"CUDA Check: Found={self.cuda_found}")
 
+            # WinSDK
             try:
                 winsdk_result = find_winsdk(False)
                 logger.info(f"WinSDK find_winsdk() result: {winsdk_result}")
                 if isinstance(winsdk_result, (tuple, list)) and len(winsdk_result) >= 1:
                     winsdk_paths = winsdk_result[0]
                     self.winsdk_found = isinstance(winsdk_paths, list) and bool(winsdk_paths)
-                else:
-                    self.winsdk_found = False
+                else: self.winsdk_found = False
             except Exception as e_winsdk:
-                 logger.info(f"Ошибка при проверке WinSDK: {e_winsdk}")
-                 self.winsdk_found = False
+                logger.warning(f"Ошибка при проверке WinSDK: {e_winsdk}")
+                self.winsdk_found = False
             logger.info(f"WinSDK Check: Found={self.winsdk_found}")
 
+            # MSVC
             try:
                 msvc_result = find_msvc(False)
                 logger.info(f"MSVC find_msvc() result: {msvc_result}")
                 if isinstance(msvc_result, (tuple, list)) and len(msvc_result) >= 1:
                     msvc_paths = msvc_result[0]
                     self.msvc_found = isinstance(msvc_paths, list) and bool(msvc_paths)
-                else:
-                    self.msvc_found = False
+                else: self.msvc_found = False
             except Exception as e_msvc:
-                 logger.info(f"Ошибка при проверке MSVC: {e_msvc}")
-                 self.msvc_found = False
+                logger.warning(f"Ошибка при проверке MSVC: {e_msvc}")
+                self.msvc_found = False
             logger.info(f"MSVC Check: Found={self.msvc_found}")
 
+            # Если дошли сюда без общих ошибок, считаем проверки выполненными
             self.triton_checks_performed = True
 
-        except ImportError:
-            logger.info("Triton не установлен или не найден в sys.path. Невозможно проверить зависимости CUDA/WinSDK/MSVC.")
-            self.triton_installed = False
         except Exception as e:
-            logger.info(f"Общая ошибка при проверке зависимостей Triton: {e}")
+            # Ловим общие ошибки при вызове find_* функций (если они не были пойманы выше)
+            logger.error(f"Общая ошибка при выполнении проверок find_* в Triton: {e}")
             traceback.print_exc()
-            self.triton_installed = self.is_triton_installed()
+            # triton_installed остается True, но проверки не выполнены
             self.triton_checks_performed = False
     
     def _create_installation_window(self, title, initial_status="Подготовка..."):
@@ -363,8 +438,10 @@ class LocalVoice:
                 y = parent_win.winfo_y() + (parent_win.winfo_height() // 2) - (progress_window.winfo_height() // 2)
                 progress_window.geometry(f"+{x}+{y}")
             else:
-                 screen_width = progress_window.winfo_screenwidth(); screen_height = progress_window.winfo_screenheight()
-                 x = (screen_width // 2) - (progress_window.winfo_width() // 2); y = (screen_height // 2) - (progress_window.winfo_height() // 2)
+                 screen_width = progress_window.winfo_screenwidth()
+                 screen_height = progress_window.winfo_screenheight()
+                 x = (screen_width // 2) - (progress_window.winfo_width() // 2)
+                 y = (screen_height // 2) - (progress_window.winfo_height() // 2)
                  progress_window.geometry(f'+{x}+{y}')
 
             progress_window.grab_set() # Модальное окно
@@ -401,9 +478,208 @@ class LocalVoice:
                     pass
             return None
 
+    def _create_action_window(self, title, initial_status="Подготовка..."):
+        progress_window = None
+        try:
+            if not hasattr(self, '_action_fonts_created'):
+                try:
+                    title_font_name = "LocalVoiceActionTitle"
+                    status_font_name = "LocalVoiceActionStatus"
+                    log_font_name = "LocalVoiceActionLog"
+                    self._title_font_action = tkFont.Font(name=title_font_name, family="Segoe UI", size=12, weight="bold")
+                    self._status_font_prog_action = tkFont.Font(name=status_font_name, family="Segoe UI", size=9)
+                    self._log_font_action = tkFont.Font(name=log_font_name, family="Consolas", size=9)
+                    self._action_fonts_created = True
+                except tk.TclError as e: 
+                    logger.info(f"Ошибка шрифтов окна действия: {e}")
+                    return None
+            
+            title_font = self._title_font_action
+            status_font_prog = self._status_font_prog_action
+            log_font = self._log_font_action
+
+            bg_color="#1e1e1e"
+            fg_color="#ffffff"
+            log_bg_color="#101010"
+            log_fg_color="#cccccc"
+            button_bg="#333333"
+
+            progress_window = tk.Toplevel(self.parent.root if self.parent and hasattr(self.parent, 'root') else None)
+            progress_window.title(title)
+            progress_window.geometry("700x400")
+            progress_window.configure(bg=bg_color)
+            progress_window.resizable(False, False)
+            progress_window.attributes('-topmost', True)
+
+            tk.Label(progress_window, text=title, font=title_font, bg=bg_color, fg=fg_color).pack(pady=10)
+
+            info_frame = tk.Frame(progress_window, bg=bg_color)
+            info_frame.pack(fill=tk.X, padx=10)
+
+            status_label = tk.Label(info_frame, text=initial_status, anchor="w", font=status_font_prog, bg=bg_color, fg=fg_color)
+            status_label.pack(side=tk.LEFT, pady=5, fill=tk.X, expand=True)
+            log_frame = tk.Frame(progress_window, bg=bg_color)
+            log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            log_text = tk.Text(log_frame, height=15, bg=log_bg_color, fg=log_fg_color, wrap=tk.WORD, font=log_font, relief=tk.FLAT, borderwidth=1, highlightthickness=0, insertbackground=fg_color)
+            log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            
+            scrollbar = tk.Scrollbar(log_frame, command=log_text.yview, relief=tk.FLAT, troughcolor=bg_color, bg=button_bg, activebackground="#555", elementborderwidth=0, borderwidth=0)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            log_text.config(yscrollcommand=scrollbar.set)
+            log_text.config(state=tk.DISABLED)
+            progress_window.update_idletasks()
+
+            parent_win = self.parent.root if self.parent and hasattr(self.parent, 'root') else None
+            if parent_win and parent_win.winfo_exists():
+                x = parent_win.winfo_x() + (parent_win.winfo_width() // 2) - (progress_window.winfo_width() // 2)
+                y = parent_win.winfo_y() + (parent_win.winfo_height() // 2) - (progress_window.winfo_height() // 2)
+                progress_window.geometry(f"+{x}+{y}")
+            else:
+                screen_width = progress_window.winfo_screenwidth()
+                screen_height = progress_window.winfo_screenheight()
+                x = (screen_width // 2) - (progress_window.winfo_width() // 2)
+                y = (screen_height // 2) - (progress_window.winfo_height() // 2)
+                progress_window.geometry(f'+{x}+{y}')
+            progress_window.grab_set()
+            def update_status(message):
+                if progress_window and progress_window.winfo_exists():
+                    status_label.config(text=message)
+                    progress_window.update()
+            def update_log(text):
+                 if progress_window and progress_window.winfo_exists():
+                    log_text.config(state=tk.NORMAL)
+                    log_text.insert(tk.END, text + "\n")
+                    log_text.see(tk.END)
+                    log_text.config(state=tk.DISABLED)
+                    
+                    progress_window.update()
+            return {"window": progress_window, "update_status": update_status, "update_log": update_log}
+        except Exception as e: 
+            logger.error(f"Ошибка создания окна действия: {e}")
+            traceback.print_exc()
+            return None
+    
+    # region Окна предупреждений:
+    def _show_vc_redist_warning_dialog(self):
+        """Отображает диалоговое окно с предупреждением об установке VC Redist
+        и предлагает повторить попытку импорта."""
+        self._dialog_choice = None 
+
+        bg_color = "#1e1e1e"
+        fg_color = "#ffffff"
+        button_bg = "#333333"
+        button_fg = "#ffffff"
+        button_active_bg = "#555555"
+        warning_color = "orange"
+        retry_button_bg = "#4CAF50" 
+
+        try:
+
+            dlg_main_font_name = "VCRedistDialogMainFont"
+            dlg_bold_font_name = "VCRedistDialogBoldFont"
+            dlg_button_font_name = "VCRedistDialogButtonFont"
+
+            try: 
+                main_font = tkFont.Font(name=dlg_main_font_name)
+                main_font.config(family="Segoe UI", size=10)
+            except tk.TclError: 
+                main_font = tkFont.Font(name=dlg_main_font_name, family="Segoe UI", size=10)
+            try: 
+                bold_font = tkFont.Font(name=dlg_bold_font_name)
+                bold_font.config(family="Segoe UI", size=11, weight="bold")
+            except tk.TclError: 
+                bold_font = tkFont.Font(name=dlg_bold_font_name, family="Segoe UI", size=11, weight="bold")
+            try: 
+                button_font = tkFont.Font(name=dlg_button_font_name)
+                button_font.config(family="Segoe UI", size=9, weight="bold")
+            except tk.TclError: 
+                button_font = tkFont.Font(name=dlg_button_font_name, family="Segoe UI", size=9, weight="bold")
+
+        except tk.TclError as e:
+            logger.info(f"Критическая ошибка шрифтов для диалога VC Redist: {e}")
+            main_font, bold_font, button_font = None, None, None
+
+        dialog = tk.Toplevel(self.parent.root if self.parent and hasattr(self.parent, 'root') else None)
+        dialog.title("⚠️ Ошибка загрузки Triton")
+
+        dialog.configure(bg=bg_color)
+        dialog.resizable(False, False)
+        dialog.attributes('-topmost', True)
+
+        top_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=10)
+        top_frame.pack(fill=tk.X)
+
+        tk.Label(top_frame, text="Ошибка импорта Triton (DLL Load Failed)", font=bold_font, bg=bg_color, fg=warning_color).pack(anchor='w')
+
+        info_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=5)
+        info_frame.pack(fill=tk.X)
+        info_text = (
+            "Не удалось загрузить библиотеку для Triton (возможно, отсутствует VC++ Redistributable).\n"
+            "Установите последнюю версию VC++ Redistributable (x64) с сайта Microsoft\n"
+            "или попробуйте импортировать снова, если вы только что его установили."
+        )
+        tk.Label(info_frame, text=info_text, font=main_font, bg=bg_color, fg=fg_color, justify=tk.LEFT).pack(anchor='w')
+
+        button_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=15)
+        button_frame.pack(fill=tk.X)
+
+        # --- Функции для кнопок ---
+        def on_retry():
+            self._dialog_choice = "retry"
+            dialog.destroy()
+
+        def on_docs():
+            try:
+                if hasattr(self, 'docs_manager') and self.docs_manager:
+                    self.docs_manager.open_doc("installation_guide.html#vc_redist")
+                else: logger.warning("DocsManager не инициализирован.")
+            except Exception as e_docs: logger.info(f"Не удалось открыть документацию: {e_docs}")
+
+        def on_close():
+            self._dialog_choice = "close"
+            dialog.destroy()
+
+        # --- Создание кнопок ---
+        retry_button = tk.Button(button_frame, text="Попробовать снова", command=on_retry,
+                                font=button_font, bg=retry_button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
+                                activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
+        retry_button.pack(side=tk.RIGHT, padx=(5, 0))
+
+        close_button = tk.Button(button_frame, text="Закрыть", command=on_close,
+                                font=button_font, bg=button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
+                                activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
+        close_button.pack(side=tk.RIGHT, padx=(5, 0))
+
+        docs_button = tk.Button(button_frame, text="Документация", command=on_docs, # Укоротил текст
+                                font=button_font, bg=button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
+                                activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
+        docs_button.pack(side=tk.LEFT, padx=(0, 5))
+
+        # --- Центрирование и модальность ---
+        dialog.update_idletasks()
+        parent_win = self.parent.root if self.parent and hasattr(self.parent, 'root') else None
+        if parent_win and parent_win.winfo_exists():
+            x = parent_win.winfo_x() + (parent_win.winfo_width() // 2) - (dialog.winfo_width() // 2)
+            y = parent_win.winfo_y() + (parent_win.winfo_height() // 2) - (dialog.winfo_height() // 2)
+            dialog.geometry(f"+{x}+{y}")
+        else:
+            screen_width = dialog.winfo_screenwidth()
+            screen_height = dialog.winfo_screenheight()
+            x = (screen_width // 2) - (dialog.winfo_width() // 2)
+            y = (screen_height // 2) - (dialog.winfo_height() // 2)
+            dialog.geometry(f'+{x}+{y}')
+
+        dialog.protocol("WM_DELETE_WINDOW", on_close) 
+        dialog.grab_set()
+        dialog.wait_window()
+
+        return self._dialog_choice
+
+
     def _show_triton_init_warning_dialog(self):
         """Отображает диалоговое окно с предупреждением о зависимостях Triton."""
-        self._dialog_choice = None # Сбрасываем выбор
+        self._dialog_choice = None
 
         # Цвета и шрифты
         bg_color = "#1e1e1e"
@@ -604,25 +880,151 @@ class LocalVoice:
         dialog.wait_window() # Ждем закрытия окна
 
         return self._dialog_choice # Возвращаем выбор пользователя
-
+    #endregion
+    
     #region Установка моделей
 
-    def download_triton(self):
+    def _uninstall_component(self, component_name: str, main_package_to_remove: str):
         gui_elements = None
+        uninstall_success = False
+        cleanup_success = False
+        try:
+            gui_elements = self._create_action_window(
+                title=f"Удаление {component_name}",
+                initial_status=f"Удаление основного пакета {main_package_to_remove}..."
+            )
+            if not gui_elements: return False
+            update_status = gui_elements["update_status"]
+            update_log = gui_elements["update_log"]
+
+            installer = PipInstaller(
+                script_path=r"libs\python\python.exe", libs_path="Lib",
+                update_status=update_status, update_log=update_log,
+                progress_window=gui_elements["window"]
+            )
+
+            # Этап 1: Удаление основного пакета
+            update_log(f"Этап 1: Удаление основного пакета '{main_package_to_remove}'...")
+            uninstall_success = installer.uninstall_packages(
+                packages_to_uninstall=[main_package_to_remove],
+                description=f"Удаление {main_package_to_remove}..."
+            )
+
+            if not uninstall_success:
+                update_log(f"Не удалось удалить основной пакет '{main_package_to_remove}'. Процесс остановлен.")
+                update_status(f"Ошибка удаления {main_package_to_remove}")
+            else:
+                update_log(f"Основной пакет '{main_package_to_remove}' успешно удален (или отсутствовал).")
+                update_status("Очистка неиспользуемых зависимостей...")
+                update_log("Этап 2: Поиск и удаление 'осиротевших' зависимостей...")
+                cleanup_success = self._cleanup_orphans(installer, update_log)
+                if cleanup_success:
+                    update_status("Удаление завершено.")
+                    update_log("Очистка зависимостей завершена.")
+                else:
+                    update_status("Ошибка при очистке зависимостей.")
+                    update_log("Не удалось удалить некоторые 'осиротевшие' зависимости.")
+
+            # Обновляем состояние LocalVoice только если основной пакет удален успешно
+            if uninstall_success:
+                 self._cleanup_after_uninstall(main_package_to_remove) # Используем имя пакета для очистки
+
+            if gui_elements and gui_elements["window"].winfo_exists():
+                gui_elements["window"].after(3000, gui_elements["window"].destroy)
+
+            # Возвращаем успех, только если оба этапа прошли (или очистка не требовалась)
+            return uninstall_success and cleanup_success
+
+        except Exception as e:
+            logger.error(f"Критическая ошибка при удалении {component_name}: {e}")
+            traceback.print_exc()
+            if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
+                try:
+                    gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}\n{traceback.format_exc()}")
+                    gui_elements["update_status"]("Критическая ошибка удаления!")
+                    gui_elements["window"].after(5000, gui_elements["window"].destroy)
+                except: pass
+            return False
+
+    def _cleanup_orphans(self, installer: PipInstaller, update_log_func) -> bool:
+        try:
+            resolver = DependencyResolver(installer.libs_path_abs, update_log_func)
+
+            all_installed_canon = resolver.get_all_installed_packages()
+            known_main_canon = set(canonicalize_name(p) for p in self.known_main_packages)
+            protected_canon = canonicalize_name(self.protected_package)
+
+            remaining_main_canon = (all_installed_canon & known_main_canon)
+            update_log_func(f"Обнаружены установленные основные пакеты (кроме g4f): {remaining_main_canon or 'Нет'}")
+
+            g4f_deps_canon = set()
+            if protected_canon in all_installed_canon:
+                update_log_func(f"Построение дерева зависимостей для защищенного пакета: {self.protected_package}")
+                g4f_deps_canon = resolver.get_dependency_tree(self.protected_package)
+                if not g4f_deps_canon:
+                    g4f_deps_canon = {protected_canon}
+                update_log_func(f"Зависимости {self.protected_package}: {g4f_deps_canon or 'Нет'}")
+            else:
+                update_log_func(f"Защищенный пакет {self.protected_package} не установлен.")
+
+            other_required_deps_canon = set()
+            if remaining_main_canon:
+                update_log_func(f"Построение дерева зависимостей для оставшихся основных пакетов...")
+                # --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+                for pkg_canon in remaining_main_canon:
+                    deps = resolver.get_dependency_tree(pkg_canon) # Используем get_dependency_tree
+                    other_required_deps_canon.update(deps) # Собираем все зависимости в один сет
+                # --- КОНЕЦ ИСПРАВЛЕНИЯ ---
+                update_log_func(f"Зависимости оставшихся: {other_required_deps_canon or 'Нет'}")
+
+            required_set_canon = g4f_deps_canon | other_required_deps_canon
+            update_log_func(f"Полный набор необходимых пакетов: {required_set_canon or 'Нет'}")
+
+            orphans_canon = all_installed_canon - required_set_canon
+            update_log_func(f"Обнаружены 'осиротевшие' пакеты: {orphans_canon or 'Нет'}")
+
+            if orphans_canon:
+                installed_packages_map = {}
+                if os.path.exists(installer.libs_path_abs):
+                    for item in os.listdir(installer.libs_path_abs):
+                         if item.endswith(".dist-info"):
+                             try:
+                                 dist_name = item.split('-')[0]
+                                 installed_packages_map[canonicalize_name(dist_name)] = dist_name
+                             except Exception: pass
+
+                orphans_original_names = [installed_packages_map.get(o_canon, str(o_canon)) for o_canon in orphans_canon] # Преобразуем NormalizedName в строку на всякий случай
+                update_log_func(f"Попытка удаления сирот: {orphans_original_names}")
+                return installer.uninstall_packages(orphans_original_names, "Удаление осиротевших зависимостей...")
+            else:
+                update_log_func("Осиротевшие зависимости не найдены.")
+                return True
+        except Exception as e:
+            update_log_func(f"Ошибка во время очистки сирот: {e}")
+            update_log_func(traceback.format_exc())
+            return False
+    def download_triton(self):
+        """
+        Устанавливает Triton, применяет патчи, проверяет зависимости
+        (с возможностью повторной попытки при ошибке DLL) и инициализирует ядро.
+        """
+        gui_elements = None
+        self.triton_module = False 
+
         try:
             gui_elements = self._create_installation_window(
                 title="Установка Triton",
                 initial_status="Подготовка..."
             )
             if not gui_elements:
-                return False # Ошибка создания окна
+                logger.error("Не удалось создать окно установки Triton.")
+                return False
 
             progress_window = gui_elements["window"]
             update_progress = gui_elements["update_progress"]
             update_status = gui_elements["update_status"]
             update_log = gui_elements["update_log"]
 
-            # --- Логика установки ---
             script_path = r"libs\python\python.exe"
             libs_path = "Lib"
             libs_path_abs = os.path.abspath(libs_path)
@@ -632,74 +1034,89 @@ class LocalVoice:
                 update_log(f"Создана директория: {libs_path}")
 
             if libs_path_abs not in sys.path:
-                 sys.path.insert(0, libs_path_abs)
-                 update_log(f"Добавлен путь {libs_path_abs} в sys.path")
-
+                sys.path.insert(0, libs_path_abs)
+                update_log(f"Добавлен путь {libs_path_abs} в sys.path")
 
             update_progress(10)
             update_log("Начало установки Triton...")
 
-
-            # --- Шаги установки ---
+            # --- Установка пакета ---
             update_progress(20)
             update_status("Установка библиотеки Triton...")
-            update_log("Установка библиотеки triton-windows...")
-
-            script_path = r"libs\python\python.exe" # Путь к Python остается здесь или передается в LocalVoice.__init__
+            update_log("Установка пакета triton-windows...")
             installer = PipInstaller(
                 script_path=script_path,
-                libs_path="Lib",
+                libs_path=libs_path,
                 update_status=update_status,
                 update_log=update_log,
-                progress_window=progress_window # Передаем окно для проверки
+                progress_window=progress_window
             )
-
-
             success = installer.install_package(
                 "triton-windows<3.3.0",
                 description="Установка библиотеки Triton...",
                 extra_args=["--upgrade"]
             )
-            
-            update_progress(10)
-            update_log("Начало установки Triton...")
 
             if not success:
                 update_status("Ошибка при установке Triton")
-                update_log("Не удалось установить Triton. Проверьте лог выше.")
+                update_log("Не удалось установить пакет Triton. Проверьте лог выше.")
                 if progress_window and progress_window.winfo_exists():
                     progress_window.after(5000, progress_window.destroy)
-                return False
+                return False # Установка пакета не удалась, дальше нет смысла
 
             # --- Патчи ---
-            update_progress(50)
+            update_progress(50) # Прогресс после установки и перед патчами
             update_status("Применение патчей...")
+            update_log("Применение необходимых патчей для Triton...")
+
+            # Патч build.py
             update_log("Применение патча к build.py...")
             build_py_path = os.path.join(libs_path_abs, "triton", "runtime", "build.py")
             if os.path.exists(build_py_path):
                 try:
                     with open(build_py_path, "r", encoding="utf-8") as f: source = f.read()
+                    # Патч 1: Путь к tcc.exe
                     new_cc_path = os.path.join(libs_path_abs, "triton", "runtime", "tcc", "tcc.exe").replace("\\", "\\\\")
-                    old_line = 'cc = os.path.join(sysconfig.get_paths()["platlib"], "triton", "runtime", "tcc", "tcc.exe")'
-                    new_line = f'cc = r"{new_cc_path}"'
-                    if old_line in source:
-                        patched_source = source.replace(old_line, new_line)
-                        with open(build_py_path, "w", encoding="utf-8") as f: f.write(patched_source)
-                        update_log("Патч успешно применен к build.py")
-                    else:
-                        update_log("Патч для build.py уже применен или строка не найдена.")
+                    # Используем sysconfig, если он доступен, для большей надежности поиска старой строки
+                    try:
+                        old_line_tcc = f'cc = os.path.join(sysconfig.get_paths()["platlib"], "triton", "runtime", "tcc", "tcc.exe")'
+                    except KeyError: # На случай, если platlib не определен
+                        old_line_tcc = 'os.path.join(sysconfig.get_paths()["platlib"], "triton", "runtime", "tcc", "tcc.exe")' # Примерная строка
+                        update_log("Предупреждение: Не удалось точно определить старую строку tcc в build.py, используется предположение.")
 
-                    old_line = 'cc_cmd = [cc, src, "-O3", "-shared", "-fPIC", "-Wno-psabi", "-o", out]'
-                    new_line = 'cc_cmd = [cc, src, "-O3", "-shared", "-Wno-psabi", "-o", out]'
-                    if old_line in source:
-                        patched_source = source.replace(old_line, new_line)
-                        with open(build_py_path, "w", encoding="utf-8") as f: f.write(patched_source)
-                        update_log("Патч (удаление -fPIC) успешно применен к build.py")
+                    new_line_tcc = f'cc = r"{new_cc_path}"'
+                    # Патч 2: Удаление -fPIC
+                    old_line_fpic = 'cc_cmd = [cc, src, "-O3", "-shared", "-fPIC", "-Wno-psabi", "-o", out]'
+                    new_line_fpic = 'cc_cmd = [cc, src, "-O3", "-shared", "-Wno-psabi", "-o", out]'
+
+                    patched_source = source
+                    applied_patch_tcc = False
+                    applied_patch_fpic = False
+
+                    if old_line_tcc in patched_source:
+                        patched_source = patched_source.replace(old_line_tcc, new_line_tcc)
+                        applied_patch_tcc = True
+                    else:
+                        update_log("Патч (путь tcc.exe) для build.py уже применен или строка не найдена.")
+
+                    if old_line_fpic in patched_source:
+                        patched_source = patched_source.replace(old_line_fpic, new_line_fpic)
+                        applied_patch_fpic = True
                     else:
                         update_log("Патч (удаление -fPIC) для build.py уже применен или строка не найдена.")
-                except Exception as e: update_log(f"Ошибка при патче build.py: {e}")
-            else: update_log("Предупреждение: файл build.py не найден, пропускаем патч")
 
+                    if applied_patch_tcc or applied_patch_fpic:
+                        with open(build_py_path, "w", encoding="utf-8") as f: f.write(patched_source)
+                        if applied_patch_tcc: update_log("Патч (путь tcc.exe) успешно применен к build.py")
+                        if applied_patch_fpic: update_log("Патч (удаление -fPIC) успешно применен к build.py")
+
+                except Exception as e:
+                    update_log(f"Ошибка при патче build.py: {e}")
+                    update_log(traceback.format_exc())
+            else:
+                update_log("Предупреждение: файл build.py не найден, пропускаем патч")
+
+            # Патч windows_utils.py
             update_progress(60)
             update_log("Применение патча к windows_utils.py...")
             windows_utils_path = os.path.join(libs_path_abs, "triton", "windows_utils.py")
@@ -707,16 +1124,21 @@ class LocalVoice:
                 try:
                     with open(windows_utils_path, "r", encoding="utf-8") as f: source = f.read()
                     old_code_win = "output = subprocess.check_output(command, text=True).strip()"
+                    # Добавляем CREATE_NO_WINDOW и другие флаги для стабильности
                     new_code_win = "output = subprocess.check_output(\n            command, text=True, creationflags=subprocess.CREATE_NO_WINDOW, close_fds=True, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE\n        ).strip()"
                     if old_code_win in source:
                         patched_source = source.replace(old_code_win, new_code_win)
                         with open(windows_utils_path, "w", encoding="utf-8") as f: f.write(patched_source)
                         update_log("Патч успешно применен к windows_utils.py")
                     else:
-                         update_log("Патч для windows_utils.py уже применен или строка не найдена.")
-                except Exception as e: update_log(f"Ошибка при патче windows_utils.py: {e}")
-            else: update_log("Предупреждение: файл windows_utils.py не найден, пропускаем патч")
+                        update_log("Патч для windows_utils.py уже применен или строка не найдена.")
+                except Exception as e:
+                    update_log(f"Ошибка при патче windows_utils.py: {e}")
+                    update_log(traceback.format_exc())
+            else:
+                update_log("Предупреждение: файл windows_utils.py не найден, пропускаем патч")
 
+            # Патч compiler.py
             update_progress(70)
             update_log("Применение патча к compiler.py...")
             compiler_path = os.path.join(libs_path_abs, "triton", "backends", "nvidia", "compiler.py")
@@ -724,6 +1146,7 @@ class LocalVoice:
                 try:
                     with open(compiler_path, "r", encoding="utf-8") as f: source = f.read()
                     old_code_comp_line = 'version = subprocess.check_output([_path_to_binary("ptxas")[0], "--version"]).decode("utf-8")'
+                    # Добавляем CREATE_NO_WINDOW и другие флаги
                     new_code_comp_line = 'version = subprocess.check_output([_path_to_binary("ptxas")[0], "--version"], creationflags=subprocess.CREATE_NO_WINDOW, stderr=subprocess.PIPE, close_fds=True, stdin=subprocess.DEVNULL).decode("utf-8")'
                     if old_code_comp_line in source:
                         patched_source = source.replace(old_code_comp_line, new_code_comp_line)
@@ -731,14 +1154,20 @@ class LocalVoice:
                         update_log("Патч успешно применен к compiler.py")
                     else:
                         update_log("Патч для compiler.py уже применен или строка не найдена.")
-                except Exception as e: update_log(f"Ошибка при патче compiler.py: {e}")
-            else: update_log("Предупреждение: файл compiler.py не найден, пропускаем патч")
+                except Exception as e:
+                    update_log(f"Ошибка при патче compiler.py: {e}")
+                    update_log(traceback.format_exc())
+            else:
+                update_log("Предупреждение: файл compiler.py не найден, пропускаем патч")
+
+            # Патч cache.py
             update_log("Применение патча к cache.py...")
             cache_py_path = os.path.join(libs_path_abs, "triton", "runtime", "cache.py")
             if os.path.exists(cache_py_path):
                 try:
                     with open(cache_py_path, "r", encoding="utf-8") as f: source = f.read()
                     old_line = 'temp_dir = os.path.join(self.cache_dir, f"tmp.pid_{pid}_{rnd_id}")'
+                    # Укорачиваем имена временных папок
                     new_line = 'temp_dir = os.path.join(self.cache_dir, f"tmp.pid_{str(pid)[:5]}_{str(rnd_id)[:5]}")'
                     if old_line in source:
                         patched_source = source.replace(old_line, new_line)
@@ -746,53 +1175,160 @@ class LocalVoice:
                         update_log("Патч успешно применен к cache.py")
                     else:
                         update_log("Патч для cache.py уже применен или строка не найдена.")
-                except Exception as e: update_log(f"Ошибка при патче cache.py: {e}")
-            else: update_log("Предупреждение: файл cache.py не найден, пропускаем патч")
+                except Exception as e:
+                    update_log(f"Ошибка при патче cache.py: {e}")
+                    update_log(traceback.format_exc())
+            else:
+                update_log("Предупреждение: файл cache.py не найден, пропускаем патч")
 
-            # --- Проверка зависимостей и диалог ---
+
+            # --- Проверка зависимостей с возможностью повтора ---
             update_progress(80)
-            update_status("Проверка зависимостей...")
-            update_log("Проверка наличия CUDA, Windows SDK, MSVC...")
-            self._check_system_dependencies()
+            update_status("Проверка системных зависимостей...")
+            update_log("Проверка наличия Triton, CUDA, Windows SDK, MSVC...")
 
-            skip_init = False
-            user_action = None
+            max_retries = 1 # Сколько раз можно нажать "Попробовать снова"
+            retries_left = max_retries
+            check_successful = False # Флаг успешной проверки без ошибок DLL/импорта/find_*
 
-            if self.triton_installed and self.triton_checks_performed:
-                if not (self.cuda_found and self.winsdk_found and self.msvc_found):
-                    update_log("Обнаружено отсутствие некоторых зависимостей Triton.")
-                    update_status("Требуется внимание: зависимости Triton")
+            while retries_left >= 0:
+                show_vc_redist_warning = False
+                dependencies_check_error = False # Ошибка внутри _check_system_dependencies (не DLL)
+                import_error_occurred = False # Флаг, что была ошибка импорта (любая)
+
+                # Сбрасываем состояние перед каждой попыткой
+                self.triton_installed = False
+                self.triton_checks_performed = False
+                self.cuda_found = False
+                self.winsdk_found = False
+                self.msvc_found = False
+
+                # --- Дебажный флаг (срабатывает только при первой попытке) ---
+                force_dll_error = os.environ.get("TRITON_DLL_ERROR", "0") == "1"
+                if force_dll_error and retries_left == max_retries:
+                    update_log("TRITON_DLL_ERROR=1 установлен. Симуляция ошибки DLL load failed...")
+                    show_vc_redist_warning = True
+                    import_error_occurred = True # Считаем ошибкой импорта
+                else:
+                    # --- Попытка проверки зависимостей ---
+                    try:
+                        # Очистка кэша перед каждой попыткой импорта
+                        importlib.invalidate_caches()
+                        if "triton" in sys.modules:
+                            try:
+                                del sys.modules["triton"]
+                                update_log("Удален модуль 'triton' из sys.modules перед проверкой.")
+                            except KeyError:
+                                pass # Модуль мог быть уже удален
+
+                        # Вызываем проверку
+                        self._check_system_dependencies()
+                        # Если нет исключений, _check_system_dependencies установила флаги
+                        update_log("_check_system_dependencies выполнена успешно.")
+                        check_successful = True # Проверка прошла без ошибок импорта/DLL
+
+                    except ImportError as e:
+                        error_message = str(e)
+                        import_error_occurred = True # Была ошибка импорта
+                        if error_message.startswith("DLL load failed while importing libtriton"):
+                            update_log(f"ОШИБКА: Импорт Triton не удался (DLL load failed): {error_message}")
+                            show_vc_redist_warning = True # Показать окно VC Redist
+                        else:
+                            update_log(f"ОШИБКА: Неожиданная ошибка импорта: {error_message}")
+                            update_log(traceback.format_exc())
+                            # Не показываем окно VC Redist для других ошибок импорта
+                        # Флаги triton_installed/checks_performed остаются False
+                    except Exception as e:
+                        # Другие ошибки из _check_system_dependencies (например, при вызове find_*)
+                        update_log(f"ОШИБКА: Общая ошибка во время _check_system_dependencies: {e}")
+                        update_log(traceback.format_exc())
+                        dependencies_check_error = True # Была другая ошибка
+                        # Флаги triton_installed/checks_performed остаются False
+
+                # --- Обработка результата попытки ---
+                if show_vc_redist_warning:
+                    update_status("Ошибка загрузки Triton! Проверьте VC Redist.")
                     if progress_window and progress_window.winfo_exists():
+                        progress_window.update_idletasks()
                         progress_window.grab_release()
                         progress_window.attributes('-topmost', False)
-
-                    user_action = self._show_triton_init_warning_dialog()
-
+                    # Показываем окно и получаем выбор пользователя
+                    user_choice = self._show_vc_redist_warning_dialog()
                     if progress_window and progress_window.winfo_exists():
                         progress_window.attributes('-topmost', True)
                         progress_window.grab_set()
 
-                    if user_action == "skip":
-                        update_log("Пользователь выбрал пропустить инициализацию ядра Triton.")
-                        skip_init = True
-                    elif user_action == "continue":
-                        update_log("Пользователь выбрал продолжить инициализацию, несмотря на отсутствующие зависимости.")
-                        skip_init = False
+                    if user_choice == "retry" and retries_left > 0:
+                        update_log("Пользователь выбрал повторить попытку импорта Triton...")
+                        retries_left -= 1
+                        check_successful = False # Сбрасываем флаг успеха перед новой попыткой
+                        continue # Переходим к следующей итерации цикла while
                     else:
-                        update_log("Инициализация ядра Triton отменена (диалог закрыт).")
+                        if user_choice == "retry":
+                            update_log("Достигнут лимит попыток для импорта Triton.")
+                        else: # user_choice == "close" или None
+                            update_log("Пользователь закрыл окно предупреждения VC Redist, не решая проблему.")
+                        check_successful = False # Ошибка DLL осталась нерешенной
+                        break # Выходим из цикла while
+                else:
+                    # Если ошибки DLL не было (но могли быть другие ошибки)
+                    check_successful = not import_error_occurred and not dependencies_check_error
+                    if not check_successful:
+                        if import_error_occurred:
+                            update_log("Проверка зависимостей не удалась из-за ошибки импорта (не DLL).")
+                        elif dependencies_check_error:
+                            update_log("Проверка зависимостей не удалась из-за ошибки внутри _check_system_dependencies.")
+                    break # Выходим из цикла while (либо успех, либо другая ошибка)
+
+            # --- Определение, нужно ли пропускать инициализацию ядра (после цикла) ---
+            skip_init = False
+            user_action_deps = None # Для диалога о CUDA/SDK/MSVC
+
+            if not check_successful: # Если проверка не удалась окончательно
+                if show_vc_redist_warning: # Если последней была ошибка DLL
+                    update_log("Импорт Triton не удался (возможно, из-за VC Redist), инициализация ядра будет пропущена.")
+                elif import_error_occurred: # Если была другая ошибка импорта
+                    update_log("Не удалось импортировать Triton, инициализация ядра будет пропущена.")
+                else: # Если была ошибка в find_*
+                    update_log("Проверка зависимостей Triton завершилась с ошибкой. Инициализация ядра будет пропущена.")
+                skip_init = True
+                self.triton_module = False # Установка не удалась
+            elif self.triton_installed and self.triton_checks_performed:
+                # Проверка прошла успешно, теперь смотрим на CUDA/SDK/MSVC
+                self.triton_module = True # Установка и проверка базово успешны
+                if not (self.cuda_found and self.winsdk_found and self.msvc_found):
+                    update_log("Обнаружено отсутствие зависимостей (CUDA/WinSDK/MSVC).")
+                    update_status("Требуется внимание: зависимости Triton")
+                    if progress_window and progress_window.winfo_exists():
+                        progress_window.grab_release()
+                        progress_window.attributes('-topmost', False)
+                    # Показываем диалог о CUDA/SDK/MSVC
+                    user_action_deps = self._show_triton_init_warning_dialog()
+                    if progress_window and progress_window.winfo_exists():
+                        progress_window.attributes('-topmost', True)
+                        progress_window.grab_set()
+
+                    if user_action_deps == "skip":
+                        update_log("Пользователь выбрал пропустить инициализацию ядра из-за отсутствия зависимостей.")
+                        skip_init = True
+                    elif user_action_deps == "continue":
+                        update_log("Пользователь выбрал продолжить инициализацию ядра, несмотря на отсутствующие зависимости.")
+                        skip_init = False
+                    else: # Диалог закрыт
+                        update_log("Диалог зависимостей закрыт, инициализация ядра будет пропущена.")
                         skip_init = True
                 else:
                     update_log("Все зависимости Triton (CUDA, WinSDK, MSVC) найдены.")
-                    skip_init = False
-            elif not self.triton_installed:
-                 update_log("Triton не установлен корректно, инициализация ядра невозможна.")
-                 skip_init = True
+                    skip_init = False # Все найдено, можно инициализировать
             else:
-                 update_log("Ошибка во время проверки зависимостей Triton. Инициализация ядра будет пропущена.")
-                 skip_init = True
+                # Сюда не должны попадать, если check_successful=True, но на всякий случай
+                update_log("Неожиданное состояние после проверки зависимостей (check_successful=True, но флаги не установлены). Пропуск инициализации ядра.")
+                skip_init = True
+                self.triton_module = False # Считаем неуспешной
 
             # --- Инициализация ядра (init.py) ---
             if not skip_init:
+                update_progress(90)
                 update_status("Инициализация ядра Triton...")
                 update_log("Начало инициализации ядра (запуск init.py)...")
                 try:
@@ -802,7 +1338,6 @@ class LocalVoice:
                         update_log(f"Создана директория: {temp_dir}")
 
                     update_log("Запуск скрипта инициализации...")
-
                     init_cmd = [script_path, "init.py"]
                     update_log(f"Выполняем: {' '.join(init_cmd)}")
                     try:
@@ -812,9 +1347,9 @@ class LocalVoice:
                             capture_output=True, # Захватываем stdout и stderr
                             text=True,           # Декодируем как текст
                             encoding='utf-8',
-                            errors='ignore',
+                            errors='ignore',     # Игнорируем ошибки декодирования
                             check=False,         # Не выбрасывать исключение при ненулевом коде возврата
-                            creationflags=subprocess.CREATE_NO_WINDOW
+                            creationflags=subprocess.CREATE_NO_WINDOW # Не показывать консольное окно
                         )
                         # Логируем вывод
                         if result.stdout:
@@ -831,71 +1366,92 @@ class LocalVoice:
                         update_log(f"Скрипт init.py завершился с кодом: {result.returncode}")
                         init_success = (result.returncode == 0)
 
+                    except FileNotFoundError:
+                        update_log(f"ОШИБКА: Не найден скрипт инициализации init.py или python.exe по пути: {script_path}")
+                        init_success = False
                     except Exception as sub_e:
                         update_log(f"Ошибка при запуске init.py через subprocess.run: {sub_e}")
+                        update_log(traceback.format_exc())
                         init_success = False
 
                     if not init_success:
                         update_status("Ошибка при инициализации ядра")
                         update_log("Ошибка при запуске init.py. Проверьте лог выше.")
                     else:
+                        # Проверяем наличие выходного файла как индикатор успеха
                         output_file_path = os.path.join(temp_dir, "inited.wav")
                         if os.path.exists(output_file_path):
                             update_log(f"Проверка успешна: файл {output_file_path} создан")
                             update_progress(95)
                             update_status("Инициализация ядра успешно завершена!")
                         else:
-                            update_log(f"Предупреждение: Файл {output_file_path} не найден после init.py")
+                            update_log(f"Предупреждение: Файл {output_file_path} не найден после успешного запуска init.py")
                             update_status("Предупреждение: Файл инициализации не создан")
-                            update_progress(90)
+                            update_progress(90) # Не 95, т.к. файл не найден
 
                 except Exception as e:
                     update_log(f"Непредвиденная ошибка при инициализации ядра: {str(e)}")
-                    trace = traceback.format_exc()
-                    update_log(trace)
+                    update_log(traceback.format_exc())
                     update_status("Ошибка инициализации ядра")
+                    update_progress(85) # Снижаем прогресс при ошибке
 
-            else:
+            else: # skip_init == True
                 update_log("Инициализация ядра Triton пропущена.")
                 update_status("Инициализация ядра пропущена")
-                update_progress(95)
+                update_progress(95) # Пропускаем, но считаем шаг завершенным
 
             # --- Завершение ---
             update_progress(100)
             final_message = "Установка Triton завершена."
-            if skip_init:
+            # Добавляем предупреждения в зависимости от итогового состояния
+            if not check_successful and show_vc_redist_warning:
+                final_message += " ВНИМАНИЕ: Ошибка загрузки DLL (VC Redist?)!"
+            elif not check_successful:
+                final_message += " ВНИМАНИЕ: Ошибка при проверке зависимостей!"
+            elif skip_init and user_action_deps == "skip":
+                final_message += " Инициализация ядра пропущена по выбору."
+            elif skip_init:
                 final_message += " Инициализация ядра пропущена."
-            if self.triton_installed and self.triton_checks_performed and not (self.cuda_found and self.winsdk_found and self.msvc_found):
-                 final_message += " Внимание: не все зависимости найдены!"
+
+            # Предупреждение о CUDA/SDK/MSVC, если они не найдены, но проверка прошла и ядро не пропускалось
+            if check_successful and not skip_init and not (self.cuda_found and self.winsdk_found and self.msvc_found):
+                missing_deps = [dep for dep, found in [("CUDA", self.cuda_found), ("WinSDK", self.winsdk_found), ("MSVC", self.msvc_found)] if not found]
+                final_message += f" Внимание: не найдены зависимости ({', '.join(missing_deps)})!"
 
             update_status(final_message)
             update_log(final_message)
-            update_log("Если модель medium+ не заработает, проверьте зависимости и попробуйте запустить init_triton.bat.")
 
-            self.current_model = "medium+"
+            # Добавляем финальный совет
+            if not check_successful:
+                update_log("Если модель medium+ не заработает, проверьте лог, зависимости (особенно VC Redist) и документацию.")
+            elif skip_init:
+                update_log("Если модель medium+ не заработает, возможно, потребуется запустить init_triton.bat вручную.")
+            elif not (self.cuda_found and self.winsdk_found and self.msvc_found):
+                update_log("Если модель medium+ не заработает, проверьте установку недостающих зависимостей (CUDA/WinSDK/MSVC).")
+
+
+            self.current_model = "medium+" # Устанавливаем модель в любом случае
             if progress_window and progress_window.winfo_exists():
                 progress_window.after(5000, progress_window.destroy)
+
+            # Возвращаем True, т.к. сам пакет установился. Состояние модуля хранится в self.triton_module
             return True
 
         except Exception as e:
-            logger.info(f"Критическая ошибка при установке Triton: {e}")
-            traceback.print_exc()
+            logger.error(f"Критическая ошибка при установке Triton: {e}")
+            logger.error(traceback.format_exc())
             try:
                 if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
-                    gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}")
-                    gui_elements["update_log"](traceback.format_exc())
+                    gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}\n{traceback.format_exc()}")
                     gui_elements["update_status"]("Критическая ошибка установки!")
                     gui_elements["window"].after(10000, gui_elements["window"].destroy)
             except Exception as e_inner:
-                 logger.info(f"Ошибка при попытке обновить лог в окне прогресса: {e_inner}")
-            return False
+                logger.info(f"Ошибка при попытке обновить лог в окне прогресса: {e_inner}")
+            self.triton_module = False # Установка не удалась
+            return False # Критическая ошибка во время установки
         finally:
-             try:
-                 if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
-                     # Не закрываем здесь, так как есть after(5000) выше
-                     pass
-             except Exception as e_final:
-                 logger.info(f"Ошибка при закрытии окна прогресса: {e_final}")
+            # Здесь можно добавить код очистки, если он нужен, но пока оставляем пустым
+            pass
 
     def download_edge_tts_rvc(self):
         """Загружает Edge-TTS + RVC модель"""
