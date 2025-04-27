@@ -34,11 +34,20 @@ namespace MitaAI
 
         public static void endLastPlayersCIAs()
         {
-            foreach (var item in lastPlayerCIAs)
+            try
             {
-                MelonLogger.Msg($"freee {item.Item1.gameObject.name}");
-                item.Item1.free(item.Item2);
+                foreach (var item in lastPlayerCIAs)
+                {
+                    MelonLogger.Msg($"freee {item.Item1.gameObject.name}");
+                    item.Item1.free(item.Item2);
+                }
             }
+            catch (Exception Ex)
+            {
+
+                MelonLogger.Error(Ex);
+            }
+
             lastPlayerCIAs.Clear();
         }
 
@@ -64,25 +73,25 @@ namespace MitaAI
         public bool isTaken(string position = "center")
         {
 
-            if (taker.ContainsKey(position)) { 
-                taker[position] = characterType.None; 
+            if (taker.ContainsKey(position)) {
+                taker[position.ToLower()] = characterType.None; 
             }
 
-            return taker[position] != characterType.None;
+            return taker[position.ToLower()] != characterType.None;
 
 
         }
         public void setTakenPlayer()
         {
-            setTaken(characterType.Player, "Center");
+            setTaken(characterType.Player, "center");
         }
         public void setTakenPlayerRight()
         {
-            setTaken(characterType.Player, "Right");
+            setTaken(characterType.Player, "right");
         }
         public void setTakenPlayerLeft()
         {
-            setTaken(characterType.Player, "Left");
+            setTaken(characterType.Player, "left");
         }
 
 
@@ -90,7 +99,7 @@ namespace MitaAI
         {
             MelonLogger.Msg($"Set Taken CIA {gameObject.name}");
 
-            taker[position] = character;
+            taker[position.ToLower()] = character;
 
             if (character == characterType.Player)
             {

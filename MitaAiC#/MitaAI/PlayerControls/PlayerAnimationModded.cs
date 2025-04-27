@@ -501,7 +501,16 @@ namespace MitaAI
         public static void stopAnim()
         {
             Hints.freeExitButton();
-            endLastCIAs();
+            try
+            {
+                endLastCIAs();
+            }
+            catch (Exception Ex)
+            {
+
+                MelonLogger.Error(Ex);
+            }
+            
             playerMove.AnimationStop(); 
         }
         public static void UnstackPlayer(bool teleportToZero = true)

@@ -62,7 +62,7 @@ namespace MitaAI
                     // oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
 
                     oam1.setIdleAnimation("Mita SitIdle");
-                    oam1.addEnqueAnimationAction("Mita SitIdle");
+                    oam1.addEnqueAnimationAction("Mita SitIdle",_AnimationInitialDelay:1f);
                     oam1.setRevertAOM($"Kitchen Chair {i} stand up", "Слезть со стула", NeedMovingToIdle: true);
 
 
@@ -464,7 +464,7 @@ namespace MitaAI
             {
                 MelonLogger.Msg("initCornerSofa");
                 sofa = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/SofaChair");
-                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "center",rotation:60);
+                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(sofa, "AnimationPlayer Sit", "left",rotation:60);
                 OAP.transform.localPosition = new Vector3(0, 0.95f, 0.13f);
                 OAP.transform.localEulerAngles = new Vector3(90, 0,0);
 

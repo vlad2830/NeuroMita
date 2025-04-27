@@ -194,6 +194,7 @@ namespace MitaAI.PlayerControls
                     {
                         PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.normal;
                         PlayerAnimationModded.stopAnim();
+                        CommonInteractableObject.endLastPlayersCIAs();
                     }
                 }
                 catch (Exception e)
@@ -207,8 +208,11 @@ namespace MitaAI.PlayerControls
                     try
                     {
                         MelonLogger.Msg("Teleport mita to player");
-                        MitaCore.Instance.Mita.MitaTeleport(MitaCore.Instance.playerObject.transform);
+                        
                         MitaCore.Instance.Mita.AiShraplyStop();
+                        ObjectAnimationMita.freeAOM(MitaCore.Instance.currentCharacter);
+                        MitaCore.Instance.Mita.magnetTarget = null;
+                        MitaCore.Instance.Mita.MitaTeleport(MitaCore.Instance.playerObject.transform);
                     }
                     catch (Exception e)
                     {

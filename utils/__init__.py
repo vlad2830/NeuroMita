@@ -23,7 +23,7 @@ def load_text_from_file(filename):
     logger.info(f"Загружаю {filename}")
     try:
 
-        # Получаем корневую папку проекта (E:\Games\OpenAI_API_TEST\OpenMita)
+        # Получаем корневую папку проекта (пример E:\Games\OpenAI_API_TEST\OpenMita)
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
         # Формируем путь БЕЗ повторного добавления "OpenMita"

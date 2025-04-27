@@ -124,7 +124,7 @@ namespace MitaAI
             }
 
             currentClothes = cloth;
-            ReCloth();
+            ReCloth(MitaCore.Instance.MitaObject);
         }
 
         #region HairColor
@@ -204,33 +204,16 @@ namespace MitaAI
 
         #endregion
 
-        private static void ReCloth()
+        private static void ReCloth(GameObject MitaObject)
         {
             try
             {
-                MitaClothes[] clothesList = UnityEngine.Object.FindObjectsOfType<MitaClothes>();
-
-                if (clothesList.Length == 0)
-                {
-                    Debug.LogWarning("Объекты MitaClothes не найдены в сцене");
-                    return;
-                }
-
-                foreach (var cloth in clothesList)
-                {
-                    try
-                    {
-                        cloth.ReCloth();
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogError($"Ошибка в {cloth.name}: {ex.Message}");
-                    }
-                }
+                var cloth = MitaObject.GetComponentInChildren<MitaClothes>();
+                cloth.ReCloth();
             }
             catch (System.Exception globalEx)
             {
-                Debug.LogError($"Ошибка поиска объектов: {globalEx.Message}");
+                MelonLogger.Error($": {globalEx.Message}");
             }
         }
     

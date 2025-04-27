@@ -8,6 +8,7 @@ using UnityEngine.Events;
 using System.Text.RegularExpressions;
 using UnityEngine.TextCore.Text;
 using static MelonLoader.MelonLogger;
+using System.Xml.Serialization;
 
 namespace MitaAI
 {
@@ -22,6 +23,11 @@ namespace MitaAI
         static Dictionary<string,ObjectAnimationMita> allOAMs = new Dictionary<string, ObjectAnimationMita>();
 
         static string command = "interaction";
+
+        public static void freeAOM(characterType character)
+        {
+            currentMitasOAMc.Remove(character);
+        }
 
         public static string interactionGetCurrentInfo(characterType character)
         {
@@ -465,7 +471,7 @@ namespace MitaAI
         }
         void EnqueAnimation()
         {
-            mitaAnimationModded.EnqueueAnimation(mitaAmimatedName, AnimationTransitionDuration,makeFirst:true,avoidStateSettings:true);
+            mitaAnimationModded.EnqueueAnimation(mitaAmimatedName, AnimationTransitionDuration,AnimationInitialDelay,makeFirst:true,avoidStateSettings:true);
 
             
         }

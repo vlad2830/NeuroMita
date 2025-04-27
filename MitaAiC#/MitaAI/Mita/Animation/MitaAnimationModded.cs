@@ -552,7 +552,7 @@ namespace MitaAI.Mita
         }
 
         public void EnqueueAnimation(string animName = "", float crossfadeLen = 0.25f,
-                                   float timeAfter = 0, bool makeFirst = false,
+                                   float timeBefore = 0, float timeAfter = 0, bool makeFirst = false,
                                    bool avoidStateSettings = false)
         {
 
@@ -561,6 +561,7 @@ namespace MitaAI.Mita
                     animName,
                     crossfadeLen,
                     crossfadeLen,
+                    timeBefore,
                     timeAfter,
                     timeAfter,
                     avoidStateSettings
@@ -572,7 +573,7 @@ namespace MitaAI.Mita
         }
 
         public static void EnqueueAnimationCurrent(string animName = "", float crossfadeLen = 0.25f,
-                                           float timeAfter = 0, bool makeFirst = false,
+                                           float delayBefore = 0, float delayAfter = 0, bool makeFirst = false,
                                            bool avoidStateSettings = false)
         {
             getMitaAnimationModded(MitaCore.Instance.currentCharacter).HandleAnimationEnqueue(() =>
@@ -580,8 +581,9 @@ namespace MitaAI.Mita
                     animName,
                     crossfadeLen,
                     crossfadeLen,
-                    timeAfter,
-                    timeAfter,
+                    0,
+                    delayBefore,
+                    delayAfter,
                     avoidStateSettings
                 ),
                 animName,
@@ -590,7 +592,7 @@ namespace MitaAI.Mita
             );
         }
         public static void EnqueueAnimationCurrent(ObjectAnimationMita objectAnimationMita,
-                                           float crossfadeLen = 0.25f, float timeAfter = 0,
+                                           float crossfadeLen = 0.25f, float delayBefore = 0,
                                            float delayAfter = 0, bool makeFirst = false)
         {
             getMitaAnimationModded(MitaCore.Instance.currentCharacter).HandleAnimationEnqueue(() =>
@@ -598,8 +600,9 @@ namespace MitaAI.Mita
                     objectAnimationMita.mitaAmimatedName,
                     objectAnimationMita.AnimationTransitionDuration,
                     crossfadeLen,
-                    timeAfter,
+                    0,
                     objectAnimationMita,
+                    delayBefore,
                     delayAfter
                 ),
                 objectAnimationMita.mitaAmimatedName,
@@ -609,16 +612,17 @@ namespace MitaAI.Mita
             );
         }
         public void EnqueueAnimation(ObjectAnimationMita objectAnimationMita,
-                                           float crossfadeLen = 0.25f, float timeAfter = 0,
-                                           float delayAfter = 0, bool makeFirst = false)
+                                           float crossfadeLen = 0.25f, float time = 0,
+                                           float delatBefore = 0, float delayAfter = 0, bool makeFirst = false)
         {
             HandleAnimationEnqueue(() =>
                 new MitaActionAnimation(
                     objectAnimationMita.mitaAmimatedName,
                     objectAnimationMita.AnimationTransitionDuration,
                     crossfadeLen,
-                    timeAfter,
+                    time,
                     objectAnimationMita,
+                    delatBefore,
                     delayAfter
                 ),
                 objectAnimationMita.mitaAmimatedName,
@@ -746,8 +750,9 @@ namespace MitaAI.Mita
         {
 
             string animName = animObject.animName;
-            float crossfade_len = animObject.begin_crossfade;
-            float delay_after = animObject.delay_after;
+            float crossfadeLen = animObject.begin_crossfade;
+            float delayBefore = animObject.delay_before;
+            float delayAfter = animObject.delay_after;
             bool avoidStateSettings = animObject.avoidStateSettings;
             var ObjectAnimationMita = animObject.ObjectAnimationMita;
 
@@ -755,8 +760,9 @@ namespace MitaAI.Mita
 
             MelonLogger.Msg($"Crossfade");
             MelonLogger.Msg($"Now playing: {animName}");
+            if (delayBefore > 0) yield return new WaitForSeconds(delayBefore);
 
-            mitaAnimatorFunctions.anim.CrossFade(animName, crossfade_len);
+            mitaAnimatorFunctions.anim.CrossFade(animName, crossfadeLen);
                     
             AnimationClip anim = FindAnimationClipInControllerByName(animName);
 
@@ -784,7 +790,7 @@ namespace MitaAI.Mita
                 bat.active = false;
                 pipe.active = false;
             }
-            
+            if (delayAfter > 0) yield return new WaitForSeconds(delayAfter);
 
 
         }
