@@ -174,7 +174,23 @@ namespace MitaAI
 
                 var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
                 OAP.angleHeadRotate = rotation;
-                OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
+
+                switch (position.ToLower()) {
+                    case "center":
+                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
+                        break;
+                    case "left":
+                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayerLeft);
+                        break;
+                    case "right":
+                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayerRight);
+                        break;
+                    default:
+                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
+                        break;
+                }
+
+               
                 if (PlayerAnimations.ContainsKey("Player Stand")) OAP.animationStop = PlayerAnimations["Player Stand"];
                 return OAP;
             }

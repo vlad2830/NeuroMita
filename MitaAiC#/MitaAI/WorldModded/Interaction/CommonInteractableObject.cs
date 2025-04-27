@@ -74,24 +74,17 @@ namespace MitaAI
         }
         public void setTakenPlayer()
         {
-            MelonLogger.Msg($"Set Taken CIA {gameObject.name}");
-
-            taker["center"] = characterType.Player;
-
-            endLastPlayersCIAs();
-            addCIA(this);
-
-            //var obj = GetComponentInChildren<ObjectInteractive>();
-            //if (obj != null)
-            //{
-              //  obj.active = false;
-
-            //}
-        
-   
-
-
+            setTaken(characterType.Player, "Center");
         }
+        public void setTakenPlayerRight()
+        {
+            setTaken(characterType.Player, "Right");
+        }
+        public void setTakenPlayerLeft()
+        {
+            setTaken(characterType.Player, "Left");
+        }
+
 
         public void setTaken(characterType character = characterType.Player,string position = "center")
         {

@@ -127,6 +127,7 @@ namespace MitaAI
 
 
         public float moveDuration = 2.0f;
+        public float AnimationInitialDelay = 0f;
         public float AnimationTransitionDuration = 1f;
         public float waitingAfterWalk;
 
@@ -282,18 +283,12 @@ namespace MitaAI
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)advancedAction);
         }
-        public void addEnqueAnimationAction(string animName)
-        {
-            // Что проиграет Мита, когда подойдет
-            mitaAmimatedName = animName;
-            // Что произодет, когда Мита дойдет до цели
-            mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
-        }
-        public void addEnqueAnimationAction(string animName, float transition_time)
+        public void addEnqueAnimationAction(string animName, float transition_time = 1, float _AnimationInitialDelay = 0f)
         {
             // Что проиграет Мита, когда подойдет
             mitaAmimatedName = animName;
             AnimationTransitionDuration = transition_time;
+            AnimationInitialDelay = _AnimationInitialDelay;
             // Что произодет, когда Мита дойдет до цели
             mitaAIMovePoint.eventFinish.AddListener((UnityAction)EnqueAnimation);
         }
