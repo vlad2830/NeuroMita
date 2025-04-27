@@ -503,9 +503,10 @@ namespace MitaAI
 
         public static void stopAnim()
         {
-            Hints.freeExitButton();
+            
             try
             {
+                Hints.freeExitButton();
                 endLastCIAs();
             }
             catch (Exception Ex)

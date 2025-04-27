@@ -78,6 +78,8 @@ class ChatServer:
         transmitted_to_game = False
         try:
             # Извлечение базовых параметров сообщения
+            #print(f"Json {message_data}")
+
             message_id = message_data["id"]  # Уникальный идентификатор сообщения
             # Уникальный идентификатор сообщения для вывода в окне
 

@@ -38,6 +38,9 @@ namespace MitaAI
             {
                 foreach (var item in lastPlayerCIAs)
                 {
+                    if (item.Item1 == null) continue;
+
+                    if (item.Item1.gameObject == null) continue;
                     MelonLogger.Msg($"freee {item.Item1.gameObject.name}");
                     item.Item1.free(item.Item2);
                 }

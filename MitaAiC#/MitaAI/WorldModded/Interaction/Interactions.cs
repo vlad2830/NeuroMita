@@ -325,13 +325,14 @@ namespace MitaAI
 
 
 
-            objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true,timeDeactivate:5, loc._("Взять", "Take"));
-            objectInteractive.transform.SetParent(MitaCore.worldHouse,true);
+            objectInteractive = Interactions.FindOrCreateObjectInteractable(GameObject.Find("Interactive Aihastion").gameObject,true,timeDeactivate:3, loc._("Взять", "Take"));
+            objectInteractive.transform.SetParent(MitaCore.worldHouse);
             //var chairOIP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(objectInteractive.transform, "Interactive Aihastion");
             //objectInteractive.eventClick.AddListener((UnityAction)chairOIP.GetComponent<ObjectAnimationPlayer>().AnimationPlay);
-            objectInteractive.active = true;
+            
             //objectInteractive.eventClick.AddListener((UnityAction)Hints.createExitButton);
             objectInteractive.eventClick.AddListener((UnityAction)TVModded.TurnControlKeys);
+            objectInteractive.active = true;
             //Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
@@ -342,7 +343,7 @@ namespace MitaAI
 
 
 
-            
+
             initConsole(MitaCore.worldBasement);
 
 

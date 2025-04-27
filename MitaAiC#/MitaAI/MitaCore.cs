@@ -779,7 +779,8 @@ namespace MitaAI
 
                 // Обновляем таймеры
                 timer += Time.unscaledDeltaTime;
-                DataChange.MitaBoringtimer += Time.unscaledDeltaTime;
+
+                if (!UINeuroMita.isPauseMenu) DataChange.MitaBoringtimer += Time.unscaledDeltaTime;
 
                 // Проверяем, достиг ли timer значения Interval и не запущен ли уже HandleDialogue
                 if (timer >= Interval && !isHandleDialogueRunning)

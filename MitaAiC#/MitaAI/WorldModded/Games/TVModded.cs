@@ -48,6 +48,7 @@ namespace MitaAI
             minigamesTelevisionController = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/TV/GameTelevision").GetComponent<MinigamesTelevisionController>();
             minigamesTelevisionController.CanTalkAboutGame(false);
             minigamesTelevisionController.destroyAfter = false;
+            
 
             var Menu = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/TV/Interface Hint/Menu");
             
