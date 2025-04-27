@@ -243,12 +243,40 @@ namespace MitaAI
 
 
 
-
+        private static Dictionary<Transform, object> activeAnimations = new Dictionary<Transform, object>();
 
         public static void StartObjectAnimation(GameObject targetObject, Vector3 position, Vector3 rotation, float duration, bool delta = true)
         {
-            if (delta) MelonCoroutines.Start(AnimateObjectByDelta(targetObject.transform,position, rotation, duration));
-            else MelonCoroutines.Start(AnimateObjectToFinalPos(targetObject.transform, position, rotation, duration));
+            if (targetObject == null) return;
+
+            Transform targetTransform = targetObject.transform;
+
+            // Если для этого объекта уже есть активная анимация
+            if (activeAnimations.TryGetValue(targetTransform, out object runningCoroutine))
+            {
+                // Останавливаем текущую анимацию
+                MelonCoroutines.Stop(runningCoroutine);
+
+                // Немедленно завершаем предыдущую анимацию
+                if (delta)
+                {
+                    targetTransform.localPosition += position;
+                    targetTransform.localRotation *= Quaternion.Euler(rotation);
+                }
+                else
+                {
+                    targetTransform.localPosition = position;
+                    targetTransform.localRotation = Quaternion.Euler(rotation);
+                }
+            }
+
+            // Запускаем новую анимацию
+            object newCoroutine = delta ?
+                MelonCoroutines.Start(AnimateObjectByDelta(targetTransform, position, rotation, duration)) :
+                MelonCoroutines.Start(AnimateObjectToFinalPos(targetTransform, position, rotation, duration));
+
+            // Запоминаем новую корутину
+            activeAnimations[targetTransform] = newCoroutine;
         }
 
         private static IEnumerator AnimateObjectByDelta(Transform targetTransform,
@@ -279,7 +307,11 @@ namespace MitaAI
             // Finalize position and rotation
             targetTransform.localPosition = targetPosition;
             targetTransform.localRotation = targetRotation;
+
+            // Удаляем запись о завершенной анимации
+            activeAnimations.Remove(targetTransform);
         }
+
         private static IEnumerator AnimateObjectToFinalPos(Transform targetTransform,
                                         Vector3 positionFinal,
                                         Vector3 rotationFinal,
@@ -308,9 +340,36 @@ namespace MitaAI
             // Finalize position and rotation
             targetTransform.localPosition = targetPosition;
             targetTransform.localRotation = targetRotation;
+
+            // Удаляем запись о завершенной анимации
+            activeAnimations.Remove(targetTransform);
         }
 
-        public static void setTextTimed(UnityEngine.UI.Text text,string content,float time = 2f)
+        // Метод для принудительной остановки всех анимаций (опционально)
+        public static void StopAllAnimations()
+        {
+            foreach (var pair in activeAnimations)
+            {
+                MelonCoroutines.Stop(pair.Value);
+            }
+            activeAnimations.Clear();
+        }
+
+        // Метод для остановки анимации конкретного объекта (опционально)
+        public static void StopAnimation(GameObject targetObject)
+        {
+            if (targetObject == null) return;
+
+            Transform targetTransform = targetObject.transform;
+            if (activeAnimations.TryGetValue(targetTransform, out object coroutine))
+            {
+                MelonCoroutines.Stop(coroutine);
+                activeAnimations.Remove(targetTransform);
+            }
+        }
+    
+
+    public static void setTextTimed(UnityEngine.UI.Text text,string content,float time = 2f)
         {
             text.text = content;
             text.m_Text = content;

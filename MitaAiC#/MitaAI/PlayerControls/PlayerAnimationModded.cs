@@ -164,7 +164,24 @@ namespace MitaAI
                     
                     OI.objectInteractive = parent.gameObject;
                     OI.active = true;
-                    OI.eventClick.AddListener((UnityAction)CIA.setTakenPlayer);
+
+
+                    //switch (position.ToLower())
+                    //{
+                    //    case "center":
+                    //        OI.eventClick.AddListener((UnityAction)CIA.setTakenPlayer);
+                    //        break;
+                    //    case "left":
+                    //        OI.eventClick.AddListener((UnityAction)CIA.setTakenPlayerLeft);
+                    //        break;
+                    //    case "right":
+                    //        OI.eventClick.AddListener((UnityAction)CIA.setTakenPlayerRight);
+                    //        break;
+                    //    default:
+                    //        OI.eventClick.AddListener((UnityAction)CIA.setTakenPlayer);
+                    //        break;
+                    //}
+
 
 
                 }
@@ -175,20 +192,6 @@ namespace MitaAI
                 var OAP = OAPobj.GetComponent<ObjectAnimationPlayer>();
                 OAP.angleHeadRotate = rotation;
 
-                switch (position.ToLower()) {
-                    case "center":
-                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
-                        break;
-                    case "left":
-                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayerLeft);
-                        break;
-                    case "right":
-                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayerRight);
-                        break;
-                    default:
-                        OAP.eventFinish.AddListener((UnityAction)CIA.setTakenPlayer);
-                        break;
-                }
 
                
                 if (PlayerAnimations.ContainsKey("Player Stand")) OAP.animationStop = PlayerAnimations["Player Stand"];

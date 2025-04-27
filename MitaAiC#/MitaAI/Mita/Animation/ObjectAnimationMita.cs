@@ -80,7 +80,9 @@ namespace MitaAI
                     if (allOAMs.TryGetValue(interaction, out var oam))
                     {
                         MelonLogger.Msg($"Found Interaction {oam.text} {oam.tip}");
-                        MitaAnimationModded.EnqueueAnimationCurrent(oam,delayAfter:0.5f);
+
+                        if (oam.commonInteractableObject.isTaken(oam.position)) CharacterMessages.sendSystemInfo($"Interaction woth {oam.name} failed, because it taken by other person");
+                        else MitaAnimationModded.EnqueueAnimationCurrent(oam,delayAfter:0.5f);
                     }
                 }
                 return Regex.Replace(response, $@"<{command}>.*?</{command}>", "");

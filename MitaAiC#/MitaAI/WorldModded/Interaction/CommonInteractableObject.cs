@@ -97,7 +97,7 @@ namespace MitaAI
 
         public void setTaken(characterType character = characterType.Player,string position = "center")
         {
-            MelonLogger.Msg($"Set Taken CIA {gameObject.name}");
+            MelonLogger.Msg($"Set Taken CIA {gameObject.name} by {character}");
 
             taker[position.ToLower()] = character;
 
@@ -107,11 +107,12 @@ namespace MitaAI
                 addCIA(this);
             }
 
-            //var obj = GetComponentsInChildren<ObjectInteractive>();
-            //foreach (var objectInteractive in obj)
-            //{
-            //  objectInteractive.active = false;
-            //}
+            var obj = GetComponentsInChildren<ObjectInteractive>();
+            foreach (var objectInteractive in obj)
+            {
+                MelonLogger.Msg($"Deactivate {objectInteractive.name}");
+                if (objectInteractive.name.ToLower().Contains(position)) objectInteractive.active = false;
+            }
 
 
 
@@ -120,14 +121,15 @@ namespace MitaAI
 
         public void free(string position = "center")
         {
-            MelonLogger.Msg($"Free CIO {this.gameObject.name}");
+            MelonLogger.Msg($"Free CIO {this.gameObject.name} from {taker[position]}");
 
             taker[position] = characterType.None;
 
             var obj = GetComponents<ObjectInteractive>();
             foreach (var objectInteractive in obj)
             {
-                objectInteractive.active = true;
+                MelonLogger.Msg($"Acivate {objectInteractive.name}");
+                if (objectInteractive.name.ToLower().Contains(position)) objectInteractive.active = true;
             }
 
 

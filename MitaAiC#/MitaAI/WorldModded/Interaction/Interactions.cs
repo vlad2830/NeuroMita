@@ -58,7 +58,7 @@ namespace MitaAI
 
                     var oam1 = ObjectAnimationMita.Create(chair.gameObject, $"Kitchen Chair {i} sit", "Сесть за стул", freeCase:(UnityAction)comp.moveChair);
                     oam1.setStartPos(new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0));
-                    oam1.setFinalPos(Vector3.zero, new Vector3(90, 0, 0));
+                    oam1.setFinalPos(new Vector3(0,0,-0.1f), new Vector3(90, 0, 0));
                     // oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
 
                     oam1.setIdleAnimation("Mita SitIdle");
@@ -132,7 +132,7 @@ namespace MitaAI
             {
                 sofaAP.transform.localEulerAngles = new Vector3(90, 0, 0);
                 sofaAP.transform.localPosition = new Vector3(0.8f, 1.4f, 0);
-                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 1, loc._("Сесть", "Sit"), false, useParent: true);
+                objSofa = Interactions.FindOrCreateObjectInteractable(sofaAP.gameObject, false, 1, loc._("Сесть", "Sit"), false, useParent: true,positionCIA:"left");
                 objSofa.eventClick.AddListener((UnityAction)sofaAP.AnimationPlay);
                 objSofa.eventClick.AddListener((UnityAction)Hints.createExitButton);
             }
@@ -468,7 +468,7 @@ namespace MitaAI
                 OAP.transform.localPosition = new Vector3(0, 0.95f, 0.13f);
                 OAP.transform.localEulerAngles = new Vector3(90, 0,0);
 
-                OI = Interactions.FindOrCreateObjectInteractable(sofa.gameObject, true, 1, loc._("Усесться", "Sit"), CanvasPosition: new Vector3(0, 0, 1));
+                OI = Interactions.FindOrCreateObjectInteractable(sofa.gameObject, true, 1, loc._("Усесться", "Sit"), CanvasPosition: new Vector3(0, 0, 1),positionCIA:"left");
                 OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
                 OI.eventClick.AddListener((UnityAction)Hints.createExitButton);
                 //Utils.CopyComponentValues(exampleComponent, objectInteractive);
@@ -489,11 +489,11 @@ namespace MitaAI
             try
             {
                 var LivingRoomSeatTumb = MitaCore.worldHouse.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Bedroom/Bed");
-                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(LivingRoomSeatTumb, "AnimationPlayer LieBed", "center", rotation:15);
+                OAP = PlayerAnimationModded.CopyObjectAmimationPlayerTo(LivingRoomSeatTumb, "AnimationPlayer LieBed", "right", rotation:15);
                 if (OAP != null)
                 {
 
-                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(-0.7f, 0.4f,0.9f));
+                    OI = Interactions.FindOrCreateObjectInteractable(LivingRoomSeatTumb.gameObject, true, 3, loc._("Леч", "Lie down"), true,CanvasPosition:new Vector3(-0.7f, 0.4f,0.9f),positionCIA:"rigth");
                     OI.eventClick.AddListener((UnityAction)OAP.AnimationPlay);
                     OI.eventClick.AddListener((UnityAction)Hints.createExitButton);
 
@@ -535,7 +535,7 @@ namespace MitaAI
          * 
          */
         public static ObjectInteractive FindOrCreateObjectInteractable(GameObject gameObject, bool remakeEvent = true, float timeDeactivate = 1, string tipText = null, bool addCollider = true, 
-            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 1.1f)
+            bool useParent = false, Vector3 position = new Vector3(),Vector3 boxSize = new Vector3(), Vector3 CanvasPosition = new Vector3(),float distanceFloor = 1.1f,string positionCIA = "center")
         {
             if (gameObject == null)
             {
@@ -662,6 +662,22 @@ namespace MitaAI
                 //caseInfo.gameObject.active = false;
                 //MelonCoroutines.Start(Utils.OnOffObjectActiveAfterTime(caseInfoTransform.gameObject,true,3));
 
+                var CIA = objectInteractive.GetComponentInParent<CommonInteractableObject>();
+                switch (positionCIA.ToLower())
+                {
+                    case "center":
+                        objectInteractive.eventClick.AddListener((UnityAction)CIA.setTakenPlayer);
+                        break;
+                    case "left":
+                        objectInteractive.eventClick.AddListener((UnityAction)CIA.setTakenPlayerLeft);
+                        break;
+                    case "right":
+                        objectInteractive.eventClick.AddListener((UnityAction)CIA.setTakenPlayerRight);
+                        break;
+                    default:
+                        objectInteractive.eventClick.AddListener((UnityAction)CIA.setTakenPlayer);
+                        break;
+                }
 
 
             }
