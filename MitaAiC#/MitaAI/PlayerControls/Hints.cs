@@ -85,7 +85,7 @@ namespace MitaAI
                 return;
             }
             
-            var hint = CreateHint(loc._("Закончить","Finish"), "_", new Vector3(-350, -350, 0));
+            var hint = CreateHint(loc._("Закончить","Finish"), "_", new Vector3(-500, -350, 0));
             hint.eventKeyDown.AddListener((UnityAction)PlayerAnimationModded.stopAnim);
             exitButton = hint.gameObject;
             

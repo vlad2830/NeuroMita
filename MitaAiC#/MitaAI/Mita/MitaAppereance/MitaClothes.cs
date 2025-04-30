@@ -32,6 +32,8 @@ namespace MitaAI
             MethodInfo patch2 = HarmonyLib.AccessTools.Method(typeof(MitaClothesModded), "Start");
             //harmony.Patch(original, new HarmonyLib.HarmonyMethod(patch));
             harmony.Patch(original2, new HarmonyLib.HarmonyMethod(patch2));
+
+
         }
         public static string ProcessClothes(string response)
         {

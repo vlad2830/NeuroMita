@@ -936,7 +936,7 @@ class ChatGUI:
         clear_button.pack(side=tk.LEFT, padx=5)
 
         reload_prompts_button = tk.Button(
-            history_frame, text=_("Перекачать промпты", "Reload prompts"), command=self.reload_prompts,
+            history_frame, text=_("Перекачать промпты", "ReDownload prompts"), command=self.reload_prompts,
             bg="#8a2be2", fg="#ffffff"
         )
         reload_prompts_button.pack(side=tk.LEFT, padx=5)
@@ -1172,7 +1172,9 @@ class ChatGUI:
             {'label': _('Меню выбора Мит', 'Mita selection menu'), 'key': 'MITAS_MENU', 'type': 'checkbutton',
              'default_checkbutton': False},
             {'label': _('Меню эмоций Мит', 'Emotion menu'), 'key': 'EMOTION_MENU', 'type': 'checkbutton',
-             'default_checkbutton': False}
+             'default_checkbutton': False},
+          #  {'label': _('Миты в работе', 'Mitas in work'), 'key': 'TEST_MITAS', 'type': 'checkbutton',
+          #   'default_checkbutton': False,'tooltip':_("Позволяет выбирать нестабильные версии Мит", "Allow to choose ustable Mita versions")}
         ]
 
         self.create_settings_section(parent, _("Выбор персонажа", "Character selection"), mita_config)

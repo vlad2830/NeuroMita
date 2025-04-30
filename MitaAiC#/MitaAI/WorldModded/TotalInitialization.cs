@@ -637,8 +637,17 @@ namespace MitaAI
             MelonLogger.Msg($"Object found: {world.name}");
             try
             {
-                MitaCore.ShortHairObject = GameObject.Instantiate(Utils.TryfindChild(world, "General/Mita Old"), MitaCore.worldHouse);
-                MitaCore.ShortHairObject.active = false;
+                MitaCore.ShortHairObject = GameObject.Instantiate(world.Find("General/Mita Old").gameObject, MitaCore.worldHouse);
+                //var MitaClothes = MitaCore.ShortHairObject.GetComponentInChildren<MitaClothes>();
+
+                //GlobalGame.clothMita = "original";
+                //GlobalGame.clothVariantMita = 0;
+                //MitaClothes.rendHairs = MitaCore.ShortHairObject.transform.Find("MitaPerson Old/Hair").GetComponent<SkinnedMeshRenderer>();
+                //MitaClothes.rendHead = MitaCore.ShortHairObject.transform.Find("MitaPerson Old/Head").GetComponent<SkinnedMeshRenderer>();
+               
+                //MitaClothes.ReCloth();
+
+               // MitaCore.ShortHairObject.active = false;
             }
 
             catch (Exception ex)

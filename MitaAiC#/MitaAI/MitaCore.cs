@@ -577,6 +577,10 @@ namespace MitaAI
         private void InitializeGameObjects()
         {
 
+            GlobalGame.clothMita = "original";
+            GlobalGame.clothVariantMita = 0;
+
+
             GameObject Trigger = GameObject.Find("World/Quests/Quest 1/Trigger Entry Kitchen");
             Trigger.SetActive(false);
 

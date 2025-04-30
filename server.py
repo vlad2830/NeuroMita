@@ -166,7 +166,7 @@ class ChatServer:
 
                 "MITAS_MENU": bool(self.gui.settings.get("MITAS_MENU")),
                 "EMOTION_MENU": bool(self.gui.settings.get("EMOTION_MENU")),
-
+               # "TEST_MITAS": bool(self.gui.settings.get("TEST_MITAS")),
 
                 "TEXT_WAIT_TIME": int(self.gui.settings.get("TEXT_WAIT_TIME")),
                 "VOICE_WAIT_TIME": int(self.gui.settings.get("VOICE_WAIT_TIME")),

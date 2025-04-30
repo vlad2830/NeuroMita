@@ -147,6 +147,18 @@ namespace MitaAI
             }
 
         }
+
+        static int GamesPlayed = 0;
+        static bool isFinished()
+        {
+            if (GamesPlayed>=2) return true;
+            else
+            {
+                GamesPlayed = GamesPlayed + 1;
+                return false;
+            }
+        }
+
         static IEnumerator processSnowBalls()
         {
             MitaGames.currentGame = MitaGame.Snows;
@@ -154,8 +166,8 @@ namespace MitaAI
             if (mT_GameCnowballs.resultShow)
             { 
 
-                if (mT_GameCnowballs.scoreMita< mT_GameCnowballs.scorePlayer) CharacterMessages.sendSystemMessage($"Player won round of game of Snow collecting");
-                else CharacterMessages.sendSystemMessage("You won round of game of Snow collecting");
+                if (mT_GameCnowballs.scoreMita < mT_GameCnowballs.scorePlayer) CharacterMessages.sendSystemMessage($"Player (Score {mT_GameCnowballs.scorePlayer}) won round of game of Snow collecting (Your score {mT_GameCnowballs.scoreMita})");
+                else CharacterMessages.sendSystemMessage($"You won (Score {mT_GameCnowballs.scoreMita}) round of game of Snow collecting (Player score {mT_GameCnowballs.scorePlayer})");
 
             
                 if (mT_GameCnowballs.countPlayed == 4)
@@ -165,7 +177,11 @@ namespace MitaAI
                     yield return new WaitForSeconds(5f);
 
                     mT_GameCnowballs.Continue();
-                    minigamesTelevisionController.KeysMenuActive(true);
+
+
+                    if (isFinished()) turnTV();
+                    else minigamesTelevisionController.KeysMenuActive(true);
+                    
                     yield break;
                 }
 
@@ -183,7 +199,7 @@ namespace MitaAI
         {
             MitaGames.currentGame = MitaGame.Milk;
 
-
+            mT_Location4Fight.enemyComplexity = 11;
 
             if (mT_Location4Fight.win) {
 
@@ -195,7 +211,10 @@ namespace MitaAI
                     yield return new WaitForSeconds(5f);
 
                     mT_Location4Fight.Continue();
-                    minigamesTelevisionController.KeysMenuActive(true);
+
+                    if (isFinished()) turnTV();
+                    else minigamesTelevisionController.KeysMenuActive(true);
+                    
                     yield break;
                 }
 

@@ -13,6 +13,8 @@ using Microsoft.VisualBasic;
 using UnityEngine.UI;
 using MitaAI.PlayerControls;
 using MitaAI;
+using System.Diagnostics;
+using System.ComponentModel.DataAnnotations;
 
 namespace MitaAI
 {
@@ -24,7 +26,27 @@ namespace MitaAI
 
         public static void init()
         {
-            Language = Settings.Get<String>("Language");
+            //try
+            //{
+            //    switch (GlobalGame.Language){
+            //        case "English":
+            //            Language = "EN";
+            //            break;
+            //        case "Russian":
+            //            Language = "RU";
+            //            break;
+            //        default:
+            //            Language = Settings.Get<String>("Language");
+            //            break;
+            //    }
+            //}
+            //catch (Exception)
+            //{
+                Language = Settings.Get<String>("Language");
+            //}
+
+           
+
         }
 
         public static void setLanguage(string language)
