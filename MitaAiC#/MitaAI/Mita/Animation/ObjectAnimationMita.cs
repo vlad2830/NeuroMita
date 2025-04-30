@@ -419,7 +419,8 @@ namespace MitaAI
                 mitaAnimationModded = MitaAnimationModded.getMitaAnimationModded(mitaCharacter);
                 mitaAnimationModded.location34_Communication.ActivationCanWalk(false);
 
-                if (needWalking)
+                float Distance = Utils.getDistanceBetweenObjects(mitaPersonObject, gameObject);
+                if (needWalking && Distance > 1.5f)
                 {
                     isWalking = true;
 
