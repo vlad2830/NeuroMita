@@ -308,6 +308,15 @@ class Character:
 
         return response
 
+    def reload_prompts(self):
+        """Перезагружает все промпты персонажа"""
+        logger.info(f"Перезагрузка промптов для {self.name}")
+        self.fixed_prompts = []
+        self.temp_prompts = []
+        self.float_prompts = []
+        self.init()
+        logger.info(f"Промпты для {self.name} успешно перезагружены")
+
     #region History
     def load_history(self):
         data = self.history_manager.load_history()
