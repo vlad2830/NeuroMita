@@ -53,9 +53,11 @@ class LocalVoice:
 
         self.current_tts_rvc = None
         self.current_fish_speech = None
-        self.current_silero_model = None # Добавлено
-        self.current_silero_sample_rate = 48000 # Добавлено (значение по умолчанию)
-        self.silero_models_dir = "checkpoints/silero" # Добавлено
+        self.current_silero_model = None 
+        self.current_silero_sample_rate = 48000 
+        self.silero_models_dir = "checkpoints/silero" 
+
+        self.voice_language = self.parent.settings.get("VOICE_LANGUAGE", "ru")
 
         self.initialized_models = set()
         self.docs_manager = DocsManager()
@@ -1812,6 +1814,40 @@ class LocalVoice:
         else:
             raise ValueError(f"Неизвестная модель: {self.current_model}")
         
+    def change_voice_language(self, new_voice_language: str):
+        logger.info(f"Запрос на изменение языка озвучки на '{new_voice_language}'...")
+
+        self.voice_language = new_voice_language
+        logger.info(f"Установлен язык озвучки: {self.voice_language}")
+
+        if hasattr(self, 'current_tts_rvc') and self.current_tts_rvc:
+            logger.info(f"Обновление голоса для текущего экземпляра RVC ({type(self.current_tts_rvc).__name__})...")
+            try:
+                if new_voice_language == "ru":
+                    self.current_tts_rvc.set_voice("ru-RU-SvetlanaNeural")
+                    logger.info("Установлен голос RVC: ru-RU-SvetlanaNeural")
+                elif new_voice_language == "en":
+                    self.current_tts_rvc.set_voice("en-US-MichelleNeural")
+                    logger.info("Установлен голос RVC: en-US-MichelleNeural")
+                else:
+                    self.current_tts_rvc.set_voice("en-US-AvaMultilingualNeural")
+                    logger.info(f"Установлен голос RVC по умолчанию/fallback: en-US-AvaMultilingualNeural (для языка {new_voice_language})")
+            except AttributeError:
+                logger.warning(f"Экземпляр RVC ({type(self.current_tts_rvc).__name__}) не имеет метода 'set_voice'. Пропуск установки голоса.")
+            except Exception as e:
+                logger.error(f"Неожиданная ошибка при установке голоса RVC: {e}")
+        else:
+            logger.info("Экземпляр RVC (self.current_tts_rvc) не инициализирован или отсутствует атрибут, пропуск установки голоса RVC.")
+
+        if hasattr(self, 'initialized_models') and isinstance(self.initialized_models, set):
+            # Используем discard, чтобы не вызывать ошибку, если 'low+' там нет
+            self.initialized_models.discard("low+")
+            logger.info("Модель 'low+' удалена из списка инициализированных (если была там).")
+        else:
+             logger.warning("Атрибут 'initialized_models' отсутствует или не является множеством. Не удалось проверить/удалить 'low+'.")
+
+        logger.info(f"Изменение языка озвучки на '{new_voice_language}' и связанные операции завершены.")
+
     # region На вынос в AudioConverter.py
     async def convert_wav_to_stereo(self, input_path, output_path, atempo: float = 1, volume: str = "1.0"):
         """
@@ -1980,37 +2016,65 @@ class LocalVoice:
             return None
 
     def _preprocess_text_to_ssml(self, text: str):
-        if not text:
-            return "<speak></speak>", 2, "Mila" # Питч и имя по умолчанию
+        if not hasattr(self, 'voice_language'):
+            self.voice_language = 'en'
 
-        # --- Определение параметров персонажа (без изменений) ---
-        character_rvc_pitch = 2
-        character_rate = "medium"
-        character_short_name = "Mila"
-        character_speaker = "kseniya"
+        defaults = {
+            'en': {'pitch': 6, 'speaker': "en_88"},
+            'ru': {'pitch': 2, 'speaker': "kseniya"},
+        }
+        lang_defaults = defaults.get(self.voice_language, defaults['en'])
+
+        if not text:
+            return "<speak></speak>", lang_defaults['pitch'], lang_defaults['speaker']
+
+        # (rvc_pitch, silero_speaker_id)
+        char_params = {
+            'en': {
+                "CappieMita":    (6, "en_26"),
+                "CrazyMita":   (6, "en_60"),
+                "GhostMita":   (6, "en_33"),
+                "Mila":        (6, "en_88"),
+                "MitaKind":    (3, "en_33"),
+                "ShorthairMita": (6, "en_60"),
+                "SleepyMita":  (6, "en_33"),
+                "TinyMita":    (2, "en_60"),
+            },
+            'ru': {
+                "CappieMita":    (6, "kseniya"),
+                "MitaKind":    (1, "kseniya"),
+                "ShorthairMita": (2, "kseniya"),
+                "CrazyMita":   (2, "kseniya"),
+                "Mila":        (2, "kseniya"),
+                "TinyMita":    (-3, "baya"),
+                "SleepyMita":  (2, "baya"),
+                "GhostMita":   (1, "baya"),
+            }
+        }
+
+        character_rvc_pitch = lang_defaults['pitch']
+        character_speaker = lang_defaults['speaker']
+        character_short_name = "Unknown"
+
         current_char_obj = getattr(self, 'current_character', None)
         if current_char_obj:
             char_short_name_attr = getattr(current_char_obj, 'short_name', None)
             if char_short_name_attr:
                 character_short_name = str(char_short_name_attr)
-                if character_short_name == "CappieMita": character_rvc_pitch = 6; character_speaker = "kseniya" 
-                elif character_short_name == "MitaKind": character_rvc_pitch = 1; character_speaker = "kseniya" 
-                elif character_short_name == "ShorthairMita": character_rvc_pitch = 2; character_speaker = "kseniya" 
-                elif character_short_name == "CrazyMita": character_rvc_pitch = 2; character_speaker = "kseniya" 
-                elif character_short_name == "Mila": character_rvc_pitch = 2; character_speaker = "kseniya" 
-                elif character_short_name == "TinyMita": character_rvc_pitch = -3; character_speaker = "baya" 
-                elif character_short_name == "SleepyMita": character_rvc_pitch = 2; character_speaker = "baya" 
-                elif character_short_name == "GhostMita": character_rvc_pitch = 1; character_speaker = "baya" 
 
-        # --- Предобработка текста (без изменений) ---
+        current_lang_params = char_params.get(self.voice_language, char_params['en'])
+        specific_params = current_lang_params.get(character_short_name)
+
+        if specific_params:
+            character_rvc_pitch, character_speaker = specific_params
+
         text = re.sub(r'<[^>]*>', '', text)
         text = escape(text)
-        text = text.replace("Мита", "М+ита").replace("Мила", "М+ила")
-        text = text.replace("мита", "м+ита").replace("мила", "м+ила")
+        text = text.replace("Mita", "M+ita").replace("Mila", "M+ila")
+        text = text.replace("mita", "m+ita").replace("mila", "m+ila")
 
         split_pattern = r'([.!?]+[^A-Za-zА-Яа-я0-9_]*)(\s+)'
         parts = re.split(split_pattern, text.strip())
-
         processed_text = ""
         i = 0
         while i < len(parts):
@@ -2020,31 +2084,24 @@ class LocalVoice:
 
             if i + 1 < len(parts) and i + 2 < len(parts):
                 punctuation_part = parts[i+1]
-                whitespace_part = parts[i+2] 
-
+                whitespace_part = parts[i+2]
                 if punctuation_part:
                     processed_text += punctuation_part
-
                 if whitespace_part and i + 3 < len(parts) and parts[i+3]:
                     processed_text += f' <break time="300ms"/> '
-
+                elif whitespace_part:
+                    processed_text += whitespace_part
             i += 3
-
-        prosody_attributes = []
-        if character_rate != "medium":
-            prosody_attributes.append(f'rate="{character_rate}"')
-
-        if prosody_attributes:
-            ssml_content = f'<prosody {" ".join(prosody_attributes)}>{processed_text}</prosody>'
-        else:
-            ssml_content = processed_text
+        ssml_content = processed_text.strip()
 
         if ssml_content:
             ssml_output = f'<speak><p>{ssml_content}</p></speak>'
         else:
             ssml_output = '<speak></speak>'
+            character_rvc_pitch = lang_defaults['pitch']
+            character_speaker = lang_defaults['speaker']
 
-        return ssml_output, character_rvc_pitch, character_speaker  
+        return ssml_output, character_rvc_pitch, character_speaker
     
     async def voiceover_silero_rvc(self, text, character=None):
         if self.current_silero_model is None or self.current_tts_rvc is None:
@@ -2508,10 +2565,15 @@ class LocalVoice:
                             f0_method=f0_method
                         )
                     
-                    self.current_tts_rvc.set_voice("ru-RU-SvetlanaNeural")
-                    
+                    if self.voice_language == "ru":
+                        self.current_tts_rvc.set_voice("ru-RU-SvetlanaNeural")
+                    elif self.voice_language == "en":
+                        self.current_tts_rvc.set_voice("en-US-MichelleNeural")
+                    else:
+                        self.current_tts_rvc.set_voice("en-US-AvaMultilingualNeural")
+
                     if init:
-                        init_text = f"Инициализация модели {model_id}"
+                        init_text = f"Инициализация модели {model_id}" if self.voice_language == "ru" else f"{model_id} Model Initialization"
                         pitch = float(settings.get("pitch", 6))
                         index_rate = float(settings.get("index_rate", 0.75))
                         protect = float(settings.get("protect", 0.33))
@@ -2556,7 +2618,7 @@ class LocalVoice:
                     logger.info(f"Не найден файл модели по пути: {self.pth_path}")
                     return False
                     
-            elif model_id == "low+": # Добавлен блок инициализации low+
+            elif model_id == "low+":
                 if self.tts_rvc_module is None:
                     logger.info("Модуль tts_with_rvc не установлен (необходим для low+)")
                     return False
@@ -2587,7 +2649,14 @@ class LocalVoice:
                         self.current_tts_rvc = self.tts_rvc_module(
                             model_path=model_path_to_use, device=rvc_device, f0_method=rvc_f0_method
                         )
-                        self.current_tts_rvc.set_voice("ru-RU-SvetlanaNeural")
+                        
+                        if self.voice_language == "ru":
+                            self.current_tts_rvc.set_voice("ru-RU-SvetlanaNeural")
+                        elif self.voice_language == "en":
+                            self.current_tts_rvc.set_voice("en-US-MichelleNeural")
+                        else:
+                            self.current_tts_rvc.set_voice("en-US-AvaMultilingualNeural")
+                            
                         logger.info("RVC компонент для low+ инициализирован.")
                     except Exception as e:
                         logger.error(f"Ошибка инициализации RVC компонента для low+: {e}")
@@ -2598,8 +2667,18 @@ class LocalVoice:
                 # Инициализация Silero части (загрузка из кэша torch.hub)
                 silero_device = settings.get("silero_device", "cuda" if self.provider == "NVIDIA" else "cpu")
                 silero_sample_rate = int(settings.get("silero_sample_rate", 48000))
-                language = 'ru'
-                model_id_silero = 'v4_ru'
+                if self.voice_language == 'en':
+                    language = 'en'
+                    model_id_silero = 'v3_en'
+                    logger.info(f"Selected ENGLISH language ({language}/{model_id_silero}) for Silero+RVC (low+).")
+                elif self.voice_language == 'ru':
+                    language = 'ru'
+                    model_id_silero = 'v4_ru'
+                    logger.info(f"Выбран РУССКИЙ язык ({language}/{model_id_silero}) для Silero (low+).")
+                else:
+                    logger.error(f"Unsupported language '{self.voice_language}' for low+. Using RUSSIAN as default.")
+                    language = 'ru'
+                    model_id_silero = 'v4_ru'
                 self.current_silero_model = None
                 try:
                     import torch
@@ -2701,7 +2780,7 @@ class LocalVoice:
 
 
                 if init and (self.clone_voice_filename and os.path.exists(self.clone_voice_filename) or os.path.exists("Models\\Mila.wav")) :
-                    init_text = f"Инициализация модели {model_id}"
+                    init_text = f"Инициализация модели {model_id}" if self.voice_language == "ru" else f"{model_id} Model Initialization"
                     ref_text = ""
                     if self.clone_voice_text and os.path.exists(self.clone_voice_text):
                         with open(self.clone_voice_text, "r", encoding="utf-8") as f:
@@ -2770,7 +2849,7 @@ class LocalVoice:
                         self.first_compiled = True
                     
                     if init and (self.clone_voice_filename and os.path.exists(self.clone_voice_filename) or os.path.exists("Models\\Mila.wav")):
-                        init_text = f"Инициализация модели {model_id}"
+                        init_text = f"Инициализация модели {model_id}" if self.voice_language == "ru" else f"{model_id} Model Initialization"
                         ref_text = ""
                         if self.clone_voice_text and os.path.exists(self.clone_voice_text):
                             with open(self.clone_voice_text, "r", encoding="utf-8") as f:
@@ -2865,7 +2944,7 @@ class LocalVoice:
                     
                     # Если нужна инициализация с тестовым текстом
                     if init and (self.clone_voice_filename and os.path.exists(self.clone_voice_filename)) or os.path.exists("Models\\Mila.wav"):
-                        init_text = f"Инициализация модели {model_id}"
+                        init_text = f"Инициализация модели {model_id}" if self.voice_language == "ru" else f"{model_id} Model Initialization"
                         ref_text = ""
                         if self.clone_voice_text and os.path.exists(self.clone_voice_text):
                             with open(self.clone_voice_text, "r", encoding="utf-8") as f:
@@ -2901,9 +2980,9 @@ class LocalVoice:
                             
 
                             if not self.pth_path and os.path.exists("Models\\Mila.pth"):
-                                self.current_tts_rvc.current_voice = "Models\\Mila.pth"
+                                self.current_tts_rvc.current_model = "Models\\Mila.pth"
                             else:
-                                self.current_tts_rvc.current_voice = self.pth_path
+                                self.current_tts_rvc.current_model = self.pth_path
                             output_path = self.current_tts_rvc.voiceover_file(
                                 input_path=temp_output_path,
                                 pitch=rvc_pitch,
