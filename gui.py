@@ -935,6 +935,12 @@ class ChatGUI:
         )
         clear_button.pack(side=tk.LEFT, padx=5)
 
+        reload_prompts_button = tk.Button(
+            history_frame, text=_("Перекачать промпты", "Reload prompts"), command=self.reload_prompts,
+            bg="#8a2be2", fg="#ffffff"
+        )
+        reload_prompts_button.pack(side=tk.LEFT, padx=5)
+
         # TODO Вернуть
         # save_history_button = tk.Button(
         #     history_frame, text="Сохранить историю", command=self.model.save_chat_history,
@@ -1488,6 +1494,45 @@ class ChatGUI:
             character.clear_history()
         self.chat_window.delete(1.0, tk.END)
         self.update_debug_info()
+
+    def reload_prompts(self):
+        """Скачивает свежие промпты с GitHub и перезагружает их для текущего персонажа."""
+        # Запускаем асинхронную задачу через event loop
+        if self.loop and self.loop.is_running():
+            asyncio.run_coroutine_threadsafe(self.async_reload_prompts(), self.loop)
+        else:
+            logger.error("Цикл событий asyncio не запущен. Невозможно выполнить асинхронную загрузку промптов.")
+            messagebox.showerror(
+                _("Ошибка", "Error"), 
+                _("Не удалось запустить асинхронную загрузку промптов.", 
+                  "Failed to start asynchronous prompt download.")
+            )
+
+    async def async_reload_prompts(self):
+        try:
+            from utils.prompt_downloader import PromptDownloader
+            downloader = PromptDownloader()
+            
+            success = await self.loop.run_in_executor(None, downloader.download_and_replace_prompts)
+            
+            if success:
+                await self.loop.run_in_executor(None, self.model.current_character.reload_prompts)
+                messagebox.showinfo(
+                    _("Успешно", "Success"), 
+                    _("Промпты успешно скачаны и перезагружены.", "Prompts successfully downloaded and reloaded.")
+                )
+            else:
+                messagebox.showerror(
+                    _("Ошибка", "Error"), 
+                    _("Не удалось скачать промпты с GitHub. Проверьте подключение к интернету.", 
+                      "Failed to download prompts from GitHub. Check your internet connection.")
+                )
+        except Exception as e:
+            logger.error(f"Ошибка при обновлении промптов: {e}")
+            messagebox.showerror(
+                _("Ошибка", "Error"), 
+                _("Не удалось обновить промпты.", "Failed to update prompts.")
+            )
 
     # region Microphone
 
