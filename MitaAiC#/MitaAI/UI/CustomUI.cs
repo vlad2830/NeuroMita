@@ -201,6 +201,7 @@ namespace MitaAI
                     {
                         MitaCore.Instance?.addChangeMita(mitaObject, character, true, false);
                         mitaObject.SetActive(true);
+                        MitaCore.getMitaByEnum(character,true).transform.position = MitaCore.Instance.GetRandomLoc().position;
                         CharacterMessages.sendSystemMessage($"Ты только что прогрузилась на уровень", character);
                         CharacterMessages.sendInfoListeners($"{character} появилась на уровне", null, character, "Nobody");
                     }

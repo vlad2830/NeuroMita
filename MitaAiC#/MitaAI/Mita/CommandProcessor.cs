@@ -135,6 +135,7 @@ namespace MitaAI.Mita
                     ObjectAnimationMita.finishWorkingOAM();
                     CharacterMessages.sendSystemInfo($"Ты успешно телепортировалась к {loc.name}");
                     mitaCore.Mita.MitaTeleport(loc);
+                    mitaCore.Mita.AiShraplyStop();
                     location34_Communication.indexSwitchAnimation = 1;
                     MitaMovement.MitaSetStaing(MitaCore.Instance.currentCharacter);
                     break;
@@ -142,6 +143,7 @@ namespace MitaAI.Mita
                 case "телепортироваться к игроку":
                     ObjectAnimationMita.finishWorkingOAM();
                     mitaCore.Mita.MitaTeleport(playerPerson);
+                    mitaCore.Mita.AiShraplyStop();
                     location34_Communication.indexSwitchAnimation = 1;
                     break;
 
@@ -277,6 +279,7 @@ namespace MitaAI.Mita
                         ObjectAnimationMita.finishWorkingOAM();
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.MitaTeleport(newPosition);
+                        mitaCore.Mita.AiShraplyStop();
                         CharacterMessages.sendSystemInfo($"Ты телепортировалась в {secondCommand}");
                     }
                     catch (Exception ex)
@@ -293,6 +296,7 @@ namespace MitaAI.Mita
                         ObjectAnimationMita.finishWorkingOAM();
                         Transform newPosition = GameObject.Find(secondCommand).transform;
                         mitaCore.Mita.MitaTeleport(newPosition);
+                        mitaCore.Mita.AiShraplyStop();
                         CharacterMessages.sendSystemInfo($"Ты телепортировалась в {secondCommand}");
                     }
                     catch (Exception ex)

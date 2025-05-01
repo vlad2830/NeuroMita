@@ -842,7 +842,7 @@ namespace MitaAI
         }
                   
         // Глобальный список для хранения дочерних объектов
-        List<GameObject> globalChildObjects = new List<GameObject>();
+        List<GameObject> LocationPoints = new List<GameObject>();
 
         // Функция для получения дочерних объектов и добавления их в глобальный список
         void CollectChildObjects(GameObject parentObject)
@@ -865,44 +865,44 @@ namespace MitaAI
                 if (childTransform != null)
                 {
                     // Добавляем дочерний объект в глобальный список
-                    globalChildObjects.Add(childTransform.gameObject);
+                    if (!childTransform.name.ToLower().Contains("interactive")) LocationPoints.Add(childTransform.gameObject);
 
                     if (i == 0)
                     {
                         GameObject newPoint = GameObject.Instantiate(childTransform.gameObject,new Vector3(12.8382f,-2.9941f,-16.8005f),Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement 1";
-                        globalChildObjects.Add(newPoint);
+                        LocationPoints.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(17.0068f, -2.9941f, -13.2256f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement 2";
-                        globalChildObjects.Add(newPoint);
+                        LocationPoints.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
 
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(10.9679f, -2.9941f, -19.5763f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement Camera";
-                        globalChildObjects.Add(newPoint);
+                        LocationPoints.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(19.6421f, -2.9941f, -14.9584f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement Safe";
-                        globalChildObjects.Add(newPoint);
+                        LocationPoints.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.2978f, 0, -7.3997f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Enter_Basement";
-                        globalChildObjects.Add(newPoint);
+                        LocationPoints.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
                         
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(11.1936f, 0, -8.9503f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Leave_Basement";
-                        globalChildObjects.Add(newPoint);
+                        LocationPoints.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
 
                         newPoint = GameObject.Instantiate(childTransform.gameObject, new Vector3(12.1435f, -2.9941f, -11.9181f), Quaternion.identity, childTransform.parent);
                         newPoint.name = "Point Basement Near Cartridge";
-                        globalChildObjects.Add(newPoint);
+                        LocationPoints.Add(newPoint);
                         remakeArrayl34(location34_Communication, newPoint, "b");
                         
 
@@ -912,7 +912,7 @@ namespace MitaAI
             }
             
             // Выводим общее количество детей
-            MelonLogger.Msg($"Total children collected: {globalChildObjects.Count}");
+            MelonLogger.Msg($"Total children collected: {LocationPoints.Count}");
         }
 
         
@@ -947,14 +947,14 @@ namespace MitaAI
 
             string message = "Objects names in <> for walk or teleport to";
 
-            for (int i = 0; i < globalChildObjects.Count; i++)
+            for (int i = 0; i < LocationPoints.Count; i++)
             {
-                if (globalChildObjects[i] == null) continue;
+                if (LocationPoints[i] == null) continue;
 
-                if( globalChildObjects[i].name.Contains("Point") || globalChildObjects[i].name.Contains("Position")  )
+                if( LocationPoints[i].name.Contains("Point") || LocationPoints[i].name.Contains("Position")  )
                 {
 
-                    message += $"<{globalChildObjects[i].name}>";
+                    message += $"<{LocationPoints[i].name}>";
 
                 }
 
@@ -971,17 +971,17 @@ namespace MitaAI
             {
                 MelonLogger.Msg("Tring GetRandomLoc");
                 // Проверяем, что список не пустой
-                if (globalChildObjects == null || globalChildObjects.Count == 0)
+                if (LocationPoints == null || LocationPoints.Count == 0)
                 {
                     MelonLogger.Error("globalChildObjects is null or empty!");
                     return null; // Возвращаем null, если список пуст
                 }
 
                 // Генерируем случайный индекс
-                int randomIndex = UnityEngine.Random.Range(0, globalChildObjects.Count);
+                int randomIndex = UnityEngine.Random.Range(0, LocationPoints.Count);
 
                 // Получаем случайный объект по индексу
-                GameObject randomObject = globalChildObjects[randomIndex];
+                GameObject randomObject = LocationPoints[randomIndex];
 
                 // Проверяем, что объект действительно существует и имеет компонент Transform
                 if (randomObject == null)

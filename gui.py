@@ -840,6 +840,7 @@ class ChatGUI:
         self.ConnectedToGame = is_connected
         self.game_connected_checkbox_var = tk.BooleanVar(value=is_connected)  # Статус подключения к игре
 
+
     def updateAll(self):
         self.update_status_colors()
         self.update_debug_info()
@@ -1215,7 +1216,7 @@ class ChatGUI:
             #{'label': _('ГеймМастер озвучивает', 'GameMaster is voiced'), 'key': 'GM_VOICE', 'type': 'checkbutton',
            #  'default_checkbutton': False},
             {'label': _('Задача ГМу', 'GM task'), 'key': 'GM_SMALL_PROMPT', 'type': 'text', 'default': ""},
-            {'label': _('ГеймМастер встревает каждую', 'GameMaster intervene each'), 'key': 'GM_REPEAT',
+            {'label': _('ГеймМастер встревает каждые', 'GameMaster intervene each'), 'key': 'GM_REPEAT',
              'type': 'entry',
              'default': 2,
              'tooltip': _('Пример: 3 Означает, что через каждые две фразы ГМ напишет свое сообщение', 'Example: 3 means that after 2 phreses GM will write his message')},
@@ -1523,7 +1524,7 @@ class ChatGUI:
             success = await self.loop.run_in_executor(None, downloader.download_and_replace_prompts)
             
             if success:
-                await self.loop.run_in_executor(None, self.model.current_character.reload_prompts)
+                await self.loop.run_in_executor(None, self.model.current_character_to_change.reload_prompts)
                 messagebox.showinfo(
                     _("Успешно", "Success"), 
                     _("Промпты успешно скачаны и перезагружены.", "Prompts successfully downloaded and reloaded.")

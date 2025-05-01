@@ -211,7 +211,7 @@ namespace MitaAI
             try
             {
                 var cloth = MitaObject.GetComponentInChildren<MitaClothes>();
-                cloth.ReCloth();
+                if (cloth != null) cloth.ReCloth();
             }
             catch (System.Exception globalEx)
             {

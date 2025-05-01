@@ -22,12 +22,16 @@ def load_text_from_file(filename):
 
     logger.info(f"Загружаю {filename}")
     try:
+        # Определяем базовый путь в зависимости от того, собрано ли приложение
+        if getattr(sys, 'frozen', False):
+            # Если приложение собрано (PyInstaller)
+            base_path = os.path.dirname(sys.executable)
+        else:
+            # Если запуск из IDE/скрипта
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-        # Получаем корневую папку проекта (пример E:\Games\OpenAI_API_TEST\OpenMita)
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-        # Формируем путь БЕЗ повторного добавления "OpenMita"
-        filepath = os.path.join(project_root, filename)
+        # Формируем полный путь к файлу
+        filepath = os.path.join(base_path, filename)
         filepath = os.path.normpath(filepath)
 
         # Проверяем, существует ли файл
