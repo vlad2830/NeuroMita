@@ -343,6 +343,7 @@ namespace MitaAI
                 }
 ;
                 MitaPersonObject.GetComponent<CapsuleCollider>().radius = 0.13f;
+                MitaPersonObject.GetComponent<CapsuleCollider>().center = new Vector3(0, 1.19f, 0);
             }
             catch (Exception ex)
             {

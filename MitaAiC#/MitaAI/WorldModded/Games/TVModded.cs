@@ -76,9 +76,14 @@ namespace MitaAI
             if (!minigamesTelevisionController.activation)
             {
                 minigamesTelevisionController.StartTelevision();
+                CharacterMessages.sendSystemMessage("Player turned on TV, maybe you should sit on sofa using interaction.");
                 //MelonCoroutines.Start(startKeysMenu());
             }
-            else minigamesTelevisionController.StopTelevision();
+            else
+            {
+                minigamesTelevisionController.StopTelevision();
+                CharacterMessages.sendSystemMessage("Player turned off TV");
+            }
 
         }
         public static void TurnControlKeys()
@@ -98,10 +103,12 @@ namespace MitaAI
             if (KeysActive)
             {
                 PlayerHands.TakeInHand(GamepadBlue,true,new Vector3(0,0,-0.08f),Vector3.zero);
+                CharacterMessages.sendSystemInfo("Player took gamepad in hand");
             }
             else
             {
                 PlayerHands.Free(GamepadBlue, true);
+                CharacterMessages.sendSystemInfo("Player returned gamepad to its place");
             }
             
         }

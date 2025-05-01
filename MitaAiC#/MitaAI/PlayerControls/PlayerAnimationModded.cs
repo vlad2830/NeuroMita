@@ -6,6 +6,7 @@ using System.Collections;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
 using Il2CppColorful;
+using static Il2CppRootMotion.FinalIK.GenericPoser;
 
 namespace MitaAI
 {
@@ -514,7 +515,7 @@ namespace MitaAI
 
                 MelonLogger.Error(Ex);
             }
-            
+            if (PlayerAnimations.ContainsKey("Player Stand")) playerMove.animationStop = PlayerAnimations["Player Stand"]; 
             playerMove.AnimationStop(); 
         }
         public static void UnstackPlayer(bool teleportToZero = true)

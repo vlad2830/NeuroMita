@@ -647,7 +647,7 @@ namespace MitaAI
                
                 //MitaClothes.ReCloth();
 
-               // MitaCore.ShortHairObject.active = false;
+                MitaCore.ShortHairObject.active = false;
             }
 
             catch (Exception ex)
@@ -777,7 +777,7 @@ namespace MitaAI
                 MitaCore.MilaObject.transform.Find("Mila Person").GetComponent<CapsuleCollider>().enabled = true;
                 MitaCore.MilaObject.transform.Find("Capsule").gameObject.active = false;
             }
-
+            
             catch (Exception ex)
             {
 
@@ -1005,6 +1005,7 @@ namespace MitaAI
             try
             {
                 Interactions.init();
+                
             }
             catch (Exception ex)
             {
@@ -1033,7 +1034,11 @@ namespace MitaAI
             EventsModded.sceneEnter(MitaToStart);
 
             MitaCore.AllLoaded = true;
-            
+
+            try { Interactions.GamePadInteractiveFix.active = true; }
+            catch{
+
+            }
             
             TestingGround();
         }
@@ -1168,7 +1173,7 @@ namespace MitaAI
 
                     door = wardrobeGameObject.transform.Find("Bedroom WardrobeDoorR");
                     door.gameObject.AddComponent<BoxCollider>();
-                    door.localRotation = Quaternion.Euler(0, 0, 180);
+                    door.localRotation = Quaternion.Euler(0, 0, 103);
 
 
 

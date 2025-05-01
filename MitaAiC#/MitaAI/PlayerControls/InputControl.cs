@@ -190,7 +190,7 @@ namespace MitaAI.PlayerControls
             {
                 try
                 {
-                    if (PlayerAnimationModded.playerMove != null)
+                    if (PlayerAnimationModded.playerMove != null && Hints.exitButton.active)
                     {
                         PlayerAnimationModded.currentPlayerMovement = PlayerMovementType.normal;
                         PlayerAnimationModded.stopAnim();

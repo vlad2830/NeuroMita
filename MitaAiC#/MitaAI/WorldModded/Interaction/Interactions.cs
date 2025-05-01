@@ -22,6 +22,8 @@ namespace MitaAI
 
         public static GameObject InteractionContainer;
 
+        public static ObjectInteractive GamePadInteractiveFix;
+
         public static GameObject GetInteractionContainer()
         {
             if (InteractionContainer == null)
@@ -58,7 +60,7 @@ namespace MitaAI
                     var comp = chair.gameObject.AddComponent<Chair>();
 
                     if (i % 2 == 0) { 
-                        var oam1 = ObjectAnimationMita.Create(chair.gameObject, $"Kitchen Chair {i} sit", "Сесть за стул", freeCase:(UnityAction)comp.moveChair);
+                    var oam1 = ObjectAnimationMita.Create(chair.gameObject, $"Kitchen Chair {i} sit", "Сесть за стул", freeCase:(UnityAction)comp.moveChair);
                     oam1.setStartPos(new Vector3(-0.1f, 0.6f, -0.1f), new Vector3(90, 0, 0));
                     oam1.setFinalPos(new Vector3(0,0,-0.1f), new Vector3(90, 0, 0));
                     // oam.addMoveRotateAction(new Vector3(0.4f, 0, 0f), Quaternion.Euler(0, 0, 0));
@@ -83,6 +85,7 @@ namespace MitaAI
                         var obj = Interactions.FindOrCreateObjectInteractable(chairAP.gameObject, false, 5, loc._("Сесть", "Sit"), false, useParent: true, CanvasPosition: new Vector3(0, 0.9f, 0.5f));
                         obj.eventClick.AddListener((UnityAction)comp.moveChair);
                         obj.eventClick.AddListener((UnityAction)Hints.createExitButton);
+                        obj.GetComponentInParent<CommonInteractableObject>().eventEnd.AddListener((UnityAction)comp.moveChair);
                     }
 
 
@@ -342,6 +345,7 @@ namespace MitaAI
             objectInteractive.eventClick.AddListener((UnityAction)TVModded.TurnControlKeys);
             objectInteractive.active = true;
             objectInteractive.GetComponent<ObjectInteractive>().active = true;
+            GamePadInteractiveFix = objectInteractive;
             //Interactions.FindOrCreateObjectInteractable(MitaCore.worldHouse.transform.Find("House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/LivingTable").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Main/CornerSofa").gameObject);
             //Interactions.CreateObjectInteractable(Utils.TryfindChild(MitaCore.worldHouse, "House/HouseGameNormal Tamagotchi/HouseGame Tamagotchi/House/Kitchen/Kitchen Table").gameObject);
