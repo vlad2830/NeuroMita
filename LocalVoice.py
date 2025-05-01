@@ -32,6 +32,16 @@ from xml.sax.saxutils import escape
 from packaging.utils import canonicalize_name, NormalizedName
 from utils.PipInstaller import PipInstaller, DependencyResolver
 
+from SettingsManager import SettingsManager
+
+def getTranslationVariant(ru_str, en_str=""):
+    if en_str and SettingsManager.get("LANGUAGE") == "EN":
+        return en_str
+    return ru_str
+
+_ = getTranslationVariant
+
+
 import json
 from docs import DocsManager
 from Logger import logger
@@ -56,6 +66,7 @@ class LocalVoice:
         self.current_silero_model = None 
         self.current_silero_sample_rate = 48000 
         self.silero_models_dir = "checkpoints/silero" 
+        self.current_character_name = ""
 
         self.voice_language = self.parent.settings.get("VOICE_LANGUAGE", "ru")
 
@@ -88,21 +99,21 @@ class LocalVoice:
             from tts_with_rvc import TTS_RVC
             self.tts_rvc_module = TTS_RVC
         except ImportError:
-            logger.info("Модуль tts_with_rvc не установлен")
+            logger.info(_("Модуль tts_with_rvc не установлен", "Module tts_with_rvc is not installed"))
 
 
         try:
             from fish_speech_lib.inference import FishSpeech
             self.fish_speech_module = FishSpeech
         except ImportError:
-            logger.info("Модуль fish_speech_lib не установлен")
+            logger.info(_("Модуль fish_speech_lib не установлен", "Module fish_speech_lib is not installed"))
 
 
         try:
             import zonos123
             self.zonos_module = zonos123
         except ImportError:
-            logger.info("Модуль zonos не установлен")
+            logger.info("Некий модуль.")
 
         if getattr(sys, 'frozen', False):
             base_dir = os.path.dirname(sys.executable)
@@ -114,7 +125,7 @@ class LocalVoice:
         try: 
             self._check_system_dependencies()
         except:
-            print("Triton не установлен корректно.")
+            logger.info(_("Triton не установлен корректно.", "Triton is not installed correctly."))
 
     def uninstall_edge_tts_rvc(self):
         return self._uninstall_component("EdgeTTS+RVC", "tts-with-rvc")
@@ -318,7 +329,6 @@ class LocalVoice:
             self.triton_checks_performed = True
 
         except Exception as e:
-            # Ловим общие ошибки при вызове find_* функций (если они не были пойманы выше)
             logger.error(f"Общая ошибка при выполнении проверок find_* в Triton: {e}")
             traceback.print_exc()
             # triton_installed остается True, но проверки не выполнены
@@ -405,21 +415,19 @@ class LocalVoice:
             progress_bar_frame.pack(pady=5, padx=10, fill=tk.X)
             progress_bar_canvas = tk.Canvas(progress_bar_frame, bg=progress_bar_trough, height=progress_bar_height, highlightthickness=0)
             progress_bar_canvas.pack(fill=tk.BOTH, expand=True)
-            # Прямоугольник, который будет менять ширину
             progress_rectangle = progress_bar_canvas.create_rectangle(0, 0, 0, progress_bar_height, fill=progress_bar_color, outline="")
 
             def update_progress_bar(value):
-                # Нормализуем значение от 0 до 100
                 value = max(0, min(100, int(value)))
                 if progress_window and progress_window.winfo_exists():
-                    max_width = progress_bar_canvas.winfo_width() # Получаем текущую ширину canvas
-                    if max_width <= 1: # Если ширина еще не определена, ждем
+                    max_width = progress_bar_canvas.winfo_width()
+                    if max_width <= 1: 
                         progress_window.after(50, lambda: update_progress_bar(value))
                         return
                     fill_width = (value / 100) * max_width
                     progress_bar_canvas.coords(progress_rectangle, 0, 0, fill_width, progress_bar_height)
-                    progress_value_label.config(text=f"{value}%") # Обновляем текстовый процент
-                    progress_window.update_idletasks() # Обновляем отображение
+                    progress_value_label.config(text=f"{value}%") 
+                    progress_window.update_idletasks()
 
             # --- Лог ---
             log_frame = tk.Frame(progress_window, bg=bg_color)
@@ -599,11 +607,11 @@ class LocalVoice:
                 button_font = tkFont.Font(name=dlg_button_font_name, family="Segoe UI", size=9, weight="bold")
 
         except tk.TclError as e:
-            logger.info(f"Критическая ошибка шрифтов для диалога VC Redist: {e}")
+            logger.info(f"{_('Критическая ошибка шрифтов для диалога VC Redist:', 'Critical font error for VC Redist dialog:')} {e}")
             main_font, bold_font, button_font = None, None, None
 
         dialog = tk.Toplevel(self.parent.root if self.parent and hasattr(self.parent, 'root') else None)
-        dialog.title("⚠️ Ошибка загрузки Triton")
+        dialog.title(_("⚠️ Ошибка загрузки Triton", "⚠️ Triton Load Error"))
 
         dialog.configure(bg=bg_color)
         dialog.resizable(False, False)
@@ -612,14 +620,17 @@ class LocalVoice:
         top_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=10)
         top_frame.pack(fill=tk.X)
 
-        tk.Label(top_frame, text="Ошибка импорта Triton (DLL Load Failed)", font=bold_font, bg=bg_color, fg=warning_color).pack(anchor='w')
+        tk.Label(top_frame, text=_("Ошибка импорта Triton (DLL Load Failed)", "Triton Import Error (DLL Load Failed)"), font=bold_font, bg=bg_color, fg=warning_color).pack(anchor='w')
 
         info_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=5)
         info_frame.pack(fill=tk.X)
-        info_text = (
+        info_text = _(
             "Не удалось загрузить библиотеку для Triton (возможно, отсутствует VC++ Redistributable).\n"
             "Установите последнюю версию VC++ Redistributable (x64) с сайта Microsoft\n"
-            "или попробуйте импортировать снова, если вы только что его установили."
+            "или попробуйте импортировать снова, если вы только что его установили.",
+            "Failed to load the library for Triton (VC++ Redistributable might be missing).\n"
+            "Install the latest VC++ Redistributable (x64) from the Microsoft website\n"
+            "or try importing again if you just installed it."
         )
         tk.Label(info_frame, text=info_text, font=main_font, bg=bg_color, fg=fg_color, justify=tk.LEFT).pack(anchor='w')
 
@@ -635,25 +646,25 @@ class LocalVoice:
             try:
                 if hasattr(self, 'docs_manager') and self.docs_manager:
                     self.docs_manager.open_doc("installation_guide.html#vc_redist")
-                else: logger.warning("DocsManager не инициализирован.")
-            except Exception as e_docs: logger.info(f"Не удалось открыть документацию: {e_docs}")
+                else: logger.warning(_("DocsManager не инициализирован.", "DocsManager not initialized."))
+            except Exception as e_docs: logger.info(f"{_('Не удалось открыть документацию:', 'Failed to open documentation:')} {e_docs}")
 
         def on_close():
             self._dialog_choice = "close"
             dialog.destroy()
 
         # --- Создание кнопок ---
-        retry_button = tk.Button(button_frame, text="Попробовать снова", command=on_retry,
+        retry_button = tk.Button(button_frame, text=_("Попробовать снова", "Retry"), command=on_retry,
                                 font=button_font, bg=retry_button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
                                 activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
         retry_button.pack(side=tk.RIGHT, padx=(5, 0))
 
-        close_button = tk.Button(button_frame, text="Закрыть", command=on_close,
+        close_button = tk.Button(button_frame, text=_("Закрыть", "Close"), command=on_close,
                                 font=button_font, bg=button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
                                 activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
         close_button.pack(side=tk.RIGHT, padx=(5, 0))
 
-        docs_button = tk.Button(button_frame, text="Документация", command=on_docs, # Укоротил текст
+        docs_button = tk.Button(button_frame, text=_("Документация", "Documentation"), command=on_docs, # Укоротил текст
                                 font=button_font, bg=button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
                                 activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
         docs_button.pack(side=tk.LEFT, padx=(0, 5))
@@ -726,12 +737,12 @@ class LocalVoice:
                 button_font = tkFont.Font(name=dlg_button_font_name, family="Segoe UI", size=9, weight="bold")
 
         except tk.TclError as e:
-            logger.info(f"Критическая ошибка при создании/получении шрифтов для диалога: {e}")
+            logger.info(f"{_('Критическая ошибка при создании/получении шрифтов для диалога:', 'Critical error creating/getting fonts for dialog:')} {e}")
             main_font, bold_font, status_font, button_font = None, None, None, None 
 
         # Создание окна
         dialog = tk.Toplevel(self.parent.root if self.parent and hasattr(self.parent, 'root') else None)
-        dialog.title("⚠️ Зависимости Triton")
+        dialog.title(_("⚠️ Зависимости Triton", "⚠️ Triton Dependencies"))
         dialog.configure(bg=bg_color)
         dialog.resizable(False, False)
         dialog.attributes('-topmost', True)
@@ -740,7 +751,7 @@ class LocalVoice:
         top_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=10)
         top_frame.pack(fill=tk.X)
 
-        tk.Label(top_frame, text="Статус зависимостей Triton:", font=bold_font, bg=bg_color, fg=fg_color).pack(anchor='w', pady=(0, 5))
+        tk.Label(top_frame, text=_("Статус зависимостей Triton:", "Triton Dependency Status:"), font=bold_font, bg=bg_color, fg=fg_color).pack(anchor='w', pady=(0, 5))
 
         status_frame = tk.Frame(top_frame, bg=bg_color)
         status_frame.pack(fill=tk.X, pady=(0, 10))
@@ -767,7 +778,7 @@ class LocalVoice:
 
                 label = tk.Label(item_frame, text=text, font=status_font, bg=bg_color, fg=fg_color)
                 label.pack(side=tk.LEFT)
-                status_text = "Найден" if found else "Не найден"
+                status_text = _("Найден", "Found") if found else _("Не найден", "Not Found")
                 status_color = status_found_color if found else status_notfound_color
                 status_label_widget = tk.Label(item_frame, text=status_text, font=status_font, bg=bg_color, fg=status_color)
                 status_label_widget.pack(side=tk.LEFT, padx=(3, 0))
@@ -776,19 +787,19 @@ class LocalVoice:
 
             # Показываем или скрываем предупреждение
             all_found = self.cuda_found and self.winsdk_found and self.msvc_found
+            warning_text_tr = _("⚠️ Модели Fish Speech+ / + RVC требуют всех компонентов!", "⚠️ Models Fish Speech+ / + RVC require all components!")
             if not all_found:
                 if not hasattr(dialog, 'warning_label') or not dialog.warning_label.winfo_exists():
-                    warning_text = "⚠️ Модели medium+ и medium+low требуют всех компонентов!"
-                    dialog.warning_label = tk.Label(top_frame, text=warning_text, bg=bg_color, fg=orange_color, font=bold_font)
+                    dialog.warning_label = tk.Label(top_frame, text=warning_text_tr, bg=bg_color, fg=orange_color, font=bold_font)
                     # Пакуем под status_frame
-                    dialog.warning_label.pack(anchor='w', pady=(5, 0), before=status_frame) # before может не сработать, пакуем после
-                    dialog.warning_label.pack_forget() # Сначала убираем
-                    dialog.warning_label.pack(anchor='w', pady=(5,0), fill=tk.X) # Пакуем снова внизу top_frame
-                dialog.warning_label.config(text="⚠️ Модели medium+ и medium+low требуют всех компонентов!")
+                    dialog.warning_label.pack(anchor='w', pady=(5, 0), before=status_frame)
+                    dialog.warning_label.pack_forget() 
+                    dialog.warning_label.pack(anchor='w', pady=(5,0), fill=tk.X)
+                dialog.warning_label.config(text=_("⚠️ Модели Fish Speech+ / + RVC требуют всех компонентов!", "⚠️ Models Fish Speech+ / + RVC require all components!"))
                 if not dialog.warning_label.winfo_ismapped():
                      dialog.warning_label.pack(anchor='w', pady=(5,0), fill=tk.X)
             elif hasattr(dialog, 'warning_label') and dialog.warning_label.winfo_ismapped():
-                dialog.warning_label.pack_forget() # Скрываем, если все найдено
+                dialog.warning_label.pack_forget() 
 
             dialog.update_idletasks() # Обновляем геометрию окна
 
@@ -797,10 +808,13 @@ class LocalVoice:
         # --- Средняя часть: Информация ---
         info_frame = tk.Frame(dialog, bg=bg_color, padx=15, pady=5)
         info_frame.pack(fill=tk.X)
-        info_text = (
+        info_text = _(
             "Если компоненты не найдены, установите их согласно документации.\n"
             "Вы также можете попробовать инициализировать модель вручную,\n"
-            "запустив `init_triton.bat` в корневой папке программы."
+            "запустив `init_triton.bat` в корневой папке программы.",
+            "If components are not found, install them according to the documentation.\n"
+            "You can also try initializing the model manually\n"
+            "by running `init_triton.bat` in the program's root folder."
         )
         tk.Label(info_frame, text=info_text, font=main_font, bg=bg_color, fg=fg_color, justify=tk.LEFT).pack(anchor='w')
 
@@ -810,14 +824,13 @@ class LocalVoice:
 
         # Функции для кнопок
         def on_refresh():
-            logger.info("Обновление статуса зависимостей...")
-            # Блокируем кнопки на время проверки
-            refresh_button.config(state=tk.DISABLED, text="Проверка...")
+            logger.info(_("Обновление статуса зависимостей...", "Updating dependency status..."))
+            refresh_button.config(state=tk.DISABLED, text=_("Проверка...", "Checking..."))
             dialog.update()
             self._check_system_dependencies()
-            update_status_display() # Обновляем отображение в диалоге
-            refresh_button.config(state=tk.NORMAL, text="Обновить статус")
-            logger.info("Статус обновлен.")
+            update_status_display()
+            refresh_button.config(state=tk.NORMAL, text=_("Обновить статус", "Refresh Status"))
+            logger.info(_("Статус обновлен.", "Status updated."))
 
         def on_docs():
             self.docs_manager.open_doc("installation_guide.html") 
@@ -831,22 +844,22 @@ class LocalVoice:
             dialog.destroy()
 
         # Создание кнопок
-        continue_button = tk.Button(button_frame, text="Продолжить инициализацию", command=on_continue,
+        continue_button = tk.Button(button_frame, text=_("Продолжить инициализацию", "Continue Initialization"), command=on_continue,
                                     font=button_font, bg=status_found_color, fg=button_fg, relief=tk.FLAT, borderwidth=0,
                                     activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
         continue_button.pack(side=tk.RIGHT, padx=(5, 0))
 
-        skip_button = tk.Button(button_frame, text="Пропустить инициализацию", command=on_skip,
+        skip_button = tk.Button(button_frame, text=_("Пропустить инициализацию", "Skip Initialization"), command=on_skip,
                                 font=button_font, bg=button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
                                 activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
         skip_button.pack(side=tk.RIGHT, padx=(5, 0))
 
-        docs_button = tk.Button(button_frame, text="Открыть документацию", command=on_docs,
+        docs_button = tk.Button(button_frame, text=_("Открыть документацию", "Open Documentation"), command=on_docs,
                                 font=button_font, bg=button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
                                 activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
         docs_button.pack(side=tk.LEFT, padx=(0, 5))
 
-        refresh_button = tk.Button(button_frame, text="Обновить статус", command=on_refresh,
+        refresh_button = tk.Button(button_frame, text=_("Обновить статус", "Refresh Status"), command=on_refresh,
                                    font=button_font, bg=button_bg, fg=button_fg, relief=tk.FLAT, borderwidth=0,
                                    activebackground=button_active_bg, activeforeground=button_fg, padx=10, pady=3, cursor="hand2")
         refresh_button.pack(side=tk.LEFT, padx=(0, 5))
@@ -892,8 +905,8 @@ class LocalVoice:
         cleanup_success = False
         try:
             gui_elements = self._create_action_window(
-                title=f"Удаление {component_name}",
-                initial_status=f"Удаление основного пакета {main_package_to_remove}..."
+                title=_(f"Удаление {component_name}", f"Uninstalling {component_name}"),
+                initial_status=_(f"Удаление основного пакета {main_package_to_remove}...", f"Uninstalling main package {main_package_to_remove}...")
             )
             if not gui_elements: return False
             update_status = gui_elements["update_status"]
@@ -906,26 +919,26 @@ class LocalVoice:
             )
 
             # Этап 1: Удаление основного пакета
-            update_log(f"Этап 1: Удаление основного пакета '{main_package_to_remove}'...")
+            update_log(_(f"Этап 1: Удаление основного пакета '{main_package_to_remove}'...", f"Step 1: Uninstalling main package '{main_package_to_remove}'..."))
             uninstall_success = installer.uninstall_packages(
                 packages_to_uninstall=[main_package_to_remove],
-                description=f"Удаление {main_package_to_remove}..."
+                description=_(f"Удаление {main_package_to_remove}...", f"Uninstalling {main_package_to_remove}...")
             )
 
             if not uninstall_success:
-                update_log(f"Не удалось удалить основной пакет '{main_package_to_remove}'. Процесс остановлен.")
-                update_status(f"Ошибка удаления {main_package_to_remove}")
+                update_log(_(f"Не удалось удалить основной пакет '{main_package_to_remove}'. Процесс остановлен.", f"Failed to uninstall main package '{main_package_to_remove}'. Process stopped."))
+                update_status(_(f"Ошибка удаления {main_package_to_remove}", f"Error uninstalling {main_package_to_remove}"))
             else:
-                update_log(f"Основной пакет '{main_package_to_remove}' успешно удален (или отсутствовал).")
-                update_status("Очистка неиспользуемых зависимостей...")
-                update_log("Этап 2: Поиск и удаление 'осиротевших' зависимостей...")
+                update_log(_(f"Основной пакет '{main_package_to_remove}' успешно удален (или отсутствовал).", f"Main package '{main_package_to_remove}' successfully uninstalled (or was missing)."))
+                update_status(_("Очистка неиспользуемых зависимостей...", "Cleaning up unused dependencies..."))
+                update_log(_("Этап 2: Поиск и удаление 'осиротевших' зависимостей...", "Step 2: Finding and removing 'orphaned' dependencies..."))
                 cleanup_success = self._cleanup_orphans(installer, update_log)
                 if cleanup_success:
-                    update_status("Удаление завершено.")
-                    update_log("Очистка зависимостей завершена.")
+                    update_status(_("Удаление завершено.", "Uninstallation complete."))
+                    update_log(_("Очистка зависимостей завершена.", "Dependency cleanup complete."))
                 else:
-                    update_status("Ошибка при очистке зависимостей.")
-                    update_log("Не удалось удалить некоторые 'осиротевшие' зависимости.")
+                    update_status(_("Ошибка при очистке зависимостей.", "Error during dependency cleanup."))
+                    update_log(_("Не удалось удалить некоторые 'осиротевшие' зависимости.", "Failed to remove some 'orphaned' dependencies."))
 
             # Обновляем состояние LocalVoice только если основной пакет удален успешно
             if uninstall_success:
@@ -938,12 +951,12 @@ class LocalVoice:
             return uninstall_success and cleanup_success
 
         except Exception as e:
-            logger.error(f"Критическая ошибка при удалении {component_name}: {e}")
+            logger.error(f"{_('Критическая ошибка при удалении', 'Critical error during')} {component_name} {_('удалении:', 'uninstallation:')} {e}")
             traceback.print_exc()
             if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
                 try:
-                    gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}\n{traceback.format_exc()}")
-                    gui_elements["update_status"]("Критическая ошибка удаления!")
+                    gui_elements["update_log"](f"{_('КРИТИЧЕСКАЯ ОШИБКА:', 'CRITICAL ERROR:')} {e}\n{traceback.format_exc()}")
+                    gui_elements["update_status"](_("Критическая ошибка удаления!", "Critical uninstallation error!"))
                     gui_elements["window"].after(5000, gui_elements["window"].destroy)
                 except: pass
             return False
@@ -957,33 +970,32 @@ class LocalVoice:
             protected_canon = canonicalize_name(self.protected_package)
 
             remaining_main_canon = (all_installed_canon & known_main_canon)
-            update_log_func(f"Обнаружены установленные основные пакеты (кроме g4f): {remaining_main_canon or 'Нет'}")
+            update_log_func(_(f"Обнаружены установленные основные пакеты (кроме g4f): {remaining_main_canon or 'Нет'}", f"Detected installed main packages (excluding g4f): {remaining_main_canon or 'None'}"))
 
             g4f_deps_canon = set()
             if protected_canon in all_installed_canon:
-                update_log_func(f"Построение дерева зависимостей для защищенного пакета: {self.protected_package}")
+                update_log_func(_(f"Построение дерева зависимостей для защищенного пакета: {self.protected_package}", f"Building dependency tree for protected package: {self.protected_package}"))
                 g4f_deps_canon = resolver.get_dependency_tree(self.protected_package)
                 if not g4f_deps_canon:
                     g4f_deps_canon = {protected_canon}
-                update_log_func(f"Зависимости {self.protected_package}: {g4f_deps_canon or 'Нет'}")
+                update_log_func(_(f"Зависимости {self.protected_package}: {g4f_deps_canon or 'Нет'}", f"Dependencies of {self.protected_package}: {g4f_deps_canon or 'None'}"))
             else:
-                update_log_func(f"Защищенный пакет {self.protected_package} не установлен.")
+                update_log_func(_(f"Защищенный пакет {self.protected_package} не установлен.", f"Protected package {self.protected_package} is not installed."))
 
             other_required_deps_canon = set()
             if remaining_main_canon:
-                update_log_func(f"Построение дерева зависимостей для оставшихся основных пакетов...")
-                # --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+                update_log_func(_("Построение дерева зависимостей для оставшихся основных пакетов...", "Building dependency tree for remaining main packages..."))
+
                 for pkg_canon in remaining_main_canon:
-                    deps = resolver.get_dependency_tree(pkg_canon) # Используем get_dependency_tree
-                    other_required_deps_canon.update(deps) # Собираем все зависимости в один сет
-                # --- КОНЕЦ ИСПРАВЛЕНИЯ ---
-                update_log_func(f"Зависимости оставшихся: {other_required_deps_canon or 'Нет'}")
+                    deps = resolver.get_dependency_tree(pkg_canon) 
+                    other_required_deps_canon.update(deps) 
+                update_log_func(_(f"Зависимости оставшихся: {other_required_deps_canon or 'Нет'}", f"Dependencies of remaining: {other_required_deps_canon or 'None'}"))
 
             required_set_canon = g4f_deps_canon | other_required_deps_canon
-            update_log_func(f"Полный набор необходимых пакетов: {required_set_canon or 'Нет'}")
+            update_log_func(_(f"Полный набор необходимых пакетов: {required_set_canon or 'Нет'}", f"Full set of required packages: {required_set_canon or 'None'}"))
 
             orphans_canon = all_installed_canon - required_set_canon
-            update_log_func(f"Обнаружены 'осиротевшие' пакеты: {orphans_canon or 'Нет'}")
+            update_log_func(_(f"Обнаружены 'осиротевшие' пакеты: {orphans_canon or 'Нет'}", f"Detected 'orphaned' packages: {orphans_canon or 'None'}"))
 
             if orphans_canon:
                 installed_packages_map = {}
@@ -996,15 +1008,16 @@ class LocalVoice:
                              except Exception: pass
 
                 orphans_original_names = [installed_packages_map.get(o_canon, str(o_canon)) for o_canon in orphans_canon] # Преобразуем NormalizedName в строку на всякий случай
-                update_log_func(f"Попытка удаления сирот: {orphans_original_names}")
-                return installer.uninstall_packages(orphans_original_names, "Удаление осиротевших зависимостей...")
+                update_log_func(_(f"Попытка удаления сирот: {orphans_original_names}", f"Attempting to uninstall orphans: {orphans_original_names}"))
+                return installer.uninstall_packages(orphans_original_names, _("Удаление осиротевших зависимостей...", "Uninstalling orphaned dependencies..."))
             else:
-                update_log_func("Осиротевшие зависимости не найдены.")
+                update_log_func(_("Осиротевшие зависимости не найдены.", "Orphaned dependencies not found."))
                 return True
         except Exception as e:
-            update_log_func(f"Ошибка во время очистки сирот: {e}")
+            update_log_func(_(f"Ошибка во время очистки сирот: {e}", f"Error during orphan cleanup: {e}"))
             update_log_func(traceback.format_exc())
             return False
+    
     def download_triton(self):
         """
         Устанавливает Triton, применяет патчи, проверяет зависимости
@@ -1015,11 +1028,11 @@ class LocalVoice:
 
         try:
             gui_elements = self._create_installation_window(
-                title="Установка Triton",
-                initial_status="Подготовка..."
+                title=_("Установка Triton", "Installing Triton"),
+                initial_status=_("Подготовка...", "Preparing...")
             )
             if not gui_elements:
-                logger.error("Не удалось создать окно установки Triton.")
+                logger.error(_("Не удалось создать окно установки Triton.", "Failed to create Triton installation window."))
                 return False
 
             progress_window = gui_elements["window"]
@@ -1033,19 +1046,19 @@ class LocalVoice:
 
             if not os.path.exists(libs_path):
                 os.makedirs(libs_path)
-                update_log(f"Создана директория: {libs_path}")
+                update_log(_(f"Создана директория: {libs_path}", f"Created directory: {libs_path}"))
 
             if libs_path_abs not in sys.path:
                 sys.path.insert(0, libs_path_abs)
-                update_log(f"Добавлен путь {libs_path_abs} в sys.path")
+                update_log(_(f"Добавлен путь {libs_path_abs} в sys.path", f"Added path {libs_path_abs} to sys.path"))
 
             update_progress(10)
-            update_log("Начало установки Triton...")
+            update_log(_("Начало установки Triton...", "Starting Triton installation..."))
 
-            # --- Установка пакета ---
             update_progress(20)
-            update_status("Установка библиотеки Triton...")
-            update_log("Установка пакета triton-windows...")
+            update_status(_("Установка библиотеки Triton...", "Installing Triton library..."))
+            update_log(_("Установка пакета triton-windows...", "Installing triton-windows package..."))
+
             installer = PipInstaller(
                 script_path=script_path,
                 libs_path=libs_path,
@@ -1055,24 +1068,23 @@ class LocalVoice:
             )
             success = installer.install_package(
                 "triton-windows<3.3.0",
-                description="Установка библиотеки Triton...",
+                description=_("Установка библиотеки Triton...", "Installing Triton library..."),
                 extra_args=["--upgrade"]
             )
 
             if not success:
-                update_status("Ошибка при установке Triton")
-                update_log("Не удалось установить пакет Triton. Проверьте лог выше.")
+                update_status(_("Ошибка при установке Triton", "Error installing Triton"))
+                update_log(_("Не удалось установить пакет Triton. Проверьте лог выше.", "Failed to install Triton package. Check the log above."))
                 if progress_window and progress_window.winfo_exists():
                     progress_window.after(5000, progress_window.destroy)
                 return False # Установка пакета не удалась, дальше нет смысла
 
             # --- Патчи ---
-            update_progress(50) # Прогресс после установки и перед патчами
-            update_status("Применение патчей...")
-            update_log("Применение необходимых патчей для Triton...")
+            update_progress(50)
+            update_status(_("Применение патчей...", "Applying patches..."))
+            update_log(_("Применение необходимых патчей для Triton...", "Applying necessary patches for Triton..."))
 
-            # Патч build.py
-            update_log("Применение патча к build.py...")
+            update_log(_("Применение патча к build.py...", "Applying patch to build.py..."))
             build_py_path = os.path.join(libs_path_abs, "triton", "runtime", "build.py")
             if os.path.exists(build_py_path):
                 try:
@@ -1099,28 +1111,28 @@ class LocalVoice:
                         patched_source = patched_source.replace(old_line_tcc, new_line_tcc)
                         applied_patch_tcc = True
                     else:
-                        update_log("Патч (путь tcc.exe) для build.py уже применен или строка не найдена.")
+                        update_log(_("Патч (путь tcc.exe) для build.py уже применен или строка не найдена.", "Patch (tcc.exe path) for build.py already applied or line not found."))
 
                     if old_line_fpic in patched_source:
                         patched_source = patched_source.replace(old_line_fpic, new_line_fpic)
                         applied_patch_fpic = True
                     else:
-                        update_log("Патч (удаление -fPIC) для build.py уже применен или строка не найдена.")
+                        update_log(_("Патч (удаление -fPIC) для build.py уже применен или строка не найдена.", "Patch (removing -fPIC) for build.py already applied or line not found."))
 
                     if applied_patch_tcc or applied_patch_fpic:
                         with open(build_py_path, "w", encoding="utf-8") as f: f.write(patched_source)
-                        if applied_patch_tcc: update_log("Патч (путь tcc.exe) успешно применен к build.py")
-                        if applied_patch_fpic: update_log("Патч (удаление -fPIC) успешно применен к build.py")
+                        if applied_patch_tcc: update_log(_("Патч (путь tcc.exe) успешно применен к build.py", "Patch (tcc.exe path) successfully applied to build.py"))
+                        if applied_patch_fpic: update_log(_("Патч (удаление -fPIC) успешно применен к build.py", "Patch (removing -fPIC) successfully applied to build.py"))
 
                 except Exception as e:
-                    update_log(f"Ошибка при патче build.py: {e}")
+                    update_log(_(f"Ошибка при патче build.py: {e}", f"Error patching build.py: {e}"))
                     update_log(traceback.format_exc())
             else:
-                update_log("Предупреждение: файл build.py не найден, пропускаем патч")
+                update_log(_("Предупреждение: файл build.py не найден, пропускаем патч", "Warning: build.py file not found, skipping patch"))
 
             # Патч windows_utils.py
             update_progress(60)
-            update_log("Применение патча к windows_utils.py...")
+            update_log(_("Применение патча к windows_utils.py...", "Applying patch to windows_utils.py..."))
             windows_utils_path = os.path.join(libs_path_abs, "triton", "windows_utils.py")
             if os.path.exists(windows_utils_path):
                 try:
@@ -1131,18 +1143,18 @@ class LocalVoice:
                     if old_code_win in source:
                         patched_source = source.replace(old_code_win, new_code_win)
                         with open(windows_utils_path, "w", encoding="utf-8") as f: f.write(patched_source)
-                        update_log("Патч успешно применен к windows_utils.py")
+                        update_log(_("Патч успешно применен к windows_utils.py", "Patch successfully applied to windows_utils.py"))
                     else:
-                        update_log("Патч для windows_utils.py уже применен или строка не найдена.")
+                        update_log(_("Патч для windows_utils.py уже применен или строка не найдена.", "Patch for windows_utils.py already applied or line not found."))
                 except Exception as e:
-                    update_log(f"Ошибка при патче windows_utils.py: {e}")
+                    update_log(_(f"Ошибка при патче windows_utils.py: {e}", f"Error patching windows_utils.py: {e}"))
                     update_log(traceback.format_exc())
             else:
-                update_log("Предупреждение: файл windows_utils.py не найден, пропускаем патч")
+                update_log(_("Предупреждение: файл windows_utils.py не найден, пропускаем патч", "Warning: windows_utils.py file not found, skipping patch"))
 
             # Патч compiler.py
             update_progress(70)
-            update_log("Применение патча к compiler.py...")
+            update_log(_("Применение патча к compiler.py...", "Applying patch to compiler.py..."))
             compiler_path = os.path.join(libs_path_abs, "triton", "backends", "nvidia", "compiler.py")
             if os.path.exists(compiler_path):
                 try:
@@ -1153,17 +1165,17 @@ class LocalVoice:
                     if old_code_comp_line in source:
                         patched_source = source.replace(old_code_comp_line, new_code_comp_line)
                         with open(compiler_path, "w", encoding="utf-8") as f: f.write(patched_source)
-                        update_log("Патч успешно применен к compiler.py")
+                        update_log(_("Патч успешно применен к compiler.py", "Patch successfully applied to compiler.py"))
                     else:
-                        update_log("Патч для compiler.py уже применен или строка не найдена.")
+                        update_log(_("Патч для compiler.py уже применен или строка не найдена.", "Patch for compiler.py already applied or line not found."))
                 except Exception as e:
-                    update_log(f"Ошибка при патче compiler.py: {e}")
+                    update_log(_(f"Ошибка при патче compiler.py: {e}", f"Error patching compiler.py: {e}"))
                     update_log(traceback.format_exc())
             else:
-                update_log("Предупреждение: файл compiler.py не найден, пропускаем патч")
+                update_log(_("Предупреждение: файл compiler.py не найден, пропускаем патч", "Warning: compiler.py file not found, skipping patch"))
 
             # Патч cache.py
-            update_log("Применение патча к cache.py...")
+            update_log(_("Применение патча к cache.py...", "Applying patch to cache.py..."))
             cache_py_path = os.path.join(libs_path_abs, "triton", "runtime", "cache.py")
             if os.path.exists(cache_py_path):
                 try:
@@ -1174,22 +1186,23 @@ class LocalVoice:
                     if old_line in source:
                         patched_source = source.replace(old_line, new_line)
                         with open(cache_py_path, "w", encoding="utf-8") as f: f.write(patched_source)
-                        update_log("Патч успешно применен к cache.py")
+                        update_log(_("Патч успешно применен к cache.py", "Patch successfully applied to cache.py"))
                     else:
-                        update_log("Патч для cache.py уже применен или строка не найдена.")
+                        update_log(_("Патч для cache.py уже применен или строка не найдена.", "Patch for cache.py already applied or line not found."))
                 except Exception as e:
-                    update_log(f"Ошибка при патче cache.py: {e}")
+                    update_log(_(f"Ошибка при патче cache.py: {e}", f"Error patching cache.py: {e}"))
                     update_log(traceback.format_exc())
             else:
-                update_log("Предупреждение: файл cache.py не найден, пропускаем патч")
+                update_log(_("Предупреждение: файл cache.py не найден, пропускаем патч", "Warning: cache.py file not found, skipping patch"))
 
 
             # --- Проверка зависимостей с возможностью повтора ---
             update_progress(80)
-            update_status("Проверка системных зависимостей...")
-            update_log("Проверка наличия Triton, CUDA, Windows SDK, MSVC...")
+            update_status(_("Проверка системных зависимостей...", "Checking system dependencies..."))
+            update_log(_("Проверка наличия Triton, CUDA, Windows SDK, MSVC...", "Checking for Triton, CUDA, Windows SDK, MSVC..."))
 
-            max_retries = 1 # Сколько раз можно нажать "Попробовать снова"
+
+            max_retries = 100 # Сколько раз можно нажать "Попробовать снова"
             retries_left = max_retries
             check_successful = False # Флаг успешной проверки без ошибок DLL/импорта/find_*
 
@@ -1208,48 +1221,46 @@ class LocalVoice:
                 # --- Дебажный флаг (срабатывает только при первой попытке) ---
                 force_dll_error = os.environ.get("TRITON_DLL_ERROR", "0") == "1"
                 if force_dll_error and retries_left == max_retries:
-                    update_log("TRITON_DLL_ERROR=1 установлен. Симуляция ошибки DLL load failed...")
+                    update_log(_("TRITON_DLL_ERROR=1 установлен. Симуляция ошибки DLL load failed...", "TRITON_DLL_ERROR=1 set. Simulating DLL load failed error..."))
                     show_vc_redist_warning = True
                     import_error_occurred = True # Считаем ошибкой импорта
                 else:
-                    # --- Попытка проверки зависимостей ---
                     try:
-                        # Очистка кэша перед каждой попыткой импорта
                         importlib.invalidate_caches()
                         if "triton" in sys.modules:
                             try:
                                 del sys.modules["triton"]
-                                update_log("Удален модуль 'triton' из sys.modules перед проверкой.")
+                                update_log(_("Удален модуль 'triton' из sys.modules перед проверкой.", "Removed 'triton' module from sys.modules before check."))
                             except KeyError:
                                 pass # Модуль мог быть уже удален
 
                         # Вызываем проверку
                         self._check_system_dependencies()
                         # Если нет исключений, _check_system_dependencies установила флаги
-                        update_log("_check_system_dependencies выполнена успешно.")
+                        update_log(_("_check_system_dependencies выполнена успешно.", "_check_system_dependencies executed successfully."))
                         check_successful = True # Проверка прошла без ошибок импорта/DLL
 
                     except ImportError as e:
                         error_message = str(e)
                         import_error_occurred = True # Была ошибка импорта
                         if error_message.startswith("DLL load failed while importing libtriton"):
-                            update_log(f"ОШИБКА: Импорт Triton не удался (DLL load failed): {error_message}")
+                            update_log(_(f"ОШИБКА: Импорт Triton не удался (DLL load failed): {error_message}", f"ERROR: Triton import failed (DLL load failed): {error_message}"))
                             show_vc_redist_warning = True # Показать окно VC Redist
                         else:
-                            update_log(f"ОШИБКА: Неожиданная ошибка импорта: {error_message}")
+                            update_log(_(f"ОШИБКА: Неожиданная ошибка импорта: {error_message}", f"ERROR: Unexpected import error: {error_message}"))
                             update_log(traceback.format_exc())
                             # Не показываем окно VC Redist для других ошибок импорта
                         # Флаги triton_installed/checks_performed остаются False
                     except Exception as e:
                         # Другие ошибки из _check_system_dependencies (например, при вызове find_*)
-                        update_log(f"ОШИБКА: Общая ошибка во время _check_system_dependencies: {e}")
+                        update_log(_(f"ОШИБКА: Общая ошибка во время _check_system_dependencies: {e}", f"ERROR: General error during _check_system_dependencies: {e}"))
                         update_log(traceback.format_exc())
                         dependencies_check_error = True # Была другая ошибка
                         # Флаги triton_installed/checks_performed остаются False
 
                 # --- Обработка результата попытки ---
                 if show_vc_redist_warning:
-                    update_status("Ошибка загрузки Triton! Проверьте VC Redist.")
+                    update_status(_("Ошибка загрузки Triton! Проверьте VC Redist.", "Triton load error! Check VC Redist."))
                     if progress_window and progress_window.winfo_exists():
                         progress_window.update_idletasks()
                         progress_window.grab_release()
@@ -1261,15 +1272,15 @@ class LocalVoice:
                         progress_window.grab_set()
 
                     if user_choice == "retry" and retries_left > 0:
-                        update_log("Пользователь выбрал повторить попытку импорта Triton...")
+                        update_log(_("Пользователь выбрал повторить попытку импорта Triton...", "User chose to retry Triton import..."))
                         retries_left -= 1
                         check_successful = False # Сбрасываем флаг успеха перед новой попыткой
                         continue # Переходим к следующей итерации цикла while
                     else:
                         if user_choice == "retry":
-                            update_log("Достигнут лимит попыток для импорта Triton.")
+                            update_log(_("Достигнут лимит попыток для импорта Triton.", "Retry limit reached for Triton import."))
                         else: # user_choice == "close" или None
-                            update_log("Пользователь закрыл окно предупреждения VC Redist, не решая проблему.")
+                            update_log(_("Пользователь закрыл окно предупреждения VC Redist, не решая проблему.", "User closed the VC Redist warning window without resolving the issue."))
                         check_successful = False # Ошибка DLL осталась нерешенной
                         break # Выходим из цикла while
                 else:
@@ -1277,30 +1288,29 @@ class LocalVoice:
                     check_successful = not import_error_occurred and not dependencies_check_error
                     if not check_successful:
                         if import_error_occurred:
-                            update_log("Проверка зависимостей не удалась из-за ошибки импорта (не DLL).")
+                            update_log(_("Проверка зависимостей не удалась из-за ошибки импорта (не DLL).", "Dependency check failed due to import error (not DLL)."))
                         elif dependencies_check_error:
-                            update_log("Проверка зависимостей не удалась из-за ошибки внутри _check_system_dependencies.")
-                    break # Выходим из цикла while (либо успех, либо другая ошибка)
+                            update_log(_("Проверка зависимостей не удалась из-за ошибки внутри _check_system_dependencies.", "Dependency check failed due to an error within _check_system_dependencies."))
+                    break 
 
-            # --- Определение, нужно ли пропускать инициализацию ядра (после цикла) ---
             skip_init = False
-            user_action_deps = None # Для диалога о CUDA/SDK/MSVC
+            user_action_deps = None 
 
-            if not check_successful: # Если проверка не удалась окончательно
-                if show_vc_redist_warning: # Если последней была ошибка DLL
-                    update_log("Импорт Triton не удался (возможно, из-за VC Redist), инициализация ядра будет пропущена.")
-                elif import_error_occurred: # Если была другая ошибка импорта
-                    update_log("Не удалось импортировать Triton, инициализация ядра будет пропущена.")
-                else: # Если была ошибка в find_*
-                    update_log("Проверка зависимостей Triton завершилась с ошибкой. Инициализация ядра будет пропущена.")
+            if not check_successful:
+                if show_vc_redist_warning:
+                    update_log(_("Импорт Triton не удался (возможно, из-за VC Redist), инициализация ядра будет пропущена.", "Triton import failed (possibly due to VC Redist), kernel initialization will be skipped."))
+                elif import_error_occurred:
+                    update_log(_("Не удалось импортировать Triton, инициализация ядра будет пропущена.", "Failed to import Triton, kernel initialization will be skipped."))
+                else:
+                    update_log(_("Проверка зависимостей Triton завершилась с ошибкой. Инициализация ядра будет пропущена.", "Triton dependency check finished with an error. Kernel initialization will be skipped."))
                 skip_init = True
-                self.triton_module = False # Установка не удалась
+                self.triton_module = False
             elif self.triton_installed and self.triton_checks_performed:
-                # Проверка прошла успешно, теперь смотрим на CUDA/SDK/MSVC
+
                 self.triton_module = True # Установка и проверка базово успешны
                 if not (self.cuda_found and self.winsdk_found and self.msvc_found):
-                    update_log("Обнаружено отсутствие зависимостей (CUDA/WinSDK/MSVC).")
-                    update_status("Требуется внимание: зависимости Triton")
+                    update_log(_("Обнаружено отсутствие зависимостей (CUDA/WinSDK/MSVC).", "Missing dependencies detected (CUDA/WinSDK/MSVC)."))
+                    update_status(_("Требуется внимание: зависимости Triton", "Attention required: Triton dependencies"))
                     if progress_window and progress_window.winfo_exists():
                         progress_window.grab_release()
                         progress_window.attributes('-topmost', False)
@@ -1311,37 +1321,36 @@ class LocalVoice:
                         progress_window.grab_set()
 
                     if user_action_deps == "skip":
-                        update_log("Пользователь выбрал пропустить инициализацию ядра из-за отсутствия зависимостей.")
+                        update_log(_("Пользователь выбрал пропустить инициализацию ядра из-за отсутствия зависимостей.", "User chose to skip kernel initialization due to missing dependencies."))
                         skip_init = True
                     elif user_action_deps == "continue":
-                        update_log("Пользователь выбрал продолжить инициализацию ядра, несмотря на отсутствующие зависимости.")
+                        update_log(_("Пользователь выбрал продолжить инициализацию ядра, несмотря на отсутствующие зависимости.", "User chose to continue kernel initialization despite missing dependencies."))
                         skip_init = False
-                    else: # Диалог закрыт
-                        update_log("Диалог зависимостей закрыт, инициализация ядра будет пропущена.")
+                    else:
+                        update_log(_("Диалог зависимостей закрыт, инициализация ядра будет пропущена.", "Dependency dialog closed, kernel initialization will be skipped."))
                         skip_init = True
                 else:
-                    update_log("Все зависимости Triton (CUDA, WinSDK, MSVC) найдены.")
-                    skip_init = False # Все найдено, можно инициализировать
+                    update_log(_("Все зависимости Triton (CUDA, WinSDK, MSVC) найдены.", "All Triton dependencies (CUDA, WinSDK, MSVC) found."))
+                    skip_init = False
             else:
-                # Сюда не должны попадать, если check_successful=True, но на всякий случай
-                update_log("Неожиданное состояние после проверки зависимостей (check_successful=True, но флаги не установлены). Пропуск инициализации ядра.")
+                update_log(_("Неожиданное состояние после проверки зависимостей (check_successful=True, но флаги не установлены). Пропуск инициализации ядра.", "Unexpected state after dependency check (check_successful=True, but flags not set). Skipping kernel initialization."))
                 skip_init = True
-                self.triton_module = False # Считаем неуспешной
+                self.triton_module = False
 
             # --- Инициализация ядра (init.py) ---
             if not skip_init:
                 update_progress(90)
-                update_status("Инициализация ядра Triton...")
-                update_log("Начало инициализации ядра (запуск init.py)...")
+                update_status(_("Инициализация ядра Triton...", "Initializing Triton kernel..."))
+                update_log(_("Начало инициализации ядра (запуск init.py)...", "Starting kernel initialization (running init.py)..."))
                 try:
                     temp_dir = "temp"
                     if not os.path.exists(temp_dir):
                         os.makedirs(temp_dir)
-                        update_log(f"Создана директория: {temp_dir}")
+                        update_log(_(f"Создана директория: {temp_dir}", f"Created directory: {temp_dir}"))
 
-                    update_log("Запуск скрипта инициализации...")
+                    update_log(_("Запуск скрипта инициализации...", "Running initialization script..."))
                     init_cmd = [script_path, "init.py"]
-                    update_log(f"Выполняем: {' '.join(init_cmd)}")
+                    update_log(_(f"Выполняем: {' '.join(init_cmd)}", f"Executing: {' '.join(init_cmd)}"))
                     try:
                         # Запускаем и ждем завершения, захватывая вывод
                         result = subprocess.run(
@@ -1355,81 +1364,79 @@ class LocalVoice:
                         )
                         # Логируем вывод
                         if result.stdout:
-                            update_log("--- Вывод init.py (stdout) ---")
+                            update_log(_("--- Вывод init.py (stdout) ---", "--- init.py Output (stdout) ---"))
                             for line in result.stdout.splitlines():
                                 update_log(line)
-                            update_log("--- Конец вывода init.py (stdout) ---")
+                            update_log(_("--- Конец вывода init.py (stdout) ---", "--- End of init.py Output (stdout) ---"))
                         if result.stderr:
-                            update_log("--- Вывод init.py (stderr) ---")
+                            update_log(_("--- Вывод init.py (stderr) ---", "--- init.py Output (stderr) ---"))
                             for line in result.stderr.splitlines():
-                                update_log(f"STDERR: {line}") # Помечаем как stderr
-                            update_log("--- Конец вывода init.py (stderr) ---")
+                                update_log(f"STDERR: {line}")
+                            update_log(_("--- Конец вывода init.py (stderr) ---", "--- End of init.py Output (stderr) ---"))
 
-                        update_log(f"Скрипт init.py завершился с кодом: {result.returncode}")
+                        update_log(_(f"Скрипт init.py завершился с кодом: {result.returncode}", f"Script init.py finished with code: {result.returncode}"))
                         init_success = (result.returncode == 0)
 
                     except FileNotFoundError:
-                        update_log(f"ОШИБКА: Не найден скрипт инициализации init.py или python.exe по пути: {script_path}")
+                        update_log(_(f"ОШИБКА: Не найден скрипт инициализации init.py или python.exe по пути: {script_path}", f"ERROR: Initialization script init.py or python.exe not found at path: {script_path}"))
                         init_success = False
                     except Exception as sub_e:
-                        update_log(f"Ошибка при запуске init.py через subprocess.run: {sub_e}")
+                        update_log(_(f"Ошибка при запуске init.py через subprocess.run: {sub_e}", f"Error running init.py via subprocess.run: {sub_e}"))
                         update_log(traceback.format_exc())
                         init_success = False
 
                     if not init_success:
-                        update_status("Ошибка при инициализации ядра")
-                        update_log("Ошибка при запуске init.py. Проверьте лог выше.")
+                        update_status(_("Ошибка при инициализации ядра", "Error during kernel initialization"))
+                        update_log(_("Ошибка при запуске init.py. Проверьте лог выше.", "Error running init.py. Check the log above."))
                     else:
-                        # Проверяем наличие выходного файла как индикатор успеха
                         output_file_path = os.path.join(temp_dir, "inited.wav")
                         if os.path.exists(output_file_path):
-                            update_log(f"Проверка успешна: файл {output_file_path} создан")
+                            update_log(_(f"Проверка успешна: файл {output_file_path} создан", f"Check successful: file {output_file_path} created"))
                             update_progress(95)
-                            update_status("Инициализация ядра успешно завершена!")
+                            update_status(_("Инициализация ядра успешно завершена!", "Kernel initialization completed successfully!"))
                         else:
-                            update_log(f"Предупреждение: Файл {output_file_path} не найден после успешного запуска init.py")
-                            update_status("Предупреждение: Файл инициализации не создан")
-                            update_progress(90) # Не 95, т.к. файл не найден
+                            update_log(_(f"Предупреждение: Файл {output_file_path} не найден после успешного запуска init.py", f"Warning: File {output_file_path} not found after successful run of init.py"))
+                            update_status(_("Предупреждение: Файл инициализации не создан", "Warning: Initialization file not created"))
+                            update_progress(90)
 
                 except Exception as e:
-                    update_log(f"Непредвиденная ошибка при инициализации ядра: {str(e)}")
+                    update_log(_(f"Непредвиденная ошибка при инициализации ядра: {str(e)}", f"Unexpected error during kernel initialization: {str(e)}"))
                     update_log(traceback.format_exc())
-                    update_status("Ошибка инициализации ядра")
-                    update_progress(85) # Снижаем прогресс при ошибке
+                    update_status(_("Ошибка инициализации ядра", "Kernel initialization error"))
+                    update_progress(85)
 
-            else: # skip_init == True
-                update_log("Инициализация ядра Triton пропущена.")
-                update_status("Инициализация ядра пропущена")
-                update_progress(95) # Пропускаем, но считаем шаг завершенным
+            else:
+                update_log(_("Инициализация ядра Triton пропущена.", "Triton kernel initialization skipped."))
+                update_status(_("Инициализация ядра пропущена", "Kernel initialization skipped"))
+                update_progress(95) 
 
             # --- Завершение ---
             update_progress(100)
-            final_message = "Установка Triton завершена."
-            # Добавляем предупреждения в зависимости от итогового состояния
+            final_message = _("Установка Triton завершена.", "Triton installation complete.")
             if not check_successful and show_vc_redist_warning:
-                final_message += " ВНИМАНИЕ: Ошибка загрузки DLL (VC Redist?)!"
+                final_message += _(" ВНИМАНИЕ: Ошибка загрузки DLL (VC Redist?)!", " WARNING: DLL load error (VC Redist?)!")
             elif not check_successful:
-                final_message += " ВНИМАНИЕ: Ошибка при проверке зависимостей!"
+                final_message += _(" ВНИМАНИЕ: Ошибка при проверке зависимостей!", " WARNING: Error during dependency check!")
             elif skip_init and user_action_deps == "skip":
-                final_message += " Инициализация ядра пропущена по выбору."
+                final_message += _(" Инициализация ядра пропущена по выбору.", " Kernel initialization skipped by choice.")
             elif skip_init:
-                final_message += " Инициализация ядра пропущена."
+                final_message += _(" Инициализация ядра пропущена.", " Kernel initialization skipped.")
 
             # Предупреждение о CUDA/SDK/MSVC, если они не найдены, но проверка прошла и ядро не пропускалось
             if check_successful and not skip_init and not (self.cuda_found and self.winsdk_found and self.msvc_found):
                 missing_deps = [dep for dep, found in [("CUDA", self.cuda_found), ("WinSDK", self.winsdk_found), ("MSVC", self.msvc_found)] if not found]
-                final_message += f" Внимание: не найдены зависимости ({', '.join(missing_deps)})!"
+                final_message += _(f" Внимание: не найдены зависимости ({', '.join(missing_deps)})!", f" Warning: missing dependencies ({', '.join(missing_deps)})!")
 
             update_status(final_message)
             update_log(final_message)
 
             # Добавляем финальный совет
             if not check_successful:
-                update_log("Если модель medium+ не заработает, проверьте лог, зависимости (особенно VC Redist) и документацию.")
+                update_log(_("Если модель medium+ не заработает, проверьте лог, зависимости (особенно VC Redist) и документацию.", "If the medium+ model doesn't work, check the log, dependencies (especially VC Redist), and documentation."))
             elif skip_init:
-                update_log("Если модель medium+ не заработает, возможно, потребуется запустить init_triton.bat вручную.")
+                update_log(_("Если модель medium+ не заработает, возможно, потребуется запустить init_triton.bat вручную.", "If the medium+ model doesn't work, you might need to run init_triton.bat manually."))
             elif not (self.cuda_found and self.winsdk_found and self.msvc_found):
-                update_log("Если модель medium+ не заработает, проверьте установку недостающих зависимостей (CUDA/WinSDK/MSVC).")
+                update_log(_("Если модель medium+ не заработает, проверьте установку недостающих зависимостей (CUDA/WinSDK/MSVC).", "If the medium+ model doesn't work, check the installation of missing dependencies (CUDA/WinSDK/MSVC)."))
 
 
             self.current_model = "medium+" # Устанавливаем модель в любом случае
@@ -1440,19 +1447,18 @@ class LocalVoice:
             return True
 
         except Exception as e:
-            logger.error(f"Критическая ошибка при установке Triton: {e}")
+            logger.error(_(f"Критическая ошибка при установке Triton: {e}", f"Critical error during Triton installation: {e}"))
             logger.error(traceback.format_exc())
             try:
                 if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
-                    gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}\n{traceback.format_exc()}")
-                    gui_elements["update_status"]("Критическая ошибка установки!")
+                    gui_elements["update_log"](f"{_('КРИТИЧЕСКАЯ ОШИБКА:', 'CRITICAL ERROR:')} {e}\n{traceback.format_exc()}")
+                    gui_elements["update_status"](_("Критическая ошибка установки!", "Critical installation error!"))
                     gui_elements["window"].after(10000, gui_elements["window"].destroy)
             except Exception as e_inner:
-                logger.info(f"Ошибка при попытке обновить лог в окне прогресса: {e_inner}")
-            self.triton_module = False # Установка не удалась
-            return False # Критическая ошибка во время установки
+                logger.info(_(f"Ошибка при попытке обновить лог в окне прогресса: {e_inner}", f"Error trying to update log in progress window: {e_inner}"))
+            self.triton_module = False
+            return False
         finally:
-            # Здесь можно добавить код очистки, если он нужен, но пока оставляем пустым
             pass
 
     def download_edge_tts_rvc(self):
@@ -1460,8 +1466,8 @@ class LocalVoice:
         gui_elements = None
         try:
             gui_elements = self._create_installation_window(
-                title="Скачивание Edge-TTS + RVC",
-                initial_status="Подготовка..."
+                title=_("Скачивание Edge-TTS + RVC", "Downloading Edge-TTS + RVC"),
+                initial_status=_("Подготовка...", "Preparing...")
             )
             if not gui_elements:
                 return False
@@ -1481,20 +1487,19 @@ class LocalVoice:
             )
 
             update_progress(10)
-            update_log("Начало установки Edge-TTS + RVC...")
+            update_log(_("Начало установки Edge-TTS + RVC...", "Starting Edge-TTS + RVC installation..."))
 
-            # Сначала устанавливаем PyTorch с CUDA 12.4 (если нужно)
             if self.provider in ["NVIDIA"] and not self.is_cuda_available():
-                update_status("Установка PyTorch с поддержкой CUDA 12.4...")
+                update_status(_("Установка PyTorch с поддержкой CUDA 12.4...", "Installing PyTorch with CUDA 12.4 support..."))
                 update_progress(20)
                 success = installer.install_package(
                     ["torch==2.6.0", "torchaudio==2.6.0"],
-                    description="Установка PyTorch с поддержкой CUDA 12.4...",
+                    description=_("Установка PyTorch с поддержкой CUDA 12.4...", "Installing PyTorch with CUDA 12.4 support..."),
                     extra_args=["--index-url", "https://download.pytorch.org/whl/cu124"]
                 )
 
                 if not success:
-                    update_status("Ошибка при установке PyTorch")
+                    update_status(_("Ошибка при установке PyTorch", "Error installing PyTorch"))
                     if progress_window and progress_window.winfo_exists():
                         progress_window.after(5000, progress_window.destroy)
                     return False
@@ -1502,13 +1507,13 @@ class LocalVoice:
             else:
                 update_progress(50) 
 
-            update_status("Установка зависимостей...")
+            update_status(_("Установка зависимостей...", "Installing dependencies..."))
             success = installer.install_package(
                 "omegaconf",
-                description="Установка omegaconf..."
+                description=_("Установка omegaconf...", "Installing omegaconf...")
             )
             if not success:
-                update_status("Ошибка при установке omegaconf")
+                update_status(_("Ошибка при установке omegaconf", "Error installing omegaconf"))
                 if progress_window and progress_window.winfo_exists():
                     progress_window.after(5000, progress_window.destroy)
                 return False
@@ -1516,18 +1521,18 @@ class LocalVoice:
             update_progress(70)
 
             # Устанавливаем основную библиотеку
-            update_status("Установка основной библиотеки...")
+            update_status(_("Установка основной библиотеки...", "Installing main library..."))
             try:
                 package_url = None
                 desc = ""
                 if self.provider in ["NVIDIA"]:
                     package_url = "tts_with_rvc"
-                    desc = "Установка основной библиотеки tts-with-rvc (NVIDIA)..."
+                    desc = _("Установка основной библиотеки tts-with-rvc (NVIDIA)...", "Installing main library tts-with-rvc (NVIDIA)...")
                 elif self.provider in ["AMD"]:
                     package_url = "tts_with_rvc_onnx[dml]"
-                    desc = "Установка основной библиотеки tts-with-rvc (AMD)..."
+                    desc = _("Установка основной библиотеки tts-with-rvc (AMD)...", "Installing main library tts-with-rvc (AMD)...")
                 else:
-                    update_log(f"Ошибка: не найдена подходящая видеокарта: {self.provider}")
+                    update_log(_(f"Ошибка: не найдена подходящая видеокарта: {self.provider}", f"Error: suitable graphics card not found: {self.provider}"))
                     if progress_window and progress_window.winfo_exists():
                         progress_window.after(5000, progress_window.destroy)
                     return False
@@ -1535,13 +1540,13 @@ class LocalVoice:
                 success = installer.install_package(package_url, description=desc)
 
                 if not success:
-                    update_status("Ошибка при установке tts-with-rvc")
+                    update_status(_("Ошибка при установке tts-with-rvc", "Error installing tts-with-rvc"))
                     if progress_window and progress_window.winfo_exists():
                         progress_window.after(5000, progress_window.destroy)
                     return False
 
             except Exception as e:
-                update_log(f"Ошибка при установке tts-with-rvc: {e}")
+                update_log(_(f"Ошибка при установке tts-with-rvc: {e}", f"Error installing tts-with-rvc: {e}"))
                 if progress_window and progress_window.winfo_exists():
                     progress_window.after(5000, progress_window.destroy)
                 return False
@@ -1550,7 +1555,7 @@ class LocalVoice:
             libs_path = "Lib"
             libs_path_abs = os.path.abspath(libs_path)
             update_progress(95)
-            update_status("Применение патчей...")
+            update_status(_("Применение патчей...", "Applying patches..."))
             config_path = os.path.join(libs_path_abs, "fairseq", "dataclass", "configs.py")
             if os.path.exists(config_path):
                 try:
@@ -1560,16 +1565,16 @@ class LocalVoice:
                     patched_source = re.sub(r"metadata=\{(.*?)help:", r'metadata={\1"help":', source)
                     with open(config_path, "w", encoding="utf-8") as f:
                         f.write(patched_source)
-                    update_log("Патч успешно применен к configs.py")
+                    update_log(_("Патч успешно применен к configs.py", "Patch successfully applied to configs.py"))
                 except Exception as e:
-                    update_log(f"Ошибка при патче configs.py: {e}")
+                    update_log(_(f"Ошибка при патче configs.py: {e}", f"Error patching configs.py: {e}"))
             else:
-                update_log("Предупреждение: файл configs.py не найден, пропускаем патч")
+                update_log(_("Предупреждение: файл configs.py не найден, пропускаем патч", "Warning: configs.py file not found, skipping patch"))
 
             update_progress(100)
 
-            update_status("Попытка импорта модуля...")
-            update_log("Установка успешно завершена! Попытка импорта модуля...")
+            update_status(_("Попытка импорта модуля...", "Attempting to import module..."))
+            update_log(_("Установка успешно завершена! Попытка импорта модуля...", "Installation successful! Attempting to import module..."))
 
             # Пытаемся импортировать модуль
             try:
@@ -1589,13 +1594,13 @@ class LocalVoice:
                 # Импортируем
                 from tts_with_rvc import TTS_RVC
                 self.tts_rvc_module = TTS_RVC
-                update_log("Модуль успешно загружен без перезапуска программы!")
+                update_log(_("Модуль успешно загружен без перезапуска программы!", "Module successfully loaded without restarting the program!"))
             except ImportError as ie:
-                update_log(f"Предупреждение: Модуль установлен, но не может быть загружен немедленно: {ie}")
-                update_log("При следующем использовании он будет доступен.")
+                update_log(_(f"Предупреждение: Модуль установлен, но не может быть загружен немедленно: {ie}", f"Warning: Module installed, but cannot be loaded immediately: {ie}"))
+                update_log(_("При следующем использовании он будет доступен.", "It will be available on next use."))
             except Exception as e_imp:
-                 update_log(f"Ошибка при попытке импорта модуля после установки: {e_imp}")
-                 traceback.print_exc()
+                update_log(_(f"Ошибка при попытке импорта модуля после установки: {e_imp}", f"Error attempting to import module after installation: {e_imp}"))
+                traceback.print_exc()
 
 
             if progress_window and progress_window.winfo_exists():
@@ -1605,12 +1610,12 @@ class LocalVoice:
             return True
 
         except Exception as e:
-            logger.info(f"Ошибка при установке Edge-TTS + RVC: {e}")
+            logger.info(_(f"Ошибка при установке Edge-TTS + RVC: {e}", f"Error installing Edge-TTS + RVC: {e}"))
             traceback.print_exc()
             if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
                 try:
-                    gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}\n{traceback.format_exc()}")
-                    gui_elements["update_status"]("Критическая ошибка установки!")
+                    gui_elements["update_log"](f"{_('КРИТИЧЕСКАЯ ОШИБКА:', 'CRITICAL ERROR:')} {e}\n{traceback.format_exc()}")
+                    gui_elements["update_status"](_("Критическая ошибка установки!", "Critical installation error!"))
                     gui_elements["window"].after(10000, gui_elements["window"].destroy)
                 except: pass
             return False
@@ -1623,8 +1628,8 @@ class LocalVoice:
         gui_elements = None
         try:
             gui_elements = self._create_installation_window(
-                title="Скачивание Fish Speech",
-                initial_status="Подготовка..."
+                title=_("Скачивание Fish Speech", "Downloading Fish Speech"),
+                initial_status=_("Подготовка...", "Preparing...")
             )
             if not gui_elements:
                 return False
@@ -1647,20 +1652,20 @@ class LocalVoice:
             )
 
             update_progress(10)
-            update_log("Начало установки Fish Speech...")
+            update_log(_("Начало установки Fish Speech...", "Starting Fish Speech installation..."))
 
             # Сначала устанавливаем PyTorch с CUDA 12.4 (если нужно)
             if self.provider in ["NVIDIA"] and not self.is_cuda_available():
-                update_status("Установка PyTorch с поддержкой CUDA 12.4...")
+                update_status(_("Установка PyTorch с поддержкой CUDA 12.4...", "Installing PyTorch with CUDA 12.4 support..."))
                 update_progress(20)
                 success = installer.install_package(
                     ["torch==2.6.0", "torchaudio==2.6.0"],
-                    description="Установка PyTorch с поддержкой CUDA 12.4...",
+                    description=_("Установка PyTorch с поддержкой CUDA 12.4...", "Installing PyTorch with CUDA 12.4 support..."),
                     extra_args=["--index-url", "https://download.pytorch.org/whl/cu124"]
                 )
 
                 if not success:
-                    update_status("Ошибка при установке PyTorch")
+                    update_status(_("Ошибка при установке PyTorch", "Error installing PyTorch"))
                     if progress_window and progress_window.winfo_exists():
                         progress_window.after(5000, progress_window.destroy)
                     return False
@@ -1668,23 +1673,23 @@ class LocalVoice:
             else:
                  update_progress(40) # Пропускаем шаг PyTorch, но двигаем прогресс
 
-            update_status("Установка библиотеки Fish Speech...")
+            update_status(_("Установка библиотеки Fish Speech...", "Installing Fish Speech library..."))
 
             try:
                 force_install_unsupported = os.environ.get("ALLOW_UNSUPPORTED_GPU", "0") == "1"
                 if self.provider in ["NVIDIA"] or force_install_unsupported:
                     if force_install_unsupported:
                         update_log("--------------------------------")
-                        update_log(f"ВНИМАНИЕ! УСТАНОВКА НА ВИДЕОКАРТУ {self.provider} НЕСОВМЕСТИМОЙ МОДЕЛИ!!")
+                        update_log(_(f"ВНИМАНИЕ! УСТАНОВКА НА ВИДЕОКАРТУ {self.provider} НЕСОВМЕСТИМОЙ МОДЕЛИ!!", f"WARNING! INSTALLING INCOMPATIBLE MODEL ON {self.provider} GPU!!"))
                         update_log("--------------------------------")
 
                     success = installer.install_package(
                         "fish_speech_lib",
-                        description="Установка библиотеки Fish Speech..."
+                        description=_("Установка библиотеки Fish Speech...", "Installing Fish Speech library...")
                     )
 
                     if not success:
-                        update_status("Ошибка при установке Fish Speech")
+                        update_status(_("Ошибка при установке Fish Speech", "Error installing Fish Speech"))
                         if progress_window and progress_window.winfo_exists():
                             progress_window.after(5000, progress_window.destroy)
                         return False
@@ -1692,33 +1697,32 @@ class LocalVoice:
                     update_progress(80)
 
                     # Дополнительно устанавливаем librosa
-                    update_status("Установка дополнительных библиотек...")
+                    update_status(_("Установка дополнительных библиотек...", "Installing additional libraries..."))
                     success = installer.install_package(
                         "librosa==0.9.1",
-                        description="Установка дополнительной библиотеки librosa..."
+                        description=_("Установка дополнительной библиотеки librosa...", "Installing additional library librosa...")
                     )
 
                     if not success:
-                        update_status("Ошибка при установке librosa")
-                        update_log("Предупреждение: Fish Speech может работать некорректно без librosa")
-                        # Не прерываем установку из-за librosa
+                        update_status(_("Ошибка при установке librosa", "Error installing librosa"))
+                        update_log(_("Предупреждение: Fish Speech может работать некорректно без librosa", "Warning: Fish Speech may not work correctly without librosa"))
                 else:
-                    update_log(f"Ошибка: не найдена подходящая видеокарта: {self.provider}")
-                    update_status("Требуется NVIDIA GPU")
+                    update_log(_(f"Ошибка: не найдена подходящая видеокарта: {self.provider}", f"Error: suitable graphics card not found: {self.provider}"))
+                    update_status(_("Требуется NVIDIA GPU", "NVIDIA GPU required"))
                     if progress_window and progress_window.winfo_exists():
                         progress_window.after(5000, progress_window.destroy)
                     return False
 
             except Exception as e:
-                update_log(f"Ошибка при установке Fish Speech: {e}")
+                update_log(_(f"Ошибка при установке Fish Speech: {e}", f"Error installing Fish Speech: {e}"))
                 if progress_window and progress_window.winfo_exists():
                     progress_window.after(5000, progress_window.destroy)
                 return False
 
             update_progress(100)
             
-            update_status("Попытка импорта модуля...")
-            update_log("Установка успешно завершена! Попытка импорта модуля...")
+            update_status(_("Попытка импорта модуля...", "Attempting to import module..."))
+            update_log(_("Установка успешно завершена! Попытка импорта модуля...", "Installation successful! Attempting to import module..."))
 
             # Пытаемся импортировать модуль
             try:
@@ -1734,34 +1738,33 @@ class LocalVoice:
 
                 from fish_speech_lib.inference import FishSpeech
                 self.fish_speech_module = FishSpeech
-                update_log("Модуль успешно загружен без перезапуска программы!")
+                update_log(_("Модуль успешно загружен без перезапуска программы!", "Module successfully loaded without restarting the program!"))
             except ImportError as ie:
-                update_log(f"Предупреждение: Модуль установлен, но не может быть загружен немедленно: {ie}")
-                update_log("При следующем использовании он будет доступен.")
+                update_log(_(f"Предупреждение: Модуль установлен, но не может быть загружен немедленно: {ie}", f"Warning: Module installed, but cannot be loaded immediately: {ie}"))
+                update_log(_("При следующем использовании он будет доступен.", "It will be available on next use."))
             except Exception as e_imp:
-                 update_log(f"Ошибка при попытке импорта модуля после установки: {e_imp}")
+                 update_log(_(f"Ошибка при попытке импорта модуля после установки: {e_imp}", f"Error attempting to import module after installation: {e_imp}"))
                  traceback.print_exc()
 
             if progress_window and progress_window.winfo_exists():
-                progress_window.after(3000, progress_window.destroy)
+                progress_window.after(5000, progress_window.destroy)
 
             self.current_model = "medium"
             return True
 
         except Exception as e:
-            logger.info(f"Ошибка при установке Fish Speech: {e}")
+            logger.info(_(f"Ошибка при установке Fish Speech: {e}", f"Error installing Fish Speech: {e}"))
             traceback.print_exc()
             if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
                 try:
-                    gui_elements["update_log"](f"КРИТИЧЕСКАЯ ОШИБКА: {e}\n{traceback.format_exc()}")
-                    gui_elements["update_status"]("Критическая ошибка установки!")
+                    gui_elements["update_log"](f"{_('КРИТИЧЕСКАЯ ОШИБКА:', 'CRITICAL ERROR:')} {e}\n{traceback.format_exc()}")
+                    gui_elements["update_status"](_("Критическая ошибка установки!", "Critical installation error!"))
                     gui_elements["window"].after(10000, gui_elements["window"].destroy)
                 except: pass
             return False
         finally:
              if gui_elements and gui_elements["window"] and gui_elements["window"].winfo_exists():
-                 # Не закрываем здесь, так как есть after(3000) выше
-                 pass
+                pass
              
     #endregion
     async def voiceover(self, text, output_file="output.wav", character=None):
@@ -1772,8 +1775,8 @@ class LocalVoice:
         # Получаем путь к модели персонажа, если есть
         if character is not None:
             is_nvidia = self.provider in ["NVIDIA"]
-
             short_name = str(getattr(character, 'short_name', None))
+            self.current_character_name = short_name
             self.pth_path = os.path.join(os.path.abspath(self.clone_voice_folder), f"{short_name}.{'pth' if is_nvidia else 'onnx'}")
             self.index_path = os.path.join(os.path.abspath(self.clone_voice_folder), f"{short_name}.index")
             self.clone_voice_filename = os.path.join(os.path.abspath(self.clone_voice_folder), f"{short_name}.wav")
@@ -1914,7 +1917,7 @@ class LocalVoice:
             f0method_key = "fsprvc_f0method" if is_combined_model else "f0method"
             use_index_file_key = "fsprvc_use_index_file" if is_combined_model else "use_index_file"
 
-            pitch = float(settings.get(pitch_key, 0))
+            pitch = float(settings.get(pitch_key, 0)) if self.current_character_name != "Player" else -12
             index_rate = float(settings.get(index_rate_key, 0.75))
             protect = float(settings.get(protect_key, 0.33))
             filter_radius = int(settings.get(filter_radius_key, 3))
@@ -2039,6 +2042,7 @@ class LocalVoice:
                 "ShorthairMita": (6, "en_60"),
                 "SleepyMita":  (6, "en_33"),
                 "TinyMita":    (2, "en_60"),
+                "Player":      (0, "en_27")
             },
             'ru': {
                 "CappieMita":    (6, "kseniya"),
@@ -2049,6 +2053,7 @@ class LocalVoice:
                 "TinyMita":    (-3, "baya"),
                 "SleepyMita":  (2, "baya"),
                 "GhostMita":   (1, "baya"),
+                "Player":      (0, "aidar")
             }
         }
 
@@ -2536,7 +2541,7 @@ class LocalVoice:
         # Загружаем настройки для модели
         settings = self.load_model_settings(model_id)
         if not settings and model_id != "low+":
-             logger.info(f"Предупреждение: Не найдены настройки для модели {model_id}. Используются значения по умолчанию.")
+            logger.info(f"Предупреждение: Не найдены настройки для модели {model_id}. Используются значения по умолчанию.")
         
         try:
             if model_id == "low":

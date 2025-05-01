@@ -15,6 +15,7 @@ import base64
 import json
 import glob
 from utils.ffmpeg_installer import install_ffmpeg
+from utils.ModelsDownloader import ModelsDownloader
 
 import asyncio
 import threading
@@ -2130,6 +2131,21 @@ class ChatGUI:
         """Показывает окно загрузки модели с прогрессом"""
         model_id = model["id"]
         model_name = model["name"]
+
+        downloader = ModelsDownloader(target_dir=".")
+        logger.info(f"Проверка/загрузка файлов для '{model_name}'...")
+
+        models_are_ready = downloader.download_models_if_needed(self.root)
+
+        if not models_are_ready:
+            logger.warning(f"Файлы моделей для '{model_name}' не готовы (загрузка не удалась или отменена).")
+            messagebox.showerror(_("Ошибка", "Error"),
+                                 _("Не удалось подготовить файлы моделей. Инициализация отменена.",
+                                   "Failed to prepare model files. Initialization cancelled."),
+                                 parent=self.root)
+            return
+        
+        logger.info(f"Модели для '{model_name}' готовы. Запуск инициализации...")
 
         # Создаем новое окно
         loading_window = tk.Toplevel(self.root)

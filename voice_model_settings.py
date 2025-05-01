@@ -13,6 +13,15 @@ from docs import DocsManager
 from Logger import logger
 import traceback
 
+from SettingsManager import SettingsManager
+
+def getTranslationVariant(ru_str, en_str=""):
+    if en_str and SettingsManager.get("LANGUAGE") == "EN":
+        return en_str
+    return ru_str
+
+_ = getTranslationVariant
+
 model_descriptions = {
     "low": "Быстрая модель, комбинация Edge-TTS для генерации речи и RVC для преобразования голоса. Низкие требования.",
     "low+": "Комбинация Silero TTS для генерации речи и RVC для преобразования голоса. Требования схожи с low.",
@@ -20,6 +29,15 @@ model_descriptions = {
     "medium+": "Улучшенная версия Fish Speech с потенциально более высоким качеством или доп. возможностями. Требует больше места.",
     "medium+low": "Комбинация Fish Speech+ и RVC для высококачественного преобразования голоса. Самые высокие требования."
 }
+
+model_descriptions_en = {
+    "low": "Fast model, combination of Edge-TTS for speech generation and RVC for voice conversion. Low requirements.",
+    "low+": "Combination of Silero TTS for speech generation and RVC for voice conversion. Requirements similar to low.",
+    "medium": "Fish Speech model for speech generation with good quality. Requires more resources.",
+    "medium+": "Improved version of Fish Speech with potentially higher quality or additional features. Requires more space.",
+    "medium+low": "Combination of Fish Speech+ and RVC for high-quality voice conversion. Highest requirements."
+}
+
 
 setting_descriptions = {
     "device": "Устройство для вычислений (GPU или CPU). 'cuda:0' - первая GPU NVIDIA, 'cpu' - центральный процессор, 'mps:0' - GPU Apple Silicon.",
@@ -68,12 +86,60 @@ setting_descriptions = {
     "windows_sdk": "Наличие установленного Windows SDK. Может требоваться для компиляции некоторых зависимостей Python.",
 }
 
+setting_descriptions_en = {
+    "device": "Device for computation (GPU or CPU). 'cuda:0' - first NVIDIA GPU, 'cpu' - central processor, 'mps:0' - Apple Silicon GPU.",
+    "pitch": "Voice pitch change in semitones. Positive values - higher, negative - lower. 0 - no change.",
+    "is_half": "Use half-precision computations (float16). Speeds up work on compatible GPUs (NVIDIA RTX and newer) and saves VRAM, may slightly affect quality.",
+    "output_gain": "Volume gain for the final audio file. Value 1.0 - no change, <1 quieter, >1 louder. Useful for normalizing the volume of different voices.",
+    "f0method": "[RVC] Fundamental frequency (F0) extraction algorithm. Determines voice pitch. 'rmvpe' and 'crepe' are accurate but slow. 'pm', 'harvest' are faster. Affects the naturalness of intonations.",
+    "use_index_file": "[RVC] Use the .index file to improve the model's voice timbre matching. Disabling may be useful if the index file is low quality or causes artifacts.",
+    "index_rate": "[RVC] Degree of using the index file (.index) to preserve the RVC voice timbre (0 to 1). Higher value = more similar to the model's voice, but may add artifacts if the index is poor quality.",
+    "filter_radius": "[RVC] Radius of the median filter for smoothing the F0 curve (pitch). Removes sharp jumps, makes speech smoother. Recommended value >= 3.",
+    "rms_mix_rate": "[RVC] Degree of mixing RMS (volume) of the source audio (from TTS/FSP) and the RVC result (0 to 1). 0 = fully RVC volume, 1 = fully original volume. Helps preserve the original speech dynamics.",
+    "protect": "[RVC] Protection of voiceless consonants (sh, shch, s, ...) from pitch distortion (0 to 0.5). Lower values provide more protection (consonants sound cleaner), but may slightly affect the intonation of nearby vowels. Recommended 0.3-0.4.",
+    "tts_rate": "[EdgeTTS] Change the speech rate of the base Edge-TTS synthesizer (before RVC) in percent. 0 - standard speed.",
+    "tts_volume": "[EdgeTTS] Change the speech volume of the base Edge-TTS synthesizer (before RVC) in percent. 0 - standard volume.",
+    "silero_device": "[Silero] Device for Silero speech generation (CPU or GPU).",
+    "silero_sample_rate": "[Silero] Sample rate for Silero speech generation.",
+    "silero_put_accent": "[Silero] Automatic stress placement.",
+    "silero_put_yo": "[Silero] Automatic replacement of 'e' with 'yo'.",
+    "half": "[FS/FSP] Use FP16 (half-precision). Recommended for speed and memory saving on GPU.",
+    "temperature": "[FS/FSP] Sampling temperature (>0). Controls the randomness/diversity of generated speech. Higher = more diverse, but more errors. Lower = more stable.",
+    "top_p": "[FS/FSP] Nucleus sampling (Top-P, 0-1). Limits the choice of the next token to only the most likely options. Reduces the probability of generating 'nonsense'.",
+    "repetition_penalty": "[FS/FSP] Penalty for repeating tokens (>1). Prevents the model from looping on the same words/sounds. 1.0 - no penalty.",
+    "chunk_length": "[FS/FSP] Text processing chunk size (in tokens). Affects memory usage and the length of the context the model 'sees' simultaneously.",
+    "max_new_tokens": "[FS/FSP] Maximum number of generated tokens per step. Limits the length of the audio fragment generated at once.",
+    "compile_model": "[FSP] Use torch.compile() for JIT compilation of the model. Significantly speeds up execution on GPU after the first run, but requires additional installation and compilation time at startup.",
+    "fsprvc_fsp_device": "[FSP+RVC][FSP] Device for the Fish Speech+ part.",
+    "fsprvc_fsp_half": "[FSP+RVC][FSP] Half-precision for the Fish Speech+ part.",
+    "fsprvc_fsp_temperature": "[FSP+RVC][FSP] Temperature for the Fish Speech+ part.",
+    "fsprvc_fsp_top_p": "[FSP+RVC][FSP] Top-P for the Fish Speech+ part.",
+    "fsprvc_fsp_repetition_penalty": "[FSP+RVC][FSP] Repetition penalty for the Fish Speech+ part.",
+    "fsprvc_fsp_chunk_length": "[FSP+RVC][FSP] Chunk size for the Fish Speech+ part.",
+    "fsprvc_fsp_max_tokens": "[FSP+RVC][FSP] Max tokens for the Fish Speech+ part.",
+    "fsprvc_rvc_device": "[FSP+RVC][RVC] Device for the RVC part.",
+    "fsprvc_is_half": "[FSP+RVC][RVC] Half-precision for the RVC part.",
+    "fsprvc_f0method": "[FSP+RVC][RVC] F0 method for the RVC part.",
+    "fsprvc_rvc_pitch": "[FSP+RVC][RVC] Voice pitch for the RVC part.",
+    "fsprvc_use_index_file": "[FSP+RVC][RVC] Use the .index file to improve the model's voice timbre matching. Disabling may be useful if the index file is low quality or causes artifacts.",
+    "fsprvc_index_rate": "[FSP+RVC][RVC] Index rate for the RVC part.",
+    "fsprvc_protect": "[FSP+RVC][RVC] Consonant protection for the RVC part.",
+    "fsprvc_output_gain": "[FSP+RVC][RVC] Volume (gain) for the RVC part.",
+    "fsprvc_filter_radius": "[FSP+RVC][RVC] F0 filter radius for the RVC part.",
+    "fsprvc_rvc_rms_mix_rate": "[FSP+RVC][RVC] RMS mixing for the RVC part.",
+    "tmp_directory": "Folder for temporary files created during operation (e.g., intermediate audio files).",
+    "verbose": "Enable detailed debug information output to the console for diagnosing problems.",
+    "cuda_toolkit": "Presence of installed NVIDIA CUDA Toolkit. Required for some functions (e.g., torch.compile) and working with NVIDIA GPUs.",
+    "windows_sdk": "Presence of installed Windows SDK. May be required for compiling some Python dependencies.",
+}
+
 default_description_text = "Наведите курсор на элемент интерфейса для получения описания."
+default_description_text_en = "Hover over an interface element to get a description."
 
 try:
     from utils.GpuUtils import check_gpu_provider, get_cuda_devices, get_gpu_name_by_id
 except ImportError:
-    logger.info("Предупреждение: Модуль GpuUtils не найден. Функции определения GPU не будут работать.")
+    logger.info(_("Предупреждение: Модуль GpuUtils не найден. Функции определения GPU не будут работать.", "Warning: GpuUtils module not found. GPU detection functions will not work."))
     def check_gpu_provider(): return None
     def get_cuda_devices(): return []
 
@@ -324,7 +390,7 @@ class VoiceCollapsibleSection(ttk.Frame): # Используем ttk.Frame дл�
                      value = widget.get()
                 values[key] = value
             except Exception as e:
-                logger.info(f"Ошибка получения значения для {key}: {e}")
+                logger.info(f"{_('Ошибка получения значения для', 'Error getting value for')} {key}: {e}")
                 values[key] = None
         return values
 
@@ -333,7 +399,7 @@ class VoiceModelSettingsWindow:
 
     def __init__(self, master=None, config_dir=None, on_save_callback=None, local_voice=None, check_installed_func=None):
         self.master = master or tk.Tk()
-        self.master.title("Настройки и Установка Локальных Моделей")
+        self.master.title(_("Настройки и Установка Локальных Моделей", "Settings and Installation of Local Models"))
         self.master.minsize(750, 500)
         self.master.geometry("875x800")
         self.master.configure(bg="#1e1e1e")
@@ -345,9 +411,9 @@ class VoiceModelSettingsWindow:
         self.installed_models_file = os.path.join(self.config_dir, "installed_models.txt")
         self.on_save_callback = on_save_callback
 
-        self.model_descriptions = model_descriptions
-        self.setting_descriptions = setting_descriptions
-        self.default_description_text = default_description_text
+        self.model_descriptions = model_descriptions_en if SettingsManager.get("LANGUAGE") == "EN" else model_descriptions
+        self.setting_descriptions = setting_descriptions_en if SettingsManager.get("LANGUAGE") == "EN" else setting_descriptions
+        self.default_description_text = default_description_text_en if SettingsManager.get("LANGUAGE") == "EN" else default_description_text
 
         self.detected_gpu_vendor = check_gpu_provider()
         self.detected_cuda_devices = []
@@ -361,11 +427,11 @@ class VoiceModelSettingsWindow:
                     first_device_id = self.detected_cuda_devices[0]
                     self.gpu_name = get_gpu_name_by_id(first_device_id)
                     if self.gpu_name:
-                        logger.info(f"Обнаружена GPU: {self.gpu_name}")
+                        logger.info(f"{_('Обнаружена GPU:', 'Detected GPU:')} {self.gpu_name}")
                     else:
-                        logger.info(f"Не удалось получить имя для GPU {first_device_id}")
+                        logger.info(f"{_('Не удалось получить имя для GPU', 'Could not get name for GPU')} {first_device_id}")
                 except Exception as e:
-                    logger.info(f"Предупреждение: Не удалось получить имя GPU: {e}")
+                    logger.info(f"{_('Предупреждение: Не удалось получить имя GPU:', 'Warning: Could not get GPU name:')} {e}")
 
         self.description_label_widget = None
         self.settings_sections = {}
@@ -515,88 +581,86 @@ class VoiceModelSettingsWindow:
                 "id": "low", "name": "Edge-TTS + RVC", "min_vram": 3, "rec_vram": 4,
                 "gpu_vendor": ["NVIDIA", "AMD"], "size_gb": 3,
                 "settings": [
-                    {"key": "device", "label": "Устройство RVC", "type": "combobox", "options": { "values_nvidia": ["dml", "cuda:0", "cpu"], "default_nvidia": "cuda:0", "values_amd": ["dml", "cpu"], "default_amd": "dml", "values_other": ["cpu", "mps:0"], "default_other": "cpu" }},
-                     {"key": "is_half", "label": "Half-precision RVC", "type": "combobox", "options": {"values": ["True", "False"], "default_nvidia": "True", "default_amd": "False", "default_other": "False"}},
-                    {"key": "f0method", "label": "Метод F0 (RVC)", "type": "combobox", "options": { "values_nvidia": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_nvidia": "rmvpe", "values_amd": ["rmvpe", "harvest", "pm", "dio"], "default_amd": "pm", "values_other": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_other": "pm" }},
-                    {"key": "pitch", "label": "Высота голоса RVC (пт)", "type": "entry", "options": {"default": "6"}},
-                    {"key": "use_index_file", "label": "Исп. .index файл (RVC)", "type": "checkbutton", "options": {"default": True}},
-                    {"key": "index_rate", "label": "Соотношение индекса RVC", "type": "entry", "options": {"default": "0.75"}},
-                    {"key": "protect", "label": "Защита согласных (RVC)", "type": "entry", "options": {"default": "0.33"}},
-                    {"key": "tts_rate", "label": "Скорость TTS (%)", "type": "entry", "options": {"default": "0"}},
-                    # {"key": "output_gain", "label": "Громкость RVC (gain)", "type": "entry", "options": {"default": "0.75"}},
-                    {"key": "filter_radius", "label": "Радиус фильтра F0 (RVC)", "type": "entry", "options": {"default": "3"}},
-                    {"key": "rms_mix_rate", "label": "Смешивание RMS (RVC)", "type": "entry", "options": {"default": "0.5"}},
+                    {"key": "device", "label": _("Устройство RVC", "RVC Device"), "type": "combobox", "options": { "values_nvidia": ["dml", "cuda:0", "cpu"], "default_nvidia": "cuda:0", "values_amd": ["dml", "cpu"], "default_amd": "dml", "values_other": ["cpu", "mps:0"], "default_other": "cpu" }},
+                     {"key": "is_half", "label": _("Half-precision RVC", "Half-precision RVC"), "type": "combobox", "options": {"values": ["True", "False"], "default_nvidia": "True", "default_amd": "False", "default_other": "False"}},
+                    {"key": "f0method", "label": _("Метод F0 (RVC)", "F0 Method (RVC)"), "type": "combobox", "options": { "values_nvidia": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_nvidia": "rmvpe", "values_amd": ["rmvpe", "harvest", "pm", "dio"], "default_amd": "pm", "values_other": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_other": "pm" }},
+                    {"key": "pitch", "label": _("Высота голоса RVC (пт)", "RVC Pitch (semitones)"), "type": "entry", "options": {"default": "6"}},
+                    {"key": "use_index_file", "label": _("Исп. .index файл (RVC)", "Use .index file (RVC)"), "type": "checkbutton", "options": {"default": True}},
+                    {"key": "index_rate", "label": _("Соотношение индекса RVC", "RVC Index Rate"), "type": "entry", "options": {"default": "0.75"}},
+                    {"key": "protect", "label": _("Защита согласных (RVC)", "Consonant Protection (RVC)"), "type": "entry", "options": {"default": "0.33"}},
+                    {"key": "tts_rate", "label": _("Скорость TTS (%)", "TTS Speed (%)"), "type": "entry", "options": {"default": "0"}},
+                    # {"key": "output_gain", "label": _("Громкость RVC (gain)", "RVC Volume (gain)"), "type": "entry", "options": {"default": "0.75"}},
+                    {"key": "filter_radius", "label": _("Радиус фильтра F0 (RVC)", "F0 Filter Radius (RVC)"), "type": "entry", "options": {"default": "3"}},
+                    {"key": "rms_mix_rate", "label": _("Смешивание RMS (RVC)", "RMS Mixing (RVC)"), "type": "entry", "options": {"default": "0.5"}},
                 ]
             },
-            { # Добавлена новая модель low+
+            {
                 "id": "low+", "name": "Silero + RVC", "min_vram": 3, "rec_vram": 4,
                 "gpu_vendor": ["NVIDIA", "AMD"], "size_gb": 3,
                 "settings": [
-                    # Настройки RVC (скопированы из low)
-                    {"key": "device", "label": "Устройство RVC", "type": "combobox", "options": { "values_nvidia": ["dml", "cuda:0", "cpu"], "default_nvidia": "cuda:0", "values_amd": ["dml", "cpu"], "default_amd": "dml", "values_other": ["cpu", "dml"], "default_other": "cpu" }},
-                    {"key": "is_half", "label": "Half-precision RVC", "type": "combobox", "options": {"values": ["True", "False"], "default_nvidia": "True", "default_amd": "False", "default_other": "False"}},
-                    {"key": "f0method", "label": "Метод F0 (RVC)", "type": "combobox", "options": { "values_nvidia": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_nvidia": "rmvpe", "values_amd": ["rmvpe", "harvest", "pm", "dio"], "default_amd": "pm", "values_other": ["pm", "rmvpe", "harvest", "dio"], "default_other": "pm" }},
-                    {"key": "pitch", "label": "Высота голоса RVC (пт)", "type": "entry", "options": {"default": "6"}},
-                    {"key": "use_index_file", "label": "Исп. .index файл (RVC)", "type": "checkbutton", "options": {"default": True}},
-                    {"key": "index_rate", "label": "Соотношение индекса RVC", "type": "entry", "options": {"default": "0.75"}},
-                    {"key": "protect", "label": "Защита согласных (RVC)", "type": "entry", "options": {"default": "0.33"}},
-                    {"key": "filter_radius", "label": "Радиус фильтра F0 (RVC)", "type": "entry", "options": {"default": "3"}},
-                    {"key": "rms_mix_rate", "label": "Смешивание RMS (RVC)", "type": "entry", "options": {"default": "0.5"}},
-                    # Настройки Silero
-                    {"key": "silero_device", "label": "Устройство Silero", "type": "combobox", "options": {"values_nvidia": ["cuda", "cpu"], "default_nvidia": "cuda", "values_amd": ["cpu"], "default_amd": "cpu", "values_other": ["cpu"], "default_other": "cpu"}},
-                    {"key": "silero_sample_rate", "label": "Частота Silero", "type": "combobox", "options": {"values": ["48000", "24000", "16000"], "default": "48000"}},
-                    {"key": "silero_put_accent", "label": "Акценты Silero", "type": "checkbutton", "options": {"default": True}},
-                    {"key": "silero_put_yo", "label": "Буква Ё Silero", "type": "checkbutton", "options": {"default": True}}
+                    {"key": "device", "label": _("Устройство RVC", "RVC Device"), "type": "combobox", "options": { "values_nvidia": ["dml", "cuda:0", "cpu"], "default_nvidia": "cuda:0", "values_amd": ["dml", "cpu"], "default_amd": "dml", "values_other": ["cpu", "dml"], "default_other": "cpu" }},
+                    {"key": "is_half", "label": _("Half-precision RVC", "Half-precision RVC"), "type": "combobox", "options": {"values": ["True", "False"], "default_nvidia": "True", "default_amd": "False", "default_other": "False"}},
+                    {"key": "f0method", "label": _("Метод F0 (RVC)", "F0 Method (RVC)"), "type": "combobox", "options": { "values_nvidia": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_nvidia": "rmvpe", "values_amd": ["rmvpe", "harvest", "pm", "dio"], "default_amd": "pm", "values_other": ["pm", "rmvpe", "harvest", "dio"], "default_other": "pm" }},
+                    {"key": "pitch", "label": _("Высота голоса RVC (пт)", "RVC Pitch (semitones)"), "type": "entry", "options": {"default": "6"}},
+                    {"key": "use_index_file", "label": _("Исп. .index файл (RVC)", "Use .index file (RVC)"), "type": "checkbutton", "options": {"default": True}},
+                    {"key": "index_rate", "label": _("Соотношение индекса RVC", "RVC Index Rate"), "type": "entry", "options": {"default": "0.75"}},
+                    {"key": "protect", "label": _("Защита согласных (RVC)", "Consonant Protection (RVC)"), "type": "entry", "options": {"default": "0.33"}},
+                    {"key": "filter_radius", "label": _("Радиус фильтра F0 (RVC)", "F0 Filter Radius (RVC)"), "type": "entry", "options": {"default": "3"}},
+                    {"key": "rms_mix_rate", "label": _("Смешивание RMS (RVC)", "RMS Mixing (RVC)"), "type": "entry", "options": {"default": "0.5"}},
+                    {"key": "silero_device", "label": _("Устройство Silero", "Silero Device"), "type": "combobox", "options": {"values_nvidia": ["cuda", "cpu"], "default_nvidia": "cuda", "values_amd": ["cpu"], "default_amd": "cpu", "values_other": ["cpu"], "default_other": "cpu"}},
+                    {"key": "silero_sample_rate", "label": _("Частота Silero", "Silero Sample Rate"), "type": "combobox", "options": {"values": ["48000", "24000", "16000"], "default": "48000"}},
+                    {"key": "silero_put_accent", "label": _("Акценты Silero", "Silero Accents"), "type": "checkbutton", "options": {"default": True}},
+                    {"key": "silero_put_yo", "label": _("Буква Ё Silero", "Silero Letter Yo"), "type": "checkbutton", "options": {"default": True}}
                 ]
             },
             {
                 "id": "medium", "name": "Fish Speech", "min_vram": 3, "rec_vram": 6, "gpu_vendor": ["NVIDIA"], "size_gb": 5,
                  "settings": [
-                    {"key": "device", "label": "Устройство", "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
-                    {"key": "half", "label": "Half-precision", "type": "combobox", "options": {"values": ["False", "True"], "default": "False"}},
-                    {"key": "temperature", "label": "Температура", "type": "entry", "options": {"default": "0.7"}},
-                    {"key": "top_p", "label": "Top-P", "type": "entry", "options": {"default": "0.7"}},
-                    {"key": "repetition_penalty", "label": "Штраф повторений", "type": "entry", "options": {"default": "1.2"}},
-                    {"key": "chunk_length", "label": "Размер чанка (~символов)", "type": "entry", "options": {"default": "200"}},
-                    {"key": "max_new_tokens", "label": "Макс. токены", "type": "entry", "options": {"default": "1024"}},
-                    { "key": "compile_model", "label": "Компиляция модели", "type": "combobox", "options": {"values": ["False", "True"], "default": "False"}, "locked": True}
+                    {"key": "device", "label": _("Устройство", "Device"), "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
+                    {"key": "half", "label": _("Half-precision", "Half-precision"), "type": "combobox", "options": {"values": ["False", "True"], "default": "False"}},
+                    {"key": "temperature", "label": _("Температура", "Temperature"), "type": "entry", "options": {"default": "0.7"}},
+                    {"key": "top_p", "label": _("Top-P", "Top-P"), "type": "entry", "options": {"default": "0.7"}},
+                    {"key": "repetition_penalty", "label": _("Штраф повторений", "Repetition Penalty"), "type": "entry", "options": {"default": "1.2"}},
+                    {"key": "chunk_length", "label": _("Размер чанка (~символов)", "Chunk Size (~chars)"), "type": "entry", "options": {"default": "200"}},
+                    {"key": "max_new_tokens", "label": _("Макс. токены", "Max Tokens"), "type": "entry", "options": {"default": "1024"}},
+                    { "key": "compile_model", "label": _("Компиляция модели", "Compile Model"), "type": "combobox", "options": {"values": ["False", "True"], "default": "False"}, "locked": True}
                 ]
             },
             {
                 "id": "medium+", "name": "Fish Speech+", "min_vram": 3, "rec_vram": 6, "gpu_vendor": ["NVIDIA"], "size_gb": 10,
                 "rtx30plus": True,
                  "settings": [
-                    {"key": "device", "label": "Устройство", "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
-                    {"key": "half", "label": "Half-precision", "type": "combobox", "options": {"values": ["True", "False"], "default": "False"}, "locked": True},
-                    {"key": "temperature", "label": "Температура", "type": "entry", "options": {"default": "0.7"}},
-                    {"key": "top_p", "label": "Top-P", "type": "entry", "options": {"default": "0.8"}},
-                    {"key": "repetition_penalty", "label": "Штраф повторений", "type": "entry", "options": {"default": "1.1"}},
-                    {"key": "chunk_length", "label": "Размер чанка (~символов)", "type": "entry", "options": {"default": "200"}},
-                    {"key": "max_new_tokens", "label": "Макс. токены", "type": "entry", "options": {"default": "1024"}},
-                    { "key": "compile_model", "label": "Компиляция модели", "type": "combobox", "options": {"values": ["False", "True"], "default": "True"}, "locked": True}
+                    {"key": "device", "label": _("Устройство", "Device"), "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
+                    {"key": "half", "label": _("Half-precision", "Half-precision"), "type": "combobox", "options": {"values": ["True", "False"], "default": "False"}, "locked": True},
+                    {"key": "temperature", "label": _("Температура", "Temperature"), "type": "entry", "options": {"default": "0.7"}},
+                    {"key": "top_p", "label": _("Top-P", "Top-P"), "type": "entry", "options": {"default": "0.8"}},
+                    {"key": "repetition_penalty", "label": _("Штраф повторений", "Repetition Penalty"), "type": "entry", "options": {"default": "1.1"}},
+                    {"key": "chunk_length", "label": _("Размер чанка (~символов)", "Chunk Size (~chars)"), "type": "entry", "options": {"default": "200"}},
+                    {"key": "max_new_tokens", "label": _("Макс. токены", "Max Tokens"), "type": "entry", "options": {"default": "1024"}},
+                    { "key": "compile_model", "label": _("Компиляция модели", "Compile Model"), "type": "combobox", "options": {"values": ["False", "True"], "default": "True"}, "locked": True}
                  ]
             },
             {
                 "id": "medium+low", "name": "Fish Speech+ + RVC", "min_vram": 5, "rec_vram": 8, "gpu_vendor": ["NVIDIA"], "size_gb": 15,
                 "rtx30plus": True,
                 "settings": [
-                    {"key": "fsprvc_fsp_device", "label": "[FSP] Устройство", "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
-                    {"key": "fsprvc_fsp_half", "label": "[FSP] Half-precision", "type": "combobox", "options": {"values": ["True", "False"], "default": "False"}, "locked": True},
-                    {"key": "fsprvc_fsp_temperature", "label": "[FSP] Температура", "type": "entry", "options": {"default": "0.7"}},
-                    {"key": "fsprvc_fsp_top_p", "label": "[FSP] Top-P", "type": "entry", "options": {"default": "0.7"}},
-                    {"key": "fsprvc_fsp_repetition_penalty", "label": "[FSP] Штраф повторений", "type": "entry", "options": {"default": "1.2"}},
-                    {"key": "fsprvc_fsp_chunk_length", "label": "[FSP] Размер чанка (слов)", "type": "entry", "options": {"default": "200"}},
-                    {"key": "fsprvc_fsp_max_tokens", "label": "[FSP] Макс. токены", "type": "entry", "options": {"default": "1024"}},
-                    {"key": "fsprvc_rvc_device", "label": "[RVC] Устройство", "type": "combobox", "options": {"values": ["cuda:0", "cpu", "mps:0", "dml"], "default_nvidia": "cuda:0", "default_amd": "dml"}},
-                    {"key": "fsprvc_is_half", "label": "[RVC] Half-precision", "type": "combobox", "options": {"values": ["True", "False"], "default_nvidia": "True", "default_amd": "False"}},
-                    {"key": "fsprvc_f0method", "label": "[RVC] Метод F0", "type": "combobox", "options": {"values": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_nvidia": "rmvpe", "default_amd": "dio"}},
-                    {"key": "fsprvc_rvc_pitch", "label": "[RVC] Высота голоса (пт)", "type": "entry", "options": {"default": "0"}},
-                    {"key": "fsprvc_use_index_file", "label": "[RVC] Исп. .index файл", "type": "checkbutton", "options": {"default": True}},
-                    {"key": "fsprvc_index_rate", "label": "[RVC] Соотн. индекса", "type": "entry", "options": {"default": "0.75"}},
-                    {"key": "fsprvc_protect", "label": "[RVC] Защита согласных", "type": "entry", "options": {"default": "0.33"}},
-                    # {"key": "fsprvc_output_gain", "label": "[RVC] Громкость (gain)", "type": "entry", "options": {"default": "0.75"}},
-                    {"key": "fsprvc_filter_radius", "label": "[RVC] Радиус фильтра F0", "type": "entry", "options": {"default": "3"}},
-                    {"key": "fsprvc_rvc_rms_mix_rate", "label": "[RVC] Смешивание RMS", "type": "entry", "options": {"default": "0.5"}}
+                    {"key": "fsprvc_fsp_device", "label": _("[FSP] Устройство", "[FSP] Device"), "type": "combobox", "options": {"values": ["cuda", "cpu", "mps"], "default": "cuda"}},
+                    {"key": "fsprvc_fsp_half", "label": _("[FSP] Half-precision", "[FSP] Half-precision"), "type": "combobox", "options": {"values": ["True", "False"], "default": "False"}, "locked": True},
+                    {"key": "fsprvc_fsp_temperature", "label": _("[FSP] Температура", "[FSP] Temperature"), "type": "entry", "options": {"default": "0.7"}},
+                    {"key": "fsprvc_fsp_top_p", "label": _("[FSP] Top-P", "[FSP] Top-P"), "type": "entry", "options": {"default": "0.7"}},
+                    {"key": "fsprvc_fsp_repetition_penalty", "label": _("[FSP] Штраф повторений", "[FSP] Repetition Penalty"), "type": "entry", "options": {"default": "1.2"}},
+                    {"key": "fsprvc_fsp_chunk_length", "label": _("[FSP] Размер чанка (слов)", "[FSP] Chunk Size (words)"), "type": "entry", "options": {"default": "200"}},
+                    {"key": "fsprvc_fsp_max_tokens", "label": _("[FSP] Макс. токены", "[FSP] Max Tokens"), "type": "entry", "options": {"default": "1024"}},
+                    {"key": "fsprvc_rvc_device", "label": _("[RVC] Устройство", "[RVC] Device"), "type": "combobox", "options": {"values": ["cuda:0", "cpu", "mps:0", "dml"], "default_nvidia": "cuda:0", "default_amd": "dml"}},
+                    {"key": "fsprvc_is_half", "label": _("[RVC] Half-precision", "[RVC] Half-precision"), "type": "combobox", "options": {"values": ["True", "False"], "default_nvidia": "True", "default_amd": "False"}},
+                    {"key": "fsprvc_f0method", "label": _("[RVC] Метод F0", "[RVC] F0 Method"), "type": "combobox", "options": {"values": ["pm", "rmvpe", "crepe", "harvest", "fcpe", "dio"], "default_nvidia": "rmvpe", "default_amd": "dio"}},
+                    {"key": "fsprvc_rvc_pitch", "label": _("[RVC] Высота голоса (пт)", "[RVC] Pitch (semitones)"), "type": "entry", "options": {"default": "0"}},
+                    {"key": "fsprvc_use_index_file", "label": _("[RVC] Исп. .index файл", "[RVC] Use .index file"), "type": "checkbutton", "options": {"default": True}},
+                    {"key": "fsprvc_index_rate", "label": _("[RVC] Соотн. индекса", "[RVC] Index Rate"), "type": "entry", "options": {"default": "0.75"}},
+                    {"key": "fsprvc_protect", "label": _("[RVC] Защита согласных", "[RVC] Consonant Protection"), "type": "entry", "options": {"default": "0.33"}},
+                    # {"key": "fsprvc_output_gain", "label": _("[RVC] Громкость (gain)", "[RVC] Volume (gain)"), "type": "entry", "options": {"default": "0.75"}},
+                    {"key": "fsprvc_filter_radius", "label": _("[RVC] Радиус фильтра F0", "[RVC] F0 Filter Radius"), "type": "entry", "options": {"default": "3"}},
+                    {"key": "fsprvc_rvc_rms_mix_rate", "label": _("[RVC] Смешивание RMS", "[RVC] RMS Mixing"), "type": "entry", "options": {"default": "0.5"}}
                 ]
             }
         ]
@@ -657,7 +721,6 @@ class VoiceModelSettingsWindow:
     #     logger.info("Загрузка и адаптация настроек завершена.") 
 
     def load_settings(self):
-        # self.installed_models УЖЕ ЗАГРУЖЕН в load_installed_models_state
         default_model_structure = self.get_default_model_structure()
         adapted_default_structure = self.finalize_model_settings(
             default_model_structure, self.detected_gpu_vendor, self.detected_cuda_devices
@@ -668,7 +731,7 @@ class VoiceModelSettingsWindow:
                 with open(self.settings_values_file, "r", encoding="utf-8") as f:
                     saved_values = json.load(f)
         except Exception as e:
-            logger.info(f"Ошибка загрузки сохраненных значений из {self.settings_values_file}: {e}")
+            logger.info(f"{_('Ошибка загрузки сохраненных значений из', 'Error loading saved values from')} {self.settings_values_file}: {e}")
             saved_values = {}
         merged_model_structure = copy.deepcopy(adapted_default_structure)
         for model_data in merged_model_structure:
@@ -681,7 +744,7 @@ class VoiceModelSettingsWindow:
                         if setting_key in model_saved_values:
                             setting.setdefault("options", {})["default"] = model_saved_values[setting_key]
         self.local_voice_models = merged_model_structure
-        logger.info("Загрузка и адаптация настроек завершена.")
+        logger.info(_("Загрузка и адаптация настроек завершена.", "Loading and adaptation of settings completed."))
 
     def load_installed_models_state(self):
         """Загружает список установленных моделей из файла."""
@@ -692,47 +755,43 @@ class VoiceModelSettingsWindow:
                 if os.path.exists(self.installed_models_file):
                     with open(self.installed_models_file, "r", encoding="utf-8") as f:
                         self.installed_models.update(line.strip() for line in f if line.strip())
-                    logger.info(f"Загружен список установленных моделей из файла: {self.installed_models}")
+                    logger.info(f"{_('Загружен список установленных моделей из файла:', 'Loaded list of installed models from file:')} {self.installed_models}") 
             except Exception as e:
-                logger.info(f"Ошибка загрузки состояния из {self.installed_models_file}: {e}")
+                logger.info(f"{_('Ошибка загрузки состояния из', 'Error loading state from')} {self.installed_models_file}: {e}")
         else:
-             # Если есть функция проверки, используем ее для актуального состояния
-             logger.info("Проверка установленных моделей через check_installed_func...")
-             for model_data in self.get_default_model_structure(): # Используем дефолтную структуру для перебора ID
-                 model_id = model_data.get("id")
-                 if model_id:
-                     # Проверяем компоненты, необходимые для каждой модели
-                     is_installed = False
-                     if model_id == "low": is_installed = self.check_installed_func("tts_with_rvc")
-                     elif model_id == "low+": is_installed = self.check_installed_func("tts_with_rvc") # Silero обычно не требует отдельной установки
-                     elif model_id == "medium": is_installed = self.check_installed_func("fish_speech_lib")
-                     elif model_id == "medium+": is_installed = self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton")
-                     elif model_id == "medium+low": is_installed = self.check_installed_func("tts_with_rvc") and self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton")
+            logger.info(_("Проверка установленных моделей через check_installed_func...", "Checking installed models via check_installed_func..."))
+            for model_data in self.get_default_model_structure(): # Используем дефолтную структуру для перебора ID
+                model_id = model_data.get("id")
+                if model_id:
+                    is_installed = False
+                    if model_id == "low": is_installed = self.check_installed_func("tts_with_rvc")
+                    elif model_id == "low+": is_installed = self.check_installed_func("tts_with_rvc")
+                    elif model_id == "medium": is_installed = self.check_installed_func("fish_speech_lib")
+                    elif model_id == "medium+": is_installed = self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton")
+                    elif model_id == "medium+low": is_installed = self.check_installed_func("tts_with_rvc") and self.check_installed_func("fish_speech_lib") and self.check_installed_func("triton")
 
-                     if is_installed:
-                         self.installed_models.add(model_id)
-             logger.info(f"Актуальный список установленных моделей: {self.installed_models}")
+                    if is_installed:
+                        self.installed_models.add(model_id)
+            logger.info(f"{_('Актуальный список установленных моделей:', 'Current list of installed models:')} {self.installed_models}")
 
     def save_settings(self):
-        # НЕ сохраняем installed_models.txt здесь
         settings_to_save = {}
         for model_id, section in self.settings_sections.items():
-            # Сохраняем настройки только если модель все еще установлена
             if model_id in self.installed_models and section.winfo_exists():
                 try:
                     settings_to_save[model_id] = section.get_values()
                 except Exception as e:
-                    logger.info(f"Ошибка при сборе значений из UI для модели '{model_id}': {e}")
+                    logger.info(f"{_('Ошибка при сборе значений из UI для модели', 'Error collecting UI values for model')} '{model_id}': {e}")
         if settings_to_save:
             try:
                 with open(self.settings_values_file, "w", encoding="utf-8") as f:
                     json.dump(settings_to_save, f, indent=4, ensure_ascii=False)
             except Exception as e:
-                logger.info(f"Ошибка сохранения значений настроек в {self.settings_values_file}: {e}")
+                logger.info(f"{_('Ошибка сохранения значений настроек в', 'Error saving settings values to')} {self.settings_values_file}: {e}")
         # Вызываем колбэк только если он есть
         if self.on_save_callback:
             callback_data = {
-                 "installed_models": list(self.installed_models), # Передаем актуальный список
+                 "installed_models": list(self.installed_models),
                  "models_data": self.local_voice_models
             }
             self.on_save_callback(callback_data)
@@ -747,11 +806,11 @@ class VoiceModelSettingsWindow:
                 ("16" in gpu_name_upper and "V100" not in gpu_name_upper)
                 or "P40" in gpu_name_upper
                 or "P10" in gpu_name_upper
-                or "1060" in gpu_name_upper # Используем 'in' как в оригинальном условии
+                or "1060" in gpu_name_upper
                 or "1070" in gpu_name_upper
                 or "1080" in gpu_name_upper
             ):
-                logger.info(f"Обнаружена GPU {self.gpu_name}, принудительно используется FP32 для совместимых настроек.")
+                logger.info(f"{_('Обнаружена GPU', 'Detected GPU')} {self.gpu_name}, {_('принудительно используется FP32 для совместимых настроек.', 'forcing FP32 for compatible settings.')}")
                 force_fp32 = True
         elif detected_vendor == "AMD":
             force_fp32 = True
@@ -800,11 +859,11 @@ class VoiceModelSettingsWindow:
                 keys_to_remove = [k for k in options if k.startswith("values_") or k.startswith("default_")]
                 for key_to_remove in keys_to_remove: options.pop(key_to_remove, None)
 
-                # Применяем принудительное FP32 и блокировку, если нужно
+                # Применяем принудительное FP32 и блокировку
                 if force_fp32 and is_half_setting:
-                     options["default"] = "False" # Принудительно ставим False
-                     setting["locked"] = True     # Блокируем настройку
-                     logger.info(f"  - Принудительно '{setting_key}' = False и заблокировано.")
+                    options["default"] = "False" # Принудительно ставим False
+                    setting["locked"] = True     # Блокируем настройку
+                    logger.info(f"  - {_('Принудительно', 'Forcing')} '{setting_key}' = False {_('и заблокировано.', 'and locked.')}")
                 elif is_half_setting:
                     logger.info(f"  - '{setting_key}' = True - Доступен.")
 
@@ -830,7 +889,7 @@ class VoiceModelSettingsWindow:
             if isinstance(all_saved_data, dict):
                 parameters = all_saved_data.get(model_id, {})
         except Exception as e:
-            logger.info(f"Ошибка чтения файла настроек {settings_file}: {e}")
+            logger.info(f"{_('Ошибка чтения файла настроек', 'Error reading settings file')} {settings_file}: {e}")
         return parameters
 
     # --- ИСПРАВЛЕННЫЙ МЕТОД ИНИЦИАЛИЗАЦИИ ---
@@ -914,25 +973,20 @@ class VoiceModelSettingsWindow:
         if platform.system() == "Windows":
             if self.triton_installed:
                 if self.triton_checks_performed:
-                    # --- ГОРИЗОНТАЛЬНОЕ РАЗМЕЩЕНИЕ СТАТУСОВ ---
                     items = [
                         ("CUDA Toolkit:", self.cuda_found),
                         ("Windows SDK:", self.winsdk_found),
                         ("MSVC:", self.msvc_found)
                     ]
                     
-                    # Пакуем каждый статус-блок горизонтально
                     for text, found in items:
-                        # Создаем отдельный фрейм для каждой пары (текст + статус)
                         item_frame = tk.Frame(status_items_display_frame, bg=bg_color)
-                        # Пакуем эти фреймы слева направо с отступом между ними
-                        item_frame.pack(side=tk.LEFT, padx=(0, 15)) # Отступ справа от каждого блока
+                        item_frame.pack(side=tk.LEFT, padx=(0, 15)) 
 
-                        # Внутри item_frame пакуем метку и статус тоже слева направо
                         label = tk.Label(item_frame, text=text, font=status_font, bg=bg_color, fg=status_label_color)
                         label.pack(side=tk.LEFT) 
 
-                        status_text = "Найден" if found else "Не найден"
+                        status_text = _("Найден", "Found") if found else _("Не найден", "Not Found")
                         status_color = status_found_color if found else status_notfound_color
                         status_label = tk.Label(item_frame, text=status_text, font=status_font, bg=bg_color, fg=status_color)
                         status_label.pack(side=tk.LEFT, padx=(3, 0)) # Небольшой отступ слева от статуса
@@ -943,40 +997,38 @@ class VoiceModelSettingsWindow:
                         warning_link_frame = tk.Frame(self.top_frame_settings, bg=bg_color)
                         warning_link_frame.pack(side=tk.TOP, fill=tk.X, pady=(5, 0), anchor='w') 
 
-                        warning_text = "⚠️ Для моделей Fish Speech+ / +RVC могут потребоваться все компоненты."
+                        warning_text = _("⚠️ Для моделей Fish Speech+ / +RVC могут потребоваться все компоненты.", "⚠️ Fish Speech+ / +RVC models may require all components.")
                         warning_label = tk.Label(warning_link_frame, text=warning_text, bg=bg_color, fg=warning_color, font=warning_font)
                         warning_label.pack(side=tk.LEFT, padx=(0, 5)) 
 
-                        doc_link_label = tk.Label(warning_link_frame, text="[Документация]", bg=bg_color, fg=link_color, font=warning_font, cursor="hand2")
+                        doc_link_label = tk.Label(warning_link_frame, text=_("[Документация]", "[Documentation]"), bg=bg_color, fg=link_color, font=warning_font, cursor="hand2")
                         doc_link_label.pack(side=tk.LEFT) 
                         doc_link_label.bind("<Button-1>", lambda event: self.docs_manager.open_doc("installation_guide.html"))
 
                 else: # Ошибка проверки
-                    tk.Label(status_items_display_frame, text="⚠️ Ошибка проверки зависимостей Triton.", font=status_font, bg=bg_color, fg=warning_color).pack(anchor='w')
-                    # Ссылку можно добавить аналогично, создав warning_link_frame
+                    tk.Label(status_items_display_frame, text=_("⚠️ Ошибка проверки зависимостей Triton.", "⚠️ Error checking Triton dependencies."), font=status_font, bg=bg_color, fg=warning_color).pack(anchor='w')
 
             else: # Triton не установлен
-                 # Фрейм для сообщения и ссылки (будет под status_items_display_frame, т.к. он пустой)
-                 warning_link_frame = tk.Frame(self.top_frame_settings, bg=bg_color)
-                 warning_link_frame.pack(side=tk.TOP, fill=tk.X, pady=(0, 0), anchor='w') 
+                warning_link_frame = tk.Frame(self.top_frame_settings, bg=bg_color)
+                warning_link_frame.pack(side=tk.TOP, fill=tk.X, pady=(0, 0), anchor='w') 
 
-                 tk.Label(warning_link_frame, text="Triton не установлен (необходим для Fish Speech+ / +RVC).", font=status_font, bg=bg_color, fg=warning_color).pack(side=tk.LEFT, padx=(0, 5))
+                tk.Label(warning_link_frame, text=_("Triton не установлен (необходим для Fish Speech+ / +RVC).", "Triton not installed (required for Fish Speech+ / +RVC)."), font=status_font, bg=bg_color, fg=warning_color).pack(side=tk.LEFT, padx=(0, 5))
 
                 #  doc_link_label_triton = tk.Label(warning_link_frame, text="[Инструкция]", bg=bg_color, fg=link_color, font=status_font, cursor="hand2")
                 #  doc_link_label_triton.pack(side=tk.LEFT)
                 #  doc_link_label_triton.bind("<Button-1>", lambda event: self.docs_manager.open_doc("installation_guide.html"))
 
         else: # Не Windows
-            tk.Label(status_items_display_frame, text="Проверка зависимостей Triton доступна только в Windows.", font=status_font, bg=bg_color, fg="#aaaaaa").pack(anchor='w')
+            tk.Label(status_items_display_frame, text=_("Проверка зависимостей Triton доступна только в Windows.", "Triton dependency check is only available on Windows."), font=status_font, bg=bg_color, fg="#aaaaaa").pack(anchor='w')
 
         bottom_frame = tk.Frame(self.master, bg="#1e1e1e", height=50)
         bottom_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(0, 10), padx=10)
         bottom_frame.pack_propagate(False) 
         
-        save_button = tk.Button(bottom_frame, text="Сохранить", command=self.save_and_continue, bg="#3c3cac", fg="white", activebackground="#4a4acb", activeforeground="white", relief="flat", bd=0, padx=20, pady=5, font=("Segoe UI", 9))
+        save_button = tk.Button(bottom_frame, text=_("Сохранить", "Save"), command=self.save_and_continue, bg="#3c3cac", fg="white", activebackground="#4a4acb", activeforeground="white", relief="flat", bd=0, padx=20, pady=5, font=("Segoe UI", 9))
         save_button.pack(side=tk.RIGHT, pady=5, padx=(5, 0))
         
-        close_button = tk.Button(bottom_frame, text="Закрыть", command=self.save_and_quit, bg="#3c3c3c", fg="white", activebackground="#555555", activeforeground="white", relief="flat", bd=0, padx=20, pady=5, font=("Segoe UI", 9))
+        close_button = tk.Button(bottom_frame, text=_("Закрыть", "Close"), command=self.save_and_quit, bg="#3c3c3c", fg="white", activebackground="#555555", activeforeground="white", relief="flat", bd=0, padx=20, pady=5, font=("Segoe UI", 9))
         close_button.pack(side=tk.RIGHT, pady=5, padx=(0, 0)) 
 
     def _bind_mousewheel(self, widget, command):
@@ -1022,7 +1074,7 @@ class VoiceModelSettingsWindow:
 
         if not self.installed_models:
             if self.placeholder_label_settings is None or not self.placeholder_label_settings.winfo_exists():
-                 self.placeholder_label_settings = tk.Label(self.scrollable_frame_settings, text="Модели не установлены.\n\nНажмите 'Установить' слева для установки модели,\nее настройки появятся здесь.", font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaa", justify="center", wraplength=350)
+                self.placeholder_label_settings = tk.Label(self.scrollable_frame_settings, text=_("Модели не установлены.\n\nНажмите 'Установить' слева для установки модели,\nее настройки появятся здесь.", "Models not installed.\n\nClick 'Install' on the left to install a model,\nits settings will appear here."), font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaa", justify="center", wraplength=350)
             self.placeholder_label_settings.pack(pady=30, padx=10, fill=tk.BOTH, expand=True, after=self.top_frame_settings)
         else:
             any_settings_shown = False
@@ -1036,7 +1088,7 @@ class VoiceModelSettingsWindow:
                 any_settings_shown = True
                 model_name = model_data.get('name', model_id)
 
-                section_title = f"Настройки: {model_name}"
+                section_title = f"{_('Настройки:', 'Settings:')} {model_name}"
                 start_collapsed = len(self.installed_models) > 2
                 section = VoiceCollapsibleSection(
                     self.scrollable_frame_settings,
@@ -1062,34 +1114,34 @@ class VoiceModelSettingsWindow:
                                 show_setting_description=self.show_setting_description
                             )
                 else:
-                     no_settings_label = tk.Label(section.content_frame, text="Специфические настройки отсутствуют.", bg="#1e1e1e", fg="#ccc", font=("Segoe UI", 9))
-                     
-                     no_settings_label.grid(row=0, column=0, columnspan=2, pady=10, padx=10)
-                     section.row_count = 1
+                    no_settings_label = tk.Label(section.content_frame, text=_("Специфические настройки отсутствуют.", "Specific settings are missing."), bg="#1e1e1e", fg="#ccc", font=("Segoe UI", 9))
+
+                    no_settings_label.grid(row=0, column=0, columnspan=2, pady=10, padx=10)
+                    section.row_count = 1
 
 
                 section.pack(fill=tk.X, padx=10, pady=(5,0), anchor='nw', after=last_packed_widget)
                 last_packed_widget = section
 
             if self.installed_models and not any_settings_shown:
-                 if self.placeholder_label_settings is None or not self.placeholder_label_settings.winfo_exists():
-                     self.placeholder_label_settings = tk.Label(self.scrollable_frame_settings, text="Не удалось отобразить настройки для установленных моделей.", font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaa", justify="center", wraplength=350)
-                 self.placeholder_label_settings.pack(pady=30, padx=10, fill=tk.BOTH, expand=True, after=self.top_frame_settings)
+                if self.placeholder_label_settings is None or not self.placeholder_label_settings.winfo_exists():
+                    self.placeholder_label_settings = tk.Label(self.scrollable_frame_settings, text=_("Не удалось отобразить настройки для установленных моделей.", "Could not display settings for installed models."), font=("Segoe UI", 10), bg="#1e1e1e", fg="#aaa", justify="center", wraplength=350)
+                self.placeholder_label_settings.pack(pady=30, padx=10, fill=tk.BOTH, expand=True, after=self.top_frame_settings)
 
 
         self.master.after(50, self._update_settings_scrollregion)
 
-        # Замени этот метод в классе VoiceModelSettingsWindow
+        
     def _check_system_dependencies(self):
         """Проверяет наличие CUDA, Windows SDK и MSVC с помощью triton (исправлено)."""
         self.cuda_found = False
         self.winsdk_found = False
         self.msvc_found = False
         self.triton_installed = False
-        self.triton_checks_performed = False # Флаг, что проверка была выполнена
+        self.triton_checks_performed = False
 
         if platform.system() != "Windows":
-            logger.info("Проверка зависимостей Triton актуальна только для Windows.")
+            logger.info(_("Проверка зависимостей Triton актуальна только для Windows.", "Triton dependency check is relevant only for Windows."))
             return
 
         try:
@@ -1129,10 +1181,10 @@ class VoiceModelSettingsWindow:
             self.triton_checks_performed = True
 
         except ImportError:
-            logger.info("Triton не установлен. Невозможно проверить зависимости CUDA/WinSDK/MSVC.")
+            logger.info(_("Triton не установлен. Невозможно проверить зависимости CUDA/WinSDK/MSVC.", "Triton not installed. Cannot check CUDA/WinSDK/MSVC dependencies."))
             self.triton_installed = False
         except Exception as e:
-            logger.info(f"Ошибка при проверке зависимостей Triton: {e}")
+            logger.info(f"{_('Ошибка при проверке зависимостей Triton:', 'Error checking Triton dependencies:')} {e}")
 
     # Адаптированный метод create_model_panel
     def create_model_panel(self, parent, model_data):
@@ -1170,13 +1222,19 @@ class VoiceModelSettingsWindow:
                 cursor="question_arrow" # Indicate interactivity
             )
             warning_icon_medium.pack(side=tk.LEFT, padx=(3, 0), anchor='w')
-            medium_tooltip_text = (
+            medium_tooltip_text = _(
                 "Модель 'Fish Speech' не рекомендуется для большинства пользователей.\n\n"
                 "Для стабильной скорости генерации требуется мощная видеокарта, "
                 "минимальные \"играбельные\" GPU: GeForce RTX 2080 Ti / RTX 2070 Super / GTX 1080 Ti и подобные, "
                 "использование на более слабых GPU может привести к очень медленной работе.\n\n"
                 "Владельцам RTX30+ рекомендуется использовать модели \"Fish Speech+\", "
-                "остальным рекомендуется использовать модель \"Silero + RVC\""
+                "остальным рекомендуется использовать модель \"Silero + RVC\"",
+                "The 'Fish Speech' model is not recommended for most users.\n\n"
+                "A powerful graphics card is required for stable generation speed, "
+                "minimum \"playable\" GPUs: GeForce RTX 2080 Ti / RTX 2070 Super / GTX 1080 Ti and similar, "
+                "using it on weaker GPUs can lead to very slow performance.\n\n"
+                "RTX30+ owners are recommended to use \"Fish Speech+\" models, "
+                "others are recommended to use the \"Silero + RVC\" model"
             )
             Tooltip(warning_icon_medium, medium_tooltip_text, wraplength=300) # Create tooltip for the icon
 
@@ -1187,7 +1245,7 @@ class VoiceModelSettingsWindow:
             rtx_icon_label = tk.Label(title_frame, text="RTX 30+", font=("Segoe UI", 7, "bold"), bg=panel_bg, fg=icon_color, anchor='w')
             rtx_icon_label.pack(side=tk.LEFT, padx=(5, 0), anchor='w')
             # Optional: Add tooltip for RTX icon too
-            rtx_tooltip_text = "Требуется GPU NVIDIA RTX 30xx/40xx для оптимальной производительности." if not gpu_meets_requirement else "Ваша GPU подходит для этой модели."
+            rtx_tooltip_text = _("Требуется GPU NVIDIA RTX 30xx/40xx для оптимальной производительности.", "Requires NVIDIA RTX 30xx/40xx GPU for optimal performance.") if not gpu_meets_requirement else _("Ваша GPU подходит для этой модели.", "Your GPU is suitable for this model.")
             Tooltip(rtx_icon_label, rtx_tooltip_text)
 
         # --- Info Label (VRAM, GPU Support) ---
@@ -1207,7 +1265,7 @@ class VoiceModelSettingsWindow:
         show_warning_amd = allow_unsupported_gpu and is_gpu_unsupported_amd
 
         if show_warning_amd:
-            warning_label_amd = tk.Label(panel, text="Может не работать на AMD!", font=("Segoe UI", 8, "bold"), bg=panel_bg, fg=warning_color_amd, anchor='w')
+            warning_label_amd = tk.Label(panel, text=_("Может не работать на AMD!", "May not work on AMD!"), font=("Segoe UI", 8, "bold"), bg=panel_bg, fg=warning_color_amd, anchor='w')
             warning_label_amd.pack(pady=(0, 5), padx=10, fill=tk.X)
 
         # --- Install/Uninstall Button ---
@@ -1220,7 +1278,7 @@ class VoiceModelSettingsWindow:
 
         if is_installed:
             action_button = tk.Button(
-                button_frame, text="Удалить",
+                button_frame, text=_("Удалить", "Uninstall"),
                 command=lambda mid=model_id, mname=model_name: self.confirm_and_start_uninstall(mid, mname),
                 bg=uninstall_button_bg, fg=button_fg,
                 activebackground=uninstall_button_active_bg, activeforeground=button_fg,
@@ -1229,11 +1287,11 @@ class VoiceModelSettingsWindow:
                 padx=5, pady=5, state=tk.NORMAL
             )
         else:
-            install_text = "Установить"
+            install_text = _("Установить", "Install")
             can_install = True
             if is_gpu_unsupported_amd and not allow_unsupported_gpu:
                 can_install = False
-                install_text = "Несовместимо с AMD"
+                install_text = _("Несовместимо с AMD", "Incompatible with AMD")
 
             install_state_tk = tk.NORMAL if can_install else tk.DISABLED
             action_button = tk.Button(
@@ -1266,7 +1324,7 @@ class VoiceModelSettingsWindow:
         force_unsupported = force_unsupported_str.lower() in ['true', '1', 't', 'y', 'yes']
 
         if force_unsupported:
-            logger.info("INFO: RTX_FORCE_UNSUPPORTED=1 - Имитация неподходящей GPU для RTX 30+.")
+            logger.info(_("INFO: RTX_FORCE_UNSUPPORTED=1 - Имитация неподходящей GPU для RTX 30+.", "INFO: RTX_FORCE_UNSUPPORTED=1 - Simulating unsuitable GPU for RTX 30+."))
             return False
 
         if self.detected_gpu_vendor != "NVIDIA" or not self.gpu_name:
@@ -1278,7 +1336,7 @@ class VoiceModelSettingsWindow:
             if any(f" {gen}" in name_upper or name_upper.endswith(gen) or f"-{gen}" in name_upper for gen in ["3050", "3060", "3070", "3080", "3090"]):
                 return True
             if any(f" {gen}" in name_upper or name_upper.endswith(gen) or f"-{gen}" in name_upper for gen in ["4050", "4060", "4070", "4080", "4090"]):
-                 return True
+                return True
         return False
 
     def confirm_and_start_download(self, model_id, button_widget, model_data):
@@ -1297,11 +1355,15 @@ class VoiceModelSettingsWindow:
 
                 model_name = model_data.get("name", model_id)
                 title = f"Предупреждение для модели '{model_name}'"
-                message = (
+                message = _(
                     f"Эта модель ('{model_name}') оптимизирована для видеокарт NVIDIA RTX 30xx/40xx.\n\n"
                     f"Ваша видеокарта ({gpu_info}) может не обеспечить достаточной производительности, "
                     "что может привести к медленной работе или нестабильности.\n\n"
-                    "Продолжить установку?"
+                    "Продолжить установку?",
+                    f"This model ('{model_name}') is optimized for NVIDIA RTX 30xx/40xx graphics cards.\n\n"
+                    f"Your graphics card ({gpu_info}) may not provide sufficient performance, "
+                    "which could lead to slow operation or instability.\n\n"
+                    "Continue installation?"
                 )
                 # Спрашиваем пользователя
                 proceed_to_download = tkinter.messagebox.askokcancel(title, message, icon='warning', parent=self.master)
@@ -1312,8 +1374,8 @@ class VoiceModelSettingsWindow:
     def confirm_and_start_uninstall(self, model_id, model_name):
         """Запрашивает подтверждение и проверяет инициализацию перед удалением."""
         if not self.local_voice:
-            logger.error("LocalVoice не инициализирован, удаление невозможно.")
-            tkinter.messagebox.showerror("Ошибка", "Компонент LocalVoice не доступен.", parent=self.master)
+            logger.error(_("LocalVoice не инициализирован, удаление невозможно.", "LocalVoice not initialized, uninstallation impossible."))
+            tkinter.messagebox.showerror(_("Ошибка", "Error"), _("Компонент LocalVoice не доступен.", "LocalVoice component is not available."), parent=self.master)
             return
 
         # Проверка, инициализирована ли модель
@@ -1321,25 +1383,30 @@ class VoiceModelSettingsWindow:
             if hasattr(self.local_voice, 'is_model_initialized') and self.local_voice.is_model_initialized(model_id):
                 logger.warning(f"Попытка удаления инициализированной модели: {model_id}")
                 tkinter.messagebox.showerror(
-                    "Модель Активна",
-                    f"Модель '{model_name}' сейчас используется или инициализирована.\n\n"
-                    "Пожалуйста, перезапустите приложение полностью, чтобы освободить ресурсы, "
-                    "прежде чем удалять эту модель.",
+                    _("Модель Активна", "Model Active"),
+                    _(f"Модель '{model_name}' сейчас используется или инициализирована.\n\n"
+                      "Пожалуйста, перезапустите приложение полностью, чтобы освободить ресурсы, "
+                      "прежде чем удалять эту модель.",
+                      f"Model '{model_name}' is currently in use or initialized.\n\n"
+                      "Please restart the application completely to free up resources "
+                      "before uninstalling this model."),
                     parent=self.master
                 )
-                return # Не продолжаем
+                return 
         except Exception as e:
-             logger.error(f"Ошибка при проверке инициализации модели {model_id}: {e}")
-             # Продолжаем с осторожностью или прерываем? Лучше прервать.
-             tkinter.messagebox.showerror("Ошибка Проверки", f"Не удалось проверить статус модели '{model_name}'. Удаление отменено.", parent=self.master)
-             return
+            logger.error(f"{_('Ошибка при проверке инициализации модели', 'Error checking model initialization')} {model_id}: {e}")
+            tkinter.messagebox.showerror(_("Ошибка Проверки", "Check Error"), _(f"Не удалось проверить статус модели '{model_name}'. Удаление отменено.", f"Could not check status of model '{model_name}'. Uninstallation cancelled."), parent=self.master)
+            return
 
         # Запрос подтверждения
         confirm = tkinter.messagebox.askyesno(
-            f"Подтверждение Удаления",
-            f"Вы уверены, что хотите удалить модель '{model_name}'?\n\n"
-            "Будут удалены основной пакет модели и все зависимости, которые больше не используются другими установленными моделями (кроме g4f).\n\n"
-            "Это действие необратимо!",
+            _("Подтверждение Удаления", "Confirm Uninstallation"),
+            _(f"Вы уверены, что хотите удалить модель '{model_name}'?\n\n"
+              "Будут удалены основной пакет модели и все зависимости, которые больше не используются другими установленными моделями (кроме g4f).\n\n"
+              "Это действие необратимо!",
+              f"Are you sure you want to uninstall the model '{model_name}'?\n\n"
+              "The main model package and all dependencies no longer used by other installed models (except g4f) will be removed.\n\n"
+              "This action is irreversible!"),
             icon='warning', parent=self.master
         )
 
@@ -1349,7 +1416,7 @@ class VoiceModelSettingsWindow:
     def start_download(self, model_id, button_widget):
         if button_widget and button_widget.winfo_exists():
             # Используем состояние tk.DISABLED
-            button_widget.config(text="Загрузка...", state=tk.DISABLED)
+            button_widget.config(text=_("Загрузка...", "Downloading..."), state=tk.DISABLED)
 
         if self.local_voice and hasattr(self.local_voice, 'download_model'):
             def install_thread_func():
@@ -1357,7 +1424,7 @@ class VoiceModelSettingsWindow:
                 try:
                     success = self.local_voice.download_model(model_id)
                 except Exception as e:
-                    logger.info(f"Ошибка в потоке загрузки для {model_id}: {e}")
+                    logger.info(f"{_('Ошибка в потоке загрузки для', 'Error in download thread for')} {model_id}: {e}")
                 finally:
                     if self.master.winfo_exists():
                         self.master.after(0, lambda: self.handle_download_result(success, model_id))
@@ -1365,27 +1432,25 @@ class VoiceModelSettingsWindow:
             install_thread = threading.Thread(target=install_thread_func, daemon=True)
             install_thread.start()
         else:
-            logger.info("Внимание: LocalVoice не доступен, используется имитация установки")
+            logger.info(_("Внимание: LocalVoice не доступен, используется имитация установки", "Warning: LocalVoice not available, simulating installation"))
             self.master.after(2000 + hash(model_id)%1000, lambda: self.handle_download_result(True, model_id))
 
     def start_uninstall(self, model_id):
         button_widget = self.model_action_buttons.get(model_id)
         if button_widget and button_widget.winfo_exists():
-            button_widget.config(text="Удаление...", state=tk.DISABLED)
+            button_widget.config(text=_("Удаление...", "Uninstalling..."), state=tk.DISABLED)
 
         if not self.local_voice:
-            logger.error("LocalVoice не найден для удаления.")
-            if button_widget and button_widget.winfo_exists(): button_widget.config(text="Ошибка", state=tk.NORMAL)
+            logger.error(f"{_('Неизвестный model_id для удаления:', 'Unknown model_id for uninstallation:')} {model_id}")
+            if button_widget and button_widget.winfo_exists(): button_widget.config(text=_("Ошибка", "Error"), state=tk.NORMAL)
             return
 
         target_uninstall_func = None
-        # Определяем, какую функцию удаления вызвать в LocalVoice
         if model_id in ["low", "low+"]:
             target_uninstall_func = self.local_voice.uninstall_edge_tts_rvc
         elif model_id == "medium":
             target_uninstall_func = self.local_voice.uninstall_fish_speech
         elif model_id in ["medium+", "medium+low"]:
-            # Для этих моделей удаляем только компонент Triton
             target_uninstall_func = self.local_voice.uninstall_triton_component
         else:
             logger.error(f"Неизвестный model_id для удаления: {model_id}")
@@ -1393,9 +1458,9 @@ class VoiceModelSettingsWindow:
             return
 
         if not hasattr(self.local_voice, target_uninstall_func.__name__):
-             logger.error(f"Метод {target_uninstall_func.__name__} не найден в LocalVoice.")
-             if button_widget and button_widget.winfo_exists(): button_widget.config(text="Ошибка", state=tk.NORMAL)
-             return
+            logger.error(f"{_('Метод', 'Method')} {target_uninstall_func.__name__} {_('не найден в LocalVoice.', 'not found in LocalVoice.')}")
+            if button_widget and button_widget.winfo_exists(): button_widget.config(text=_("Ошибка", "Error"), state=tk.NORMAL)
+            return
 
         # Запускаем выбранную функцию удаления в потоке
         def uninstall_thread_func():
@@ -1403,7 +1468,7 @@ class VoiceModelSettingsWindow:
             try:
                 success = target_uninstall_func() # Вызываем нужную функцию
             except Exception as e:
-                logger.error(f"Ошибка в потоке удаления для {model_id}: {e}")
+                logger.error(f"{_('Ошибка в потоке удаления для', 'Error in uninstall thread for')} {model_id}: {e}")
                 logger.error(traceback.format_exc())
             finally:
                 if self.master.winfo_exists():
@@ -1416,9 +1481,9 @@ class VoiceModelSettingsWindow:
         button_widget = self.download_buttons.get(model_id)
         if success:
             self.installed_models.add(model_id)
-            logger.info(f"Модель {model_id} установлена. Перезагрузка и адаптация настроек...")
+            logger.info(f"{_('Модель', 'Model')} {model_id} {_('установлена. Перезагрузка и адаптация настроек...', 'installed. Reloading and adapting settings...')}")
             self.load_settings()
-            logger.info("Настройки перезагружены.")
+            logger.info(_("Настройки перезагружены.", "Settings reloaded."))
 
             # Обновляем кнопку уже после перезагрузки настроек
             button_widget = self.download_buttons.get(model_id)
@@ -1430,16 +1495,18 @@ class VoiceModelSettingsWindow:
 
             if self.on_save_callback:
                  callback_data = {
-                     "installed_models": list(self.installed_models),
-                     "models_data": self.local_voice_models 
+                    "installed_models": list(self.installed_models),
+                    "models_data": self.local_voice_models 
                  }
                  self.on_save_callback(callback_data)
-            logger.info(f"Обработка установки {model_id} завершена.")
+            logger.info(f"{_('Обработка установки', 'Handling installation of')} {model_id} {_('завершена.', 'completed.')}")
         else:
-            logger.info(f"Ошибка установки модели {model_id}.")
+            logger.info(f"{_('Ошибка установки модели', 'Error installing model')} {model_id}.")
+            # ?????
+            self._create_model_panels()
+            button_widget = self.model_action_buttons.get(model_id)
             if button_widget and button_widget.winfo_exists():
-                # Используем tk.NORMAL для состояния кнопки при ошибке
-                button_widget.config(text="Ошибка", state=tk.NORMAL)
+                button_widget.config(text=_("Ошибка", "Error"), state=tk.NORMAL) 
 
     def handle_uninstall_result(self, success, model_id):
         """Обновляет интерфейс после завершения удаления."""
@@ -1447,15 +1514,14 @@ class VoiceModelSettingsWindow:
         model_data = next((m for m in self.local_voice_models if m["id"] == model_id), None)
 
         if success:
-            logger.info(f"Удаление модели {model_id} завершено успешно.")
+            logger.info(f"{_('Удаление модели', 'Uninstallation of model')} {model_id} {_('завершено успешно.', 'completed successfully.')}")
             if model_id in self.installed_models:
                 self.installed_models.remove(model_id)
 
-            # Обновляем кнопку: меняем на "Установить"
             if button_widget and button_widget.winfo_exists() and model_data:
-                install_text = "Установить"
+                install_text = _("Установить", "Install")
                 can_install = True
-                # Проверяем совместимость с GPU заново
+
                 supported_vendors = model_data.get('gpu_vendor', [])
                 allow_unsupported_gpu = os.environ.get("ALLOW_UNSUPPORTED_GPU", "0") == "1"
                 is_amd_user = self.detected_gpu_vendor == "AMD"
@@ -1463,7 +1529,7 @@ class VoiceModelSettingsWindow:
                 is_gpu_unsupported_amd = is_amd_user and not is_amd_supported
                 if is_gpu_unsupported_amd and not allow_unsupported_gpu:
                     can_install = False
-                    install_text = "Несовместимо с AMD"
+                    install_text = _("Несовместимо с AMD", "Incompatible with AMD")
 
                 install_state_tk = tk.NORMAL if can_install else tk.DISABLED
                 button_widget.config(
@@ -1474,27 +1540,25 @@ class VoiceModelSettingsWindow:
                     activebackground="#666666"
                 )
             else:
-                 logger.warning(f"Не удалось найти кнопку для модели {model_id} после удаления.")
+                logger.warning(_(f"Не удалось найти кнопку для модели {model_id} после удаления.", f"Couldn't find the button for model {model_id} after uninstall."))
 
-            # Удаляем секцию настроек
             if model_id in self.settings_sections:
                 section = self.settings_sections.pop(model_id)
                 if section and section.winfo_exists():
                     section.destroy()
 
-            # Обновляем отображение, если больше нет установленных моделей
             if not self.installed_models:
-                 self.display_installed_models_settings() # Покажет плейсхолдер
+                 self.display_installed_models_settings() 
 
-            self.save_installed_models_list() # Сохраняем обновленный список
+            self.save_installed_models_list() 
             if self.on_save_callback:
                  callback_data = {"installed_models": list(self.installed_models), "models_data": self.local_voice_models}
                  self.on_save_callback(callback_data)
-            self._update_settings_scrollregion() # Обновляем прокрутку
+            self._update_settings_scrollregion() 
 
         else:
-            logger.error(f"Ошибка при удалении модели {model_id}.")
-            tkinter.messagebox.showerror("Ошибка Удаления", f"Не удалось удалить модель '{model_id}'.\nСм. лог для подробностей.", parent=self.master)
+            logger.error(f"{_('Ошибка при удалении модели', 'Error uninstalling model')} {model_id}.")
+            tkinter.messagebox.showerror(_("Ошибка Удаления", "Uninstallation Error"), _(f"Не удалось удалить модель '{model_id}'.\nСм. лог для подробностей.", f"Could not uninstall model '{model_id}'.\nSee log for details."), parent=self.master)
             # Восстанавливаем кнопку "Удалить"
             if button_widget and button_widget.winfo_exists():
                 button_widget.config(text="Удалить", state=tk.NORMAL)
@@ -1505,21 +1569,21 @@ class VoiceModelSettingsWindow:
                 for model_id in sorted(list(self.installed_models)):
                     f.write(f"{model_id}\n")
         except Exception as e:
-            logger.info(f"Ошибка сохранения списка установленных моделей в {self.installed_models_file}: {e}")
+            logger.info(f"{_('Ошибка сохранения списка установленных моделей в', 'Error saving list of installed models to')} {self.installed_models_file}: {e}")
 
     def show_setting_description(self, key):
         if self.description_label_widget and self.description_label_widget.winfo_exists():
             description = self.setting_descriptions.get(key, "")
-            self.description_label_widget.config(text=description if description else default_description_text)
+            self.description_label_widget.config(text=description if description else self.default_description_text)
 
     def show_model_description(self, key):
         if self.description_label_widget and self.description_label_widget.winfo_exists():
             description = self.model_descriptions.get(key, "")
-            self.description_label_widget.config(text=description if description else default_description_text)
+            self.description_label_widget.config(text=description if description else self.default_description_text)
 
     def clear_description(self, event=None):
         if self.description_label_widget and self.description_label_widget.winfo_exists():
-            self.description_label_widget.config(text=default_description_text)
+            self.description_label_widget.config(text=self.default_description_text)
 
     def _update_scrollregion(self, canvas, scrollbar_widget):
         # Общий метод для обновления области прокрутки и показа/скрытия скроллбара

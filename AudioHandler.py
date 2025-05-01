@@ -14,7 +14,7 @@ class AudioHandler:
         try:
             logger.info(f"Проигрываю файл: {file_path}")
             await cls.play_audio_with_pygame(file_path)
-            if os.path.exists(file_path) and delete:
+            if os.path.exists(file_path) and delete and False: # Удаляет нужные для озвучки в игре файлы, так что временно заблокировано 
                 try:
                     await asyncio.sleep(0.02)
                     os.remove(file_path)
