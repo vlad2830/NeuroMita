@@ -76,13 +76,13 @@ namespace MitaAI
             if (!minigamesTelevisionController.activation)
             {
                 minigamesTelevisionController.StartTelevision();
-                CharacterMessages.sendSystemMessage("Player turned on TV, maybe you should sit on sofa using interaction.");
+                CharacterMessages.sendSystemMessage("Player turned on TV (for games), maybe you should sit on sofa using interaction.");
                 //MelonCoroutines.Start(startKeysMenu());
             }
             else
             {
                 minigamesTelevisionController.StopTelevision();
-                CharacterMessages.sendSystemMessage("Player turned off TV");
+                CharacterMessages.sendSystemMessage("Player turned off TV (for games)");
             }
 
         }
