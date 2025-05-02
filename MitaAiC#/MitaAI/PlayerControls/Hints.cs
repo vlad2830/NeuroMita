@@ -81,7 +81,7 @@ namespace MitaAI
         {
             if (exitButton != null)
             {
-                Utils.OnOffObjectActiveAfterTime(exitButton.gameObject,true,0.5f);
+                MelonCoroutines.Start(Utils.OnOffObjectActiveAfterTime(exitButton,true,0.75f));
                 //exitButton.active = true;
                 return;
             }
