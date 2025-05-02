@@ -188,7 +188,7 @@ class ChatModel:
                                               silero_turn_off_video=True)
         self.cart_space = SpaceCartridge("Cart_portal", 
                                          "/speaker  wheatley", 
-                                         short_name="CrazyMita", # TODO: чето подобрать
+                                         short_name="Player", 
                                          miku_tts_name="Player", 
                                          silero_turn_off_video=True)
         self.kind_mita_character = KindMita("Kind", 
@@ -213,7 +213,7 @@ class ChatModel:
                                            silero_turn_off_video=True)
         self.cart_divan = DivanCartridge("Cart_divan", 
                                          "/speaker engineer", 
-                                         short_name="CrazyMita", # TODO: чето подобрать
+                                         short_name="Player",
                                          miku_tts_name="Player", 
                                          silero_turn_off_video=True)
         self.creepy_character = CreepyMita("Creepy", 
@@ -223,7 +223,7 @@ class ChatModel:
                                            silero_turn_off_video=True)  #Спикер на рандом поставил
         self.GameMaster = GameMaster("GameMaster", 
                                      "/speaker dryad", 
-                                     short_name="CrazyMita", # TODO: чето подобрать
+                                     short_name="PhoneMita", # TODO: чето подобрать
                                      miku_tts_name="PhoneMita", 
                                      silero_turn_off_video=True)  # Спикер на рандом поставил
 
