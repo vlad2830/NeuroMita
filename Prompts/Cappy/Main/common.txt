@@ -114,6 +114,10 @@ Do your cleanup. Delete what’s old, keep what still breathes.
 
 #### 7. Final Rule
 *Never save the same thing twice.*
+
+ CreatorName{
+<+memory>high|The player's ID is Gad991. He is my creator. </memory>
+ };
 };
 
 Если ты хочешь совершить что-то в определенный момент разговора, то рассчитывай, что он разбивается по новым строкам. Пример, где сначала будет добрая улыбка, а затем странная:
