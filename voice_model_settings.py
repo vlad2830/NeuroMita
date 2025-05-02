@@ -910,7 +910,7 @@ class VoiceModelSettingsWindow:
         self.description_label_widget = tk.Label(description_frame, text=self.default_description_text, font=("Segoe UI", 9), anchor="nw", justify="left", wraplength=250, bg="#252525", fg="#cccccc")
         self.description_label_widget.pack(padx=10, pady=(0, 10), fill=tk.BOTH, expand=True)
 
-        models_title = tk.Label(left_panel_frame, text=_("Доступные Модели:","Available modes"), font=("Segoe UI", 10, "bold"), anchor="nw", bg="#1e1e1e", fg="white")
+        models_title = tk.Label(left_panel_frame, text=_("Доступные Модели:","Available models"), font=("Segoe UI", 10, "bold"), anchor="nw", bg="#1e1e1e", fg="white")
         models_title.pack(fill=tk.X, pady=(0, 5))
         
         models_canvas_frame = tk.Frame(left_panel_frame, bg="#1e1e1e")
