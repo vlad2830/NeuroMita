@@ -7,9 +7,9 @@ from Logger import logger
 
 
 class AudioConverter:
-    # Проверяем, где лежит ffmpeg
-    ffmpeg_rel_path = os.path.join("ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe")
-
+    # Проверяем, где лежит ffmpeg\
+    #ffmpeg_rel_path = os.path.join("ffmpeg-7.1-essentials_build", "bin", "ffmpeg.exe")
+    ffmpeg_rel_path = os.path.join("ffmpeg.exe")
     if getattr(sys, 'frozen', False):
         # Если программа собрана в exe, получаем путь к исполняемому файлу
         base_dir = os.path.dirname(sys.executable)
@@ -21,7 +21,6 @@ class AudioConverter:
         base_dir = os.path.dirname(__file__)
         alt_base_dir = base_dir  # Для единообразия
     ffmpeg_path = os.path.join(base_dir, ffmpeg_rel_path)
-    #ffmpeg_path = "ffmpeg-7.1-essentials_build/bin/ffmpeg.exe"
 
     @staticmethod
     async def convert_to_wav(input_file, output_file):
@@ -46,33 +45,3 @@ class AudioConverter:
         except subprocess.CalledProcessError as e:
             logger.info(f"Ошибка при конвертации аудио: {e}")
             return False
-
-    @staticmethod
-    async def convert_mp3_to_wav(input_path, output_path):
-        """Конвертирует MP3 в WAV с использованием ffmpeg."""
-        try:
-            if not os.path.exists(input_path):
-                logger.info(f"Файл {input_path} не найден при попытке конвертации.")
-                return
-
-            # Указываем путь к ffmpeg
-
-            logger.info(f"Начинаю конвертацию {input_path} в {output_path} с помощью {AudioConverter.ffmpeg_path}")
-
-            # Выполняем команду конвертации с нужными параметрами
-            (
-                ffmpeg
-                .input(input_path)
-                .output(
-                    output_path,
-                    format="wav",  # Указываем формат WAV
-                    acodec="pcm_s16le",  # 16-битный PCM
-                    ar="44100",  # Частота дискретизации 44100 Hz
-                    ac=2  # Количество каналов (2 = стерео, 1 = моно)
-                )
-                .run(cmd=AudioConverter.ffmpeg_path)
-            )
-
-            logger.info(f"Конвертация завершена: {output_path}")
-        except Exception as e:
-            logger.info(f"Ошибка при конвертации: {e}")
