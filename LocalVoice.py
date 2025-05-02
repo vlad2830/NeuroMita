@@ -2191,7 +2191,7 @@ class LocalVoice:
 
             if use_index_file and self.index_path and os.path.exists(self.index_path):
                 self.current_tts_rvc.set_index_path(self.index_path)
-                logger.info("Используем индексную базу для RVC:", self.index_path)
+                logger.info(f"Используем индексную базу для RVC: {self.index_path}")
             else:
                 self.current_tts_rvc.set_index_path("")
                 logger.info("Не используем индексную базу для RVC (файл не найден или отключен).")
@@ -2696,7 +2696,7 @@ class LocalVoice:
                                               trust_repo=True)
 
                     # Перемещаем модель на нужное устройство
-                    logger.info("SILERO LOCAL: Перемещаем модель на нужное устройство", silero_device)
+                    logger.info(f"SILERO LOCAL: Перемещаем модель на нужное устройство {silero_device}")
                     model.to(silero_device)
                     self.current_silero_model = model
                     self.current_silero_sample_rate = silero_sample_rate

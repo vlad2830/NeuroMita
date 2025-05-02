@@ -905,12 +905,12 @@ class VoiceModelSettingsWindow:
         description_frame = tk.Frame(left_panel_frame, bg="#252525", bd=1, relief=tk.SOLID, height=135, highlightbackground="#444", highlightthickness=1)
         description_frame.pack(side=tk.TOP, fill=tk.X, pady=(0, 10))
         description_frame.pack_propagate(False)
-        description_title = tk.Label(description_frame, text="Описание:", font=("Segoe UI", 9, "bold"), anchor="nw", bg="#252525", fg="white")
+        description_title = tk.Label(description_frame, text=_("Описание:","Description"), font=("Segoe UI", 9, "bold"), anchor="nw", bg="#252525", fg="white")
         description_title.pack(padx=10, pady=(5,2), anchor="nw")
         self.description_label_widget = tk.Label(description_frame, text=self.default_description_text, font=("Segoe UI", 9), anchor="nw", justify="left", wraplength=250, bg="#252525", fg="#cccccc")
         self.description_label_widget.pack(padx=10, pady=(0, 10), fill=tk.BOTH, expand=True)
 
-        models_title = tk.Label(left_panel_frame, text="Доступные Модели:", font=("Segoe UI", 10, "bold"), anchor="nw", bg="#1e1e1e", fg="white")
+        models_title = tk.Label(left_panel_frame, text=_("Доступные Модели:","Available modes"), font=("Segoe UI", 10, "bold"), anchor="nw", bg="#1e1e1e", fg="white")
         models_title.pack(fill=tk.X, pady=(0, 5))
         
         models_canvas_frame = tk.Frame(left_panel_frame, bg="#1e1e1e")
