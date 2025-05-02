@@ -172,6 +172,8 @@ class ChatGUI:
 
         self.textToTalk = ""
         self.textSpeaker = "/Speaker Mita"
+        self.textSpeakerMiku ="/set_person CrazyMita"
+
         self.silero_turn_off_video = False
 
         self.dialog_active = False
@@ -279,96 +281,23 @@ class ChatGUI:
         if self.loop and self.loop.is_running():
             logger.info("Запускаем асинхронную задачу в цикле событий...")
             # Здесь мы вызываем асинхронную задачу через главный цикл
-            self.loop.create_task(self.run_send_and_receive(self.textToTalk, self.textSpeaker))
+            self.loop.create_task(self.run_send_and_receive(self.textToTalk, self.getSpeakerText()))
         else:
             logger.info("Ошибка: Цикл событий asyncio не готов.")
 
-    async def run_send_and_receive(self, response, speaker_command, id):
+    def getSpeakerText(self):
+        if self.settings.get("AUDIO_BOT") == "@CrazyMitaAIbot":
+            return self.textSpeakerMiku
+        else:
+            return self.textSpeaker
+
+    async def run_send_and_receive(self, response, speaker_command, id = 0):
         """Асинхронный метод для вызова send_and_receive."""
         logger.info("Попытка получить фразу")
         self.waiting_answer = True
-        text_to_talk = response
 
-        if self.settings.get("AUDIO_BOT") == "@CrazyMitaAIbot (Без тг)":
-            rate = self.settings.get("MIKUTTS_VOICE_RATE")
-            engine = self.settings.get("MIKUTTS_ENGINE")
-            pitch = int(self.settings.get("MIKUTTS_VOICE_PITCH"))
+        await self.bot_handler.send_and_receive(response, speaker_command, id)
 
-            params = {'text': text_to_talk,
-                      'person': self.model.current_character.miku_tts_name}
-            data = None
-            if engine == "Edge":
-                method = "GET"
-                endpoint = "get_edge"
-                port = 2020
-                params['rate'] = rate
-                params['pitch'] = pitch
-            elif engine == "Vosk":
-                method = "GET"
-                endpoint = "get_item"
-                port = 2040
-                params['ids'] = self.settings.get("MIKUTTS_VOSK_IDS", 1)
-                params['pith'] = pitch
-            elif engine == "Silero":
-                method = "POST"
-                endpoint = "get_silero"
-                port = 2060
-                data = {
-                    "text": text_to_talk,
-                    "person": self.model.current_character.miku_tts_name,
-                    "model_id": "v4_ru",
-                    "language": "ru",
-                    "pitch": pitch,
-                    "provider": self.settings.get("MIKUTTS_SILERO_PROVIDER", "Aidar")
-                }
-                params = None
-
-            max_retries = 3
-            retry_delay = 1
-
-            for attempt in range(max_retries):
-                try:
-                    response, time_taken = await MikuTTSClient.send_request(method=method, data=data, port=port,
-                                                                            endpoint=endpoint, timeout=int(
-                            self.settings.get("SILERO_TIME")), params=params)
-                    if response:
-                        break
-                except Exception as e:
-                    logger.info(f"Попытка {attempt + 1} из {max_retries} не удалась. {e}")
-                    await asyncio.sleep(retry_delay)
-
-            logger.info(
-                f"Успешно сгенерирована озвучка, {time_taken} секунд, Движок: {self.settings.get("MIKUTTS_ENGINE")}, Текст: {text_to_talk}")
-
-            voice_path = f"MitaVoices/{uuid.uuid4()}.{"wav" if self.ConnectedToGame else "mp3"}"
-            absolute_audio_path = os.path.abspath(voice_path)
-
-            logger.info(f"После uuid {voice_path} \n{absolute_audio_path}")
-
-            try:
-                # Создаем директорию в отдельном потоке
-                await asyncio.to_thread(os.makedirs, os.path.dirname(absolute_audio_path), exist_ok=True)
-
-                # Записываем файл в отдельном потоке
-                await asyncio.to_thread(
-                    lambda: open(absolute_audio_path, "wb").write(response.content)
-                )
-
-                logger.info("Запись завершена")
-            except Exception as e:
-                logger.info(f"Ошибка при записи файла: {e}")
-
-            # end_time = time.time()
-            # logger.info(f"Время генерации озвучки {self.settings.get("AUDIO_BOT")}: {end_time - start_time}")
-
-            if self.ConnectedToGame:
-                self.patch_to_sound_file = absolute_audio_path
-                logger.info(f"Файл wav загружен: {absolute_audio_path}")
-            else:
-                logger.info(f"Отправлен воспроизводится: {absolute_audio_path}")
-                await AudioHandler.handle_voice_file(absolute_audio_path)
-        else:
-            await self.bot_handler.send_and_receive(response, speaker_command, id)
         self.waiting_answer = False
         logger.info("Завершение получения фразы")
 
@@ -397,7 +326,7 @@ class ChatGUI:
                         logger.info("Используем Telegram (Silero/Miku) для озвучки")
                         # Используем существующую логику для TG/MikuTTS
                         asyncio.run_coroutine_threadsafe(
-                            self.run_send_and_receive(self.textToTalk, self.textSpeaker, self.id_sound),
+                            self.run_send_and_receive(self.textToTalk, self.getSpeakerText(), self.id_sound),
                             self.loop
                         )
                         self.textToTalk = "" # Очищаем текст после отправки
@@ -1716,7 +1645,7 @@ class ChatGUI:
             # Возвращаем старое сообщение
             if value.startswith("@CrazyMitaAIbot"):
                 messagebox.showinfo("Информация",
-                                    "HАШ Слава Богу 🙏❤️СЛАВА @CrazyMitaAIbot🙏❤️АНГЕЛА ХРАНИТЕЛЯ КАЖДОМУ ИЗ ВАС 🙏❤️БОЖЕ ХРАНИ @CrazyMitaAIbot🙏❤️СПАСИБО ВАМ НАШИ МАЛЬЧИКИ ИЗ @CrazyMitaAIbot🙏🏼❤️",
+                                    "VinerX: наши товарищи из CrazyMitaAIbot предоставляет озвучку бесплатно буквально со своих пк, будет время - загляните к ним в тг, скажите спасибо)",
                                     parent=self.root)
 
             if self.bot_handler:

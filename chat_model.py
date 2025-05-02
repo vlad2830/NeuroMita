@@ -179,52 +179,52 @@ class ChatModel:
         self.crazy_mita_character = CrazyMita("Crazy", 
                                               "/speaker mita", 
                                               short_name="CrazyMita",
-                                              miku_tts_name="CrazyMita", 
+                                              miku_tts_name="/set_person CrazyMita",
                                               silero_turn_off_video=True)
         self.cappy_mita_character = CappyMita("Cappy", 
                                               "/speaker cap", 
                                               short_name="CappieMita",
-                                              miku_tts_name="CapMita", 
+                                              miku_tts_name="/set_person CapMita",
                                               silero_turn_off_video=True)
         self.cart_space = SpaceCartridge("Cart_portal", 
                                          "/speaker  wheatley", 
                                          short_name="Player", 
-                                         miku_tts_name="Player", 
+                                         miku_tts_name="/set_person Player",
                                          silero_turn_off_video=True)
         self.kind_mita_character = KindMita("Kind", 
                                             "/speaker kind", 
                                             short_name="MitaKind",
-                                            miku_tts_name="KindMita", 
+                                            miku_tts_name="/set_person KindMita",
                                             silero_turn_off_video=True)
         self.shorthair_mita_character = ShortHairMita("ShortHair", 
                                                       "/speaker  shorthair", 
                                                       short_name="ShorthairMita",
-                                                      miku_tts_name="ShortHairMita", 
+                                                      miku_tts_name="/set_person ShortHairMita",
                                                       silero_turn_off_video=True)
         self.mila_character = MilaMita("Mila", 
                                        "/speaker mila", 
                                        short_name="Mila",
-                                       miku_tts_name="MilaMita", 
+                                       miku_tts_name="/set_person MilaMita",
                                        silero_turn_off_video=True)
         self.sleepy_character = SleepyMita("Sleepy", 
                                            "/speaker dream",
                                            short_name="SleepyMita",
-                                           miku_tts_name="SleepyMita", 
+                                           miku_tts_name="/set_person SleepyMita",
                                            silero_turn_off_video=True)
         self.cart_divan = DivanCartridge("Cart_divan", 
                                          "/speaker engineer", 
                                          short_name="Player",
-                                         miku_tts_name="Player", 
+                                         miku_tts_name="/set_person Player",
                                          silero_turn_off_video=True)
         self.creepy_character = CreepyMita("Creepy", 
                                            "/speaker ghost", 
                                            short_name="GhostMita", # TODO: вместо крипи будет гост
-                                           miku_tts_name="GhostMita", 
+                                           miku_tts_name="/set_person GhostMita",
                                            silero_turn_off_video=True)  #Спикер на рандом поставил
         self.GameMaster = GameMaster("GameMaster", 
                                      "/speaker dryad", 
                                      short_name="PhoneMita", # TODO: чето подобрать
-                                     miku_tts_name="PhoneMita", 
+                                     miku_tts_name="/set_person PhoneMita",
                                      silero_turn_off_video=True)  # Спикер на рандом поставил
 
         # Словарь для сопоставления имен персонажей с их объектами
@@ -325,6 +325,8 @@ class ChatModel:
             else:
                 self.gui.textToTalk = self.process_text_to_voice(response)
                 self.gui.textSpeaker = self.current_character.silero_command
+                self.gui.textSpeakerMiku = self.current_character.miku_tts_name
+
                 self.gui.silero_turn_off_video = self.current_character.silero_turn_off_video
                 logger.info("self.gui.textToTalk: " + self.gui.textToTalk)
                 logger.info("self.gui.textSpeaker: " + self.gui.textSpeaker)
