@@ -81,7 +81,8 @@ namespace MitaAI
         {
             if (exitButton != null)
             {
-                exitButton.active = true;
+                Utils.OnOffObjectActiveAfterTime(exitButton.gameObject,true,0.5f);
+                //exitButton.active = true;
                 return;
             }
             

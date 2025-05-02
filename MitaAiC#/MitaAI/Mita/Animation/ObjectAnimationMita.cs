@@ -102,17 +102,20 @@ namespace MitaAI
             return response;
         }
 
-        public static void finishWorkingOAM()
+        public static void finishWorkingOAM(characterType mitaCharacter = characterType.None)
         {
-            var MitaCharacter = MitaCore.Instance.currentCharacter;
-            if (!currentMitasOAMc.ContainsKey(MitaCharacter)) return;
+            if  (mitaCharacter == characterType.None) mitaCharacter = MitaCore.Instance.currentCharacter;
 
-            if (currentMitasOAMc[MitaCharacter].backAnimation != null)
+            if (!currentMitasOAMc.ContainsKey(mitaCharacter)) return;
+
+            if (currentMitasOAMc[mitaCharacter].backAnimation != null)
             {
-                if (currentMitasOAMc[MitaCharacter].backAnimation.isEndingObject) currentMitasOAMc[MitaCharacter].backAnimation.Play();
+                if (currentMitasOAMc[mitaCharacter].backAnimation.isEndingObject) currentMitasOAMc[mitaCharacter].backAnimation.Play();
 
                 MelonLogger.Msg("Ending working OAM");
             }
+
+            MitaAnimationModded.getMitaAnimationModded(mitaCharacter).resetToIdleAnimation();
         }
 
         public CommonInteractableObject commonInteractableObject;

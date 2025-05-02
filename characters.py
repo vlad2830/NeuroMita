@@ -49,17 +49,28 @@ class CrazyMita(Character):
         for prompt in Prompts:
             self.add_prompt_part(prompt)
 
-    def safe_history(self, messages, temp_context):
+
+    # TODO это нафиг заглушка пепеделай меня
+    def safe_history(self, messages: dict, temp_context: dict):
+        """Кастомная обработка сохранения истории"""
+        # Сначала вызываем родительский метод для сохранения базовых переменных
         super().safe_history(messages, temp_context)
 
-        self.variables = {
-            "attitude": self.attitude,
-            "boredom": self.boredom,
-            "stress": self.stress,
+        # Затем добавляем/обновляем дополнительные переменные
+        self.variables.update({
             "playing_first": self.PlayingFirst,
             "secret": self.secretExposed,
             "secret_first": self.secretExposedFirst
+        })
+
+        # Сохраняем историю с обновленными переменными
+        history_data = {
+            'fixed_parts': self.prepare_fixed_messages(),
+            'messages': messages,
+            'temp_context': temp_context,
+            'variables': self.variables
         }
+        self.history_manager.save_history(history_data)
 
     def clear_history(self):
         super().clear_history()

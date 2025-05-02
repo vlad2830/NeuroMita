@@ -62,6 +62,8 @@ namespace MitaAI
                     mitaAnimationModded.setIdleWalk("Mita WalkKnife");
                     MelonCoroutines.Start(hunting());
                 }
+
+                ObjectAnimationMita.finishWorkingOAM(MitaCore.Instance.currentCharacter);
             }
             catch (Exception ex)
             {
@@ -74,12 +76,13 @@ namespace MitaAI
 
             float startTime = Time.unscaledTime;
             float lastMessageTime = 0f;
+            float timeToUpdateCommand = 2.5f;
 
             yield return new WaitForSecondsRealtime(1f);
 
             while (MitaState.GetCurrentState(MitaCore.Instance.currentCharacter) == MitaStateType.hunt)
             {
-                if (MitaCore.Instance.getDistanceToPlayer() > 1f)
+                if (MitaCore.Instance.getDistanceToPlayer() > timeToUpdateCommand)
                 {
                     MitaCore.Instance.Mita.AiWalkToTarget(MitaCore.Instance.playerPerson.transform);
                 }
