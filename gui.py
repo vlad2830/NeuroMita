@@ -1506,15 +1506,26 @@ class ChatGUI:
     def reload_prompts(self):
         """Скачивает свежие промпты с GitHub и перезагружает их для текущего персонажа."""
         # Запускаем асинхронную задачу через event loop
-        if self.loop and self.loop.is_running():
-            asyncio.run_coroutine_threadsafe(self.async_reload_prompts(), self.loop)
-        else:
-            logger.error("Цикл событий asyncio не запущен. Невозможно выполнить асинхронную загрузку промптов.")
-            messagebox.showerror(
-                _("Ошибка", "Error"), 
-                _("Не удалось запустить асинхронную загрузку промптов.", 
-                  "Failed to start asynchronous prompt download.")
-            )
+        #тут делаем запрос подверждение
+        confirm = messagebox.askokcancel(
+            _("Подтверждение", "Confirmation"),
+            _("Это удалит текущие промпты! Продолжить?", "This will delete the current prompts! Continue?"),
+            icon='warning', parent=self.root
+        )
+        if not confirm:
+            return
+        if confirm:
+            # Показать индикатор загрузки
+            self._show_loading_popup(_("Загрузка промптов...", "Downloading prompts..."))      
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(self.async_reload_prompts(), self.loop)
+            else:
+                logger.error("Цикл событий asyncio не запущен. Невозможно выполнить асинхронную загрузку промптов.")
+                messagebox.showerror(
+                    _("Ошибка", "Error"), 
+                    _("Не удалось запустить асинхронную загрузку промптов.", 
+                      "Failed to start asynchronous prompt download.")
+                )
 
     async def async_reload_prompts(self):
         try:
@@ -1524,7 +1535,13 @@ class ChatGUI:
             success = await self.loop.run_in_executor(None, downloader.download_and_replace_prompts)
             
             if success:
-                await self.loop.run_in_executor(None, self.model.current_character_to_change.reload_prompts)
+                character = self.model.characters.get(self.model.current_character_to_change)
+                if character:
+                    await self.loop.run_in_executor(None, character.reload_prompts)
+                else:
+                    logger.error("Персонаж для перезагрузки не найден")
+
+                self._close_loading_popup()
                 messagebox.showinfo(
                     _("Успешно", "Success"), 
                     _("Промпты успешно скачаны и перезагружены.", "Prompts successfully downloaded and reloaded.")
@@ -1541,6 +1558,29 @@ class ChatGUI:
                 _("Ошибка", "Error"), 
                 _("Не удалось обновить промпты.", "Failed to update prompts.")
             )
+    def _show_loading_popup(self, message):
+        """Показать окно загрузки"""
+        self.loading_popup = tk.Toplevel(self.root)
+        self.loading_popup.title(" ")
+        self.loading_popup.geometry("300x100")
+        self.loading_popup.configure(bg="#2c2c2c")
+
+        tk.Label(
+            self.loading_popup,
+            text=message,
+            bg="#2c2c2c",
+            fg="#ffffff",
+            font=("Arial", 12)
+        ).pack(pady=20)
+
+        self.loading_popup.transient(self.root)
+        self.loading_popup.grab_set()
+        self.root.update()
+
+    def _close_loading_popup(self):
+        if self.loading_popup and self.loading_popup.winfo_exists():
+            self.loading_popup.grab_release()
+            self.loading_popup.destroy()
 
     # region Microphone
 
