@@ -942,7 +942,7 @@ class ChatGUI:
         method_frame = tk.Frame(self.voiceover_content_frame, bg="#2c2c2c")
         tk.Label(method_frame, text=_("Вариант озвучки:", "Voiceover Method:"), bg="#2c2c2c", fg="#ffffff", width=25, anchor='w').pack(side=tk.LEFT, padx=5)
         self.voiceover_method_var = tk.StringVar(value=self.settings.get("VOICEOVER_METHOD", "TG"))
-        method_options = ["TG", "Local"] #if os.environ.get("EXPERIMENTAL_FUNCTIONS", "0") == "1" else ["TG"] # Вернем локальную озвучку всем
+        method_options = ["TG", "Local"] if os.environ.get("EXPERIMENTAL_FUNCTIONS", "0") == "1" else ["TG"] # Вернем локальную озвучку всем # Atm4x says: верну, ибо это вполне мог сделать гемини... хотя уже без разницы
         method_combobox = ttk.Combobox(
             method_frame,
             textvariable=self.voiceover_method_var,
@@ -1052,17 +1052,18 @@ class ChatGUI:
                       'Loads the last selected local model when the program starts.')
         )
 
-        delete_audio_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
-        delete_audio_frame.pack(fill=tk.X, pady=2)
-        self.create_setting_widget(
-            parent=delete_audio_frame,
-            label=_('Удалять аудио', 'Delete audio'),
-            setting_key='LOCAL_VOICE_DELETE_AUDIO',
-            widget_type='checkbutton',
-            default_checkbutton=True,
-            tooltip=_('Удалять аудиофайл локальной озвучки после его воспроизведения или отправки.',
-                      'Delete the local voiceover audio file after it has been played or sent.')
-        )
+        if os.environ.get("ENABLE_VOICE_DELETE_CHECKBOX", "0") == "1":
+            delete_audio_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
+            delete_audio_frame.pack(fill=tk.X, pady=2)
+            self.create_setting_widget(
+                parent=delete_audio_frame,
+                label=_('Удалять аудио', 'Delete audio'),
+                setting_key='LOCAL_VOICE_DELETE_AUDIO',
+                widget_type='checkbutton',
+                default_checkbutton=True,
+                tooltip=_('Удалять аудиофайл локальной озвучки после его воспроизведения или отправки.',
+                        'Delete the local voiceover audio file after it has been played or sent.')
+            )
 
         local_chat_voice_frame = tk.Frame(self.local_settings_frame, bg="#2c2c2c")
         local_chat_voice_frame.pack(fill=tk.X, pady=2)
@@ -2009,7 +2010,7 @@ class ChatGUI:
                 logger.info(f"Локальная озвучка сохранена в: {result_path}")
                 # Воспроизведение файла, если не подключены к игре И включена опция
                 if not self.ConnectedToGame and self.settings.get("VOICEOVER_LOCAL_CHAT"):
-                    await AudioHandler.handle_voice_file(result_path, False)
+                    await AudioHandler.handle_voice_file(result_path, self.settings.get("LOCAL_VOICE_DELETE_AUDIO", True) if os.environ.get("ENABLE_VOICE_DELETE_CHECKBOX", "0") == "1" else True)
                 elif self.ConnectedToGame:
                     self.patch_to_sound_file = result_path
                     logger.info(f"Путь к файлу для игры: {self.patch_to_sound_file}")
@@ -2020,20 +2021,6 @@ class ChatGUI:
 
         except Exception as e:
             logger.error(f"Ошибка при выполнении локальной озвучки: {e}")
-        finally:
-            # Проверяем настройку удаления и наличие пути к файлу
-            if result_path and self.settings.get("LOCAL_VOICE_DELETE_AUDIO", True):
-                 # Добавляем небольшую задержку перед удалением, если файл только что воспроизводился
-                 if not self.ConnectedToGame and self.settings.get("VOICEOVER_LOCAL_CHAT"):
-                     await asyncio.sleep(0.5) # Небольшая пауза на всякий случай
-                 try:
-                    if os.path.exists(result_path):
-                        os.remove(result_path)
-                        logger.info(f"Удален файл озвучки: {result_path}")
-                    else:
-                         logger.warning(f"Попытка удалить файл озвучки, но он уже не существует: {result_path}")
-                 except OSError as e_remove:
-                    logger.error(f"Ошибка при удалении файла озвучки {result_path}: {e_remove}")
 
     def on_local_voice_selected(self, event=None):
         """Обработчик выбора локальной модели озвучки"""
