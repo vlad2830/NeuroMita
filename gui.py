@@ -935,7 +935,7 @@ class ChatGUI:
             label=_('Использовать озвучку', 'Use speech'),
             setting_key='SILERO_USE',
             widget_type='checkbutton',
-            default_checkbutton=True,
+            default_checkbutton=False,
             command=lambda v: self.switch_voiceover_settings()
         )
 
