@@ -6,13 +6,13 @@ import sys
 from typing import List, Tuple
 
 # Конфигурация
-PROJECT_DIR = Path(r"E:\Games\OpenAI_API_TEST\OpenMita")
-STEAM_MODS_DIR = Path(r"E:\Games\steam2\steamapps\common\MiSide\Mods")
+PROJECT_DIR = Path(r"F:\Games\OpenAI_API_TEST\OpenMita")
+STEAM_MODS_DIR = Path(r"F:\Games\steam2\steamapps\common\MiSide\Mods")
 OUTPUT_DIR = PROJECT_DIR / "dist" / "NeuroMita"
-VENV_PYINSTALLER = PROJECT_DIR / ".venv" / "Scripts" / "pyinstaller.exe"
+VENV_PYINSTALLER = PROJECT_DIR / "venv" / "Scripts" / "pyinstaller.exe"
 SEVEN_ZIP_PATH = r"C:\Program Files\7-Zip\7z.exe"  # Путь к 7-Zip
 
-FINAL_ZIP_NAME = "NeuroMita "+"0."+"011"+"j"+"TestLocal"+".7z"
+FINAL_ZIP_NAME = "NeuroMita "+"0."+"011"+"abc"+"Test"+".7z"
 
 # Файлы для копирования
 FILES_TO_COPY = [
@@ -36,7 +36,7 @@ def run_command(command: List[str], cwd: str = None) -> bool:
         print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"Ошибка при выполнении команды:\n{e.stderr}")
+        print(f"Ошибка при выполнении команды:\n{e}")
         return False
 
 
