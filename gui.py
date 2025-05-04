@@ -315,7 +315,7 @@ class ChatGUI:
         #     return # Выходим, если озвучка выключена
 
         # Если озвучка включена и есть текст
-        if self.textToTalk:
+        if bool(self.settings.get("SILERO_USE")) and self.textToTalk:
             logger.info(f"Есть текст для отправки: {self.textToTalk} id {self.id_sound}")
             if self.loop and self.loop.is_running():
                 try:
